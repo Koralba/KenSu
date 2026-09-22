@@ -160,13 +160,20 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
 #catcher-hold-btn { border-color: rgba(0,229,255,0.35); }
 #pickoff-panel { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); z-index: 90; padding: 14px 20px; text-align: center; min-width: 340px; border-color: rgba(255,204,0,0.4); }
 #pickoff-panel h4 { margin: 0 0 6px 0; font-family: 'Orbitron'; font-size: 14px; color: #ffcc00; letter-spacing: 1px; }
+/* ABS 挑戰／教練抗議面板：改回貼在捕手方（畫面下緣、home plate 視角附近），
+   但整體縮到更小、字體更短，並疊加半透明效果，盡量不要蓋住畫面本身；
+   位置刻意墊高一點（bottom: 108px）避開最底部的投球選擇面板與節奏環。 */
+#abs-panel { position: absolute; top: 122px; right: 236px; left: auto; z-index: 90; padding: 6px 10px; text-align: center; min-width: 0; width: max-content; max-width: 34vw; border-color: rgba(0,229,255,0.25); background: rgba(10,14,24,0.32) !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: 0 6px 18px rgba(0,0,0,0.22); opacity: 0.6; pointer-events: auto; transition: opacity 0.15s; }
+#abs-panel:hover { opacity: 0.95; }
+#abs-panel .control-item { font-size: 10.5px; opacity: 0.95; white-space: nowrap; letter-spacing: 0.3px; margin-bottom: 2px; }
+#abs-panel .pitch-type-btn { font-size: 10.5px; padding: 4px 9px; }
 #pitch-select-panel h4 { margin: 0 0 6px 0; font-family: 'Orbitron'; font-size: 14px; color: #ffcc00; letter-spacing: 1px; }
 #pitch-type-list { display: flex; gap: 8px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
 .pitch-type-btn { font-family: 'Orbitron', sans-serif; font-size: 11px; padding: 7px 12px; border-radius: 8px; border: 2px solid rgba(0,229,255,0.35); background: rgba(0,229,255,0.06); color: #9fd; cursor: pointer; transition: 0.15s; }
 .pitch-type-btn.sel { border-color: #ff5555; background: rgba(255,85,85,0.18); color: #ffaaaa; box-shadow: 0 0 12px rgba(255,85,85,0.4); }
 
 /* ---------- 操作指南 ---------- */
-#controls-guide { position: absolute; top: 16px; right: 16px; padding: 13px; width: 250px; max-height: 70vh; overflow-y: auto; z-index: 10; }
+#controls-guide { position: absolute; top: 16px; right: 16px; padding: 11px 13px; width: 210px; max-height: 70vh; overflow-y: auto; z-index: 10; }
 #controls-guide h4 { color: #00ffcc; margin-bottom: 8px; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; border-bottom: 1px solid rgba(0,255,204,0.3); padding-bottom: 5px; font-size: 13px; }
 .control-item { margin-bottom: 6px; font-size: 12px; color: #ddd; line-height: 1.4; }
 .key-btn { display: inline-block; background: #333; border: 1px solid #666; border-radius: 4px; padding: 1px 6px; font-family: monospace; color: #fff; box-shadow: 0 2px 0 #111; }
@@ -223,15 +230,16 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
 /* ---------- 響應式：確保在不同解析度/視窗大小的螢幕上都能完整顯示所有畫面內容 ---------- */
 @media (max-width: 1300px) {
   #matchup-hud { width: 270px; padding: 12px; }
-  #controls-guide { width: 210px; padding: 10px; }
+  #controls-guide { width: 190px; padding: 9px 11px; }
   .stat-row { font-size: 11px; }
   .control-item { font-size: 11px; }
   #pitch-select-panel, #catcher-throw-panel, #pickoff-panel { min-width: 260px; padding: 10px 14px; }
+  #abs-panel { padding: 5px 9px; top: 108px; right: 214px; max-width: 40vw; opacity: 0.58; }
   .modal-box { width: 92vw; max-width: 720px; }
 }
 @media (max-width: 980px) {
   #matchup-hud { width: 220px; font-size: 11px; }
-  #controls-guide { width: 175px; }
+  #controls-guide { width: 160px; }
   #scoreboard { padding: 8px 12px; gap: 12px; }
   .score-table { font-size: 11px; }
   #msg-overlay { font-size: 40px; }
@@ -274,6 +282,7 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
 .touch-device #matchup-hud { bottom: calc(84px + env(safe-area-inset-bottom)); max-height: 40vh; }
 .touch-device #tempo-ring-wrap { left: 50% !important; right: auto; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom)) !important; }
 .touch-device #pitch-select-panel { bottom: calc(90px + env(safe-area-inset-bottom)); max-width: 92vw; }
+.touch-device #abs-panel { top: calc(108px + env(safe-area-inset-top)); right: 8px; max-width: 56vw; opacity: 0.62; }
 .touch-device #radar-display { bottom: calc(90px + env(safe-area-inset-bottom)); right: 10px; }
 .touch-device #scoreboard { top: calc(10px + env(safe-area-inset-top)); left: 10px; padding: 8px 12px; gap: 10px; }
 .touch-device .pitch-type-btn { padding: 10px 14px; font-size: 12px; }
@@ -348,15 +357,11 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
 
   <div id="controls-guide" class="glass-panel" style="display:none;">
     <h4>🎮 操作說明</h4>
-    <div class="control-item"><span class="key-btn">滑鼠移動</span> 打擊時瞄準球棒／投球時瞄準好壞球位置</div>
-    <div class="control-item"><span class="key-btn">左鍵</span> / <span class="key-btn">Space</span> 揮棒／出手投球</div>
-    <div class="control-item"><span class="key-btn">投手準備時</span> 打者可先按左鍵/Space試揮棒（純動作，不計判定）</div>
-    <div class="control-item"><span class="key-btn">1~4</span> 投球時選擇球種</div>
-    <div class="control-item"><span class="key-btn">Shift</span> 切換 強打/巧打</div>
-    <div class="control-item"><span class="key-btn">B</span> 觸擊短打 (推進跑者)</div>
-    <div class="control-item"><span class="key-btn">Q</span> 送跑者盜下一壘</div>
-    <div class="control-item"><span class="key-btn">Tab</span> 戰術/換人選單</div>
-    <div class="control-item" style="color:#ff8888;">攻守交換時，輪到你的球隊防守就會換你來投球！投手節奏4~7秒隨機出手，畫面不顯示倒數，請觀察投手預備動作預判。</div>
+    <div class="control-item"><span class="key-btn">滑鼠</span> 瞄準</div>
+    <div class="control-item"><span class="key-btn">左鍵/Space</span> 揮棒／投球</div>
+    <div class="control-item"><span class="key-btn">1~4</span> 選球種　<span class="key-btn">Shift</span> 強打/巧打</div>
+    <div class="control-item"><span class="key-btn">B</span> 觸擊　<span class="key-btn">Q</span> 盜壘　<span class="key-btn">Tab</span> 戰術</div>
+    <div class="control-item" style="color:#ff8888;">輪到球隊防守時換你投球，留意投手動作出手。</div>
   </div>
 
   <div id="matchup-hud" class="glass-panel" style="display:none;">
@@ -368,7 +373,7 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
     <div class="stat-row">球速: <span id="p-speed">--</span> km/h | 控球: <span id="p-control">-</span> | 尾勁: <span id="p-move">-</span></div>
     <div class="stat-row" id="p-traits"></div>
     <hr class="hud-divider">
-    <div class="player-header batter-color"><span id="batter-name">打者: --</span> <span id="batter-order">(第1棒)</span></div>
+    <div class="player-header batter-color"><span id="batter-name">打者: --</span> <span id="batter-order">(第1棒)</span> <span id="batter-hand">(右打)</span></div>
     <div class="stat-row">巧打: <span id="b-contact">-</span> | 力量: <span id="b-power">-</span> | 跑速: <span id="b-speed">-</span></div>
     <div class="stat-row">打擊模式: <span id="swing-mode" style="color:#00ffcc; font-weight:bold;">巧打 (Normal)</span></div>
     <div class="stat-row" id="b-traits"></div>
@@ -386,6 +391,9 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
     <h4>⚾ 輪到你投球！</h4>
     <div class="control-item">滑鼠移動瞄準好球帶內外角，<span class="key-btn">左鍵</span>/<span class="key-btn">Space</span> 出手</div>
     <div id="pitch-type-list"></div>
+    <div id="hold-runner-row" style="display:none; margin-top:8px;">
+      <button id="hold-runner-btn" class="pitch-type-btn" style="border-color:rgba(255,204,0,0.5); color:#ffcc00;">🔒 牽制壘上跑者 (E)</button>
+    </div>
   </div>
 
   <div id="catcher-throw-panel" class="glass-panel" style="display:none;">
@@ -407,6 +415,15 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
       <button id="pickoff-continue-btn" class="pitch-type-btn sel">正常投球</button>
     </div>
   </div>
+
+  <div id="abs-panel" class="glass-panel" style="display:none;">
+    <div class="control-item" id="abs-remaining">🦅 ABS 剩2</div>
+    <div class="pitch-type-list" style="display:flex; gap:6px; justify-content:center; margin-top:4px; flex-wrap:nowrap;">
+      <button id="abs-challenge-btn" class="pitch-type-btn sel">🦅 挑戰</button>
+      <button id="abs-skip-btn" class="pitch-type-btn">跳過</button>
+    </div>
+  </div>
+
 
   <div id="radar-display" class="glass-panel">
     <div class="radar-pitch" id="radar-pitch-type">--</div>
@@ -437,7 +454,7 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
     </div>
   </div>
 
-  <div id="pause-hint" style="display:none;">Tab 開啟戰術選單 ・ Q 盜壘 ・ Shift 切換打擊模式 ・ B 觸擊短打</div>
+  <div id="pause-hint" style="display:none;">Tab 開啟戰術選單 ・ Q 盜壘 ・ Shift 切換打擊模式 ・ B 觸擊短打 ・ E 牽制壘上跑者 ・ L 按住離壘</div>
 
   <!-- ============ 手機／平板觸控操作列（僅觸控裝置顯示，鍵盤操作完全不受影響） ============ -->
   <div id="mobile-controls">
@@ -445,6 +462,8 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
     <button type="button" class="mobile-btn" id="mb-power-btn" title="切換強打/巧打"><span class="mb-icon">💪</span><span id="mb-power-label">巧打</span></button>
     <button type="button" class="mobile-btn" id="mb-steal-btn" title="送跑者盜壘"><span class="mb-icon">🏃</span>盜壘</button>
     <button type="button" class="mobile-btn mb-bunt" id="mb-bunt-btn" title="按住觸擊短打"><span class="mb-icon">🎯</span>觸擊(按住)</button>
+    <button type="button" class="mobile-btn" id="mb-hold-btn" title="牽制壘上跑者" style="display:none;"><span class="mb-icon">🔒</span>牽制</button>
+    <button type="button" class="mobile-btn mb-bunt" id="mb-lead-btn" title="按住離壘" style="display:none;"><span class="mb-icon">🏁</span>離壘(按住)</button>
   </div>
 </div>
 
@@ -1136,6 +1155,9 @@ function initGame() {
   curPitcher = curPitcherTeam.pitchers[0];
   curBatterIdx = 0;
   curBatter = curBatterTeam.lineup[curBatterIdx];
+  absChallenges = { away: 3, home: 3 };
+  coachEjected = { away: false, home: false };
+  argueUseCount = { away: 0, home: 0 };
 
   applyTeamColors(TEAM_AWAY, TEAM_HOME);
   buildScoreTable();
@@ -1268,6 +1290,17 @@ const basePositions = {
   third:  new THREE.Vector3(-BASE_DIST*0.707, 0.05, -BASE_DIST*0.707),
   home:   new THREE.Vector3(0, 0.05, 0),
 };
+/* 節奏校準：場地座標(BASE_DIST=19.3)是為了畫面構圖而縮小過的比例，並不是真正 27.4 公尺的
+   等比例縮放。如果直接照場景座標的「公尺數」去算真實世界的跑壘/傳球速度，會導致覆蓋這些
+   (縮小過的)距離所花的時間比真實棒球短很多，看起來像是一下子就跑完、一下子就傳完——
+   這裡不去更動整個場地的視覺比例（會牽動投手丘、全壘打牆等一大串已經調好的畫面配置），
+   而是統一透過這三個共用函式校準「移動速度」與「傳球每單位距離要花的時間」，讓覆蓋這些
+   場地距離所花的實際秒數貼近真實棒球節奏：跑一個壘包大約 3.3～5 秒、內野傳球約 1～1.3 秒、
+   外野長傳約 1.5～2.5 秒，而不是一瞬間就結束。所有跑者/野手移動、傳球時間的計算都應該
+   透過這三個函式，不要再各自寫死公式，才能確保整場節奏是一致的。 */
+function runnerSpeedMps(speed) { return 3.6 + ((speed||60)/100) * 2.3; }      // 跑者移動速度(m/s，已依場地縮放校準)
+function fielderMoveMps(rating) { return 3.9 + ((rating||60)/100) * 2.6; }    // 野手跑位/追球速度(m/s，已依場地縮放校準)
+function throwSecPerUnit(arm) { return THREE.MathUtils.clamp(0.0352 - ((arm||70) - 70) * 0.00024, 0.0234, 0.049); } // 傳球每單位距離秒數
 function makeBaseBag(pos) {
   const bag = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.08, 0.55), baseMat);
   bag.position.copy(pos); bag.receiveShadow = true; scene.add(bag); return bag;
@@ -1304,23 +1337,25 @@ function buildOutfieldWall() {
   scene.add(wallGroup);
 
   // 觀眾席 (分層看台 + 觀眾人頭紋理，並會隨場上狀況產生歡呼反應)
-  const crowdCanvas = document.createElement('canvas'); crowdCanvas.width = 256; crowdCanvas.height = 64;
+  // 提高解析度、每排人數與行數，讓看台/全壘打牆後方看起來是「真的擠滿觀眾」，而不是稀疏的雜訊排列。
+  const crowdCanvas = document.createElement('canvas'); crowdCanvas.width = 384; crowdCanvas.height = 96;
   const cctx = crowdCanvas.getContext('2d');
-  cctx.fillStyle = '#171b26'; cctx.fillRect(0,0,256,64);
-  // 一排排觀眾人頭（橢圓代表頭部+肩膀），營造出「有人坐在看台上」的感覺，而非純雜訊
-  const rowCount = 7;
+  cctx.fillStyle = '#171b26'; cctx.fillRect(0,0,384,96);
+  // 一排排觀眾人頭（橢圓代表頭部+肩膀），營造出「有人坐在看台上、擠得滿滿」的感覺，而非純雜訊
+  const rowCount = 11;
   for (let row = 0; row < rowCount; row++) {
-    const rowY = 4 + row * (56/rowCount);
-    for (let col = 0; col < 42; col++) {
-      const jitterX = (Math.random()-0.5) * 3;
-      const x = (col / 42) * 256 + jitterX;
+    const rowY = 5 + row * (86/rowCount);
+    const cols = 58;
+    for (let col = 0; col < cols; col++) {
+      const jitterX = (Math.random()-0.5) * 3.4;
+      const x = (col / cols) * 384 + jitterX + (row % 2 === 0 ? 3 : 0); // 相鄰排交錯排列，看起來更密集自然
       const hue = Math.random()*360;
-      const light = 28 + Math.random()*38;
-      cctx.fillStyle = `hsl(${hue},32%,${light}%)`;
+      const light = 30 + Math.random()*36;
+      cctx.fillStyle = `hsl(${hue},38%,${light}%)`;
       // 肩膀
-      cctx.fillRect(x-3, rowY+3, 6, 4);
+      cctx.fillRect(x-3.4, rowY+3, 6.8, 4.2);
       // 頭
-      cctx.beginPath(); cctx.ellipse(x, rowY, 2.6, 3, 0, 0, Math.PI*2); cctx.fill();
+      cctx.beginPath(); cctx.ellipse(x, rowY, 2.9, 3.3, 0, 0, Math.PI*2); cctx.fill();
     }
   }
   const crowdTex = new THREE.CanvasTexture(crowdCanvas);
@@ -1328,8 +1363,13 @@ function buildOutfieldWall() {
   const standMat = new THREE.MeshStandardMaterial({ map: crowdTex, emissive: 0x000000 });
   window._crowdStandMats = window._crowdStandMats || [];
   window._crowdStandMats.push(standMat);
-  // 全壘打牆後方看台：獨立於一般觀眾席，全壘打時會有更明顯的跳動歡呼反應
+  // 全壘打牆後方看台：獨立於一般觀眾席，全壘打時會有更明顯的跳動歡呼反應；
+  // 這裡把貼圖重複次數拉高、区块也加高，讓「全壘打牆上方」那一圈看起來真的擠滿了近距離的觀眾。
   const wallCrowdMat = new THREE.MeshStandardMaterial({ map: crowdTex, emissive: 0x000000 });
+  wallCrowdMat.map = crowdTex.clone();
+  wallCrowdMat.map.needsUpdate = true;
+  wallCrowdMat.map.wrapS = THREE.RepeatWrapping;
+  wallCrowdMat.map.repeat.set(14, 1.6);
   window._wallCrowdMat = wallCrowdMat;
   const wallCrowdGroup = new THREE.Group();
   window._wallCrowdGroup = wallCrowdGroup;
@@ -1338,9 +1378,9 @@ function buildOutfieldWall() {
     const angle = -Math.PI/4 + (i / segments) * (Math.PI/2);
     const x = Math.sin(angle) * rw;
     const z = -Math.cos(angle) * rw;
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(rw*Math.PI/2/segments*1.15, 2.4, 2), wallCrowdMat);
-    seg.position.set(x, 4.6, z);
-    seg.lookAt(0, 4.6, 0);
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(rw*Math.PI/2/segments*1.15, 3.6, 2), wallCrowdMat);
+    seg.position.set(x, 5, z);
+    seg.lookAt(0, 5, 0);
     wallCrowdGroup.add(seg);
   }
   scene.add(wallCrowdGroup);
@@ -1430,6 +1470,13 @@ function hashStringToUnit(str) {
   for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) >>> 0; }
   return (h % 1000) / 1000;
 }
+// 打者左右打擊：球員資料目前沒有真正記錄慣用打擊手，這裡依球員姓名做穩定的雜湊判斷
+// （同一個球員每次都會得到同樣的結果），讓打線裡自然出現約 28% 左右的左打者比例，貼近真實棒球生態。
+function deriveBatterHand(b) {
+  if (!b) return 'R';
+  if (b.hand === 'L' || b.hand === 'R') return b.hand;
+  return hashStringToUnit(b.name || 'batter') < 0.28 ? 'L' : 'R';
+}
 function capsuleLike(radius, length, mat, segments=16) {
   const g = new THREE.Group();
   const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, Math.max(0.001, length - radius*1.4), segments), mat);
@@ -1506,11 +1553,12 @@ function createHumanoid(skinColor, jerseyColor, pantsColor=0xffffff, capColor=nu
     if (!opts.noGlove) {
       const glove = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 10), new THREE.MeshStandardMaterial({color:0x6b3d1f, roughness:0.7}));
       glove.position.y = -0.32; forearmGroup.add(glove);
-    } else {
-      // 打者不戴野手手套，改用貼膚色的手掌，實際握點會對齊球棒握把
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 10), skinMat);
-      hand.position.y = -0.3; forearmGroup.add(hand);
     }
+    // 打者(noGlove)刻意不在這裡另外加一顆手掌網格：球棒自己身上已經有 gripLower/gripUpper
+    // 兩顆貼膚色球體代表「真正握棒的雙手」，兩者本來就跟著球棒一起旋轉移動、緊貼握把。
+    // 如果在前臂末端再加一顆獨立手掌，會因為左右前臂各自的旋轉角度跟球棒握把的旋轉角度對不上，
+    // 變成一隻沒有真的握到球棒、懸空飄在旁邊的「多餘空手」，所以這裡直接留空，交給球棒的握把
+    // 手掌來呈現雙手握棒的樣子。
     armGroup.forearm = forearmGroup;
     return armGroup;
   }
@@ -1555,17 +1603,38 @@ let umpireModel = null;
 /* 主審：站在捕手後上方，負責好壞球/出局/安全上壘的手勢判決動畫；
    採蹲姿並加大側移，避免像真人裁判一樣站得太高、擋住打者視角 */
 function spawnUmpire() {
-  if (umpireModel) return; // 裁判全場固定不變，只需建立一次
-  umpireModel = createHumanoid(0xe8b98a, 0x1a1a1a, 0x1a1a1a, 0x111111, { seed: 0.5, number: '', numberBg: '#111111' });
-  umpireModel.scale.set(0.8, 0.5, 0.8);
-  umpireModel.position.set(-0.52, -0.34, 2.05);
+  // 裁判全場固定不變，只需建立一次；但每次進場都要確認模型確實掛在「目前」的 scene 上，
+  // 避免因為某些流程重建了球場物件、卻因為 umpireModel 參考還存在而被 guard 擋掉、沒有被加回場景，
+  // 導致裁判物件其實還在記憶體裡卻完全不會被畫出來。
+  if (umpireModel) { if (umpireModel.parent !== scene) scene.add(umpireModel); return; }
+  // 制服改用深藏青上衣＋炭灰長褲＋淺灰胸前護具，跟球場整體偏暗的配色明顯做出區隔，
+  // 而不是原本近乎全黑、很容易和昏暗背景融在一起、幾乎看不見的配色。
+  umpireModel = createHumanoid(0xd9a878, 0x2b3554, 0x22242c, 0x14161c, { seed: 0.5, number: '', numberBg: '#14161c' });
+  umpireModel.scale.set(0.85, 0.58, 0.85);
+  // 站位修正：先前把裁判放在太靠近攝影機的位置（z 值太大），在目前的鏡頭視角/視野角度下，
+  // 那個距離只要一點點的垂直位移（蹲姿造成的 y 偏移）就會直接落到畫面可視範圍之外，
+  // 導致裁判「其實有建立、也有加進場景，但整個人都在鏡頭外面」而完全看不到。
+  // 改成貼近捕手後方、深度上更接近本壘板（而不是幾乎貼在鏡頭前），並把左右位置移到打者(x=-0.75)
+  // 的另一側，確保不會跟打者重疊、也一定落在鏡頭視野內。
+  umpireModel.position.set(0.55, -0.08, 1.25);
   umpireModel.joints.torso.rotation.x = 0.3;
   umpireModel.joints.head.rotation.x = -0.15;
+  umpireModel.joints.head.rotation.y = -0.3; // 頭略轉向本壘板／打者方向，看起來更像在盯著好球帶判決
   umpireModel.joints.rLeg.rotation.x = -0.9;
   umpireModel.joints.lLeg.rotation.x = -0.9;
   umpireModel.joints.rLeg.shin.rotation.x = 1.2;
   umpireModel.joints.lLeg.shin.rotation.x = 1.2;
+  // 胸前護具：淺灰色扁球體貼在胸口，除了造型正確之外也是加強視覺輪廓、方便玩家一眼認出裁判的重點色塊
+  const padMat = new THREE.MeshStandardMaterial({ color: 0xaab0bb, roughness: 0.45, metalness: 0.1 });
+  const chestPad = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 10), padMat);
+  chestPad.scale.set(1.15, 1.3, 0.6);
+  chestPad.position.set(0, 1.18, 0.09);
+  umpireModel.add(chestPad);
   scene.add(umpireModel);
+  // 專屬補光：裁判站位偏暗，額外加一盞小範圍點光源打亮，避免深色制服融進背景陰影裡
+  const umpireLight = new THREE.PointLight(0xbfd8ff, 0.55, 2.4);
+  umpireLight.position.set(0.4, 1.6, 1.4);
+  scene.add(umpireLight);
 }
 
 /* 裁判動畫："strike"/"out" 握拳右手用力揮出；"ball"/"safe"/"walk" 雙臂平舉 */
@@ -1591,6 +1660,198 @@ function animateUmpireCall(type) {
   }
 }
 
+/* =========================================================================================
+   打者姿勢骨架（Batter Rig）：球棒 + 雙手 IK，左打／右打完全鏡射
+   ---------------------------------------------------------------------------------------
+   座標約定（人物局部座標，人物面向 +z）：
+     · 打者站在本壘板旁邊、整個人「面向本壘板」(側身面對投手)，所以
+         +z(人物正前方)  = 朝向本壘板／好球帶（也就是「內側」）
+         人物局部 x 軸   = 投手←→捕手方向（右打者：+x 朝投手；左打者：−x 朝投手）
+     · rearSign = 後肩（靠捕手那一側）在人物局部 x 軸上的符號：右打 −1、左打 +1。
+     · 兩隻手握棒的位置(握把中心)與球棒整支都放在「朝向本壘板」那一側 (+z)，
+       所以不管左打右打，手與球棒永遠都在身體的內側、靠近畫面中央的好球帶框。
+   球棒姿勢以極座標表示（繞著打者身體的鉛直軸）：
+       th  手的方位角，0 = 正前方(朝本壘板)，正值往後肩(捕手側)偏、負值往前肩(投手側)偏
+       r   手離身體軸心的水平半徑      u  手的高度      pf 軸心前後微調
+       o/t/v 球棒方向的三個分量：往外(朝本壘板)／切線(往後肩)／向上
+       gl/gu 前手(下手)、後手(上手)握在球棒上的位置(離棒尾距離)
+   雙手用兩段式 IK 每一幀追著握把位置，所以揮棒過程中手永遠不會離開球棒。
+   ========================================================================================= */
+const ARM_UPPER_LEN = 0.34, ARM_FORE_LEN = 0.31;
+const _UP = new THREE.Vector3(0, 1, 0), _DOWN = new THREE.Vector3(0, -1, 0);
+const _ik = {
+  toT: new THREE.Vector3(), dir: new THREE.Vector3(), pole: new THREE.Vector3(), elbow: new THREE.Vector3(),
+  wrist: new THREE.Vector3(), up: new THREE.Vector3(), fore: new THREE.Vector3(), qi: new THREE.Quaternion()
+};
+const _rigTmp = { rad: new THREE.Vector3(), tan: new THREE.Vector3(), hand: new THREE.Vector3(), dir: new THREE.Vector3(),
+  frontT: new THREE.Vector3(), rearT: new THREE.Vector3(), poleF: new THREE.Vector3(), poleR: new THREE.Vector3() };
+
+const BAT_POSES = {
+  // 預備站姿：雙手握棒舉在後肩前方、身體內側(朝本壘板)，棒身近乎直立、微微靠向後肩
+  stance:  { th: 0.55,  r: 0.34, u: 1.40, pf: 0.02, o: 0.10,  t: 0.22, v: 0.968, gl: 0.03, gu: 0.16 },
+  // 蓄力：手往後肩再收一點
+  load:    { th: 0.78,  r: 0.32, u: 1.44, pf: 0.02, o: 0.00,  t: 0.34, v: 0.94,  gl: 0.03, gu: 0.16 },
+  // 擊球瞬間：球棒水平、棒頭伸到本壘板上方（好球帶前）
+  contact: { th: -0.15, r: 0.44, u: 1.20, pf: 0.02, o: 0.90,  t: -0.38, v: 0.15, gl: 0.03, gu: 0.16 },
+  // 隨球：雙手繞到前肩上方，球棒繞到肩後
+  follow:  { th: -0.95, r: 0.34, u: 1.46, pf: 0.02, o: -0.49, t: 0.35, v: 0.72,  gl: 0.03, gu: 0.16 },
+  // 觸擊：球棒水平橫在好球帶前，上手滑到棒身中段
+  bunt:    { th: -0.05, r: 0.46, u: 1.16, pf: 0.02, o: 0.93,  t: -0.32, v: 0.16, gl: 0.16, gu: 0.46 }
+};
+
+/* 兩段式手臂 IK：arm 是肩膀關節群組(局部座標=人物局部座標)，target 為手腕要到達的位置 */
+function solveArmIK(arm, target, poleHint) {
+  const sh = arm.position;
+  const toT = _ik.toT.copy(target).sub(sh);
+  let d = toT.length();
+  const maxReach = ARM_UPPER_LEN + ARM_FORE_LEN - 0.004;
+  const minReach = Math.abs(ARM_UPPER_LEN - ARM_FORE_LEN) + 0.03;
+  d = Math.min(maxReach, Math.max(minReach, d));
+  const dir = _ik.dir.copy(toT).normalize();
+  const a = (ARM_UPPER_LEN * ARM_UPPER_LEN - ARM_FORE_LEN * ARM_FORE_LEN + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, ARM_UPPER_LEN * ARM_UPPER_LEN - a * a));
+  const pole = _ik.pole.copy(poleHint);
+  pole.addScaledVector(dir, -pole.dot(dir));
+  if (pole.lengthSq() < 1e-6) pole.set(0, -1, 0).addScaledVector(dir, dir.y);
+  pole.normalize();
+  const elbow = _ik.elbow.copy(sh).addScaledVector(dir, a).addScaledVector(pole, h);
+  const wrist = _ik.wrist.copy(sh).addScaledVector(dir, d);
+  const upDir = _ik.up.copy(elbow).sub(sh).normalize();
+  arm.quaternion.setFromUnitVectors(_DOWN, upDir);
+  const foreWorld = _ik.fore.copy(wrist).sub(elbow).normalize();
+  _ik.qi.copy(arm.quaternion).invert();
+  foreWorld.applyQuaternion(_ik.qi);
+  arm.forearm.quaternion.setFromUnitVectors(_DOWN, foreWorld);
+}
+
+function armAtSign(model, s) { return s > 0 ? model.joints.rArm : model.joints.lArm; }
+function legAtSign(model, s) { return s > 0 ? model.joints.rLeg : model.joints.lLeg; }
+
+function buildBatterRig(model, isLHB) {
+  const rearSign = isLHB ? 1 : -1;
+  const yawSign = -rearSign;                 // 揮棒轉體方向：右打 +、左打 −
+  model.position.set(isLHB ? 0.75 : -0.75, 0, 0);
+  model.rotation.y = yawSign * Math.PI / 2;  // 右打面向 +x、左打面向 −x（都是面向本壘板），不使用負縮放鏡射
+  model.scale.z = model.scale.x;
+
+  const batMat = new THREE.MeshStandardMaterial({ color: 0xc98a4b, roughness: 0.5 });
+  const bat = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.028, 0.28, 10), batMat); handle.position.y = 0.14; bat.add(handle);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.045, 0.55, 10), batMat); barrel.position.y = 0.55; bat.add(barrel);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), batMat); knob.position.y = -0.005; bat.add(knob);
+  const skin = model.children.find(c => c.isMesh && c.geometry && c.geometry.type === 'SphereGeometry' && c.position.y > 1.6);
+  const gripSkin = new THREE.MeshStandardMaterial({ color: skin ? skin.material.color : 0xffd9b3, roughness: 0.8 });
+  const gripLower = new THREE.Mesh(new THREE.SphereGeometry(0.062, 10, 10), gripSkin); bat.add(gripLower);
+  const gripUpper = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 10), gripSkin); bat.add(gripUpper);
+  bat.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  model.add(bat);                            // 球棒直接掛在人物身上，由 IK 帶動雙手去追它
+  bat3D = bat;
+
+  const rig = {
+    model, isLHB, rearSign, yawSign, baseYaw: yawSign * Math.PI / 2,
+    p: Object.assign({}, BAT_POSES.stance),
+    ik: { front: true, rear: true }, detached: false,
+    rearArm: armAtSign(model, rearSign), frontArm: armAtSign(model, -rearSign),
+    rearLeg: legAtSign(model, rearSign), frontLeg: legAtSign(model, -rearSign),
+    gripLower, gripUpper
+  };
+  window._batterRig = rig;
+
+  // 站姿：兩腳沿「投手←→捕手」方向左右打開、膝蓋微彎、上身微前傾
+  rig.rearLeg.rotation.set(-0.09, 0, rearSign * 0.10);
+  rig.frontLeg.rotation.set(-0.09, 0, -rearSign * 0.10);
+  rig.rearLeg.shin.rotation.x = 0.16; rig.frontLeg.shin.rotation.x = 0.16;
+  model.joints.torso.rotation.x = 0.05;
+  updateBatterRig();
+  return rig;
+}
+
+/* 每一幀：把球棒擺到 rig.p 指定的姿勢，並讓兩隻手臂用 IK 追著握把 */
+function updateBatterRig() {
+  const rig = window._batterRig;
+  if (!rig || !batterModel || rig.model !== batterModel || !bat3D || rig.detached) return;
+  const p = rig.p, rs = rig.rearSign;
+  const sinT = Math.sin(p.th), cosT = Math.cos(p.th);
+  const rad = _rigTmp.rad.set(rs * sinT, 0, cosT);
+  const tan = _rigTmp.tan.set(rs * cosT, 0, -sinT);
+  const hand = _rigTmp.hand.set(0, p.u, p.pf).addScaledVector(rad, p.r);
+  const dir = _rigTmp.dir.set(0, p.v, 0).addScaledVector(rad, p.o).addScaledVector(tan, p.t).normalize();
+  const mid = (p.gl + p.gu) / 2;
+  bat3D.quaternion.setFromUnitVectors(_UP, dir);
+  bat3D.position.copy(hand).addScaledVector(dir, -mid);
+  rig.gripLower.position.y = p.gl;
+  rig.gripUpper.position.y = p.gu;
+  // 前手(下手)握棒尾側、後手(上手)握在其上方
+  const frontT = _rigTmp.frontT.copy(bat3D.position).addScaledVector(dir, p.gl);
+  const rearT = _rigTmp.rearT.copy(bat3D.position).addScaledVector(dir, p.gu);
+  if (rig.ik.front) solveArmIK(rig.frontArm, frontT, _rigTmp.poleF.set(-rs * 0.55, -1, -0.15));
+  if (rig.ik.rear) solveArmIK(rig.rearArm, rearT, _rigTmp.poleR.set(rs * 0.55, -1, -0.15));
+}
+
+/* 回到預備站姿（身體、雙腿、雙手、球棒一起歸位） */
+function batterToStance(dur = 0.24) {
+  const rig = window._batterRig; if (!rig) return;
+  const m = rig.model, rs = rig.rearSign;
+  rig.detached = false;
+  gsap.to(rig.p, Object.assign({}, BAT_POSES.stance, { duration: dur, ease: "power1.out", overwrite: true }));
+  gsap.to(m.rotation, { y: rig.baseYaw, duration: dur, ease: "power1.out", overwrite: "auto" });
+  gsap.to(m.joints.torso.rotation, { y: 0, duration: dur, overwrite: "auto" });
+  gsap.to(rig.rearLeg.rotation, { x: -0.09, z: rs * 0.10, duration: dur, overwrite: "auto" });
+  gsap.to(rig.frontLeg.rotation, { x: -0.09, z: -rs * 0.10, duration: dur, overwrite: "auto" });
+  gsap.to(rig.rearLeg.shin.rotation, { x: 0.16, duration: dur, overwrite: "auto" });
+  gsap.to(rig.frontLeg.shin.rotation, { x: 0.16, duration: dur, overwrite: "auto" });
+}
+
+/* 揮棒動作（玩家與電腦共用）：蓄力 → 加速到擊球點(此刻呼叫 onContact) → 隨球 → 收棒歸位 */
+function playBatSwingMotion({ dur, hipTurn, shoulderTurn, onContact }) {
+  const rig = window._batterRig; if (!rig) { if (onContact) onContact(); return; }
+  const m = rig.model, ys = rig.yawSign, rs = rig.rearSign;
+  rig.detached = false;
+  gsap.killTweensOf(rig.p); gsap.killTweensOf(m.rotation); gsap.killTweensOf(m.position); gsap.killTweensOf(m.joints.torso.rotation);
+  [rig.frontLeg, rig.rearLeg].forEach(l => { gsap.killTweensOf(l.rotation); gsap.killTweensOf(l.shin.rotation); });
+  const loadDur = dur * 0.22, driveDur = dur - loadDur, hipLead = dur * 0.1;
+  const tl = gsap.timeline();
+  // 球棒：先往後肩蓄力 → 加速掃過本壘板上方(擊球點) → 隨球繞過前肩 → 收回站姿
+  tl.to(rig.p, Object.assign({}, BAT_POSES.load,    { duration: loadDur,  ease: "power1.out" }), 0)
+    .to(rig.p, Object.assign({}, BAT_POSES.contact, { duration: driveDur, ease: "power2.in"  }), loadDur)
+    .to(rig.p, Object.assign({}, BAT_POSES.follow,  { duration: 0.16,     ease: "power1.out" }), dur)
+    .to(rig.p, Object.assign({}, BAT_POSES.stance,  { duration: 0.28,     ease: "power2.inOut" }), dur + 0.30);
+  if (onContact) tl.call(onContact, null, dur);
+  // 身體：髖部先轉(朝投手方向打開)、肩膀跟上，之後回正
+  tl.to(m.rotation, { y: rig.baseYaw + ys * hipTurn, duration: dur, ease: "power2.out" }, hipLead)
+    .to(m.rotation, { y: rig.baseYaw, duration: 0.28, ease: "power1.inOut" }, dur + 0.30)
+    .to(m.joints.torso.rotation, { y: ys * shoulderTurn, duration: dur, ease: "power2.out" }, 0)
+    .to(m.joints.torso.rotation, { y: 0, duration: 0.28 }, dur + 0.30);
+  // 下半身：前腳(投手側)跨步落地、後腳腳跟提起蹬地
+  tl.to(rig.frontLeg.rotation, { z: -rs * 0.24, x: -0.16, duration: dur * 0.9, ease: "power2.out" }, hipLead)
+    .to(rig.frontLeg.shin.rotation, { x: 0.05, duration: dur * 0.9, ease: "power2.out" }, hipLead)
+    .to(rig.rearLeg.rotation, { z: rs * 0.05, x: 0.08, duration: dur * 0.9, ease: "power2.out" }, hipLead)
+    .to(rig.rearLeg.shin.rotation, { x: 0.34, duration: dur * 0.9, ease: "power2.out" }, hipLead)
+    .to(rig.frontLeg.rotation, { z: -rs * 0.10, x: -0.09, duration: 0.28 }, dur + 0.30)
+    .to(rig.frontLeg.shin.rotation, { x: 0.16, duration: 0.28 }, dur + 0.30)
+    .to(rig.rearLeg.rotation, { z: rs * 0.10, x: -0.09, duration: 0.28 }, dur + 0.30)
+    .to(rig.rearLeg.shin.rotation, { x: 0.16, duration: 0.28 }, dur + 0.30);
+  // 重心微微前移再歸位
+  tl.to(m.position, { z: -0.05, y: 0.015, duration: dur * 0.5, ease: "power1.out" }, 0)
+    .to(m.position, { z: 0, y: 0, duration: 0.24 }, dur * 0.5);
+  return tl;
+}
+
+/* 全壘打擊球後把球棒往前一丟、雙手放鬆垂下（球棒脫離雙手，IK 停用） */
+function batTossAnim() {
+  const rig = window._batterRig; if (!rig || !bat3D) return;
+  rig.detached = true;
+  gsap.killTweensOf(rig.p);
+  rig.gripLower.visible = false; rig.gripUpper.visible = false; // 手已經鬆開，握把上的手掌一起隱藏
+  const s = rig.rearSign;
+  [[rig.frontArm, -s], [rig.rearArm, s]].forEach(([arm, side]) => {
+    gsap.to(arm.rotation, { x: 0.25, y: 0, z: side * 0.18, duration: 0.4, ease: "power2.out" });
+    gsap.to(arm.forearm.rotation, { x: 0.35, y: 0, z: 0, duration: 0.4, ease: "power2.out" });
+  });
+  gsap.to(bat3D.position, { x: bat3D.position.x, y: bat3D.position.y + 0.4, z: bat3D.position.z + 0.9, duration: 0.55, ease: "power2.out" });
+  gsap.to(bat3D.rotation, { z: bat3D.rotation.z + Math.PI * 2.4, duration: 0.8, ease: "power2.out" });
+}
+
 function applyTeamColors(teamAway, teamHome) {
   // 清除舊模型
   [pitcherModel, batterModel].forEach(m => { if (m) scene.remove(m); });
@@ -1609,44 +1870,15 @@ function applyTeamColors(teamAway, teamHome) {
   scene.add(pitcherModel);
 
   // 打者 = 目前輪到的打擊者
+  const batterHand = deriveBatterHand(curBatter);
+  window._curBatterHand = batterHand;
   batterModel = createHumanoid(defColor, curBatterTeamColor(), 0xf5f5f5, 0x222222, {
     seed: hashStringToUnit(curBatter.name), number: curBatter.number, numberBg: batterHex, noGlove: true
   });
-  batterModel.position.set(-0.75, 0, 0);
-  batterModel.rotation.y = Math.PI / 2;
+  // 左右打者：站位、面向、握棒姿勢全部由 buildBatterRig 依 rearSign/yawSign 鏡射；
+  // 不再用負縮放硬翻轉，雙手與球棒永遠在身體「朝向本壘板」的內側，靠近畫面中央的好球帶框。
+  buildBatterRig(batterModel, batterHand === 'L');
   scene.add(batterModel);
-
-  const batHandleGeo = new THREE.CylinderGeometry(0.018, 0.028, 0.28, 10);
-  const batBarrelGeo = new THREE.CylinderGeometry(0.028, 0.045, 0.55, 10);
-  const batMat = new THREE.MeshStandardMaterial({ color: 0xc98a4b, roughness: 0.5 });
-  bat3D = new THREE.Group();
-  const handle = new THREE.Mesh(batHandleGeo, batMat); handle.position.y = 0.14; bat3D.add(handle);
-  const barrel = new THREE.Mesh(batBarrelGeo, batMat); barrel.position.y = 0.55; bat3D.add(barrel);
-  // 雙手握把：兩顆貼膚色手掌疊在球棒握把上，確保球棒視覺上「真的被握住」，
-  // 不會因為左右手臂各自獨立旋轉而導致手離球棒懸空的怪異畫面
-  const gripSkin = new THREE.MeshStandardMaterial({ color: defColor, roughness: 0.8 });
-  const gripLower = new THREE.Mesh(new THREE.SphereGeometry(0.062, 10, 10), gripSkin);
-  gripLower.position.y = 0.03; bat3D.add(gripLower);
-  const gripUpper = new THREE.Mesh(new THREE.SphereGeometry(0.058, 10, 10), gripSkin);
-  gripUpper.position.y = 0.16; bat3D.add(gripUpper);
-  bat3D.position.set(0, -0.3, 0);
-  // 球棒相對於前臂的「握持角度」：讓球棒在預備打擊姿勢時看起來是直立的（棒頭朝上、微微後靠在肩上方），
-  // 而不是像原本那樣斜斜躺在手臂延伸線上。這個角度是配合下面 rArm 的預備姿勢角度反算出來的。
-  bat3D.rotation.set(-0.758, -0.499, 0.574);
-  window._batRestRotation = { x: -0.758, y: -0.499, z: 0.574 };
-  window._batBuntRotation = { x: -0.821, y: -0.559, z: -1.534 };
-  batterModel.joints.rArm.forearm.add(bat3D);
-
-  batterModel.joints.rArm.rotation.x = 1.02;   // 後手肘上提貼近肩膀
-  batterModel.joints.rArm.rotation.z = -0.68;  // 拉向身體中心，靠近後肩握把處
-  batterModel.joints.lArm.rotation.x = 1.18;   // 前手略為伸展橫過身體
-  batterModel.joints.lArm.rotation.z = 0.22;
-  // 打擊預備姿勢：膝蓋微彎、上半身些微前傾/擰緊，呈現運動員蓄勢待發的站姿，而非直挺站立
-  batterModel.joints.rLeg.rotation.x = -0.09;
-  batterModel.joints.lLeg.rotation.x = -0.09;
-  batterModel.joints.rLeg.shin.rotation.x = 0.16;
-  batterModel.joints.lLeg.shin.rotation.x = 0.16;
-  batterModel.joints.torso.rotation.x = 0.05;
 
   // 九名野手：依守備隊的先發打線「守備位置」欄位，自動對應真正的球員與背號
   const positions = {
@@ -1674,19 +1906,24 @@ function applyTeamColors(teamAway, teamHome) {
     f.scale.multiplyScalar(0.92);
     f.position.copy(vec);
     if (posKey === 'C') {
-      // 捕手蹲姿：壓低身形、彎曲膝蓋、身體微前傾，並貼近本壘、些微偏移中心線，
-      // 避免站立的捕手直接擋在攝影機與好球帶框之間。
-      f.scale.set(f.scale.x * 0.98, f.scale.y * 0.56, f.scale.z * 0.98);
+      // 捕手蹲姿：改成主要靠膝蓋與上半身的關節彎曲來降低高度，只保留很輕微的縱向壓縮，
+      // 避免像先前把整個身形壓到只剩 0.56 倍、看起來像被壓扁的比例不對的「矮人」，
+      // 讓捕手蹲下後身形比例仍然合理、看起來更像一個真的蹲著的球員。
+      // 另外把蹲姿再壓得更低、位置也往捕手自己身後（遠離投手方向）退一點：攝影機離捕手很近，
+      // 稍微高一點的東西在近景透視下投影面積會被放大很多，先前的高度/深度會讓捕手的頭肩明顯
+      // 擋住好球帶擊球框，這裡同時降低高度＋拉開深度，確保整個好球帶框在畫面上都不被遮擋。
+      f.scale.set(f.scale.x * 0.94, f.scale.y * 0.74, f.scale.z * 0.94);
       f.position.y = -0.42;
-      f.joints.torso.rotation.x = 0.34;
-      f.joints.head.rotation.x = -0.22;
-      f.joints.rLeg.rotation.x = -1.05;
-      f.joints.lLeg.rotation.x = -1.05;
-      f.joints.rLeg.shin.rotation.x = 1.35;
-      f.joints.lLeg.shin.rotation.x = 1.35;
-      f.joints.rArm.rotation.x = 0.9;
-      f.joints.lArm.rotation.x = 0.9;
-      if (f.numberSprite) f.numberSprite.position.y = 1.15;
+      f.position.z = vec.z + 0.16;
+      f.joints.torso.rotation.x = 0.52;
+      f.joints.head.rotation.x = -0.32;
+      f.joints.rLeg.rotation.x = -1.32;
+      f.joints.lLeg.rotation.x = -1.32;
+      f.joints.rLeg.shin.rotation.x = 1.72;
+      f.joints.lLeg.shin.rotation.x = 1.72;
+      f.joints.rArm.rotation.x = 0.95;
+      f.joints.lArm.rotation.x = 0.95;
+      if (f.numberSprite) f.numberSprite.position.y = 1.05;
     }
     scene.add(f);
     fielderModels[posKey] = { model: f, home: vec.clone(), player: player || null };
@@ -1742,7 +1979,13 @@ window.addEventListener('mousemove', (e) => {
 });
 window.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
+  // 點擊到的是畫面上的 UI 面板／按鈕（例如 ABS 挑戰、選球、牽制等浮動面板），
+  // 不能讓這次點擊「同時」也被當成投球/揮棒的畫面操作，否則按鈕自己的 onclick 還沒處理完，
+  // 這裡就先把投球/揮棒動作觸發出去（例如投手方按下 ABS「挑戰」的同一下點擊，
+  // 會被這裡搶先偵測成「玩家要投下一球」，直接把 ABS 視窗強制關閉、球也投出去了）。
+  if (isUITouchTarget(e.target)) return;
   if (brawlActive) { registerBrawlMash(); return; } // 衝突小遊戲：連點左鍵累積怒氣值
+  if (argueActive) { registerArgueMash(); return; } // ABS 教練抗議小遊戲：連點左鍵累積抗議進度條
   if (gameState === "PITCHING_WAIT" && isHumanPitchingNow() && !window._pickoffPending) { throwPitch(); return; }
   attemptSwing();
 });
@@ -1761,12 +2004,13 @@ function toggleSwingPowerMode() {
 function triggerStealAction() {
   // 依當下狀態決定：投手已出手（球在半空中）就是「投球中盜壘」，
   // 投手還沒開始動作、雙方都在準備階段時觸發則是「提前起跑」，會逼投手立刻決定要不要牽制。
-  if (gameState === "PITCH_FLIGHT") attemptSteal();
+  if (gameState === "PITCH_FLIGHT" || gameState === "PITCH_WINDUP") attemptSteal();
   else if (gameState === "PITCHING_WAIT") attemptStealPrePitch();
 }
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (brawlActive) { if (e.code === 'Space') { e.preventDefault(); registerBrawlMash(); } return; } // 衝突小遊戲：連按空白鍵累積怒氣值
+  if (argueActive) { if (e.code === 'Space') { e.preventDefault(); registerArgueMash(); } return; } // ABS 教練抗議小遊戲：連按空白鍵累積抗議進度條
   if (e.code === 'Tab' || e.code === 'Escape') { e.preventDefault(); toggleSubModal(); }
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') { toggleSwingPowerMode(); }
   if (gameState === "PITCHING_WAIT" && isHumanPitchingNow() && !window._pickoffPending) {
@@ -1776,10 +2020,13 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') { e.preventDefault(); attemptSwing(); }
   if (e.code === 'KeyQ') { triggerStealAction(); }
   if (e.code === 'KeyB' && !e.repeat) { startBuntHold(); }
+  if (e.code === 'KeyE' && !e.repeat) { attemptManualPickoff(); }
+  if (e.code === 'KeyL' && !e.repeat) { startLeadHold(); }
 });
 window.addEventListener('keyup', (e) => {
   keys[e.code] = false;
   if (e.code === 'KeyB') { endBuntHold(); }
+  if (e.code === 'KeyL') { endLeadHold(); }
 });
 
 /* =========================================================================================
@@ -1819,6 +2066,7 @@ function endTouchAim(e) {
   _touchAiming = false;
   if (e.cancelable) e.preventDefault();
   if (brawlActive) { registerBrawlMash(); return; } // 衝突小遊戲：連點累積怒氣值
+  if (argueActive) { registerArgueMash(); return; } // ABS 教練抗議小遊戲：連點累積抗議進度條
   if (gameState === "PITCHING_WAIT" && isHumanPitchingNow() && !window._pickoffPending) { throwPitch(); return; }
   attemptSwing();
 }
@@ -1831,10 +2079,24 @@ function wireMobileControls() {
   const powerBtn = document.getElementById('mb-power-btn');
   const stealBtn = document.getElementById('mb-steal-btn');
   const buntBtn = document.getElementById('mb-bunt-btn');
+  const holdBtn = document.getElementById('mb-hold-btn');
+  const leadBtn = document.getElementById('mb-lead-btn');
   if (!menuBtn) return;
   menuBtn.addEventListener('click', (e) => { e.preventDefault(); toggleSubModal(); });
   powerBtn.addEventListener('click', (e) => { e.preventDefault(); toggleSwingPowerMode(); });
   stealBtn.addEventListener('click', (e) => { e.preventDefault(); triggerStealAction(); });
+  if (holdBtn) holdBtn.addEventListener('click', (e) => { e.preventDefault(); attemptManualPickoff(); });
+  // 離壘同樣需要「按住」，桌機對應 KeyL 的 keydown/keyup，這裡比照觸擊按鈕的作法處理觸控/滑鼠事件
+  if (leadBtn) {
+    const leadStart = (e) => { e.preventDefault(); leadBtn.classList.add('mb-active'); startLeadHold(); };
+    const leadEnd = (e) => { if (e.cancelable) e.preventDefault(); leadBtn.classList.remove('mb-active'); endLeadHold(); };
+    leadBtn.addEventListener('touchstart', leadStart, { passive: false });
+    leadBtn.addEventListener('touchend', leadEnd, { passive: false });
+    leadBtn.addEventListener('touchcancel', leadEnd, { passive: false });
+    leadBtn.addEventListener('mousedown', leadStart);
+    leadBtn.addEventListener('mouseup', leadEnd);
+    leadBtn.addEventListener('mouseleave', (e) => { if (leadBtn.classList.contains('mb-active')) leadEnd(e); });
+  }
   // 觸擊短打需要「按住」，桌機用 KeyB 的 keydown/keyup 對應，這裡用 touchstart/touchend 對應同一組函式；
   // 另外補上 mouse 事件，讓平板搭配觸控筆/滑鼠時一樣能用。
   const buntStart = (e) => { e.preventDefault(); buntBtn.classList.add('mb-active'); startBuntHold(); };
@@ -1860,6 +2122,9 @@ function showPitchSelectUI() {
     btn.onclick = () => selectPitchType(parseInt(btn.dataset.idx, 10));
   });
   panel.style.display = 'block';
+  updateHoldRunnerButtonVisibility();
+  const holdBtn = document.getElementById('hold-runner-btn');
+  if (holdBtn && !holdBtn._wired) { holdBtn._wired = true; holdBtn.onclick = () => attemptManualPickoff(); }
 }
 function hidePitchSelectUI() {
   document.getElementById('pitch-select-panel').style.display = 'none';
@@ -1873,6 +2138,8 @@ function selectPitchType(idx) {
 function throwPitch() {
   if (gameState !== "PITCHING_WAIT" || !isHumanPitchingNow()) return;
   if (window._pickoffPending) return; // 跑者提前起跑、牽制決策還沒做完前，不能直接投球
+  if (absReviewActive) return; // ABS 鷹眼複查（或後續教練抗議）正在進行中，這段期間不能投球，等複查結束後才能繼續
+  closeConcurrentABSWindowIfOpen(); // 玩家(投手方)主動出手準備投下一球，併行開著的 ABS 挑戰視窗就此關閉
   const pitch = curPitcher.pitches[Math.min(selectedPitchIdx, curPitcher.pitches.length-1)];
   pendingPitchPlan = { pitch, tx: pitchAim.x, ty: pitchAim.y, intent: 'player' };
   startPitchAnimation();
@@ -1949,20 +2216,69 @@ function pickPitchPlan() {
 }
 
 let pitcherIdleTween = null;
+let pitcherFlavorTimer = null;
 function startPitcherIdleLoop() {
   stopPitcherIdleLoop();
   if (!pitcherModel) return;
   pitcherIdleTween = gsap.timeline({ repeat: -1, yoyo: true });
   pitcherIdleTween.to(pitcherModel.joints.torso.rotation, { x: 0.035, duration: 0.9, ease: "sine.inOut" })
                   .to(pitcherModel.position, { y: pitcherModel.position.y + 0.014, duration: 0.9, ease: "sine.inOut" }, "<");
+  schedulePitcherFlavorGesture();
 }
 function stopPitcherIdleLoop() {
   if (pitcherIdleTween) { pitcherIdleTween.kill(); pitcherIdleTween = null; }
-  if (pitcherModel) gsap.set(pitcherModel.joints.torso.rotation, { x: 0 });
+  clearTimeout(pitcherFlavorTimer); pitcherFlavorTimer = null;
+  if (pitcherModel && pitcherModel.joints) {
+    gsap.killTweensOf(pitcherModel.joints.torso.rotation);
+    gsap.killTweensOf(pitcherModel.joints.head.rotation);
+    gsap.killTweensOf(pitcherModel.joints.lArm.rotation);
+    gsap.killTweensOf(pitcherModel.joints.rArm.rotation);
+    gsap.set(pitcherModel.joints.torso.rotation, { x: 0, y: 0, z: 0 });
+    gsap.set(pitcherModel.joints.head.rotation, { x: 0, y: 0 });
+    gsap.set(pitcherModel.joints.lArm.rotation, { x: 0, z: 0 });
+    gsap.set(pitcherModel.joints.rArm.rotation, { x: 0, z: 0 });
+  }
+}
+/* 投手在等待出手節奏的空檔穿插各種預備/伸展小動作（轉肩甩手臂放鬆、拉一下帽簷、轉頭看跑者、
+   對捕手的暗號搖頭/點頭示意），讓投球之間的等待時間看起來投手真的在準備、在跟捕手互動，
+   而不是整個畫面卡住不動、只有胸口一直輕輕起伏。 */
+function schedulePitcherFlavorGesture() {
+  clearTimeout(pitcherFlavorTimer);
+  if (!pitcherModel) return;
+  pitcherFlavorTimer = setTimeout(() => {
+    if (gameState !== "PITCHING_WAIT" || !pitcherModel || absReviewActive) return;
+    playPitcherFlavorGesture();
+    schedulePitcherFlavorGesture();
+  }, 700 + Math.random() * 900);
+}
+function playPitcherFlavorGesture() {
+  const j = pitcherModel.joints;
+  const variants = [
+    // 轉肩、甩一下投球手臂放鬆
+    () => { gsap.to(j.rArm.rotation, { z: "-=0.25", duration: 0.22, yoyo: true, repeat: 1, ease: "sine.inOut" }); },
+    // 拉一下帽簷、順便低頭看看手套
+    () => {
+      gsap.to(j.lArm.rotation, { x: -0.85, z: 0.15, duration: 0.2, ease: "power2.out" });
+      gsap.to(j.head.rotation, { x: -0.1, duration: 0.2 });
+      gsap.to(j.lArm.rotation, { x: 0, z: 0, duration: 0.26, delay: 0.32, ease: "power1.out" });
+      gsap.to(j.head.rotation, { x: 0, duration: 0.26, delay: 0.32 });
+    },
+    // 轉頭看一下跑者／場邊
+    () => { gsap.to(j.head.rotation, { y: (Math.random() > 0.5 ? 1 : -1) * 0.32, duration: 0.24, ease: "sine.inOut", yoyo: true, repeat: 1 }); },
+    // 對捕手暗號搖頭示意「不投這個」、再點頭確認球種
+    () => {
+      gsap.to(j.head.rotation, { y: 0.2, duration: 0.13, yoyo: true, repeat: 3, ease: "sine.inOut" });
+      gsap.to(j.head.rotation, { x: 0.12, duration: 0.16, delay: 0.58, yoyo: true, repeat: 1, ease: "sine.inOut" });
+    },
+    // 聳聳肩、抖一下肩膀放鬆
+    () => { gsap.to(j.torso.rotation, { z: "+=0.06", duration: 0.16, yoyo: true, repeat: 1, ease: "sine.inOut" }); }
+  ];
+  variants[Math.floor(Math.random() * variants.length)]();
 }
 /* 投手正式進入「準備出手」的預備動作：讓玩家能明確預判即將投球（固定約0.5秒的可辨識提示） */
 function playPitcherSetCue() {
   if (gameState !== "PITCHING_WAIT" || isHumanPitchingNow()) return;
+  closeConcurrentABSWindowIfOpen(); // 投手(電腦)正式進入投球準備動作，併行開著的 ABS 挑戰視窗就此關閉
   stopPitcherIdleLoop();
   gsap.to(pitcherModel.joints.head.rotation, { x: -0.16, duration: 0.18 });
   gsap.to(pitcherModel.position, { y: pitcherModel.position.y + 0.05, duration: 0.22, ease: "power1.out" });
@@ -1972,7 +2288,9 @@ function twoStrikeOrCloseCount() { return strikes === 2 || balls === 3; }
 function scheduleNextPitch(first=false) {
   if (gameState === "GAMEOVER" || gameState === "BRAWL") return;
   clearTimeout(window._setCueTimer);
+  clearTimeout(window._cpuPickoffTimer);
   gameState = "PITCHING_WAIT";
+  resetAndAssignLeads(); // 每球開始前重新歸零/重新決定壘上跑者的離壘幅度
 
   if (isHumanPitchingNow()) {
     // 玩家防守方：由玩家自行選球種、瞄準、決定出手時機
@@ -1987,20 +2305,46 @@ function scheduleNextPitch(first=false) {
   pendingPitchPlan = pickPitchPlan();
   // 投手準備節奏：真實比賽中投手每球間隔並不固定，會依「個人節奏」「體力」「壘上有無跑者
   // (需要牽制/抓時機、拉長打擊節奏擾亂跑者)」「當下球數壓力」而有明顯落差，
-  // 這裡讓間隔落在約 3~9 秒之間動態變化，而不是固定的一小段區間；
-  // 畫面仍不顯示確切倒數，玩家只能靠投手的預備動作來抓時機。
-  const tempoBias = THREE.MathUtils.clamp((curPitcher.tempo - 6) * 0.2, -1.0, 1.0);
+  // 這裡讓間隔落在約 2.6~7 秒之間動態變化（比先前縮短，避免每一球都等太久），
+  // 畫面仍不顯示確切倒數，但搭配待機動作中穿插的預備/伸展小動作，玩家能持續感覺到投手在準備，
+  // 靠投手的預備動作來抓時機。
+  const tempoBias = THREE.MathUtils.clamp((curPitcher.tempo - 6) * 0.16, -0.8, 0.8);
   const staminaPct = curPitcher.stamina / curPitcher.maxStamina;
-  const fatigueSlow = (1 - staminaPct) * 2.2; // 越累，喘息調整節奏的時間越長
+  const fatigueSlow = (1 - staminaPct) * 1.4; // 越累，喘息調整節奏的時間越長
   const runnersOn = runners.filter(r=>r).length;
-  const holdRunnersSlow = runnersOn * (0.7 + Math.random()*0.9); // 壘上有人，投手會多次觀察牽制、節奏拉長
-  const pressureFast = (twoStrikeOrCloseCount() ? -0.8 : 0); // 關鍵球數時投手反而會想加快節奏、不讓打者喘息
-  let base = 3 + Math.random()*3 + tempoBias + fatigueSlow + holdRunnersSlow + pressureFast - (first?0.8:0);
-  pitchTempoDuration = THREE.MathUtils.clamp(base, 3, 9);
+  const holdRunnersSlow = runnersOn * (0.45 + Math.random()*0.65); // 壘上有人，投手會多次觀察牽制、節奏拉長
+  const pressureFast = (twoStrikeOrCloseCount() ? -0.6 : 0); // 關鍵球數時投手反而會想加快節奏、不讓打者喘息
+  let base = 2.6 + Math.random()*2.6 + tempoBias + fatigueSlow + holdRunnersSlow + pressureFast - (first?0.5:0);
+  pitchTempoDuration = THREE.MathUtils.clamp(base, 2.6, 7);
   pitchTempoStart = performance.now();
   startPitcherIdleLoop();
-  const setDelay = Math.max(0.35, pitchTempoDuration - 0.55);
+  const setDelay = Math.max(0.3, pitchTempoDuration - 0.5);
   window._setCueTimer = setTimeout(playPitcherSetCue, setDelay * 1000);
+  scheduleCpuPickoffCheck(setDelay);
+}
+
+/* 電腦防守時，投手也會依壘上跑者的離壘幅度自行判斷要不要主動牽制——離壘越大，越可能被抓到在
+   偷偷觀察離壘距離；完全貼壘包則幾乎不會被牽制打擾，讓玩家操控跑方時「離壘幅度」真的有意義，
+   而不是只有玩家自己投球時才用得到這個風險。 */
+function scheduleCpuPickoffCheck(windowSec) {
+  const occupied = [0,1,2].filter(i => runners[i]);
+  if (!occupied.length) return;
+  const maxLead = Math.max(...occupied.map(i => runnerLead[i] || 0));
+  if (maxLead < 0.4) return; // 離壘幅度不大，投手不會特別在意
+  const checkChance = THREE.MathUtils.clamp((maxLead - 0.35) * 0.9, 0, 0.65);
+  if (Math.random() > checkChance) return;
+  const delay = Math.random() * Math.max(0.4, windowSec - 0.6) * 1000;
+  window._cpuPickoffTimer = setTimeout(() => {
+    if (gameState !== "PITCHING_WAIT" || isHumanPitchingNow() || window._pickoffPending || window._stealInProgress || absReviewActive) return;
+    const stillOccupied = [0,1,2].filter(i => runners[i]);
+    if (!stillOccupied.length) return;
+    let target = stillOccupied[0], bestLead = runnerLead[stillOccupied[0]] || 0;
+    stillOccupied.forEach(i => { if ((runnerLead[i]||0) > bestLead) { bestLead = runnerLead[i]||0; target = i; } });
+    if (bestLead < 0.35) return;
+    clearTimeout(window._setCueTimer);
+    window._pickoffPending = true;
+    resolveManualPickoffThrow(target);
+  }, delay);
 }
 
 function updateTempoRing() {
@@ -2008,6 +2352,7 @@ function updateTempoRing() {
   // 內部計時仍照常運作以驅動投手動畫觸發（僅限電腦投手，玩家投球由玩家自行觸發）。
   if (gameState !== "PITCHING_WAIT" || isHumanPitchingNow()) return;
   if (window._pickoffPending) return; // 跑者提前起跑、投手正在決定是否牽制時，先暫停自動投球節奏
+  if (absReviewActive) return; // ABS 鷹眼複查（或教練抗議）正在進行中，節奏計時暫停，不會在複查途中自動觸發下一球
   const elapsed = (performance.now() - pitchTempoStart) / 1000;
   if (elapsed >= pitchTempoDuration) startPitchAnimation();
 }
@@ -2016,9 +2361,11 @@ function updateTempoRing() {
    7. 投球動畫與物理
    ========================================================================================= */
 function startPitchAnimation() {
-  if (gameState !== "PITCHING_WAIT") return;
+  if (gameState !== "PITCHING_WAIT" || absReviewActive) return;
+  closeConcurrentABSWindowIfOpen(); // 保險：真正進入投球準備動作的瞬間，一定要把還開著的 ABS 視窗關閉，避免殘留
   stopPitcherIdleLoop();
   clearTimeout(window._setCueTimer);
+  clearTimeout(window._cpuPickoffTimer);
   hidePitchSelectUI();
   gameState = "PITCH_WINDUP";
   trailPositions.length = 0; trailGeo.setFromPoints([]);
@@ -2051,7 +2398,15 @@ function startPitchAnimation() {
 
 function executePitchPhysics() {
   gameState = "PITCH_FLIGHT";
-  ballMesh.position.set(0, 1.55, -17.6);
+  // 每一球都要重新歸零：確保「這球是否已經有判定結果」與「電腦打者是否已決定揮棒」的旗標
+  // 一定是全新的一球才會重置，避免上一球殘留的狀態影響到這一球的判定。
+  window._pitchResolved = false;
+  window._cpuSwingPending = false;
+  // 出手點依投手慣用手左右鏡射：右投從打者的左前方（正X）出手，左投則反過來從右前方（負X）出手，
+  // 貼近真實投手真正的釋放點位置，而不是不分左右投手都從正中央出手。
+  const isLHP = curPitcher.hand === 'L';
+  const releaseX = isLHP ? -0.35 : 0.35;
+  ballMesh.position.set(releaseX, 1.55, -17.6);
   document.getElementById('brawl-banner').style.opacity = 0;
 
   const plan = pendingPitchPlan;
@@ -2080,7 +2435,11 @@ function executePitchPhysics() {
   let targetX = plan.tx + (Math.random()-0.5) * errorFactor;
   let targetY = plan.ty + (Math.random()-0.5) * errorFactor;
 
-  const moveMag = (curPitcher.movement / 100) * (0.65 + mastery * 0.55); // 主力球種位移更確實，冷門球種變化打折
+  // 尾勁強度重新調校：能力值越高，尾勁不再只是等比例放大，而是用略微超線性的曲線拉開差距，
+  // 讓王牌等級投手（尾勁 85+）的招牌球種真的看起來「明顯更會咬」，跟平庸投手拉出清楚可辨的落差；
+  // 冷門/不熟練球種仍會打折，避免每顆球都一樣誇張。
+  const moveCurve = Math.pow(curPitcher.movement / 100, 0.82);
+  const moveMag = moveCurve * (0.72 + mastery * 0.78) * 1.35; // 主力球種位移更確實，冷門球種變化打折
   const breakX = pitch.breakX * moveMag;
   const breakY = pitch.breakY * moveMag;
   const biteRatio = pitch.bite !== undefined ? pitch.bite : 0.5;
@@ -2094,7 +2453,7 @@ function executePitchPhysics() {
   const apparentX = targetX - breakX;
   const apparentY = targetY - breakY;
 
-  let vx = (apparentX - 0) / flightTime;
+  let vx = (apparentX - releaseX) / flightTime;
   let vy = (apparentY - 1.55) / flightTime;
   let vz = dist / flightTime;
 
@@ -2106,7 +2465,7 @@ function executePitchPhysics() {
   window._pitchBreakX = breakX;
   window._pitchBreakY = breakY;
   window._pitchBiteRatio = biteRatio;
-  window._pitchStartX = 0;
+  window._pitchStartX = releaseX;
   window._pitchStartY = 1.55;
   window._pitchStartZ = -17.6;
 
@@ -2115,7 +2474,9 @@ function executePitchPhysics() {
   trailMat.opacity = THREE.MathUtils.clamp(0.35 + (baseSpeed - 120) * 0.006, 0.35, 0.85);
   // 依球種實際位移量換算旋轉視覺速度：位移越大（曲球、滑球、指叉等）旋轉看起來越明顯，
   // 直球/伸卡等位移小的球種則旋轉較平順，讓每種球路的視覺辨識度都不一樣。
-  window._pitchSpinRate = 14 + (Math.abs(pitch.breakX) + Math.abs(pitch.breakY)) * 9 + biteRatio * 6;
+  // 改用「實際計算後」的位移量（已包含投手尾勁能力值）而非球種原始基準值，
+  // 能力越強的投手，球在空中看起來旋轉/位移感也越明顯，視覺與判定結果一致。
+  window._pitchSpinRate = 14 + (Math.abs(breakX) + Math.abs(breakY)) * 9 + biteRatio * 6;
   window._pitchIsKnuckle = !!pitch.knuckle;
   window._knuckleWobble = { x: 0, y: 0 };
   window._knuckleAccumX = 0;
@@ -2126,9 +2487,14 @@ function executePitchPhysics() {
   window._pitchFlightVz = vz;
   window._pitchTargetX = targetX;
   window._pitchTargetY = targetY;
-  // 觸身球判定：打者站在好球帶內角外側（負X方向），只有「貼近身體的內角壞球」才有機會觸身，
-  // 偏外角(正X方向)或離身體太遠的暴投不會打中打者。
-  const insideDist = -targetX - 0.28; // 正值代表比好球帶內角邊緣更往身體方向偏移的距離
+  // 觸身球判定：只有「貼近打者身體的內角壞球」才有機會觸身，偏外角或離身體太遠的暴投不會打中打者。
+  // 「內角」是哪一側，要看打者是左打還是右打：右打站在好球帶負X那一側，內角(貼身)在負X方向；
+  // 左打則整個人鏡射站在正X那一側，內角(貼身)反而是在正X方向。原本這裡不管左右打者都直接用
+  // 「-targetX」判斷，等於永遠只把「負X方向」當成內角——對右打者是對的，但對左打者來說，
+  // 這樣算出來的「內角」其實是打者身體對面、根本打不到人的外角，反而會把真正打不到人的外角
+  // 誤判成觸身球，讓左打者明明沒被打到卻一直顯示觸身球。改成依打者慣用打擊手翻轉判斷方向。
+  const isLHB_HBP = (window._curBatterHand || 'R') === 'L';
+  const insideDist = (isLHB_HBP ? targetX : -targetX) - 0.28; // 正值代表比好球帶內角邊緣更往身體方向偏移的距離
   window._pitchIsHBP = insideDist > 0.06 && insideDist < 0.85 && targetY > 0.35 && targetY < 2.0;
   window._pitchHBPProximity = THREE.MathUtils.clamp(insideDist / 0.5, 0, 1); // 0=剛好擦邊, 1=打在身體中心
   window._pitchWasWild = isWildPitch;
@@ -2156,35 +2522,18 @@ function contactTimingWindow() {
    8. 揮棒與擊球判定
    ========================================================================================= */
 function triggerSwingAnimation(isPractice=false) {
-  if (!isPractice) gameState = "BAT_SWING";
+  if (!isPractice) {
+    if (window._pitchResolved) return; // 這球已經有其他判定結果（例如同一瞬間已經因為到達好球帶被動判過），避免重複觸發
+    window._pitchResolved = true;
+    gameState = "BAT_SWING";
+  }
   const isPower = selectedSwingPower;
   const dur = isPower ? 0.24 : 0.17;
   const hipTurn = isPower ? 0.42 : 0.3;      // 下半身(髖部)只做適度轉動
   const shoulderTurn = isPower ? 0.95 : 0.68; // 上半身(肩膀)轉動幅度更大，做出「髖肩分離」的揮棒感
-  const armSwing = isPower ? 1.85 : 1.45;
-
-  // 前腳些微跨步蓄力，重心前移；同時手肘先貼緊身體再打開，做出真實打者出棒前最後一瞬的蓄力感
-  gsap.to(batterModel.position, { z: batterModel.position.z - 0.05, duration: dur*0.5, ease:"power1.out" });
-  gsap.to(batterModel.position, { z: batterModel.position.z, duration: 0.24, delay: dur*0.5 });
-  gsap.to(batterModel.joints.rArm.forearm.rotation, { x: 0.5, duration: dur*0.28, ease:"power1.out" });
-
-  gsap.to(batterModel.rotation, { y: Math.PI/2 - hipTurn, duration: dur, ease:"power2.out" });
-  gsap.to(batterModel.joints.torso.rotation, { y: shoulderTurn, duration: dur, ease:"power2.out" });
-  // 球棒握把跟著手臂從貼近後肩的位置往前、往上畫出真實揮棒的弧線：手臂從彎曲貼身逐漸伸展打直，
-  // 肘關節同步打開延伸，讓球棒隨揮棒動作真的「往上、往前」揮出，而不是原地水平繞圈甩棒。
-  gsap.to(batterModel.joints.rArm.rotation, { y: armSwing, x: 0.4, z: -0.08, duration: dur, ease:"power2.out", onComplete: isPractice ? null : calculateHit });
-  gsap.to(batterModel.joints.rArm.forearm.rotation, { x: 0.05, duration: dur*0.85, ease:"power3.out", delay: dur*0.1 });
-  gsap.to(batterModel.joints.lArm.rotation, { y: armSwing*0.85, x: 0.32, z: 0.15, duration: dur, ease:"power2.out" });
-  // 觸擊瞬間後的收尾延伸：棒頭順勢往上帶起，呈現真實棒球揮棒「由後往前、由下往上」的完整弧線
-  gsap.to(bat3D.rotation, { x: window._batRestRotation.x + 0.85, duration: dur*0.9, ease:"power2.out", delay: dur*0.2 });
-
-  // 回到預備姿勢
-  gsap.to(batterModel.rotation, { y: Math.PI/2, duration: 0.24, delay: dur });
-  gsap.to(batterModel.joints.torso.rotation, { y: 0, duration: 0.24, delay: dur });
-  gsap.to(batterModel.joints.rArm.rotation, { y: 0, x: 1.02, z: -0.68, duration: 0.24, delay: dur });
-  gsap.to(batterModel.joints.rArm.forearm.rotation, { x: 0, duration: 0.24, delay: dur });
-  gsap.to(batterModel.joints.lArm.rotation, { y: 0, x: 1.18, z: 0.22, duration: 0.24, delay: dur });
-  gsap.to(bat3D.rotation, { x: window._batRestRotation.x, y: window._batRestRotation.y, z: window._batRestRotation.z, duration: 0.24, delay: dur });
+  // 揮棒的完整肢體動作(蓄力→加速→擊球→隨球→收棒)統一由 playBatSwingMotion 依打者左右打鏡射處理：
+  // 雙手全程用 IK 握住球棒，身體往投手方向打開；擊球瞬間才呼叫 calculateHit 判定。
+  playBatSwingMotion({ dur, hipTurn, shoulderTurn, onContact: isPractice ? null : calculateHit });
 }
 
 /* 觸擊短打（改為「按住不放」）：按住 B 鍵時打者會轉身側身、把球棒平放在好球帶前方一直保持著，
@@ -2211,25 +2560,22 @@ function endBuntHold() {
 }
 
 function enterBuntStance() {
-  gsap.to(batterModel.rotation, { y: Math.PI/2 - 0.12, duration: 0.16, ease:"power2.out" });
-  gsap.to(batterModel.joints.torso.rotation, { y: 0.12, duration: 0.16, ease:"power2.out" });
-  gsap.to(batterModel.joints.rArm.rotation, { y: 0.32, x: 1.12, z: -0.05, duration: 0.16, ease:"power2.out" });
-  gsap.to(batterModel.joints.lArm.rotation, { y: 0.28, x: 0.95, z: 0.4, duration: 0.16, ease:"power2.out" });
-  const b = window._batBuntRotation;
-  gsap.to(bat3D.rotation, { x: b.x, y: b.y, z: b.z, duration: 0.16, ease:"power2.out" });
+  const rig = window._batterRig; if (!rig) return;
+  const m = rig.model;
+  rig.detached = false;
+  gsap.killTweensOf(rig.p);
+  gsap.to(m.rotation, { y: rig.baseYaw + rig.yawSign * 0.35, duration: 0.16, ease:"power2.out", overwrite: "auto" });
+  gsap.to(m.joints.torso.rotation, { y: rig.yawSign * 0.12, duration: 0.16, ease:"power2.out", overwrite: "auto" });
+  // 觸擊：球棒橫在好球帶前方，上手滑到棒身中段，雙手仍全程握著球棒
+  gsap.to(rig.p, Object.assign({}, BAT_POSES.bunt, { duration: 0.16, ease:"power2.out" }));
 }
 function exitBuntStance() {
-  gsap.to(batterModel.rotation, { y: Math.PI/2, duration: 0.2, ease:"power1.out" });
-  gsap.to(batterModel.joints.torso.rotation, { y: 0.05, duration: 0.2, ease:"power1.out" });
-  gsap.to(batterModel.joints.rArm.rotation, { y: 0, x: 1.02, z: -0.68, duration: 0.2, ease:"power1.out" });
-  gsap.to(batterModel.joints.lArm.rotation, { y: 0, x: 1.18, z: 0.22, duration: 0.2, ease:"power1.out" });
-  const b = window._batRestRotation;
-  gsap.to(bat3D.rotation, { x: b.x, y: b.y, z: b.z, duration: 0.2, ease:"power1.out" });
+  batterToStance(0.2);
 }
 function playBuntPokeAnim() {
-  // 碰到球瞬間的小小反作用力回饋，隨即收棒
-  gsap.to(batterModel.joints.rArm.rotation, { z: "-=0.16", duration: 0.07, yoyo:true, repeat:1, ease:"power1.inOut" });
-  gsap.to(batterModel.joints.lArm.rotation, { z: "+=0.14", duration: 0.07, yoyo:true, repeat:1, ease:"power1.inOut" });
+  // 碰到球瞬間的小小反作用力回饋（球棒微微往回縮），隨即收棒
+  const rig = window._batterRig;
+  if (rig) gsap.to(rig.p, { r: rig.p.r - 0.06, duration: 0.07, yoyo:true, repeat:1, ease:"power1.inOut" });
   setTimeout(exitBuntStance, 130);
 }
 function registerBuntStrike() {
@@ -2310,6 +2656,12 @@ function scheduleCpuBatterSwing() {
 
   if (Math.random() > swingChance) return; // CPU 選擇不揮棒，讓球自然進到 judgeTakenPitch 判定
 
+  // 電腦打者已經決定要揮棒了，只是實際出棒時間點交給下面的計時器排程——
+  // 在計時器真正觸發之前的這段等待期間，這個旗標讓 animate() 的球體物理迴圈知道
+  // 「這球稍後一定會被揮棒」，萬一球提前抵達好球帶邊緣，也要讓揮棒立刻生效，
+  // 不能任由計時器的排程誤差讓球被動判定成壞球/好球。
+  window._cpuSwingPending = true;
+
   const flightTime = window._pitchFlightTime;
   const contactSkill = curBatter.contact || 60;
   const timingNoise = (1 - contactSkill/130) * 160 * (Math.random()*2-1) * diffP.timingNoiseMult;
@@ -2322,17 +2674,14 @@ function scheduleCpuBatterSwing() {
 }
 
 function triggerCpuSwingAnimation() {
-  gsap.to(batterModel.rotation, { y: Math.PI/2 - 0.75, duration: 0.18, ease:"power2.out" });
-  gsap.to(batterModel.joints.rArm.rotation, { y: 1.5, x: 0.4, z: -0.08, duration: 0.18, ease:"power2.out" });
-  gsap.to(batterModel.joints.rArm.forearm.rotation, { x: 0.05, duration: 0.16, ease:"power3.out" });
-  gsap.to(bat3D.rotation, { x: window._batRestRotation.x + 0.85, duration: 0.2, ease:"power2.out", delay: 0.04 });
-  gsap.to(batterModel.rotation, { y: Math.PI/2, duration: 0.22, delay: 0.18 });
-  gsap.to(batterModel.joints.rArm.rotation, { y: 0, x: 1.02, z: -0.68, duration: 0.22, delay: 0.18 });
-  gsap.to(batterModel.joints.rArm.forearm.rotation, { x: 0, duration: 0.22, delay: 0.18 });
-  gsap.to(bat3D.rotation, { x: window._batRestRotation.x, y: window._batRestRotation.y, z: window._batRestRotation.z, duration: 0.22, delay: 0.18 });
+  // 電腦打者出棒：跟玩家共用同一套完整揮棒動作(左右打鏡射、雙手 IK 握棒)
+  playBatSwingMotion({ dur: 0.18, hipTurn: 0.34, shoulderTurn: 0.72, onContact: null });
 }
 
 function cpuBatterSwingContact() {
+  if (window._pitchResolved) return; // 這球已經有其他判定結果了（極少數情況下計時器誤差造成的重複觸發保護）
+  window._pitchResolved = true;
+  window._cpuSwingPending = false;
   gameState = "BAT_SWING";
   triggerCpuSwingAnimation();
   const diffP = cpuBattingDifficultyParams();
@@ -2373,15 +2722,13 @@ function resolveBuntBall(buntQuality = 0.5) {
   // 但整體出球速度與距離都壓得很低，讓球只會彈在打擊區附近的地上，製造真實短打效果。
   const aimX = batCursor.x;
   const pushDir = aimX > 0.02 ? 1 : (aimX < -0.02 ? -1 : (Math.random() < 0.5 ? 1 : -1));
-  const spray = pushDir * (2.0 + Math.random() * 2.8);
+  // 碰球位置越靠近球棒邊緣（buntQuality越低），推出去的角度越容易偏往邊線，
+  // 提高球在地面滾動時真的滾出界外線的機率——但最終是不是界外，交給下面的滾地物理過程
+  // 即時判斷，而不是碰球當下就用機率骰出結果。
+  const angleBias = 1 + (1 - buntQuality) * (0.45 + Math.random() * 0.55);
+  const spray = pushDir * (2.0 + Math.random() * 2.8) * angleBias;
   const exitVelo = 2.6 + Math.random() * 3.0;
   const hitVx = spray, hitVy = 0.9 + Math.random()*0.35, hitVz = -2.2 - Math.random()*2.0;
-
-  // 觸擊球是否滾出界外：碰球位置越靠近球棒邊緣（buntQuality越低）、推的方向越極端（越靠邊線），
-  // 界外機率就越高，完全比照真實棒球「短打抓不好、球滾出邊線」的情況。
-  const sideBias = Math.min(1, Math.abs(spray) / 4.8);
-  const buntFoulChance = THREE.MathUtils.clamp(0.10 + (1 - buntQuality) * 0.34 + sideBias * 0.16, 0.08, 0.62);
-  const isFoulBunt = Math.random() < buntFoulChance;
 
   ballVel.set(hitVx, hitVy, hitVz);
   ballAcc.set(0, -9.8, 0);
@@ -2391,23 +2738,30 @@ function resolveBuntBall(buntQuality = 0.5) {
   window._groundBounceCount = 0;
 
   AudioEngine.batCrack(4);
-  gsap.to(camera.position, { x: spray*0.05, y: 2.5, z: -0.6, duration: 0.5, ease:"power2.out" });
+  // 觸擊球速度慢、移動範圍很小，如果鏡頭貼著本壘板/球做特寫，等球停止滾動、進入「守備員撿球
+  // →回傳→跑者跑壘」這整段過程時，因為 gameState 很快切成 DEAD、不會再有逐幀 lookAt 去追球，
+  // 鏡頭角度就會凍結在那個極近距離的畫面，完全看不到一壘（或跑者要去的壘包）方向發生了什麼、
+  // 跑者到底有沒有安全上壘。這裡改成拉高、拉遠攝影機，並在鏡頭到位的同時把視角對準本壘到內野
+  // 中央這一整塊區域，讓本壘、投手丘、一三壘方向能同時入鏡，才能看懂整個觸擊回合的攻防過程。
+  const buntCamLookAt = new THREE.Vector3(spray * 0.18, 1.0, -9.5);
+  gsap.to(camera.position, {
+    x: spray * 0.05, y: 7.4, z: 7.0, duration: 0.55, ease: "power2.out",
+    onUpdate: () => camera.lookAt(buntCamLookAt),
+    onComplete: () => camera.lookAt(buntCamLookAt)
+  });
 
-  if (isFoulBunt) {
-    // 觸擊界外：完全比照棒球規則判定，交給 resolveBuntOutcome 依「觸擊當下的好球數」決定
-    // 是單純算一顆好球，還是兩好球後觸擊界外、直接算打者出局；這裡不派守備員撲球，球自然落在界外地上即可。
-    window._activeFielderPlay = null;
-    window._hitContext = { launchAngle: 5, exitVelo, spray, hangTime: 0.2, travelDist: 0, hitVx, hitVy, hitVz, isBunt: true, isFoul: true, strikesAtContact: strikes };
-    return;
-  }
-
-  // 觸擊球落點很近，讓場上離球最近的守備員（通常是投手、捕手或衝上來的一三壘手）提前起跑去撿球
+  // 觸擊球落點很近，讓場上離球最近的守備員（通常是投手、捕手或衝上來的一三壘手）提前起跑去撿球——
+  // 不管球最後判界內還是界外，守備員一樣要衝上來處理，符合真實棒球「觸擊球不管落點都會衝上來搶」的畫面。
   const predictedLandX = spray * 0.55, predictedLandZ = -1.2 - Math.abs(hitVz) * 0.6;
   const anticipateNf = nearestFielder(predictedLandX, predictedLandZ);
   window._activeFielderPlay = anticipateNf;
   if (anticipateNf) runFielderTo(anticipateNf.f, predictedLandX, predictedLandZ, 0.32);
 
-  window._hitContext = { launchAngle: 5, exitVelo, spray, hangTime: 0.28, travelDist: Math.hypot(hitVx,hitVz)*0.45, hitVx, hitVy, hitVz, isBunt: true };
+  // isFoul／buntFoulLocked 不再由碰球當下的機率骰決定，而是交給滾地物理過程即時判斷：
+  // 球滾動途中只要還沒通過一壘／三壘壘包的距離、又完全滾出界外線之外，就即時標記為界外；
+  // 一旦球在界內滾過一壘／三壘壘包的距離，就永久鎖定為界內（即使之後又滾出界外也算界內安打），
+  // 完全比照真實棒球「觸擊球通過一三壘前出界算界外，通過後才出界仍算界內」的規則。
+  window._hitContext = { launchAngle: 5, exitVelo, spray, hangTime: 0.28, travelDist: Math.hypot(hitVx,hitVz)*0.45, hitVx, hitVy, hitVz, isBunt: true, isFoul: false, buntFoulLocked: false, strikesAtContact: strikes };
 }
 
 /* 觸擊球結果判定：打者強制往一壘衝，跟防守方「守備員撿球→傳一壘」同時進行，
@@ -2437,7 +2791,7 @@ function resolveBuntOutcome(ctx) {
 
   // 打者跑向一壘的時間：依球員速度值換算真實跑壘速度
   const runnerSpeedRating = curBatter.speed || 60;
-  const runnerSpeedMS = 5.6 + (runnerSpeedRating/100) * 3.6;
+  const runnerSpeedMS = runnerSpeedMps(runnerSpeedRating);
   const runDist = basePositions.home.distanceTo(basePositions.first);
   const runnerTime = runDist / runnerSpeedMS;
 
@@ -2462,7 +2816,7 @@ function resolveBuntOutcome(ctx) {
       AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
       suppressHitMsg = true;
       if (!isError) recordHit(1);
-      advanceOnHit(1);
+      advanceOnHit(1, nf, landX, landZ);
       suppressHitMsg = false;
       recordAtBatEnd();
       afterPlayCheckOuts();
@@ -2488,18 +2842,20 @@ function resolveBuntOutcome(ctx) {
   const fPos = nf.f.model.position;
   const distToBall = Math.hypot(fPos.x - landX, fPos.z - landZ);
   const fRating = fieldingRating(nf.f.player);
-  const fMoveSpeed = 6.0 + (fRating/100) * 4.2;
-  const travelToBallTime = 0.15 + distToBall / fMoveSpeed;
-  const pickupTime = 0.22;
+  const fMoveSpeed = fielderMoveMps(fRating);
+  const travelToBallTime = 0.25 + distToBall / fMoveSpeed;
+  const pickupTime = 0.42;
   const throwDist = Math.hypot(landX - basePositions.first.x, landZ - basePositions.first.z);
-  const throwTime = THREE.MathUtils.clamp(throwDist * 0.028, 0.22, 0.55);
+  // 跟動畫(animateThrowToBase)、跟滾地球/外野回傳等所有其他傳球判定統一使用同一套「臂力→秒數」換算，
+  // 避免畫面上看到的傳球快慢(跟臂力連動)跟背後判定安全/出局的時間差公式對不起來。
+  const throwTime = THREE.MathUtils.clamp(throwDist * throwSecPerUnit(fRating), 0.35, 0.88);
   const totalDefenseTime = travelToBallTime + pickupTime + throwTime;
 
   // 越靠近球、守備能力越好，失誤機率越低；觸擊球常常要徒手抓地上的軟弱滾地球，本來就比一般滾地球容易手忙腳亂
   const difficulty = THREE.MathUtils.clamp(0.16 + Math.max(0, 3.0 - distToBall) * 0.045 + (78 - fRating) * 0.002, 0.06, 0.5);
   const isError = attemptFieldingError(nf, difficulty);
   const margin = totalDefenseTime - runnerTime; // 正值＝防守太慢跑者贏，負值＝傳球比跑者快
-  const isOut = !isError && Math.random() < (1 / (1 + Math.exp(margin * 2.6)));
+  const isOut = !isError && Math.random() < (1 / (1 + Math.exp(margin * 1.6)));
 
   runFielderTo(nf.f, landX, landZ, Math.max(0.18, travelToBallTime), () => {
     playScoopGrounderAnim(nf);
@@ -2585,14 +2941,35 @@ function resolveBattedBall(dist, contactRadius, timingQuality=1) {
 
   // 水平速度全程不變（重力只影響Y軸），因此可以在擊球當下就精準預測最終落點座標，
   // 讓負責的守備員「提前」朝落點跑位等球，而不是等球真的落地才做出反應。
-  const predictedLandX = ballMesh.position.x + hitVx * hangTime;
-  const predictedLandZ = ballMesh.position.z + hitVz * hangTime;
+  //
+  // 滾地球／低平球（launchAngle < 16，跟球體物理迴圈判斷「要不要滾動」用同一個門檻）
+  // 觸地後其實還會靠慣性＋摩擦力持續往前滾一段不小的距離，如果只用「第一次觸地」的落點
+  // 叫守備員提前跑位站定，球滾動的軌跡會直接從野手身邊/腳邊繼續滾過去，出現「野手站錯地方
+  // 發呆看球滾過去」這種不合理畫面。這裡額外用跟球體滾動迴圈相同的摩擦衰減率(2.4/s)概略估算
+  // 「滾動延伸距離」，讓守備員改瞄準大約的最終停球點/攔截點，跟球實際滾動路徑對得上。
+  const isGrounder = launchAngle < 16;
+  let predictedLandX, predictedLandZ, anticipateTime;
+  if (isGrounder) {
+    const bounceLandX = ballMesh.position.x + hitVx * hangTime;
+    const bounceLandZ = ballMesh.position.z + hitVz * hangTime;
+    const dirLen = vxTot > 0.01 ? vxTot : 1;
+    const dirX = hitVx / dirLen, dirZ = hitVz / dirLen;
+    const rollSpeedEstimate = Math.max(0, vxTot * 0.72); // 觸地彈跳後大致殘留的水平球速
+    const rollExtra = Math.min(rollSpeedEstimate / 2.4, rollSpeedEstimate * 1.1); // 跟實際摩擦衰減率換算滾動距離，並用滾動時間上限概略夾住
+    predictedLandX = bounceLandX + dirX * rollExtra;
+    predictedLandZ = bounceLandZ + dirZ * rollExtra;
+    anticipateTime = Math.max(0.3, hangTime + rollExtra / Math.max(2.5, rollSpeedEstimate));
+  } else {
+    predictedLandX = ballMesh.position.x + hitVx * hangTime;
+    predictedLandZ = ballMesh.position.z + hitVz * hangTime;
+    anticipateTime = Math.max(0.28, hangTime*0.9);
+  }
   const anticipateNf = nearestFielder(predictedLandX, predictedLandZ);
   window._activeFielderPlay = anticipateNf;
   if (anticipateNf) {
-    runFielderTo(anticipateNf.f, predictedLandX, predictedLandZ, Math.max(0.28, hangTime*0.9), () => {
+    runFielderTo(anticipateNf.f, predictedLandX, predictedLandZ, anticipateTime, () => {
       // 飛球還有足夠時間才落地時，守備員抵達後先舉手套等球，而不是原地愣到最後一刻才反應
-      if (hangTime > 0.55 && launchAngle > 8) playFlyBallReadyPose(anticipateNf);
+      if (!isGrounder && hangTime > 0.55 && launchAngle > 8) playFlyBallReadyPose(anticipateNf);
     });
   }
 
@@ -2713,6 +3090,10 @@ function nearestFielder(x, z) {
 function fielderCanReach(nf, ctx, isAirBall) {
   if (!nf) return false;
   const rating = fieldingRating(nf.f.player);
+  // 注意：這裡刻意維持「守備範圍」原本的移動速度公式，跟下面「追到球之後跑位/回傳」用的
+  // fielderMoveMps() 是不同性質的數值——這裡算的是野手當下有沒有辦法「伸展/撲接摸到球」，
+  // 屬於瞬間反應與守備範圍，不是長距離跑動，沿用原本已經調校平衡過的數值，避免把整體
+  // 節奏放慢的調整，意外連帶讓守備範圍縮水、變得普遍接不到球。
   const moveSpeed = 6.0 + (rating/100) * 4.2;      // 守備範圍移動速度（能力值越高跑得越快）
   const reactionTime = 0.34 - (rating/100) * 0.15; // 反應啟動時間（能力值越高反應越快）
   const groundTime = Math.max(0.16, 0.74 - (ctx.exitVelo||20) * 0.009); // 滾地球越強勁，可用反應時間越短
@@ -2812,9 +3193,13 @@ function settleBattedBall() {
       outcome = "ERROR";
     }
   }
-  // 球沒有被接殺/碰到時（安打/全壘打/守備員根本來不及碰到球），讓守備員做出
-  // 「跑到附近但沒接到」的撲接落空動畫，呈現真實棒球中差一點沒碰到球的畫面。
-  if ((outcome === "SINGLE" || outcome === "DOUBLE" || outcome === "TRIPLE" || outcome === "GROUND_HIT") && nf) {
+  // 球沒有被接殺/碰到時：
+  // - 若是「差一點就碰到」的臨界判定，讓守備員做出撲接落空的動畫，呈現真實棒球中差一點沒碰到球的驚險畫面；
+  // - 若守備員本來就明顯來不及（離落點還有一段距離），就不要硬演一個「伸手撲接」的動作——
+  //   他其實還在往預測落點跑（見 resolveBattedBall 的 runFielderTo），球已經先落地，
+  //   讓他維持「跑過去、球已經彈地」的真實畫面，撿到球後再由 advanceOnHit/resolveContestedAdvance
+  //   的回傳賽跑判斷後續跑壘結果，而不是提前演出一個不合理的撲接動作。
+  if ((outcome === "SINGLE" || outcome === "DOUBLE" || outcome === "TRIPLE" || outcome === "GROUND_HIT") && nf && wasCloseFieldingPlay()) {
     playFielderReachAndMissAnim(nf);
   }
   // 高強度撲接/追撞牆等激烈守備動作，也有機率造成野手受傷退場
@@ -2826,7 +3211,7 @@ function settleBattedBall() {
     adjustPitcherComposure(-5);
     showMsg("INFIELD HIT!", "#00ffcc", "球穿越守備範圍，安打！");
     AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
-    suppressHitMsg = true; recordHit(1); advanceOnHit(1); suppressHitMsg = false;
+    suppressHitMsg = true; recordHit(1); advanceOnHit(1, nf, landX, landZ); suppressHitMsg = false;
     recordAtBatEnd(); afterPlayCheckOuts();
     return;
   }
@@ -2848,8 +3233,8 @@ function animateThrowToBase(fromFielder, baseKey, onArrive, armRating) {
   // 傳球速度真的跟臂力掛勾：臂力越好，同樣距離飛過去的時間越短；臂力差的傳球明顯拖比較久，
   // 這樣捕手／野手的臂力數值不再只是暗中影響機率，而是玩家看得到的傳球快慢差異。
   const arm = armRating !== undefined ? armRating : (fromFielder && fromFielder.player ? fieldingRating(fromFielder.player) : 74);
-  const throwSpeedFactor = THREE.MathUtils.clamp(0.0248 - (arm - 70) * 0.00017, 0.0165, 0.0345);
-  const dur = THREE.MathUtils.clamp(dist * throwSpeedFactor, 0.3, 0.95);
+  const throwSpeedFactor = throwSecPerUnit(arm);
+  const dur = THREE.MathUtils.clamp(dist * throwSpeedFactor, 0.45, 1.4);
 
   // 傳球者的完整出手動作：先把手臂往後拉做出「引臂蓄力」，再用力揮臂送出，
   // 而不是球憑空從身上飛出去，讓每一次傳球（尤其是捕手回傳阻殺盜壘）看起來像真的在丟球。
@@ -2921,13 +3306,13 @@ function resolveGroundBallPlay(nf, ctx) {
   const target = chooseGroundBallTarget(landX, landZ);
   const isBatterTarget = target.runnerIdx === null;
   const runnerObj = isBatterTarget ? curBatter : runners[target.runnerIdx];
-  const runnerSpeedMS = 5.6 + (((runnerObj && runnerObj.speed) || 60)/100) * 3.6;
+  const runnerSpeedMS = runnerSpeedMps(runnerObj && runnerObj.speed);
   const startPos = isBatterTarget ? basePositions.home : baseIndexToPos(target.runnerIdx);
   const runDist = startPos.distanceTo(target.pos);
   const runnerTime = runDist / runnerSpeedMS;
 
   // 打者一律真的從本壘全力衝向一壘，不管這球最後傳向哪個壘包
-  const batterRunTime = basePositions.home.distanceTo(basePositions.first) / (5.6 + ((curBatter.speed||60)/100)*3.6);
+  const batterRunTime = basePositions.home.distanceTo(basePositions.first) / runnerSpeedMps(curBatter.speed);
   const batterRunner = createHumanoid(0xffd9b3, curBatterTeamColor(), 0xf0f0f0, curBatterTeamColor());
   batterRunner.scale.set(0.85, 0.85, 0.85);
   batterRunner.position.copy(basePositions.home);
@@ -2941,14 +3326,16 @@ function resolveGroundBallPlay(nf, ctx) {
     if (targetRunnerModel) runModelToBase(targetRunnerModel, target.pos, runnerTime);
   }
 
-  const pickupTime = 0.18;
+  const pickupTime = 0.38;
   const throwDist = Math.hypot(landX - target.pos.x, landZ - target.pos.z);
-  const throwTime = THREE.MathUtils.clamp(throwDist * 0.028, 0.2, 0.6);
+  // 同樣統一使用 throwSecPerUnit(依野手臂力換算)，讓這顆滾地球「傳得贏或傳不贏跑者」的判定
+  // 跟畫面上實際播放的傳球動畫速度、跟遊戲裡其他所有傳殺判定的節奏完全一致。
+  const throwTime = THREE.MathUtils.clamp(throwDist * throwSecPerUnit(fielderRating), 0.32, 0.96);
   const difficulty = THREE.MathUtils.clamp((ctx.exitVelo - 25) / 55 + (nf ? nf.d / 45 : 0), 0, 1);
   const isError = attemptFieldingError(nf, difficulty);
   // 跑者的跑壘時間 vs 防守「拾球＋傳球」的時間互相賽跑，誰先完成就是誰贏
   const margin = (pickupTime + throwTime) - runnerTime;
-  const isOut = !isError && Math.random() < (1 / (1 + Math.exp(margin * 2.6)));
+  const isOut = !isError && Math.random() < (1 / (1 + Math.exp(margin * 1.6)));
 
   const finishSafe = () => {
     if (isBatterTarget) {
@@ -2958,7 +3345,7 @@ function resolveGroundBallPlay(nf, ctx) {
       adjustPitcherComposure(-5);
       showMsg("INFIELD HIT!", "#00ffcc", "跑贏傳球，內野安打！");
       AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
-      suppressHitMsg = true; recordHit(1); advanceOnHit(1); suppressHitMsg = false;
+      suppressHitMsg = true; recordHit(1); advanceOnHit(1, nf, landX, landZ); suppressHitMsg = false;
       if (priorRunner && priorModel && runners[1] === priorRunner && !runnerModels[1]) runnerModels[1] = priorModel;
       recordAtBatEnd(); afterPlayCheckOuts();
     } else {
@@ -2982,7 +3369,8 @@ function resolveGroundBallPlay(nf, ctx) {
         AudioEngine.crowdSwell(0.6);
         flashHomePlate();
         runModelToBase(scoredModel, basePositions.home, 0.3);
-        gsap.to(scoredModel.position, { y: -2, duration: 0.5, delay: 0.5, onComplete: () => scene.remove(scoredModel) });
+        runnerScoreCelebrateAndFade(scoredModel, 0.4); // 野手選擇跟前面隊友回本壘，同樣真的跑回來慶祝，不是直接消失
+
       }
       animateRunnersToBase(); updateBaseUI();
       recordAtBatEnd(); afterPlayCheckOuts();
@@ -3090,13 +3478,229 @@ function resolveFlyBallPlay(nf, outcome) {
   setTimeout(() => applyBattedOutcome(outcome, nf), wasClose ? 640 : 520);
 }
 
+/* 外野方向累計跑壘距離：nBases=2 代表本壘經一壘跑到二壘，3=再到三壘，4=再跑回本壘（場內全壘打）。 */
+function outfieldPathDistance(nBases) {
+  const pts = [basePositions.home, basePositions.first, basePositions.second, basePositions.third, basePositions.home];
+  let d = 0;
+  for (let i = 0; i < nBases; i++) d += pts[i].distanceTo(pts[i+1]);
+  return d;
+}
+
+/* =========================================================================================
+   外野安打的真實回傳／延伸壘包判定：
+   球飛進外野沒被接殺後，負責的外野手要先真的跑去撿球（依守備範圍/速度換算時間，跟滾地球一樣
+   有失誤/漏接風險，漏接或彈開會多出一段空窗時間），再把球回傳到「打者可能再往前衝一個壘包」
+   的那個壘包。回傳到位的時間 vs 打者連續跑壘的時間互相賽跑：
+   - 回傳明顯來得及：打者乖乖停在原本以擊球強度判定的那個壘包（單安／二安／三安）。
+   - 回傳明顯來不及、或漏接造成更大空窗：打者會自己選擇繼續往下一個壘包衝，
+     可能把一壘安打拉成二壘安打、二壘安打拉成三壘安打，三壘安打甚至直接跑回本壘形成場內全壘打。
+   - 介於中間的臨界情況：打者仍可能貪跑，但也有機會在延伸的那個壘包被回傳刺殺出局，
+     跟真實棒球「貪跑被抓」的畫面一致。
+   ========================================================================================= */
+function resolveOutfieldHitPlay(nf, ctx, baseHitCount) {
+  const landX = ballMesh.position.x, landZ = ballMesh.position.z;
+  const fRating = fieldingRating(nf ? nf.f.player : null);
+  const moveSpeed = fielderMoveMps(fRating);
+  const travelToBallTime = nf ? (0.35 + nf.d / moveSpeed) : 1.7;
+  const pickupTime = 0.46;
+  const difficulty = THREE.MathUtils.clamp((ctx.exitVelo - 25) / 60 + (nf ? nf.d / 55 : 0.35), 0, 1);
+  const isMisplay = attemptFieldingError(nf, difficulty * 0.75);
+  const bobbleExtra = isMisplay ? (0.7 + Math.random() * 1.3) : 0;
+
+  const stretchBases = Math.min(baseHitCount + 1, 4); // 2=二壘, 3=三壘, 4=本壘(場內全壘打)
+  const stretchPts = [basePositions.home, basePositions.first, basePositions.second, basePositions.third, basePositions.home];
+  const stretchTargetPos = stretchPts[stretchBases];
+  const throwDist = Math.hypot(landX - stretchTargetPos.x, landZ - stretchTargetPos.z);
+  const throwSpeedFactor = throwSecPerUnit(fRating);
+  const throwTime = THREE.MathUtils.clamp(throwDist * throwSpeedFactor, 0.45, 2.1);
+  const defenseTotalTime = travelToBallTime + pickupTime + throwTime + bobbleExtra;
+
+  const speed = curBatter.speed || 60;
+  const runnerSpeedMS = runnerSpeedMps(speed);
+  const runnerTimeToStretch = outfieldPathDistance(stretchBases) / runnerSpeedMS;
+
+  const margin = defenseTotalTime - runnerTimeToStretch; // 正值＝回傳來不及，跑者有機會多推進
+  // 回傳明顯來不及時幾乎一定會嘗試延伸壘包；回傳快很多時完全不會貿然嘗試，避免明顯送死。
+  // 這幾個係數是配合「跑者/野手/傳球時間」整體拉長校準過的節奏調整過的，
+  // 避免時間差被拉長後，機率一下子就飽和變成非黑即白、失去該有的臨場不確定感。
+  const attemptChance = THREE.MathUtils.clamp(0.5 + margin * 0.56 + (speed - 60) * 0.004, 0.03, 0.97);
+  const willAttempt = margin > -1.4 && Math.random() < attemptChance;
+
+  let finalBases = baseHitCount, outAtStretch = false;
+  if (willAttempt) {
+    const successProb = 1 / (1 + Math.exp(-margin * 1.4));
+    if (Math.random() < successProb) finalBases = stretchBases;
+    else outAtStretch = true;
+  }
+
+  if (isMisplay && nf) setTimeout(() => playFieldingErrorAnim(nf), 260);
+  finishOutfieldHit(baseHitCount, finalBases, outAtStretch, stretchBases, nf, landX, landZ);
+}
+
+function finishOutfieldHit(baseHitCount, finalBases, outAtStretch, stretchBases, nf, landX, landZ) {
+  recordHit(baseHitCount);
+  suppressHitMsg = true;
+  advanceOnHit(baseHitCount, nf, landX, landZ); // 先讓打者與壘上跑者依基本安打結果、回傳時間動態判斷安全上壘
+  suppressHitMsg = false;
+
+  const baseHitLabel = baseHitCount === 1 ? "SINGLE!" : baseHitCount === 2 ? "DOUBLE!" : "TRIPLE!";
+  const baseHitDesc = baseHitCount === 1 ? "一壘安打" : baseHitCount === 2 ? "二壘安打" : "三壘安打";
+
+  if (!outAtStretch && finalBases === baseHitCount) {
+    showMsg(baseHitLabel, "#00ffcc", baseHitDesc + "！");
+    recordAtBatEnd(); afterPlayCheckOuts();
+    return;
+  }
+
+  showMsg(baseHitLabel, "#00ffcc", baseHitDesc + "，回傳中，打者嘗試延伸壘包！");
+  setTimeout(() => {
+    const idx = baseHitCount - 1; // 打者目前所在壘包在 runners[] 的索引
+    if (outAtStretch) {
+      if (runners[idx] === curBatter) {
+        runners[idx] = null;
+        const m = runnerModels[idx];
+        if (m) { runnerModels[idx] = null; gsap.to(m.position, { y: -2, duration: 0.35, onComplete: () => scene.remove(m) }); }
+      }
+      outs++;
+      const baseLabel = stretchBases === 2 ? "二" : stretchBases === 3 ? "三" : "本";
+      showMsg("THROWN OUT!", "#ff3333", `貪跑遭回傳刺殺，衝${baseLabel}壘失敗出局！`);
+      AudioEngine.umpireCall("出局！"); animateUmpireCall('out');
+      updateBaseUI();
+    } else if (finalBases >= 4) {
+      if (runners[idx] === curBatter) {
+        scoreRunner(idx);
+        showMsg("INSIDE-THE-PARK HR!", "#ffdd33", "回傳來不及，場內全壘打！");
+        AudioEngine.crowdSwell(1.0);
+      }
+    } else {
+      const destIdx = finalBases - 1;
+      if (runners[idx] === curBatter) {
+        const m = runnerModels[idx];
+        runners[idx] = null; runnerModels[idx] = null;
+        runners[destIdx] = curBatter; runnerModels[destIdx] = m;
+        if (m) runModelToBase(m, baseIndexToPos(destIdx), 0.5);
+      }
+      const label = finalBases === 2 ? "二壘安打" : finalBases === 3 ? "三壘安打" : "全壘打";
+      showMsg("EXTRA BASE!", "#00ffcc", `回傳來不及，硬是多跑一個壘包，追加成${label}！`);
+      AudioEngine.crowdSwell(0.6);
+      updateBaseUI();
+    }
+    recordAtBatEnd();
+    afterPlayCheckOuts();
+  }, 950);
+}
+
+/* 全壘打時，負責的外野手要追到全壘打牆邊奮力一跳做出「差一點就要接到」的動作，
+   但球仍飛出牆外，增加真實臨場感，而不是外野手完全沒反應、原地站著看球飛走。 */
+function playOutfielderWallJump(nf) {
+  const f = nf ? nf.f : (fielderModels['CF'] || fielderModels['LF'] || fielderModels['RF']);
+  if (!f || !f.model) return;
+  const landX = window._hitContext ? window._hitContext.predictedLandX : f.model.position.x;
+  const landZ = window._hitContext ? window._hitContext.predictedLandZ : f.model.position.z;
+  const dirLen = Math.hypot(landX, landZ) || 1;
+  const wallDist = 89; // 略比全壘打牆半徑(92)短一點，讓外野手貼著牆內側追球、跳起來的位置合理
+  const wallX = (landX / dirLen) * wallDist;
+  const wallZ = (landZ / dirLen) * wallDist;
+  const startPos = f.model.position.clone();
+  const runDist = startPos.distanceTo(new THREE.Vector3(wallX, startPos.y, wallZ));
+  const runDur = THREE.MathUtils.clamp(runDist / 9.5, 0.45, 1.6);
+  const cycle = startRunCycle(f.model, runDur);
+  gsap.to(f.model.position, {
+    x: wallX, z: wallZ, duration: runDur, ease: "power1.in",
+    onComplete: () => {
+      stopRunCycle(cycle, f.model);
+      // 貼牆奮力一跳，手套伸到最高點，但只差一點碰不到球——球還是飛出牆外形成全壘打
+      gsap.to(f.model.position, { y: f.model.position.y + 1.05, duration: 0.26, ease: "power2.out", yoyo: true, repeat: 1 });
+      gsap.to(f.model.rotation, { x: -0.3, duration: 0.26, ease: "power2.out", yoyo: true, repeat: 1 });
+      gsap.to(f.model.joints.rArm.rotation, { x: -2.7, duration: 0.24, ease: "power2.out" });
+      gsap.to(f.model.joints.lArm.rotation, { x: -2.7, duration: 0.24, ease: "power2.out" });
+      gsap.to(f.model.joints.rArm.rotation, { x: 0.9, duration: 0.4, delay: 0.32 });
+      gsap.to(f.model.joints.lArm.rotation, { x: 0.9, duration: 0.4, delay: 0.32 });
+    }
+  });
+}
+
+/* 高飛球被接殺後，壘上（目前只處理最關鍵的三壘）跑者觸壘搶攻下一個壘包（含高飛犧牲打搶回本壘）：
+   一定要真的演出「跑者觸壘起跑」跟「野手接殺後轉身回傳」這兩個動作，再用回傳時間 vs. 跑者
+   衝刺時間的真實秒數賽跑決定安全上壘／得分，還是被回傳阻殺出局，而不是接殺完直接用機率骰
+   要不要得分——比照真實棒球「高飛犧牲打」的完整攻防過程。 */
+function resolveTagUpAfterCatch(nf, fromBaseIdx, cb) {
+  const runner = runners[fromBaseIdx];
+  const rm = runnerModels[fromBaseIdx];
+  if (!runner || !rm || !nf) { cb(); return; }
+  const toBaseIdx = fromBaseIdx + 1;
+  const isHome = toBaseIdx >= 3;
+  const targetPos = isHome ? basePositions.home.clone() : baseIndexToPos(toBaseIdx);
+  const throwKey = isHome ? 'C' : (toBaseIdx === 1 ? '2B' : '3B');
+
+  showMsg("TAG UP!", "#ffcc00", `${runner.name || '跑者'} 觸壘後嘗試搶攻${isHome ? '回本壘' : '下一個壘包'}！`);
+
+  // 跑者：接殺那一刻要先真的觸壘，等一小段反應時間才能真正起跑，符合真實棒球「高飛必須等球
+  // 確實入手才能離壘」的規則，不是接殺瞬間就憑空起跑。
+  const tagReactionDelay = 0.32 + Math.random() * 0.15;
+  const runnerSpeedMS = runnerSpeedMps(runner.speed || 60);
+  const runDist = rm.position.distanceTo(targetPos);
+  const runnerRunTime = Math.max(0.6, runDist / runnerSpeedMS);
+  let runStartTs = 0;
+
+  setTimeout(() => {
+    if (!rm.parent) return;
+    runStartTs = performance.now();
+    const cyc = startRunCycle(rm, runnerRunTime);
+    const tw = gsap.to(rm.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: runnerRunTime, ease: "power1.in", onComplete: () => stopRunCycle(cyc, rm) });
+    window._stealRunCycleRef = { cycle: cyc, tween: tw, model: rm };
+  }, tagReactionDelay * 1000);
+
+  // 防守方：接殺的野手轉身回傳（外野深遠飛球回傳本壘/對應壘包），臂力決定真正的飛行時間，
+  // 跟跑者的衝刺時間用同一套真實秒數賽跑判定。
+  const fArm = fieldingRating(nf.f.player);
+  setTimeout(() => {
+    animateThrowToBase(nf.f, throwKey, () => {
+      const elapsedRunnerTime = runStartTs ? (performance.now() - runStartTs) / 1000 : 0;
+      const arrived = elapsedRunnerTime >= runnerRunTime;
+      finishStealRunAndThen(rm, targetPos, arrived, () => {
+        if (arrived) {
+          if (isHome) {
+            scoreRunner(fromBaseIdx);
+            showMsg("SAC FLY", "#ffcc00", "高飛犧牲打，跑者回本壘得分！");
+          } else {
+            runners[toBaseIdx] = runner; runners[fromBaseIdx] = null;
+            runnerModels[toBaseIdx] = rm; runnerModels[fromBaseIdx] = null;
+            if (rm) {
+              const baseY = rm.position.y;
+              gsap.to(rm.rotation, { x: Math.PI/3.4, duration: 0.2, ease: "power2.out" });
+              gsap.to(rm.position, { y: baseY - 0.14, duration: 0.2, ease: "power2.out" });
+              gsap.to(rm.rotation, { x: 0, duration: 0.3, delay: 0.3, ease: "power1.out" });
+              gsap.to(rm.position, { y: baseY, duration: 0.3, delay: 0.3 });
+            }
+            showMsg("SAFE!", "#00ff88", "觸壘進壘成功！");
+          }
+          AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
+        } else {
+          runners[fromBaseIdx] = null;
+          if (rm) {
+            gsap.to(rm.rotation, { x: Math.PI/2.3, duration: 0.28, ease: "power2.in" });
+            gsap.to(rm.position, { y: rm.position.y - 0.18, duration: 0.28, ease: "power2.in", onComplete: () => scene.remove(rm) });
+          }
+          runnerModels[fromBaseIdx] = null;
+          outs++;
+          showMsg("OUT!", "#ff3333", `搶攻失敗，${isHome ? '本壘' : ''}觸殺出局！`);
+          AudioEngine.umpireCall("出局！"); animateUmpireCall('out');
+        }
+        updateBaseUI(); updateScoreboard();
+        cb();
+      });
+    }, fArm);
+  }, 220);
+}
+
 function applyBattedOutcome(outcome, nf) {
   const runsBefore = (half==='TOP') ? scoreTotal(runsAway) : scoreTotal(runsHome);
   switch (outcome) {
     case "ERROR":
       playFieldingErrorAnim(nf);
       suppressHitMsg = true;
-      advanceOnHit(1);
+      advanceOnHit(1, nf);
       suppressHitMsg = false;
       recordAtBatEnd();
       afterPlayCheckOuts();
@@ -3109,24 +3713,34 @@ function applyBattedOutcome(outcome, nf) {
       updateScoreboard();
       setTimeout(resetPlay, 1400);
       return;
-    case "GROUNDOUT": case "FLYOUT": case "LINEOUT":
+    case "GROUNDOUT": case "FLYOUT": case "LINEOUT": {
       outs++;
       const label = outcome === "GROUNDOUT" ? "GROUND OUT" : outcome === "FLYOUT" ? "FLY OUT" : "LINE OUT";
       showMsg(label, "#ff5555", "出局！");
       AudioEngine.mittPop(); AudioEngine.umpireCall("出局！");
       animateUmpireCall('out');
       adjustPitcherComposure(3);
-      // 高飛犧牲打：滿足條件則三壘跑者回本壘
-      if (outcome === "FLYOUT" && runners[2] && outs < 3 && Math.random() < 0.7) {
-        scoreRunner(2); showMsg("SAC FLY", "#ffcc00", "高飛犧牲打得分！");
-      }
       recordAtBatOut();
-      afterPlayCheckOuts();
+      // 高飛球／平飛球被接殺後，只要三壘還有跑者且出局數未滿，就一定要真的演出「跑者觸壘搶攻
+      // 回本壘」跟「野手回傳本壘」這兩個動作，並用真實秒數賽跑決定犧牲打得分還是被回傳阻殺出局，
+      // 不能接殺完就直接用機率骰要不要得分——地滾球出局沒有接殺這個前提，不適用高飛犧牲打規則。
+      const tagUpFrom = (outcome !== "GROUNDOUT" && runners[2] && outs < 3 && nf) ? 2 : -1;
+      if (tagUpFrom !== -1) {
+        resolveTagUpAfterCatch(nf, tagUpFrom, () => afterPlayCheckOuts());
+      } else {
+        afterPlayCheckOuts();
+      }
       return;
-    case "SINGLE": adjustPitcherComposure(-6); recordHit(1); advanceOnHit(1); recordAtBatEnd(); afterPlayCheckOuts(); return;
-    case "DOUBLE": adjustPitcherComposure(-9); recordHit(2); advanceOnHit(2); recordAtBatEnd(); afterPlayCheckOuts(); return;
-    case "TRIPLE": adjustPitcherComposure(-12); recordHit(3); advanceOnHit(3); recordAtBatEnd(); afterPlayCheckOuts(); return;
-    case "HOMERUN": adjustPitcherComposure(-22); recordHit(4); playHomeRunCelebration(); recordAtBatEnd(); afterPlayCheckOuts(true); return;
+    }
+    case "SINGLE": adjustPitcherComposure(-6); resolveOutfieldHitPlay(nf, window._hitContext, 1); return;
+    case "DOUBLE": adjustPitcherComposure(-9); resolveOutfieldHitPlay(nf, window._hitContext, 2); return;
+    case "TRIPLE": adjustPitcherComposure(-12); resolveOutfieldHitPlay(nf, window._hitContext, 3); return;
+    case "HOMERUN":
+      adjustPitcherComposure(-22);
+      recordHit(4);
+      playOutfielderWallJump(nf);
+      playHomeRunCelebration();
+      recordAtBatEnd(); afterPlayCheckOuts(true); return;
     default:
       outs++; showMsg("OUT", "#ff5555", ""); recordAtBatOut(); afterPlayCheckOuts(); return;
   }
@@ -3142,6 +3756,49 @@ function recordHit(bases) {
   if (half==='TOP') { hitsAway++; hitsInningAway[inning-1] = (hitsInningAway[inning-1]||0)+1; }
   else { hitsHome++; hitsInningHome[inning-1] = (hitsInningHome[inning-1]||0)+1; }
 }
+/* 得分／清場都不用「沉入地板消失」的方式處理，改成：先讓模型真的把整段路跑完(呼叫端已經
+   用 runModelToBase 讓他跑回本壘)，抵達本壘後停頓一下跳起舉手慶祝，再自然地跑向本隊休息區
+   方向離場、淡出消失——不是瞬間消失，也不是穿地板沉下去，讓「跑者回本壘得分」這件事在畫面上
+   看得到完整過程，而不是憑空消失。 */
+function runnerScoreCelebrateAndFade(model, delaySec) {
+  if (!model) return;
+  const dugoutSign = (curBatterTeam === TEAM_HOME) ? 1 : -1; // 攻方本隊休息區大致方向，離場走那一側
+  gsap.delayedCall(delaySec, () => {
+    if (!model.parent) return;
+    const baseY = model.position.y;
+    gsap.to(model.position, { y: baseY + 0.32, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.out" });
+    if (model.joints) {
+      gsap.to(model.joints.rArm.rotation, { x: -2.7, duration: 0.18, yoyo: true, repeat: 1, repeatDelay: 0.22 });
+      gsap.to(model.joints.lArm.rotation, { x: -2.7, duration: 0.18, yoyo: true, repeat: 1, repeatDelay: 0.22 });
+    }
+  });
+  gsap.delayedCall(delaySec + 0.85, () => {
+    if (!model.parent) return;
+    const dx = dugoutSign * 3.2, dz = 2.4;
+    gsap.to(model.rotation, { y: Math.atan2(dx, dz), duration: 0.15 });
+    const cycle = startRunCycle(model, 0.85);
+    gsap.to(model.position, { x: model.position.x + dx, z: model.position.z + dz, duration: 0.85, ease: "power1.in", onComplete: () => stopRunCycle(cycle, model) });
+  });
+  const mats = new Set();
+  model.traverse(o => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(mt => mats.add(mt)); });
+  gsap.delayedCall(delaySec + 1.55, () => {
+    if (!model.parent) return;
+    mats.forEach(mt => { mt.transparent = true; gsap.to(mt, { opacity: 0, duration: 0.4 }); });
+    gsap.delayedCall(0.45, () => { scene.remove(model); });
+  });
+}
+/* 半局結束或跑者資料被清空時，殘留在場上、沒有得分也沒有出局的模型（例如三振/接殺出局的''''
+   那一刻，其餘壘上跑者根本沒有再跑動）不應該直接穿地板沉下去消失，改成淡出即可。 */
+function runnerFadeAway(model, delaySec) {
+  if (!model) return;
+  const mats = new Set();
+  model.traverse(o => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(mt => mats.add(mt)); });
+  gsap.delayedCall(delaySec || 0, () => {
+    if (!model.parent) return;
+    mats.forEach(mt => { mt.transparent = true; gsap.to(mt, { opacity: 0, duration: 0.45 }); });
+    gsap.delayedCall(0.5, () => { scene.remove(model); });
+  });
+}
 function scoreRunner(baseIdx) {
   runners[baseIdx] = null;
   addRunsThisInning(1);
@@ -3155,7 +3812,7 @@ function scoreRunner(baseIdx) {
   if (m) {
     runnerModels[baseIdx] = null;
     runModelToBase(m, basePositions.home, 0.65);
-    gsap.to(m.position, { y: -2, duration: 0.5, delay: 0.9, onComplete: () => scene.remove(m) });
+    runnerScoreCelebrateAndFade(m, 0.75); // 先真的跑回本壘，再慶祝、跑離場、淡出——不是直接消失
   }
 }
 
@@ -3167,29 +3824,53 @@ function flashHomePlate() {
   window._homePlateFlashTimer = setTimeout(() => hp.classList.remove('active'), 900);
 }
 
-function advanceOnHit(bases) {
-  const speedy = curBatter.speed > 85;
-  const twoOuts = outs >= 2;
-  // 三壘跑者
+/* 壘上跑者的推進判斷：跟外野安打延壘判定（resolveOutfieldHitPlay）用同一套物理基準——
+   算出「防守方把球傳回目標壘包要花多久」vs「跑者從目前壘包跑到目標壘包要花多久」。
+   但真實棒球的壘上跑者推進不是每一個人都各自獨立跟球賽跑：防守一次只會選一個最有威脅的
+   目標回傳，其餘跟著推進的跑者則直接安全推進到該有的壘包，這裡也用「contested」代表
+   那個真正會被回傳鎖定、有被觸殺風險的跑者，其餘跑者維持原本安全推進的邏輯。
+   contested 的結果也不是算出 margin 就直接算完：會真的播放跑者衝刺、野手回傳的動畫，
+   並且保留一段隨機浮動（誤判/滑壘臨場變數），讓「明明數字上跑得回來」還是有機會失手，
+   「數字上有點勉強」也可能滑壘壓線成功，貼近真實比賽中三壘指導教練賭一把、跑者臨場誤判
+   的不確定感。玩家可在球還在場上時按住空白鍵（手機則是持續按住畫面瞄準）替跑者「催」，
+   大幅拉高闖壘意願，但也會拉高被刺殺出局的風險——跟現實中教練揮手送跑者回來是同一種賭注。
+   nf/landX/landZ 由呼叫端傳入本次守備方實際負責處理這顆球的野手與球的落點；沒有提供時
+   才退回使用目前的全域狀態（例如某些較舊呼叫路徑還沒改傳這些參數時）。 */
+function advanceOnHit(bases, nf, landX, landZ) {
+  const fielder = nf !== undefined ? nf : window._activeFielderPlay;
+  const lx = landX !== undefined ? landX : ballMesh.position.x;
+  const lz = landZ !== undefined ? landZ : ballMesh.position.z;
+
+  let contested = null; // {obj, model, fromLevel, standardLevel, extendLevel, baseKey, basePos}
+
+  // 三壘跑者：任何一支安打都足夠讓他輕鬆回本壘得分，不需要動畫判定
   if (runners[2]) { scoreRunner(2); }
-  // 二壘跑者
+
+  // 二壘跑者：長打(bases>=2)保送直接得分；一壘安打則要看回傳是否來得及，變成防守回傳鎖定的目標
   if (runners[1]) {
     if (bases >= 2) { scoreRunner(1); }
-    else if (bases === 1) {
-      if (twoOuts || speedy && Math.random() < 0.55) { scoreRunner(1); }
-      else { runners[2] = runners[1]; runners[1] = null; }
+    else {
+      contested = { obj: runners[1], model: runnerModels[1], fromLevel: 2, standardLevel: 3, extendLevel: 4, baseKey: 'C', basePos: basePositions.home };
+      runners[1] = null; runnerModels[1] = null; // 跑者已經離壘出發，交給 resolveContestedAdvance 全權處理後續動畫與結果
     }
   }
-  // 一壘跑者
+  // 一壘跑者：三壘(含)以上長打直接送回本壘；二壘安打/一壘安打則看防守這次回傳鎖定的是不是他
   if (runners[0]) {
     if (bases >= 3) { scoreRunner(0); }
-    else if (bases === 2) { runners[2] = runners[0]; runners[0] = null; }
-    else { // single
-      if (twoOuts && speedy && Math.random() < 0.3) { scoreRunner(0); }
-      else { runners[1] = runners[0]; runners[0] = null; }
+    else if (bases === 2) {
+      if (!contested) {
+        contested = { obj: runners[0], model: runnerModels[0], fromLevel: 1, standardLevel: 3, extendLevel: 4, baseKey: 'C', basePos: basePositions.home };
+        runners[0] = null; runnerModels[0] = null;
+      } else { runners[2] = runners[0]; runners[0] = null; } // 防守全力對付二壘跑者回本壘，一壘跑者順理成章跟進到三壘
+    } else { // single
+      if (!contested) {
+        contested = { obj: runners[0], model: runnerModels[0], fromLevel: 1, standardLevel: 2, extendLevel: 3, baseKey: '3B', basePos: basePositions.third };
+        runners[0] = null; runnerModels[0] = null;
+      } else { runners[1] = runners[0]; runners[0] = null; } // 防守鎖定二壘跑者，一壘跑者安全推進到二壘
     }
   }
-  // 打者上壘
+
+  // 打者上壘（此時若原本壘上有跑者被列為 contested，該壘包已在上面清空，不會互相打架）
   if (bases === 1) runners[0] = curBatter;
   else if (bases === 2) runners[1] = curBatter;
   else if (bases === 3) runners[2] = curBatter;
@@ -3198,6 +3879,106 @@ function advanceOnHit(bases) {
   updateBaseUI();
   if (!selectedSwingPowerHRAlready && !suppressHitMsg) showMsg(bases===1?"SINGLE!":bases===2?"DOUBLE!":"TRIPLE!", "#00ffcc", "安打！");
   AudioEngine.crowdSwell(0.4 + bases*0.15);
+
+  if (contested) resolveContestedAdvance(contested, fielder, lx, lz);
+}
+
+/* 真正有被回傳鎖定風險的那名跑者：讓他從原本壘包開始跑步衝刺，同一時間野手也真的把球
+   回傳向目標壘包，兩段動畫並行播放，等雙方都差不多完成後才公布安全/出局，並保留隨機浮動
+   代表臨場的不確定性；玩家按住空白鍵／畫面可以催跑壘，提高闖壘意願但也提高被刺殺風險。 */
+function resolveContestedAdvance(c, fielder, lx, lz) {
+  const speed = (c.obj && c.obj.speed) || 60;
+  const runnerSpeedMS = runnerSpeedMps(speed);
+  const extendDist = Math.max(0.1, outfieldPathDistance(c.extendLevel) - outfieldPathDistance(c.fromLevel));
+  const extendRunTime = extendDist / runnerSpeedMS;
+
+  const fRating = fieldingRating(fielder ? fielder.f.player : null);
+  const moveSpeed = fielderMoveMps(fRating);
+  const travelToBallTime = fielder ? (0.35 + fielder.d / moveSpeed) : 1.6;
+  const pickupTime = 0.44;
+  const throwDist = Math.hypot(lx - c.basePos.x, lz - c.basePos.z);
+  const throwSpeedFactor = throwSecPerUnit(fRating);
+  const throwTime = THREE.MathUtils.clamp(throwDist * throwSpeedFactor, 0.45, 2.1);
+  const defenseTime = travelToBallTime + pickupTime + throwTime;
+
+  const margin = defenseTime - extendRunTime; // 正值＝回傳來不及，跑者有機會安全再多推進一個壘包
+
+  // 玩家按住空白鍵（手機則是持續按住畫面瞄準）幫跑者「催」：大幅拉高闖壘意願，
+  // 但闖得越猛、誤判/冒進被回傳刺殺的風險也跟著提高，是玩家自己要承擔的賭注。
+  // 這幾個係數是配合「跑者/野手/傳球時間」整體拉長校準過的節奏調整過的，
+  // 避免時間差被拉長後，機率一下子就飽和變成非黑即白、失去該有的臨場不確定感。
+  const manualPush = !!((typeof keys !== 'undefined' && keys['Space']) || _touchAiming);
+  const attemptChance = THREE.MathUtils.clamp(0.42 + margin * 0.53 + (manualPush ? 0.85 : 0) + (speed - 60) * 0.004, 0.03, 0.98);
+  const willAttempt = (margin > -1.75 || manualPush) && Math.random() < attemptChance;
+
+  if (!willAttempt) {
+    // 跑者自己判斷這球回得太快，選擇保守留在原本安全的壘包，不會驚動防守整段回傳戲碼
+    placeContestedRunner(c, c.standardLevel, false);
+    return;
+  }
+
+  const targetPos = c.extendLevel >= 4 ? basePositions.home : baseIndexToPos(c.extendLevel - 1);
+  if (c.model) runModelToBase(c.model, targetPos, extendRunTime);
+  if (fielder) animateThrowToBase(fielder.f, c.baseKey, () => {}, fRating); // 純視覺回傳動畫，結果已用時間差算好，這裡只是讓畫面上真的看得到回傳
+
+  // 誤判/臨場不確定性：即使算出來的margin明顯有利或不利，觸壘瞬間仍保留隨機浮動，
+  // 玩家手動催的越猛，這段不確定性也越大——代表冒進的賭注風險更高。
+  const noise = (Math.random() - 0.5) * (manualPush ? 0.68 : 0.42);
+  const isSafe = (margin + noise) > 0;
+
+  const resolveDelay = Math.max(extendRunTime, defenseTime) * 1000 + 150;
+  setTimeout(() => {
+    if (isSafe) {
+      placeContestedRunner(c, c.extendLevel, true);
+    } else {
+      outs++;
+      if (c.model) {
+        // 觸殺出局：滑壘/倒地動畫，跟盜壘失敗的畫面手法一致
+        gsap.to(c.model.rotation, { x: Math.PI/2.3, duration: 0.28, ease: "power2.in" });
+        gsap.to(c.model.position, { y: c.model.position.y - 0.18, duration: 0.28, ease: "power2.in", onComplete: () => scene.remove(c.model) });
+      }
+      const baseLabel = c.extendLevel >= 4 ? "本" : (c.extendLevel === 3 ? "三" : "二");
+      showMsg("THROWN OUT!", "#ff3333", `貪跑遭回傳刺殺，衝${baseLabel}壘失敗出局！`);
+      AudioEngine.umpireCall("出局！"); animateUmpireCall('out');
+      updateBaseUI(); updateScoreboard();
+      if (outs >= 3) { setTimeout(() => endHalfInning(), 1400); }
+    }
+  }, resolveDelay);
+}
+
+/* 把 contested 跑者實際安置到判定出的壘包：得分(level>=4)就直接跑回本壘慶祝，
+   否則正式放回 runners[]/runnerModels[]，安全的話加一段滑壘動作，跟盜壘成功的手法一致。 */
+function placeContestedRunner(c, level, isCloseSafe) {
+  if (level >= 4) {
+    addRunsThisInning(1);
+    AudioEngine.crowdSwell(0.6);
+    updateScoreboard(); flashHomePlate();
+    if (isCloseSafe) { showMsg("SAFE!", "#00ff88", "回傳來不及，安全跑回本壘得分！"); AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe'); }
+    if (c.model) {
+      runnerScoreCelebrateAndFade(c.model, 0.15); // 拚壘回本壘得分，一樣真的完成整段慶祝與離場，不是直接消失
+    }
+    updateBaseUI();
+    return;
+  }
+  const idx = level - 1; // 1=一壘(idx0)...3=三壘(idx2)
+  runners[idx] = c.obj;
+  runnerModels[idx] = c.model;
+  if (c.model) {
+    if (!isCloseSafe) {
+      // 沒有真的貪跑，直接穩穩跑到該停的壘包，不需要驚險滑壘
+      runModelToBase(c.model, baseIndexToPos(idx), 0.45);
+    } else {
+      // 驚險安全上壘：側身下滑貼近壘包，隨後起身歸位
+      const baseY = c.model.position.y;
+      gsap.to(c.model.rotation, { x: Math.PI/3.4, duration: 0.2, ease: "power2.out" });
+      gsap.to(c.model.position, { y: baseY - 0.14, duration: 0.2, ease: "power2.out" });
+      gsap.to(c.model.rotation, { x: 0, duration: 0.3, delay: 0.3, ease: "power1.out" });
+      gsap.to(c.model.position, { y: baseY, duration: 0.3, delay: 0.3 });
+      showMsg("SAFE!", "#00ff88", "驚險滑壘，安全上壘！");
+      AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
+    }
+  }
+  updateBaseUI();
 }
 let selectedSwingPowerHRAlready = false;
 let suppressHitMsg = false;
@@ -3285,7 +4066,7 @@ function runFielderTo(fielderObj, targetX, targetZ, duration, onComplete) {
 function animateRunnersToBase() {
   [0,1,2].forEach(i => {
     const speedRating = (runners[i] && runners[i].speed) || 60;
-    const speedMS = 5.6 + (speedRating/100) * 3.6; // 依球員速度值換算真實跑壘速度
+    const speedMS = runnerSpeedMps(speedRating); // 依球員速度值換算真實跑壘速度
     if (runners[i] && !runnerModels[i]) {
       const rm = createHumanoid(0xffd9b3, curBatterTeamColor(), 0xf0f0f0, curBatterTeamColor());
       rm.scale.set(0.85,0.85,0.85);
@@ -3302,15 +4083,58 @@ function animateRunnersToBase() {
   // 清除已無跑者的殘留模型
   [0,1,2].forEach(i => {
     if (!runners[i] && runnerModels[i]) {
+      // 這裡處理的是「半局結束時壘上還有跑者被留在原地(沒有得分、沒有出局)」或其他資料被清空的殘留模型，
+      // 不是穿地板沉下去消失，改成淡出，避免看起來像是憑空消失。
       const m = runnerModels[i];
-      gsap.to(m.position, { y: -2, duration: 0.5, delay:0.3, onComplete: () => { scene.remove(m); } });
+      runnerFadeAway(m, 0.2);
       runnerModels[i] = null;
     }
   });
 }
 
+function killStealRunAnimation() {
+  const ref = window._stealRunCycleRef;
+  if (ref) {
+    if (ref.cycle) ref.cycle.kill();
+    if (ref.tween) ref.tween.kill(); // 一定要連同「跑向壘包」的位移動畫一起停掉，避免判決出來後跑者仍繼續被舊的位移補間拉往壘包，跟出局/安全的動畫互搶位置
+  }
+  window._stealRunCycleRef = null;
+}
+/* 真實棒球中，觸殺／安全的那一刻一定發生在壘包旁邊（跑者正在滑壘進壘），不會是在半路上就直接
+   判出局。傳殺結果（比對傳球與跑壘時間）算出來後，若跑者視覺上還沒真正跑到壘包附近（判定比
+   原本預期的衝刺時間更早出爐），這裡讓他用同一套跑步循環動畫，把剩下的路程用一小段「最後衝刺」
+   補完、真正跑進壘包，再播放滑壘安全／觸殺出局的動畫，確保跑壘動作是完整的，不會卡在半路。 */
+/* 真實棒球中，觸殺／安全的那一刻一定發生在「跑者當下真正跑到的位置」：安全上壘一定是真的
+   踩到／滑進了壘包；但觸殺出局往往是在壘包前一點點就被截殺，不會是「先讓跑者踩上壘包、
+   再回頭說他出局」這種矛盾畫面。所以這裡改成依照最終是安全還是出局分開處理：
+   - 安全：把剩下的路程用短暫的跑步動畫真正跑完、進到壘包，再播放滑壘安全動畫；
+   - 出局：直接在跑者目前實際所在的位置（可能還沒踩到壘包）停下來，原地播放觸殺出局動畫，
+     不會把人硬拉到壘包上，畫面才會跟「傳球贏過跑者」的判定結果一致，不會出現自相矛盾的情況。 */
+function finishStealRunAndThen(rm, targetPos, isSafe, cb) {
+  const ref = window._stealRunCycleRef;
+  window._stealRunCycleRef = null;
+  if (!rm) { cb(); return; }
+  if (ref && ref.tween) ref.tween.kill(); // 先停住原本那條會一路拉到壘包的位移補間，改由這裡依結果決定終點
+  const distLeft = rm.position.distanceTo(targetPos);
+  if (!isSafe || distLeft < 0.35) {
+    // 出局（或本來就已經幾乎踩到壘包）：不再另外把人拉到壘包上，就地停止跑步循環動畫、
+    // 在跑者當下真正所在的位置播放觸殺動作。
+    if (ref && ref.cycle) stopRunCycle(ref.cycle, rm);
+    cb();
+    return;
+  }
+  // 安全上壘：讓跑者用同一套跑步循環動畫，把剩下的路程真正跑完、抵達壘包，再播放滑壘安全動作。
+  const catchUpDur = THREE.MathUtils.clamp(distLeft / 7.5, 0.12, 0.45);
+  const cycle = (ref && ref.cycle) ? ref.cycle : startRunCycle(rm, catchUpDur);
+  gsap.to(rm.position, {
+    x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: catchUpDur, ease: "power1.in",
+    onComplete: () => { stopRunCycle(cycle, rm); cb(); }
+  });
+}
 function attemptSteal() {
-  if (gameState !== "PITCH_FLIGHT") return; // 必須是投手已經出手（球在半空中）的瞬間才能盜壘，不能整個等球階段隨意按
+  // 投手已經進入揮臂動作（球還沒離手）或球已經在半空中飛行，都可以隨時起跑盜壘，符合真實棒球「跑者
+  // 幾乎可以在投手一開始動作時就選擇起跑」的節奏；真正還在「雙方都在準備階段」時另外走提前起跑流程。
+  if (gameState !== "PITCH_FLIGHT" && gameState !== "PITCH_WINDUP") return;
   if (!isHumanBattingNow()) return; // 玩家防守時不可操控對方跑者盜壘
   if (window._stealInProgress) return;
   // 找最前面（離本壘最近尚未被擋）的跑者嘗試盜壘
@@ -3333,10 +4157,18 @@ function attemptSteal() {
   // 等球都快到本壘板才按（elapsedFrac 趨近 1）等於起跑太晚，會明顯拉低盜壘成功率；
   // 這讓「盜壘時機點」真的變成影響成敗的關鍵操作，而不只是單純比較速度與臂力。
   const flightTotal = window._pitchFlightTime || 0.45;
-  const flightElapsed = window._pitchFlightElapsed || 0;
-  const elapsedFrac = THREE.MathUtils.clamp(flightTotal > 0 ? flightElapsed / flightTotal : 0.5, 0, 1);
-  const jumpQuality = 1 - elapsedFrac; // 1 = 完美起跑，0 = 起跑過晚
+  const flightElapsed = gameState === "PITCH_WINDUP" ? 0 : (window._pitchFlightElapsed || 0);
+  const elapsedFrac = gameState === "PITCH_WINDUP" ? 0 : THREE.MathUtils.clamp(flightTotal > 0 ? flightElapsed / flightTotal : 0.5, 0, 1);
+  // 起跑時機仍是主要決定因素（玩家操作），但也讓跑者自身的「反應值」（速度＋選球專注力換算）
+  // 疊加一點加成／扣分，讓球員數值本身在盜壘上也有感，而不是完全只看操作時機。
+  const timingJump = 1 - elapsedFrac; // 1 = 完美起跑，0 = 起跑過晚
+  const reactionBonus = (derivedRunnerReaction(runner) - 60) * 0.0035;
+  // 先前主動離壘的幅度也直接疊加成起跑優勢：本來就已經探出去一段距離，起跑自然更快更有利，
+  // 這正是玩家/電腦選擇冒險多離壘的實際回報。
+  const leadBonus = (runnerLead[from] || 0) * 0.2;
+  const jumpQuality = THREE.MathUtils.clamp(timingJump + reactionBonus + leadBonus, 0, 1);
   window._stealJumpQuality = jumpQuality;
+  runnerLead[from] = 0; // 起跑瞬間，離壘幅度的概念就併入起跑優勢了，重置避免跟之後的判定重複疊加
   const jumpNote = jumpQuality > 0.72 ? "完美起跑時機！" : jumpQuality > 0.4 ? "盜壘啟動！" : "起跑太慢了！";
   const jumpColor = jumpQuality > 0.72 ? "#00ff88" : jumpQuality > 0.4 ? "#66ccff" : "#ff8844";
 
@@ -3350,7 +4182,7 @@ function attemptSteal() {
     if (window._stealCancelled) { window._stealInProgress = false; return; } // 打者已經出棒打到球，盜壘判定作廢，改走安打推進流程
     // 2) 全力衝刺奔向下一個壘包——刻意拉長跑壘時間、加上跑步循環動畫，
     // 讓整段衝刺看起來像真實棒球員全力跑壘的節奏，玩家才有足夠時間從畫面判斷這球盜壘到底成不成功。
-    let stealRunCycle = null;
+    let stealRunCycle = null, stealRunTween = null;
     if (rm) {
       const stealSpeedMS = 5.4 + ((runner.speed||60)/100) * 3.0;
       const stealDist = rm.position.distanceTo(targetPos);
@@ -3359,10 +4191,10 @@ function attemptSteal() {
       window._stealRunDur = stealRunDur;
       gsap.to(rm.rotation, { y: Math.PI * 0.08, duration: 0.15 });
       stealRunCycle = startRunCycle(rm, stealRunDur);
-      gsap.to(rm.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: stealRunDur, ease: "power1.in",
+      stealRunTween = gsap.to(rm.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: stealRunDur, ease: "power1.in",
         onComplete: () => stopRunCycle(stealRunCycle, rm) });
     }
-    window._stealRunCycleRef = { cycle: stealRunCycle, model: rm };
+    window._stealRunCycleRef = { cycle: stealRunCycle, tween: stealRunTween, model: rm };
     // 3) 捕手接住投球後迅速做出傳球準備動作
     if (catcherF) {
       gsap.to(catcherF.model.joints.rArm.rotation, { x: -0.85, duration: 0.16, delay: 0.1 });
@@ -3383,16 +4215,47 @@ function attemptSteal() {
 function decideCatcherThrow(from, to, runner, rm, targetPos, toFielderKey, catcherF) {
   const runnerSpeed = runner.speed || 60;
   const catcherArm = curPitcherTeam.catcherArm || 72;
-  // 起跑時機加成：完美起跑最多可拉高成功率約 +0.30，起跑過晚則可能倒扣約 -0.30，
-  // 讓玩家「什麼時候按下盜壘鍵」跟球員能力值一樣，都是決定盜壘成敗的關鍵因素。
   const jumpQuality = window._stealJumpQuality !== undefined ? window._stealJumpQuality : 0.5;
-  const jumpBonus = (jumpQuality - 0.5) * 0.6;
-  const successChance = THREE.MathUtils.clamp((runnerSpeed - catcherArm*0.75) / 60 + 0.55 + jumpBonus, 0.06, 0.95);
+
+  // ---- 真實傳球機制：不再套用抽象的成功機率公式，改成跟守備滾地球／外野回傳同一套邏輯——
+  // 直接比較「跑者衝到下一個壘包實際需要多久」跟「捕手接球反應＋依臂力換算出的實際傳球飛行時間」，
+  // 誰先完成就是誰贏，公平地反映真實傳球速度與跑壘速度的計算。
+  const catcherPos = catcherF ? catcherF.model.position.clone() : basePositions.home.clone();
+  const throwSpeedFactor = throwSecPerUnit(catcherArm);
+  const throwDist = catcherPos.distanceTo(targetPos);
+  const throwDur = THREE.MathUtils.clamp(throwDist * throwSpeedFactor, 0.45, 1.4);
+  const catcherReactionTime = 0.74; // 對應捕手接球後、確實做好接球＋轉身傳球準備動作的固定反應時間
+  const defenseTotalTime = catcherReactionTime + throwDur;
+
+  // 跑者衝刺時間：起跑時機（jumpQuality）直接換算成實際省下／多花的秒數，而不是額外疊加成功機率，
+  // 讓「什麼時候按下盜壘鍵」真正反映在秒數賽跑的結果上——完美起跑最多省下約0.55秒，起跑過晚則反過來。
+  const runnerBaseTime = (window._stealRunDur || 2.4) + 0.32;
+  const jumpTimeAdjust = (0.5 - jumpQuality) * 1.1;
+  const runnerEffectiveTime = Math.max(0.6, runnerBaseTime + jumpTimeAdjust);
+
+  // 差距明顯時完全依照計算出來的實際時間決定勝負；只有近乎平手的觸殺瞬間才保留一點點浮動，
+  // 模擬真實比賽中觸殺瞬間手/腳觸壘的些微不確定性，不影響整體「公平公正」的判定原則。
+  const margin = defenseTotalTime - runnerEffectiveTime; // 正值＝傳球比跑者晚到，跑者安全
+  const closePlayNoise = (Math.random() - 0.5) * 0.14;
+  const isSafe = (margin + closePlayNoise) > 0;
+  const successChance = isSafe ? 1 : 0;
 
   const doThrow = () => {
+    const stealStartTs = window._stealRunStartTime || performance.now();
+    const stealRunDur = window._stealRunDur || runnerEffectiveTime;
     if (toFielderKey && fielderModels[toFielderKey]) {
       // 引臂蓄力、揮臂送球的完整動作已統一交給 animateThrowToBase 處理，這裡不需再重複設定手臂角度
-      animateThrowToBase(catcherF, toFielderKey, () => resolveStealOutcome(from, to, runner, rm, successChance), catcherArm);
+      animateThrowToBase(catcherF, toFielderKey, () => {
+        // 傳球真正抵達壘包的這一刻，用「實際經過的真實時間」重新確認跑者是否已經跑到壘包——
+        // 捕手（不管是玩家猶豫要不要傳，還是電腦稍慢一拍才決定）決定傳球之前，跑者其實一直
+        // 持續在跑；只要這段真實經過的時間，加上球真正飛行抵達的這一刻，跑者早就已經確確實實
+        // 站上壘包了，就一定要判安全，不能因為球「最後還是傳出去了」就追溯把明明已經安全上壘
+        // 的跑者判出局。只有傳球抵達的當下、跑者實際上都還在跑壘途中，才會用原本算好的
+        // 「傳球時間 vs. 跑壘時間」賽跑結果來判定安全或出局。
+        const elapsedSinceBreak = (performance.now() - stealStartTs) / 1000;
+        const alreadySafe = elapsedSinceBreak >= stealRunDur;
+        resolveStealOutcome(from, to, runner, rm, alreadySafe ? 1 : successChance);
+      }, catcherArm);
     } else {
       resolveStealOutcome(from, to, runner, rm, successChance);
     }
@@ -3432,10 +4295,12 @@ function showCatcherThrowPrompt(toBase, onThrow, onHold) {
 function resolveStealOutcome(from, to, runner, rm, successChance) {
   document.getElementById(`b${from+1}`).classList.remove('stealing');
   window._stealInProgress = false;
-  // 判定結果出來時，若跑步循環動畫還在跑（衝刺尚未完全到位），先停止避免和滑壘/倒地動畫打架
-  if (window._stealRunCycleRef && window._stealRunCycleRef.cycle) { window._stealRunCycleRef.cycle.kill(); }
-  window._stealRunCycleRef = null;
-  if (Math.random() < successChance) {
+  const targetPos = baseIndexToPos(to);
+  const isSafe = Math.random() < successChance;
+  // 安全上壘才讓跑者真正跑完剩下的路程、抵達壘包旁邊；判定為出局時，觸殺動作就在跑者當下
+  // 實際所在的位置播放，不會把人硬拉到壘包上再說他出局，避免畫面跟判定結果互相矛盾。
+  finishStealRunAndThen(rm, targetPos, isSafe, () => {
+  if (isSafe) {
     runners[to] = runner; runners[from] = null;
     runnerModels[to] = rm; runnerModels[from] = null;
     if (rm) {
@@ -3462,9 +4327,10 @@ function resolveStealOutcome(from, to, runner, rm, successChance) {
     showMsg("OUT!", "#ff3333", "盜壘失敗，觸殺出局！");
     AudioEngine.umpireCall("出局！");
     animateUmpireCall('out');
-    if (outs >= 3) { setTimeout(endHalfInning, 1400); return; }
+    if (outs >= 3) { setTimeout(endHalfInning, 1400); updateBaseUI(); updateScoreboard(); return; }
   }
   updateBaseUI(); updateScoreboard();
+  });
 }
 
 function abortPrePitchStealIfAny() {
@@ -3473,8 +4339,7 @@ function abortPrePitchStealIfAny() {
   const st = window._prePitchSteal;
   if (st) {
     document.getElementById(`b${st.from+1}`).classList.remove('stealing');
-    if (window._stealRunCycleRef && window._stealRunCycleRef.cycle) { window._stealRunCycleRef.cycle.kill(); }
-    window._stealRunCycleRef = null;
+    killStealRunAnimation();
   }
   window._pickoffPending = false;
   window._stealInProgress = false;
@@ -3504,12 +4369,15 @@ function attemptStealPrePitch() {
   window._stealCancelled = false;
   window._pickoffPending = true; // 暫停投手原本的投球節奏／輸入，直到牽制決策完成
   clearTimeout(window._setCueTimer);
+  clearTimeout(window._cpuPickoffTimer);
 
   const runner = runners[from];
   const to = from + 1;
   const rm = runnerModels[from];
   const targetPos = baseIndexToPos(to);
-  window._stealJumpQuality = 0.92 + Math.random() * 0.08; // 提前在投手還沒動作前就起跑，等同拿到近乎完美的起跑時機
+  // 提前在投手還沒動作前就起跑，等同拿到近乎完美的起跑時機，但反應值高的跑者依然會再更穩定一點
+  window._stealJumpQuality = THREE.MathUtils.clamp(0.90 + Math.random() * 0.08 + (derivedRunnerReaction(runner) - 60) * 0.0015, 0.7, 1);
+  runnerLead[from] = 0; // 提前起跑當下離壘幅度已經併入起跑優勢，重置避免跟後續判定重複疊加
   window._prePitchSteal = { from, to, runner, rm, targetPos, resolved: false };
 
   document.getElementById(`b${from+1}`).classList.add('stealing');
@@ -3521,25 +4389,230 @@ function attemptStealPrePitch() {
 
   // 跑者全力衝刺——時間拉得比投球中盜壘更長，因為這是「純跑壘」沒有球在飛，
   // 讓玩家能清楚看到跑者跑了多久、投手／捕手多快回應，藉此判斷牽制成敗。
-  let stealRunCycle = null;
+  let stealRunCycle = null, stealRunTween = null;
   if (rm) {
     const stealSpeedMS = 5.4 + ((runner.speed||60)/100) * 3.0;
     const stealDist = rm.position.distanceTo(targetPos);
     const stealRunDur = THREE.MathUtils.clamp(stealDist / stealSpeedMS, 1.8, 3.6);
     gsap.to(rm.rotation, { y: Math.PI * 0.08, duration: 0.2 });
     stealRunCycle = startRunCycle(rm, stealRunDur);
-    gsap.to(rm.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: stealRunDur, ease: "power1.in",
+    stealRunTween = gsap.to(rm.position, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: stealRunDur, ease: "power1.in",
       onComplete: () => stopRunCycle(stealRunCycle, rm) });
     window._prePitchSteal.runStartTime = performance.now();
     window._prePitchSteal.runDur = stealRunDur;
+    // 這兩個全域變數是給「投球途中按下盜壘」共用的 decideCatcherThrow() 讀取判斷跑者是否已經
+    // 跑到壘包，提前起跑的情況如果之後球真的投出、走到同一套捕手傳殺流程，也要讓它讀到正確的
+    // 起跑時間，不能沿用上一次盜壘留下的舊時間戳記，否則「已跑到壘包」的判斷會失準。
+    window._stealRunStartTime = window._prePitchSteal.runStartTime;
+    window._stealRunDur = stealRunDur;
   }
-  window._stealRunCycleRef = { cycle: stealRunCycle, model: rm };
+  window._stealRunCycleRef = { cycle: stealRunCycle, tween: stealRunTween, model: rm };
 
   setTimeout(() => decidePitcherPickoff(), 340);
 }
 
-/* 投手的牽制決策：玩家防守時跳出選單自由選一、二、三壘或直接投球；
-   電腦防守時依投手能力與跑者起跑優勢自行判斷是否牽制、以及要傳向哪個壘包（也可能猜錯壘包）。 */
+function derivedPickoffSkill(p) {
+  // 沒有另外設定專屬「牽制」數值的投手，依控球值＋些微隨機種子換算出一個合理的牽制能力，
+  // 不需要逐一改寫每一位投手的資料。
+  if (p.pickoff !== undefined) return p.pickoff;
+  const seed = hashStringToUnit(p.name || 'p');
+  return THREE.MathUtils.clamp((p.control || 65) * 0.85 + (seed - 0.5) * 18, 30, 96);
+}
+function derivedRunnerReaction(b) {
+  // 同理，跑者的「回壘反應」由敏捷相關數值（速度＋選球/專注力 eye）換算，沒有專屬數值時用這個估計。
+  if (b.reaction !== undefined) return b.reaction;
+  const seed = hashStringToUnit(b.name || 'b');
+  return THREE.MathUtils.clamp((b.speed || 60) * 0.6 + (b.eye || 60) * 0.25 + (seed - 0.5) * 16, 25, 97);
+}
+
+/* =========================================================================================
+   10d. 跑者離壘幅度：真實棒球中，牽制能不能刺殺跑者，關鍵在於跑者「離壘有多遠」——
+   完全貼在壘包上絕對安全，離壘越遠，被牽制刺殺的風險就越高，但換來的是起跑優勢／推進速度。
+   玩家操控跑方時可按住 L 鍵讓當前跑者主動往下一個壘包多離壘一點；電腦控制的跑方則依球員
+   速度/積極度自動決定離壘幅度。每一球重新開始時都會重置，跟真實比賽節奏一致。
+   ========================================================================================= */
+let runnerLead = { 0:0, 1:0, 2:0 }; // 0=完全貼壘包(零風險)，1=最大安全離壘幅度
+const MAX_LEAD_FRAC = 0.24; // 相對壘間距離的比例，對應真實「安全離壘」大約 10~15 呎的合理範圍
+let _leadHoldTimer = null, _leadHoldFrom = -1;
+
+function leadFromRunnerIdx() {
+  // 跟盜壘操作同一套「找最前面尚未被擋的跑者」邏輯，一次只主動控制一位跑者離壘
+  if (runners[1] && !runners[2]) return 1;
+  else if (runners[0] && !runners[1]) return 0;
+  else if (runners[0] && runners[1] && !runners[2]) return 1;
+  return -1;
+}
+function leadTargetPos(baseIdx) {
+  if (baseIdx === 0) return basePositions.second;
+  if (baseIdx === 1) return basePositions.third;
+  return basePositions.home;
+}
+function applyRunnerLeadVisual(baseIdx) {
+  const rm = runnerModels[baseIdx];
+  if (!rm || !runners[baseIdx]) return;
+  const basePos = baseIndexToPos(baseIdx);
+  const target = leadTargetPos(baseIdx);
+  const dx = target.x - basePos.x, dz = target.z - basePos.z;
+  const len = Math.hypot(dx, dz) || 1;
+  const dirX = dx/len, dirZ = dz/len;
+  const leadDist = len * MAX_LEAD_FRAC * THREE.MathUtils.clamp(runnerLead[baseIdx]||0, 0, 1);
+  rm.position.x = basePos.x + dirX*leadDist;
+  rm.position.z = basePos.z + dirZ*leadDist;
+  rm.rotation.y = Math.atan2(dirX, dirZ);
+}
+function resetAndAssignLeads() {
+  // 每一球開始前重新歸零、重新決定離壘幅度（真實棒球中，離壘幅度本來就是每一球都重新抓）
+  [0,1,2].forEach(i => {
+    if (!runners[i]) { runnerLead[i] = 0; return; }
+    if (isHumanBattingNow()) {
+      runnerLead[i] = 0; // 貼壘包完全安全，玩家要自行按住 L 才會開始離壘、開始有被牽制的風險
+    } else {
+      const spd = (runners[i].speed || 60);
+      runnerLead[i] = THREE.MathUtils.clamp(0.3 + (spd-60)*0.008 + (Math.random()-0.5)*0.3, 0.05, 0.85);
+    }
+    applyRunnerLeadVisual(i);
+  });
+}
+function startLeadHold() {
+  if (gameState !== "PITCHING_WAIT") return;
+  if (!isHumanBattingNow()) return;
+  if (window._pickoffPending || window._stealInProgress) return;
+  const from = leadFromRunnerIdx();
+  if (from === -1) return;
+  _leadHoldFrom = from;
+  clearInterval(_leadHoldTimer);
+  _leadHoldTimer = setInterval(() => {
+    if (gameState !== "PITCHING_WAIT" || window._pickoffPending || !runners[_leadHoldFrom]) { clearInterval(_leadHoldTimer); return; }
+    runnerLead[_leadHoldFrom] = Math.min(1, (runnerLead[_leadHoldFrom]||0) + 0.05);
+    applyRunnerLeadVisual(_leadHoldFrom);
+  }, 16);
+}
+function endLeadHold() {
+  clearInterval(_leadHoldTimer);
+  _leadHoldTimer = null;
+  _leadHoldFrom = -1;
+}
+
+function updateHoldRunnerButtonVisibility() {
+  const hasRunner = !!(runners[0] || runners[1] || runners[2]);
+  const canHold = gameState === "PITCHING_WAIT" && isHumanPitchingNow() && !window._pickoffPending
+    && !window._stealInProgress && hasRunner;
+  const row = document.getElementById('hold-runner-row');
+  if (row) row.style.display = canHold ? 'block' : 'none';
+  const mb = document.getElementById('mb-hold-btn');
+  if (mb) mb.style.display = (canHold && typeof isTouchDevice !== 'undefined' && isTouchDevice) ? 'flex' : 'none';
+  const canLead = gameState === "PITCHING_WAIT" && isHumanBattingNow() && !window._pickoffPending
+    && !window._stealInProgress && hasRunner;
+  const mbLead = document.getElementById('mb-lead-btn');
+  if (mbLead) mbLead.style.display = (canLead && typeof isTouchDevice !== 'undefined' && isTouchDevice) ? 'flex' : 'none';
+}
+function attemptManualPickoff() {
+  if (gameState !== "PITCHING_WAIT" || !isHumanPitchingNow()) return;
+  if (window._pickoffPending || window._stealInProgress) return;
+  const occupied = [0,1,2].filter(i => runners[i]);
+  if (!occupied.length) return;
+  window._pickoffPending = true;
+  hidePitchSelectUI();
+  if (occupied.length === 1) { resolveManualPickoffThrow(occupied[0]); return; }
+  // 壘上不只一人時，跳出選單讓玩家選要牽制哪一個壘包
+  const panel = document.getElementById('pickoff-panel');
+  document.querySelector('#pickoff-panel h4').innerText = "⚾ 主動牽制";
+  document.querySelector('#pickoff-panel .control-item').innerText = "選擇要牽制傳向哪一個有跑者的壘包";
+  panel.style.display = 'flex';
+  const btn1 = document.getElementById('pickoff-1b-btn'), btn2 = document.getElementById('pickoff-2b-btn'),
+        btn3 = document.getElementById('pickoff-3b-btn'), btnC = document.getElementById('pickoff-continue-btn');
+  btn1.style.display = occupied.includes(0) ? 'inline-block' : 'none';
+  btn2.style.display = occupied.includes(1) ? 'inline-block' : 'none';
+  btn3.style.display = occupied.includes(2) ? 'inline-block' : 'none';
+  btnC.innerText = "取消";
+  let decided = false;
+  const cleanup = () => {
+    panel.style.display = 'none';
+    document.querySelector('#pickoff-panel h4').innerText = "⚾ 投手牽制決策";
+    document.querySelector('#pickoff-panel .control-item').innerText = "對方跑者提前起跑離壘！自由選擇牽制傳向哪一壘，或直接投球";
+    [btn1,btn2,btn3].forEach(b => b.style.display = 'inline-block');
+    btnC.innerText = "正常投球";
+    clearTimeout(timer);
+  };
+  btn1.onclick = () => { if (decided) return; decided = true; cleanup(); resolveManualPickoffThrow(0); };
+  btn2.onclick = () => { if (decided) return; decided = true; cleanup(); resolveManualPickoffThrow(1); };
+  btn3.onclick = () => { if (decided) return; decided = true; cleanup(); resolveManualPickoffThrow(2); };
+  btnC.onclick = () => { if (decided) return; decided = true; cleanup(); window._pickoffPending = false; showPitchSelectUI(); };
+  const timer = setTimeout(() => { if (decided) return; decided = true; cleanup(); window._pickoffPending = false; showPitchSelectUI(); }, 2200);
+}
+function resolveManualPickoffThrow(baseIdx) {
+  const runner = runners[baseIdx];
+  if (!runner) { window._pickoffPending = false; showPitchSelectUI(); return; }
+  const fielderKey = baseIdx === 0 ? '1B' : baseIdx === 1 ? '2B' : '3B';
+  const baseLabel = baseIdx === 0 ? "一壘" : baseIdx === 1 ? "二壘" : "三壘";
+  const pitcherPickoff = derivedPickoffSkill(curPitcher);
+  const runnerReaction = derivedRunnerReaction(runner);
+  const pitcherAsFielder = { model: pitcherModel, player: curPitcher };
+  const rm = runnerModels[baseIdx];
+  const lead = THREE.MathUtils.clamp(runnerLead[baseIdx]||0, 0, 1);
+  const basePos = baseIndexToPos(baseIdx);
+
+  showMsg("PICKOFF!", "#ffcc00", `投手轉身牽制傳向${baseLabel}！`);
+  endLeadHold(); // 一旦真的牽制，玩家按住的離壘操作立刻中止，不能邊被牽制邊繼續離壘
+  // 系統自動讓跑者立刻往回衝、撲回原本壘包——玩家不用另外操作，跑者離壘越遠，撲回的距離跟時間就越長，
+  // 也就越容易被下面依離壘幅度算出的成功率刺殺；完全貼壘包(lead≈0)的話幾乎是原地不動、瞬間就回壘。
+  if (rm) {
+    const diveBackDur = THREE.MathUtils.clamp(0.16 + lead * 0.3, 0.14, 0.5);
+    gsap.to(rm.position, { x: basePos.x, z: basePos.z, duration: diveBackDur, ease: "power2.out" });
+    gsap.to(rm.rotation, { y: rm.rotation.y + (baseIdx === 0 ? -0.35 : 0.35), duration: 0.15, yoyo: true, repeat: 1 });
+  }
+
+  animateThrowToBase(pitcherAsFielder, fielderKey, () => {
+    window._pickoffPending = false;
+    // 真實棒球中，單純的「離壘試探」(沒有真正起跑盜壘意圖) 被牽制刺殺出局其實極為罕見——
+    // 跑者一看到投手轉身傳球，幾乎都能及時撲回壘包。只有「離壘幅度大到接近起跑盜壘的程度」
+    // 且「跑者速度明顯偏慢、撲回壘包的反應也跟不上」時，才會真的有被刺殺出局的風險；
+    // 一般小幅離壘，不論離壘多寡，牽制球一到，系統一律讓跑者自動安全撲回壘包。
+    const LEAD_RISK_THRESHOLD = 0.7; // 離壘幅度需超過這個門檻(已接近盜壘起跑等級的離壘)，才開始有出局風險
+    const runnerSpeedVal = runner.speed || 60;
+    const isSlowRunner = runnerSpeedVal < 60; // 跑速明顯偏慢，才可能因為回壘不夠快而被刺殺
+    const skillRatio = THREE.MathUtils.clamp((pitcherPickoff - runnerReaction * 0.85) / 90, -0.5, 0.5);
+    let successChance = 0;
+    if (lead > LEAD_RISK_THRESHOLD && isSlowRunner) {
+      const leadExcess = (lead - LEAD_RISK_THRESHOLD) / (1 - LEAD_RISK_THRESHOLD); // 0~1，離壘超出門檻越多風險越高
+      const slowFactor = THREE.MathUtils.clamp((60 - runnerSpeedVal) / 35, 0.2, 1); // 越慢風險越高
+      successChance = THREE.MathUtils.clamp(leadExcess * (0.45 + skillRatio) * slowFactor, 0, 0.85);
+    }
+    const picked = Math.random() < successChance;
+    runnerLead[baseIdx] = 0; // 不管結果如何，這次驚魂過後跑者都會先貼緊壘包，離壘幅度重新歸零
+    if (picked) {
+      runners[baseIdx] = null;
+      if (rm) {
+        gsap.to(rm.rotation, { x: Math.PI/2.3, duration: 0.26, ease: "power2.in" });
+        gsap.to(rm.position, { y: rm.position.y - 0.18, duration: 0.26, ease: "power2.in", onComplete: () => scene.remove(rm) });
+      }
+      runnerModels[baseIdx] = null;
+      outs++;
+      showMsg("OUT!", "#ff3333", "牽制刺殺成功！跑者離壘太遠，沒能及時撲回壘包，出局！");
+      AudioEngine.umpireCall("出局！"); animateUmpireCall('out');
+    } else {
+      if (rm) {
+        const baseY = rm.position.y;
+        gsap.to(rm.rotation, { x: Math.PI/3.6, duration: 0.16, ease: "power2.out" });
+        gsap.to(rm.position, { y: baseY - 0.1, duration: 0.16, ease: "power2.out" });
+        gsap.to(rm.rotation, { x: 0, duration: 0.24, delay: 0.22, ease: "power1.out" });
+        gsap.to(rm.position, { y: baseY, duration: 0.24, delay: 0.22 });
+      }
+      showMsg("SAFE!", lead < 0.05 ? "#66ccff" : "#00ff88", lead < 0.05 ? "跑者根本沒有離壘，牽制毫無意義！" : "跑者及時撲回壘包，安全！");
+      AudioEngine.umpireCall("安全上壘！"); animateUmpireCall('safe');
+    }
+    updateBaseUI(); updateScoreboard();
+    if (outs >= 3) { setTimeout(endHalfInning, 1400); return; }
+    if (isHumanPitchingNow()) {
+      setTimeout(() => { if (gameState !== "GAMEOVER" && gameState !== "BRAWL") showPitchSelectUI(); }, 900);
+    } else {
+      // 電腦投手主動發起的牽制：安全的話就重新走一次完整的投球節奏排程（含重新歸零離壘幅度），
+      // 而不是誤跳出玩家專用的選球面板。
+      setTimeout(() => { if (gameState !== "GAMEOVER" && gameState !== "BRAWL") scheduleNextPitch(); }, 900);
+    }
+  }, pitcherPickoff);
+}
+
 function decidePitcherPickoff() {
   const st = window._prePitchSteal;
   if (!st || window._stealCancelled) { window._pickoffPending = false; return; }
@@ -3592,6 +4665,7 @@ function resolvePickoffThrow(baseIdx) {
   const st = window._prePitchSteal;
   hidePickoffPrompt();
   if (!st || window._stealCancelled) { window._stealInProgress = false; window._pickoffPending = false; return; }
+  if (st.resolved) { window._pickoffPending = false; return; } // 這名跑者已經在別的流程判過結果了，避免重複判定
 
   const fielderKey = baseIdx === 0 ? '1B' : baseIdx === 1 ? '2B' : '3B';
   const baseLabel = baseIdx === 0 ? "一壘" : baseIdx === 1 ? "二壘" : "三壘";
@@ -3602,6 +4676,7 @@ function resolvePickoffThrow(baseIdx) {
 
   animateThrowToBase(pitcherAsFielder, fielderKey, () => {
     window._pickoffPending = false;
+    if (st.resolved) return; // 傳球飛行這段時間內，跑者已經透過別的流程被判定過了，不要重複判出局/安全
     if (baseIdx !== st.to) {
       // 傳錯壘包：跑者真正要去的壘包完全沒受到威脅，安全上壘
       finishPrePitchSteal(st, true, false);
@@ -3609,8 +4684,13 @@ function resolvePickoffThrow(baseIdx) {
     }
     // 傳對壘包：跟捕手阻殺盜壘同一套「傳球時間 vs. 跑者剩餘跑壘時間」邏輯，
     // 但這是投手轉身後直接快速傳出的牽制球，路徑短、反應快，對起跑不夠早的跑者格外危險。
+    // 這裡的 elapsedSinceBreak 是「從跑者起跑，到這顆牽制球真正飛抵壘包」總共經過的時間——
+    // 跟跑者衝刺動畫用的是同一個時間基準，所以只要這個時間已經 >= 跑者衝到壘包所需的 runDur，
+    // 就代表跑者這一刻已經真正安全站上壘包了，牽制球再快也不可能把已經站上壘包的跑者觸殺出局，
+    // 一定要在這裡直接判安全，不能再套用機率、留一絲「明明已經到壘了還可能被判出局」的破綻。
     const elapsedSinceBreak = (performance.now() - st.runStartTime) / 1000;
-    const remainingRunFrac = THREE.MathUtils.clamp(1 - elapsedSinceBreak / st.runDur, 0.05, 1);
+    if (elapsedSinceBreak >= st.runDur) { finishPrePitchSteal(st, true, true); return; }
+    const remainingRunFrac = THREE.MathUtils.clamp(1 - elapsedSinceBreak / st.runDur, 0, 1);
     const runnerSpeed = st.runner.speed || 60;
     const jumpQuality = window._stealJumpQuality !== undefined ? window._stealJumpQuality : 0.5;
     const jumpBonus = (jumpQuality - 0.5) * 0.5;
@@ -3621,13 +4701,16 @@ function resolvePickoffThrow(baseIdx) {
 }
 
 function finishPrePitchSteal(st, isSafe, wasThrown) {
+  if (st.finished) return; // 保險：同一次提前起跑絕對不能被判定第二次（例如牽制球還在飛，投球又同時完成）
+  st.finished = true;
   document.getElementById(`b${st.from+1}`).classList.remove('stealing');
   window._stealInProgress = false;
   window._pickoffPending = false;
-  if (window._stealRunCycleRef && window._stealRunCycleRef.cycle) { window._stealRunCycleRef.cycle.kill(); }
-  window._stealRunCycleRef = null;
 
   const rm = st.rm;
+  // 同樣依安全或出局分開處理：安全才真的跑完剩下的路程、到壘包旁邊；出局就在跑者當下所在
+  // 位置播放觸殺動作，不會出現「明明已經跑到壘包卻還被判出局」這種前後矛盾的畫面。
+  finishStealRunAndThen(rm, st.targetPos, isSafe, () => {
   if (isSafe) {
     runners[st.to] = st.runner; runners[st.from] = null;
     runnerModels[st.to] = rm; runnerModels[st.from] = null;
@@ -3657,6 +4740,7 @@ function finishPrePitchSteal(st, isSafe, wasThrown) {
   if (outs >= 3) { setTimeout(endHalfInning, 1400); return; }
   // 牽制結束後比賽恢復：不管結果如何都重新回到「等待下一球」節奏，讓投手重新準備投球
   setTimeout(() => { if (gameState !== "GAMEOVER" && gameState !== "BRAWL") scheduleNextPitch(); }, 1200);
+  });
 }
 
 /* 若跑者在投手決定「正常投球」後、於球真正進壘（未被打成界內外）的那一刻仍持續盜壘中，
@@ -3678,23 +4762,50 @@ function tryResolvePrePitchStealOnPitchArrival() {
 
 /* =========================================================================================
    11. 保送 / 三振 / 出局 判定（球是 Ball 或 Strike 未揮棒時）
+   ＋ 暴投／捕逸、主審誤判、ABS 鷹眼挑戰、教練抗議
    ========================================================================================= */
+function zoneSDF(px, py) {
+  // 好球帶的 2D 有號距離場：>0 代表在好球帶外面多遠，<0 代表在好球帶裡面多深，
+  // 0 就是正好壓在好球帶邊界上——用來判斷這球是不是「擦邊球」。
+  const halfX = 0.28, loY = 0.78, hiY = 1.58, midY = (loY+hiY)/2, halfY = (hiY-loY)/2;
+  const qx = Math.abs(px) - halfX;
+  const qy = Math.abs(py - midY) - halfY;
+  const outsideX = Math.max(qx, 0), outsideY = Math.max(qy, 0);
+  const outsideDist = Math.hypot(outsideX, outsideY);
+  const insideDist = Math.min(Math.max(qx, qy), 0);
+  return outsideDist + insideDist;
+}
 function judgeTakenPitch() {
+  // 保險判斷：這球如果已經因為打者揮棒（或已經判過一次）而確定結果，就不能再被動判成好壞球，
+  // 避免「打者明明已經出棒揮擊，這一球卻又被系統判定為壞球」這種不合理的結果。
+  if (window._pitchResolved) return;
+  window._pitchResolved = true;
   tryResolvePrePitchStealOnPitchArrival();
   const px = ballMesh.position.x, py = ballMesh.position.y;
   if (window._pitchIsHBP) {
     const hitChance = 0.35 + (window._pitchHBPProximity || 0) * 0.5;
     if (Math.random() < hitChance) { handleHitByPitch(); return; }
   }
-  const isStrike = Math.abs(px) < 0.28 && py > 0.78 && py < 1.58;
-  if (isStrike) {
+  const trueIsStrike = Math.abs(px) < 0.28 && py > 0.78 && py < 1.58;
+  // 只有真正貼邊的擦邊球才可能被誤判，離好球帶邊界越近機率越高，明顯偏出/偏進的球幾乎不會判錯
+  const sdf = zoneSDF(px, py);
+  const blownChance = THREE.MathUtils.clamp(0.34 - Math.abs(sdf) * 1.15, 0, 0.34);
+  const isBlownCall = Math.random() < blownChance;
+  const calledIsStrike = isBlownCall ? !trueIsStrike : trueIsStrike;
+  window._lastPitchCall = { trueIsStrike, calledIsStrike, px, py, isBlownCall, sdf, reviewed: false };
+  applyPitchCall(calledIsStrike, isBlownCall);
+}
+
+function applyPitchCall(calledIsStrike, isBlownCall) {
+  if (calledIsStrike) {
     strikes++;
-    showMsg("STRIKE!", "#ffcc00", "好球");
+    showMsg("STRIKE!", "#ffcc00", isBlownCall ? "好球！（判決似乎有點爭議…）" : "好球");
     AudioEngine.umpireCall("好球！", 1.1, 0.7);
     animateUmpireCall('strike');
   } else {
     balls++;
-    showMsg("BALL", "#00e5ff", "壞球");
+    const wp = attemptWildPitchOrPassedBall(window._lastPitchCall.px, window._lastPitchCall.py);
+    showMsg("BALL", "#00e5ff", (isBlownCall ? "壞球（判決似乎有點爭議…）" : "壞球") + (wp ? "，捕手漏接，暴投！跑者趁機推進！" : ""));
     AudioEngine.umpireCall("壞球！", 1.0, 1.0);
     animateUmpireCall('ball');
   }
@@ -3703,6 +4814,12 @@ function judgeTakenPitch() {
 
 function checkBSOAfterPitch() {
   updateScoreboard();
+  offerABSChallengeWindow(strikes >= 3 || balls >= 4);
+}
+
+/* 真正執行三振/保送的後續流程，抽出成獨立函式，讓 ABS 挑戰／教練抗議有機會在這一步「發生前」
+   先把誤判的球數改判回來，避免真的錯判也直接造成不可逆的出局或保送。 */
+function finalizeGameEndingCall() {
   if (strikes >= 3) {
     outs++; showMsg("STRIKE OUT!", "#ff3333", "三振出局");
     AudioEngine.umpireCall("三振出局！", 1.15, 0.65);
@@ -3710,9 +4827,7 @@ function checkBSOAfterPitch() {
     adjustPitcherComposure(5);
     recordAtBatOut();
     afterPlayCheckOuts();
-    return;
-  }
-  if (balls >= 4) {
+  } else if (balls >= 4) {
     showMsg("WALK", "#00ff88", "四壞球保送");
     AudioEngine.umpireCall("保送！", 1.0, 0.95);
     animateUmpireCall('walk');
@@ -3720,9 +4835,7 @@ function checkBSOAfterPitch() {
     walkBatter();
     recordAtBatEnd();
     afterPlayCheckOuts();
-    return;
   }
-  setTimeout(() => { resetPlay(); }, 1300);
 }
 
 function walkBatter() {
@@ -3733,6 +4846,492 @@ function walkBatter() {
   animateRunnersToBase();
   updateBaseUI();
 }
+
+/* =========================================================================================
+   11b. 暴投／捕逸：失投太嚴重（明顯彈進土裡，或明顯偏出好球帶很多）時，捕手才有漏接風險；
+   一般正常的壞球完全不會觸發，符合「要失投很嚴重或投很低的球才有機會」的設計。
+   壘上有跑者時，漏接會讓所有跑者趁機往前推進一個壘包。
+   ========================================================================================= */
+function attemptWildPitchOrPassedBall(px, py) {
+  if (!(runners[0] || runners[1] || runners[2])) return false;
+  const lowSeverity = py < 0.32 ? THREE.MathUtils.clamp((0.32 - py) / 0.32, 0, 1) : 0;
+  const wideSeverity = Math.abs(px) > 0.55 ? THREE.MathUtils.clamp((Math.abs(px) - 0.55) / 0.55, 0, 1) : 0;
+  const severity = Math.max(lowSeverity, wideSeverity) * (window._pitchWasWild ? 1.15 : 1);
+  if (severity < 0.35) return false; // 沒有失投到那個程度，捕手正常都擋得下來
+  const catcherF = fielderModels['C'];
+  const catcherSkill = catcherF && catcherF.player ? fieldingRating(catcherF.player) : (curPitcherTeam.catcherArm || 72);
+  const blockChance = THREE.MathUtils.clamp(0.74 + (catcherSkill - 70) * 0.006 - severity * 0.55, 0.14, 0.94);
+  if (Math.random() < blockChance) return false; // 捕手還是順利擋下來了
+  triggerWildPitchEvent(severity, catcherF);
+  return true;
+}
+function triggerWildPitchEvent(severity, catcherF) {
+  if (catcherF && catcherF.model) {
+    const m = catcherF.model;
+    const baseX = m.position.x, baseY = m.position.y;
+    gsap.to(m.rotation, { x: 1.3, y: (Math.random()-0.5)*0.8, duration: 0.16, ease: "power2.out" });
+    gsap.to(m.position, { x: baseX + (Math.random()-0.5)*1.3, y: baseY - 0.16, duration: 0.16, ease: "power2.out" });
+    gsap.to(m.rotation, { x: 0, y: 0, duration: 0.36, delay: 0.32, ease: "power1.out" });
+    gsap.to(m.position, { x: baseX, y: baseY, duration: 0.36, delay: 0.32 });
+  }
+  AudioEngine.crowdSwell(0.5);
+  // 球偶爾會直接飛到蹲在捕手後面的主審身上——純粹是好玩的場面演出，不影響任何比賽結果判定
+  if (Math.random() < 0.15 * severity) setTimeout(() => triggerUmpireHitReaction(), 260);
+  setTimeout(() => advanceAllRunnersOneBaseWildPitch(), 320);
+}
+function advanceAllRunnersOneBaseWildPitch() {
+  const oldRunners = runners.slice();
+  const oldModels = { 0: runnerModels[0], 1: runnerModels[1], 2: runnerModels[2] };
+  if (oldRunners[2]) scoreRunner(2);
+  if (oldRunners[1]) {
+    runners[2] = oldRunners[1]; runnerModels[2] = oldModels[1];
+    runners[1] = null; runnerModels[1] = null;
+    if (runnerModels[2]) runModelToBase(runnerModels[2], basePositions.third, 0.55);
+  }
+  if (oldRunners[0]) {
+    runners[1] = oldRunners[0]; runnerModels[1] = oldModels[0];
+    runners[0] = null; runnerModels[0] = null;
+    if (runnerModels[1]) runModelToBase(runnerModels[1], basePositions.second, 0.55);
+  }
+  updateBaseUI(); updateScoreboard();
+}
+/* 暴投打到主審身上的搞笑場面：裁判氣得衝向投手，捕手跟教練連忙衝出來勸架拉開，
+   純粹是動畫演出，完全不影響出局數、球數或任何比賽結果判定。 */
+function triggerUmpireHitReaction() {
+  if (!umpireModel) return;
+  showMsg("UMPIRE HIT!", "#ffaa00", "球打到主審了！裁判氣炸衝向投手，捕手跟教練連忙衝出來拉住！");
+  AudioEngine.crowdSwell(0.9);
+  const baseX = umpireModel.position.x, baseZ = umpireModel.position.z;
+  gsap.to(umpireModel.rotation, { y: umpireModel.rotation.y + 0.6, duration: 0.12, yoyo: true, repeat: 3 });
+  gsap.to(umpireModel.position, { x: -2, z: -6, duration: 0.8, ease: "power2.in", delay: 0.15 });
+  const catcherF = fielderModels['C'];
+  if (catcherF && catcherF.model) {
+    const cm = catcherF.model;
+    const baseCX = cm.position.x, baseCZ = cm.position.z;
+    gsap.to(cm.position, { x: -1.6, z: -5, duration: 0.7, delay: 0.2 });
+    gsap.to(cm.position, { x: baseCX, z: baseCZ, duration: 0.6, delay: 1.7 });
+  }
+  const coach = spawnCoachModel(curPitcherTeam === TEAM_AWAY);
+  if (coach) {
+    gsap.to(coach.position, { x: -1, z: -7, duration: 0.9, delay: 0.25 });
+    gsap.to(coach.position, { y: coach.position.y - 3, duration: 0.5, delay: 2.2, onComplete: () => scene.remove(coach) });
+  }
+  gsap.to(umpireModel.position, { x: baseX, z: baseZ, duration: 0.8, delay: 1.9 });
+  gsap.to(umpireModel.rotation, { y: 0, duration: 0.6, delay: 1.9 });
+}
+/* 臨時召喚一位教練角色，用於抗議/驅逐等場面演出（不是固定站在場邊的常駐角色） */
+function spawnCoachModel(isAwayTeam) {
+  const team = isAwayTeam ? TEAM_AWAY : TEAM_HOME;
+  const color = team ? team.colors.primary : (isAwayTeam ? 0x334455 : 0x882233);
+  const m = createHumanoid(0xd9a878, color, 0x22242c, color, { seed: Math.random(), number: '', numberBg: '#22242c' });
+  m.scale.multiplyScalar(0.95);
+  const startX = isAwayTeam ? -8 : 8;
+  m.position.set(startX, 0.25, 4.5);
+  m.rotation.y = isAwayTeam ? 0.5 : -0.5;
+  scene.add(m);
+  return m;
+}
+
+/* =========================================================================================
+   11c. ABS 鷹眼挑戰系統：每一顆「判決」的球（好球／壞球，包含造成三振/保送的最後一球）投出後、
+   下一球正式開始前，該局防守方或進攻方（依當下由玩家操控的那一方）的教練都可以選擇用 ABS
+   鷹眼系統重新檢視剛剛那球到底有沒有判對；如果 ABS 確認原判決正確，教練還能選擇親自衝出去
+   抗議，靠按進度條的力道決定有沒有機會靠爭吵硬是討回改判，但抗議次數濫用會被直接驅逐出場，
+   驅逐出場後這場比賽就不能再用 ABS 系統了。
+   ========================================================================================= */
+let absChallenges = { away: 3, home: 3 }; // 每隊每場固定 3 次挑戰次數，挑戰成功不會被扣掉
+let coachEjected = { away: false, home: false };
+let argueUseCount = { away: 0, home: 0 };
+let argueActive = false, argueMashCount = 0;
+// 記錄目前是否有一個「非三振/保送門檻」的 ABS 挑戰視窗正開著、且投手正併行準備下一球；
+// 一旦投手真正進入投球準備動作（或玩家主動出手），就呼叫這裡存的 resolve() 強制關閉視窗（視同跳過）。
+let absPendingResolve = null;
+// 是否真的有一場「ABS 鷹眼複查」正在進行中（玩家或電腦教練已經按下挑戰，不只是視窗開著而已）——
+// 只有這段期間才需要真的暫停投手準備下一球的節奏／計時器，平常視窗開著但還沒有人按下挑戰時，
+// 投手該怎麼準備就怎麼準備，完全不受影響。
+let absReviewActive = false;
+
+function activeHumanTeamKey() {
+  if (isHumanBattingNow()) return curBatterTeam === TEAM_AWAY ? 'away' : 'home';
+  if (isHumanPitchingNow()) return curPitcherTeam === TEAM_AWAY ? 'away' : 'home';
+  return null;
+}
+function battingTeamKeyNow() { return curBatterTeam === TEAM_AWAY ? 'away' : 'home'; }
+function pitchingTeamKeyNow() { return curPitcherTeam === TEAM_AWAY ? 'away' : 'home'; }
+// 判斷這球「判決若有誤」實際上是哪一隊比較吃虧：判好球對打者隊不利、判壞球對投手隊不利，
+// 用來決定該由哪一隊的教練來考慮要不要提出 ABS 挑戰。
+function disadvantagedTeamKeyForCall(call) {
+  if (!call) return null;
+  return call.calledIsStrike ? battingTeamKeyNow() : pitchingTeamKeyNow();
+}
+// 這一隊目前是不是由玩家本人操控（不論當下是打擊方還是防守方）
+function isTeamHumanControlled(teamKey) {
+  const teamObj = teamKey === 'away' ? TEAM_AWAY : TEAM_HOME;
+  return teamObj === humanTeamObj();
+}
+// 電腦教練會依「這球到底有多貼近好壞球帶邊緣」以及「原判決是不是真的判錯」來自行決定要不要提出
+// ABS 鷹眼挑戰，越貼邊、越像誤判就越敢賭一把；困難模式的電腦教練也更敏銳、更敢挑戰邊角判決。
+function decideAIWantsChallenge(teamKey, call) {
+  if (!call || coachEjected[teamKey] || absChallenges[teamKey] <= 0) return false;
+  // 電腦教練並不是真的「知道」這球客觀上到底有沒有判錯，只能憑「這球到底有多貼近好壞球帶邊緣」
+  // 這種肉眼看得到的線索來猜，越貼邊教練心裡越沒把握、疑心也越重；同時教練自己觀察角度、
+  // 反應時間、當下情緒都會造成主觀誤差，所以這裡故意疊加隨機噪聲，不直接把「客觀上是否真的
+  // 判錯」當成唯一依據——這樣就算這球真的判錯，教練也不一定會挑戰(沒把握、不敢賭)；反過來，
+  // 就算這球其實判得完全正確，只要貼近邊緣，教練也有機會看走眼、誤發挑戰。
+  const edgeCloseness = THREE.MathUtils.clamp(1 - Math.abs(call.sdf || 0) * 2.6, 0, 1);
+  const noise = (Math.random() - 0.5) * (0.35 + edgeCloseness * 0.55); // 越貼邊，主觀誤判的空間越大；明顯偏出的球幾乎不會讓教練起疑心
+  const trueSignal = call.isBlownCall ? 0.5 : 0.05; // 真的判錯 vs. 真的判對時，「心裡警覺程度」的基準差異，不是直接等於會不會挑戰
+  const perceivedWrongness = THREE.MathUtils.clamp((trueSignal + edgeCloseness * 0.3) * (0.6 + edgeCloseness * 0.4) + noise, 0, 1);
+  const diffBonus = aiDifficulty === 'hard' ? 0.07 : (aiDifficulty === 'easy' ? -0.05 : 0);
+  const chance = THREE.MathUtils.clamp(perceivedWrongness * 0.62 + diffBonus, 0.015, 0.7);
+  return Math.random() < chance;
+}
+// 電腦教練被 ABS 確認判決正確後，是否還會不甘心衝出去跟主審理論——球越貼近好球帶邊緣，
+// 教練越覺得「這球真的很難判」，據理力爭的意願就越高；離邊界很遠的球則幾乎不會無理取鬧。
+function decideAIWantsArgue(teamKey, call) {
+  if (coachEjected[teamKey]) return false;
+  const unreasonable = THREE.MathUtils.clamp(Math.abs((call && call.sdf) || 0) * 3.2, 0, 1);
+  const willingness = THREE.MathUtils.clamp(0.5 - unreasonable * 0.9, 0.03, 0.5);
+  return Math.random() < willingness;
+}
+// 電腦教練自動提出挑戰：稍微停頓模擬「觀察猶豫」的感覺，接著沿用跟玩家完全同一套鷹眼回放／
+// 改判流程，讓玩家能實際看到對方教練也在用同一套系統對自己這球提出質疑。
+function runAIChallengeDecision(teamKey, call, isGameEnding, onDone) {
+  if (!decideAIWantsChallenge(teamKey, call)) { onDone(); return; }
+  const sideLabel = teamKey === 'away' ? (TEAM_AWAY ? TEAM_AWAY.short : '客隊') : (TEAM_HOME ? TEAM_HOME.short : '主隊');
+  setTimeout(() => {
+    // 這段「觀察猶豫」的停頓期間，投手可能已經正式進入準備投球動作（甚至已經出手了）——
+    // 一旦過了這個時間點 ABS 就不能再操作，電腦教練這次就放棄挑戰，不會讓投球動作被硬生生打斷。
+    if (!isGameEnding && (gameState !== "PITCHING_WAIT" || absReviewActive)) { onDone(); return; }
+    showMsg("CHALLENGE!", "#00e5ff", `${sideLabel}教練提出 ABS 鷹眼挑戰！`);
+    runABSReview(teamKey, isGameEnding, onDone);
+  }, 550 + Math.random() * 500);
+}
+// 電腦教練自動決定要不要衝出去抗議：不需要真人按鍵狂點，改用一個模擬出來的「抗議力道」代入
+// 跟玩家完全相同的判定流程（含被驅逐出場的風險），維持公平一致。
+function runAIArgue(teamKey, isGameEnding, onDone) {
+  argueUseCount[teamKey]++;
+  const coach = spawnCoachModel(teamKey === 'away');
+  gsap.to(coach.position, { x: 0.3, z: 1.0, duration: 0.95 });
+  showMsg("ARGUING!", "#ffcc00", "教練衝出來跟主審理論！");
+  const intensity = 25 + Math.random() * 65;
+  setTimeout(() => resolveArgueOutcome(teamKey, intensity, isGameEnding, onDone, coach), 1400);
+}
+/* 暫停投手準備下一球的節奏：清掉「抬腳預備」與「牽制觀察」的排程計時器、停止待機動畫，
+   讓畫面停在目前這一刻，專心呈現鷹眼複查／教練抗議的過程，不會讓投手在複查途中自己投出下一球。 */
+function pausePitcherPrepForReview() {
+  if (absReviewActive) return;
+  absReviewActive = true;
+  clearTimeout(window._setCueTimer);
+  clearTimeout(window._cpuPickoffTimer);
+  stopPitcherIdleLoop();
+  if (isHumanPitchingNow()) hidePitchSelectUI();
+}
+/* 複查（含後續教練抗議）整個流程跑完後，重新啟動下一球的準備節奏——用 scheduleNextPitch() 從頭
+   排一次新的節奏，而不是硬接回原本被中斷的那個計時器，畫面上看起來就像投手複查後重新抓一次節奏。 */
+function resumePitcherPrepAfterReview() {
+  if (!absReviewActive) return; // 從來沒有真的暫停過準備節奏，不用做任何事
+  absReviewActive = false;
+  if (gameState === "PITCHING_WAIT" && !window._pickoffPending) scheduleNextPitch();
+}
+function offerABSChallengeWindow(isGameEnding) {
+  const call = window._lastPitchCall;
+  const humanTeamKey = activeHumanTeamKey();
+  // 玩家「每一球」都能自己決定要不要提出 ABS 挑戰，不再只限於判決明顯對玩家不利的時候才出現按鈕：
+  // 只要玩家操控的那一隊還有挑戰次數、沒被驅逐，且這球確實還沒被複查過，就一定先讓玩家自己選擇。
+  const humanCanChallenge = humanTeamKey && call && !call.reviewed && !coachEjected[humanTeamKey] && absChallenges[humanTeamKey] > 0;
+
+  // 玩家選擇「跳過」（或沒有資格挑戰）之後，才輪到「這球判決若有誤，實際上真正吃虧的那一隊」
+  // 交給電腦教練依判決爭議程度自動判斷要不要提出挑戰——但如果吃虧的剛好就是玩家自己那一隊，
+  // 玩家已經在上一步做過選擇了，這裡就不用再讓電腦重複判斷一次。
+  const afterHumanDecision = (proceedFn) => {
+    const latestCall = window._lastPitchCall;
+    const disTeamKey = disadvantagedTeamKeyForCall(latestCall);
+    const aiCanChallenge = disTeamKey && !isTeamHumanControlled(disTeamKey) && latestCall && !latestCall.reviewed
+      && !coachEjected[disTeamKey] && absChallenges[disTeamKey] > 0;
+    if (!aiCanChallenge) { proceedFn(); return; }
+    runAIChallengeDecision(disTeamKey, latestCall, isGameEnding, proceedFn);
+  };
+
+  if (isGameEnding) {
+    // 這球已經達到三振/保送門檻：出局或上壘的結果要靠這次判決才能確定，
+    // 所以維持「先等挑戰決定完，再往下進行」的流程，不能跟下一位打者的準備並行。
+    const proceed = () => finalizeGameEndingCall();
+    if (!humanCanChallenge) { afterHumanDecision(proceed); return; }
+    showABSButton(humanTeamKey, true, () => afterHumanDecision(proceed), null);
+    return;
+  }
+
+  // 未達三振/保送門檻的一般球：投手下一球的準備節奏「立刻」開始，跟 ABS 挑戰視窗平行進行，
+  // 不會因為玩家還沒決定要不要挑戰就讓整個畫面停住——只有玩家/電腦教練「真的」按下挑戰時，
+  // 才會暫停準備節奏去看鷹眼複查，複查結束後再重新啟動準備節奏。而只要投手已經正式進入準備
+  // 投球動作（playPitcherSetCue／玩家親自出手），ABS 視窗就會被 closeConcurrentABSWindowIfOpen()
+  // 強制關閉，過了這個時間點就不能再操作 ABS 了，確保不會影響投球的節奏。
+  resetPlay();
+
+  const maybeLetAIChallenge = () => afterHumanDecision(resumePitcherPrepAfterReview); // 整條鏈最底層都沒有人挑戰時，這裡是唯一真的會被呼叫到的收尾點
+  if (!humanCanChallenge) { maybeLetAIChallenge(); return; }
+  showABSButton(humanTeamKey, false, maybeLetAIChallenge, (resolve) => { absPendingResolve = resolve; });
+}
+/* 投手真正開始準備投下一球（或玩家主動出手）時呼叫：如果還有一個併行開著的 ABS 挑戰視窗，
+   直接視同「跳過」把它關閉，確保挑戰視窗不會殘留到投手已經進入投球動作之後。 */
+function closeConcurrentABSWindowIfOpen() {
+  if (absPendingResolve) { const r = absPendingResolve; absPendingResolve = null; r(); }
+}
+function showABSButton(teamKey, isGameEnding, onDone, registerResolver) {
+  const panel = document.getElementById('abs-panel');
+  const remainEl = document.getElementById('abs-remaining');
+  const challengeBtn = document.getElementById('abs-challenge-btn');
+  const skipBtn = document.getElementById('abs-skip-btn');
+  remainEl.innerText = `🦅 ABS 剩${absChallenges[teamKey]}`;
+  challengeBtn.innerText = "🦅 挑戰";
+  skipBtn.innerText = "跳過";
+  panel.style.display = 'flex';
+  let decided = false;
+  const cleanup = () => { panel.style.display = 'none'; clearTimeout(timer); if (absPendingResolve === resolve) absPendingResolve = null; };
+  const resolve = () => { if (decided) return; decided = true; cleanup(); onDone(); };
+  challengeBtn.onclick = () => { if (decided) return; decided = true; cleanup(); runABSReview(teamKey, isGameEnding, onDone); };
+  skipBtn.onclick = resolve;
+  const timer = setTimeout(resolve, 3200);
+  if (registerResolver) registerResolver(resolve);
+}
+/* 提出 ABS 挑戰的當下，讓相關球員做出「摸摸頭」的手勢——比照真實棒球 ABS 挑戰系統裡
+   打者/捕手輕拍頭盔示意要求電子好球帶重新複查的動作。挑戰的是「打者隊」不利的判決(好球誤判)
+   就由打者自己摸頭；挑戰的是「投手隊」不利的判決(壞球誤判)就由捕手摸頭示意。 */
+function playTouchHeadGesture(model) {
+  if (!model || !model.joints) return;
+  // 打者的申請挑戰手勢：後手離開球棒摸頭，前手仍握棒；動作結束後 IK 自動把後手接回球棒
+  if (model === batterModel && window._batterRig) {
+    const rig = window._batterRig, side = rig.rearSign;
+    rig.ik.rear = false;
+    const arm = rig.rearArm;
+    gsap.killTweensOf(arm.rotation); gsap.killTweensOf(arm.forearm.rotation);
+    gsap.to(arm.rotation, { x: -1.05, y: 0, z: -0.3 * side, duration: 0.22, ease: "power2.out" });
+    gsap.to(arm.forearm.rotation, { x: 2.05, y: 0, z: 0, duration: 0.22, ease: "power2.out", delay: 0.05 });
+    gsap.to(arm.forearm.rotation, { x: 1.85, duration: 0.11, delay: 0.3, yoyo: true, repeat: 3, ease: "power1.inOut" });
+    setTimeout(() => { if (window._batterRig === rig) rig.ik.rear = true; }, (0.3 + 0.11 * 4 + 0.08) * 1000);
+    return;
+  }
+  const j = model.joints;
+  gsap.killTweensOf(j.rArm.rotation);
+  gsap.killTweensOf(j.rArm.forearm.rotation);
+  gsap.killTweensOf(j.head.rotation);
+  const restArm = { x: j.rArm.rotation.x, y: j.rArm.rotation.y, z: j.rArm.rotation.z };
+  const restForearm = { x: j.rArm.forearm.rotation.x };
+  const restHead = { x: j.head.rotation.x };
+  // 手抬起、手肘彎起來，讓手掌帶到頭頂附近，頭也微微低下去對齊手的位置
+  gsap.to(j.rArm.rotation, { x: -1.05, y: 0, z: -0.3, duration: 0.22, ease: "power2.out" });
+  gsap.to(j.rArm.forearm.rotation, { x: 2.05, duration: 0.22, ease: "power2.out", delay: 0.05 });
+  gsap.to(j.head.rotation, { x: 0.16, duration: 0.22, ease: "power2.out" });
+  // 在頭頂輕拍兩下，表達「有點沒把握、想申請電子好球帶重新看一次」的感覺
+  gsap.to(j.rArm.forearm.rotation, { x: 1.85, duration: 0.11, delay: 0.3, yoyo: true, repeat: 3, ease: "power1.inOut" });
+  // 收回，回到原本的預備/蹲姿姿勢
+  const backDelay = 0.3 + 0.11 * 4 + 0.08;
+  gsap.to(j.rArm.rotation, { x: restArm.x, y: restArm.y, z: restArm.z, duration: 0.26, delay: backDelay, ease: "power1.out" });
+  gsap.to(j.rArm.forearm.rotation, { x: restForearm.x, duration: 0.26, delay: backDelay, ease: "power1.out" });
+  gsap.to(j.head.rotation, { x: restHead.x, duration: 0.26, delay: backDelay, ease: "power1.out" });
+}
+function performChallengeGesture(teamKey) {
+  // 判好球對打者隊不利 -> 打者自己摸頭申請挑戰；判壞球對投手隊不利 -> 捕手摸頭申請挑戰
+  const isBattingTeamChallenging = teamKey === battingTeamKeyNow();
+  const model = isBattingTeamChallenging ? batterModel : (fielderModels['C'] && fielderModels['C'].model);
+  playTouchHeadGesture(model);
+}
+function runABSReview(teamKey, isGameEnding, onDone) {
+  const call = window._lastPitchCall;
+  call.reviewed = true;
+  performChallengeGesture(teamKey);
+  // 真的要開始鷹眼複查了：一般球才需要暫停投手準備下一球的節奏（三振/保送門檻的球本來就還沒開始準備下一球）。
+  if (!isGameEnding) pausePitcherPrepForReview();
+  showHawkEyeReplay(call, (overturned) => {
+    if (overturned) {
+      reverseLastPitchCall(call);
+      showMsg("OVERTURNED!", "#00ff88", `ABS 鷹眼系統確認原判決錯誤，改判為${call.trueIsStrike ? '好球' : '壞球'}！`);
+      finalizeAfterReview(isGameEnding, onDone);
+    } else {
+      absChallenges[teamKey] = Math.max(0, absChallenges[teamKey] - 1);
+      showMsg("CALL CONFIRMED", "#ffcc00", "ABS 鷹眼系統確認原判決正確，維持原判！");
+      offerArgueOption(teamKey, isGameEnding, onDone);
+    }
+  });
+}
+function reverseLastPitchCall(call) {
+  if (call.calledIsStrike && !call.trueIsStrike) { strikes = Math.max(0, strikes - 1); balls++; }
+  else if (!call.calledIsStrike && call.trueIsStrike) { balls = Math.max(0, balls - 1); strikes++; }
+  call.calledIsStrike = call.trueIsStrike;
+  updateScoreboard();
+}
+function finalizeAfterReview(wasGameEnding, onDone) {
+  if (strikes >= 3 || balls >= 4) {
+    absReviewActive = false; // 複查改判剛好跨過三振/保送門檻：接下來會直接進入出局/保送流程，不會再走 onDone() 那條「暫停過就要恢復節奏」的路徑，這裡先把旗標歸零，避免卡在暫停狀態。
+    finalizeGameEndingCall();
+    return;
+  }
+  if (wasGameEnding) {
+    // 這球原本已達三振/保送門檻，改判後如果還沒到門檻，打席繼續，這裡才需要真正推進到下一球。
+    showMsg("AT-BAT CONTINUES", "#66ccff", "改判後尚未達到三振或保送門檻，打席繼續！");
+    setTimeout(() => resetPlay(), 1300);
+    return;
+  }
+  // 一般球（未達三振/保送門檻）：現在投手要等這整個 ABS 複查流程完全跑完才會開始準備下一球，
+  // 所以這裡一定要呼叫 onDone()（＝重新啟動下一球倒數），否則遊戲會卡在這裡沒有任何動作。
+  onDone();
+}
+/* 鷹眼回放：用好球帶示意圖＋球的落點畫出簡易的「軌跡回放」畫面，稍等一下才揭曉結果，
+   營造真的在看系統分析軌跡的感覺，而不是瞬間就跳出答案。 */
+function showHawkEyeReplay(call, callback) {
+  const overlay = document.createElement('div');
+  overlay.id = 'hawkeye-overlay';
+  // 改成貼齊捕手方（畫面下緣、本壘板附近）並縮小尺寸，避免蓋住畫面上方的比分板／對戰資訊等 HUD 元素。
+  overlay.style.cssText = 'position:absolute;inset:0;z-index:120;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:flex-end;flex-direction:column;padding-bottom:4%;pointer-events:none;font-family:Orbitron,sans-serif;color:#fff;';
+  const zoneW = 108, zoneH = 138;
+  const dotX = zoneW/2 + (call.px/0.28) * (zoneW/2);
+  const dotY = zoneH - ((call.py - 0.78) / (1.58 - 0.78)) * zoneH;
+  // 球落點若在好球帶方框之外，額外算出「落點距離好球帶邊緣」的實際距離（換算成公分），
+  // 讓玩家不只看到判決結果，還能具體知道這球偏出好球帶多遠，跟真實 ABS 鷹眼系統會顯示的
+  // 精確偏差資訊更接近。好球帶邊界沿用跟 judgeTakenPitch() 判好壞球完全相同的門檻，
+  // 確保「顯示的公分數」跟實際判決邏輯一致，不會出現兩邊對不起來的情況。
+  const zoneHalfW = 0.28, zoneBottom = 0.78, zoneTop = 1.58;
+  const outsideDX = Math.max(Math.abs(call.px) - zoneHalfW, 0);
+  const outsideDY = call.py > zoneTop ? (call.py - zoneTop) : (call.py < zoneBottom ? (zoneBottom - call.py) : 0);
+  const outsideDistCm = Math.round(Math.hypot(outsideDX, outsideDY) * 100);
+  const gapLabelHtml = (!call.trueIsStrike && outsideDistCm > 0)
+    ? `<div id="hawkeye-gap-label" style="position:absolute;left:${dotX}px;top:${dotY+8+14}px;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:#ff8844;text-shadow:0 0 6px rgba(0,0,0,0.9);opacity:0;">偏出好球帶 ${outsideDistCm} 公分</div>`
+    : '';
+  overlay.innerHTML = `
+    <div style="font-size:14px;letter-spacing:2px;color:#00e5ff;margin-bottom:8px;text-shadow:0 0 8px rgba(0,0,0,0.8);">🦅 ABS 鷹眼即時回放</div>
+    <div style="position:relative;width:${zoneW}px;height:${zoneH+16}px;background:rgba(20,30,20,0.6);border:2px solid rgba(255,255,255,0.25);border-radius:6px;">
+      <div style="position:absolute;left:0;right:0;top:8px;height:${zoneH}px;border:2px solid #ffcc00;box-shadow:0 0 10px rgba(255,204,0,0.5);"></div>
+      <div id="hawkeye-dot" style="position:absolute;left:${dotX-6}px;top:${dotY+8-6}px;width:12px;height:12px;border-radius:50%;background:#ff3333;box-shadow:0 0 8px #ff3333;opacity:0;"></div>
+      ${gapLabelHtml}
+    </div>
+    <div id="hawkeye-verdict" style="margin-top:8px;font-size:12px;color:#ffcc00;min-height:18px;max-width:220px;text-align:center;text-shadow:0 0 8px rgba(0,0,0,0.8);">分析軌跡中…</div>`;
+  document.getElementById('canvas-container').appendChild(overlay);
+  setTimeout(() => {
+    const dot = document.getElementById('hawkeye-dot'); if (dot) gsap.to(dot, { opacity: 1, duration: 0.4 });
+    const gapLabel = document.getElementById('hawkeye-gap-label'); if (gapLabel) gsap.to(gapLabel, { opacity: 1, duration: 0.4 });
+  }, 500);
+  setTimeout(() => {
+    const verdict = document.getElementById('hawkeye-verdict');
+    if (!verdict) return;
+    if (call.isBlownCall) { verdict.style.color = '#00ff88'; verdict.innerText = `軌跡顯示：實際應為「${call.trueIsStrike ? '好球' : '壞球'}」，原判決錯誤！`; }
+    else { verdict.style.color = '#ffcc00'; verdict.innerText = `軌跡顯示：原判決正確，維持「${call.calledIsStrike ? '好球' : '壞球'}」！`; }
+  }, 1500);
+  setTimeout(() => { overlay.remove(); callback(call.isBlownCall); }, 2700);
+}
+/* ABS 確認原判決正確後，教練不服氣，可以選擇親自衝出去抗議 */
+function offerArgueOption(teamKey, isGameEnding, onDone) {
+  if (coachEjected[teamKey]) { onDone(); return; }
+  if (!isTeamHumanControlled(teamKey)) {
+    if (decideAIWantsArgue(teamKey, window._lastPitchCall)) runAIArgue(teamKey, isGameEnding, onDone);
+    else onDone();
+    return;
+  }
+  const panel = document.getElementById('abs-panel');
+  const remainEl = document.getElementById('abs-remaining');
+  const challengeBtn = document.getElementById('abs-challenge-btn');
+  const skipBtn = document.getElementById('abs-skip-btn');
+  remainEl.innerText = "😡 要抗議嗎？";
+  challengeBtn.innerText = "😡 抗議";
+  skipBtn.innerText = "算了";
+  panel.style.display = 'flex';
+  let decided = false;
+  const cleanup = () => { panel.style.display = 'none'; clearTimeout(timer); };
+  challengeBtn.onclick = () => { if (decided) return; decided = true; cleanup(); startArgueMashMinigame(teamKey, isGameEnding, onDone); };
+  skipBtn.onclick = () => { if (decided) return; decided = true; cleanup(); onDone(); };
+  const timer = setTimeout(() => { if (decided) return; decided = true; cleanup(); onDone(); }, 4000);
+}
+function startArgueMashMinigame(teamKey, isGameEnding, onDone) {
+  argueUseCount[teamKey]++;
+  const coach = spawnCoachModel(teamKey === 'away');
+  gsap.to(coach.position, { x: 0.3, z: 1.0, duration: 0.95 });
+  argueMashCount = 0; argueActive = true;
+  const overlay = document.createElement('div');
+  overlay.id = 'argue-mash-overlay';
+  overlay.style.cssText = 'position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);z-index:95;text-align:center;font-family:Orbitron,sans-serif;color:#fff;';
+  overlay.innerHTML = `<div style="font-size:20px;letter-spacing:2px;color:#ffcc00;text-shadow:0 0 12px rgba(255,180,0,0.6);">狂按【空白鍵】或連點滑鼠左鍵，教練跟主審理論！</div>
+    <div style="width:320px;height:16px;background:rgba(255,255,255,0.15);border-radius:8px;margin:10px auto;overflow:hidden;border:1px solid rgba(255,255,255,0.3);">
+      <div id="argue-mash-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#ffcc00,#ff5555);transition:width 0.05s;"></div>
+    </div>
+    <div id="argue-mash-timer" style="font-size:13px;color:#ffcc00;">3.2</div>`;
+  document.getElementById('canvas-container').appendChild(overlay);
+  const duration = 3200, startT = performance.now(), maxUsefulMashes = 22; // 時間拉長，讓吵架的節奏不會太趕
+  function tick() {
+    if (!argueActive) return;
+    const elapsed = performance.now() - startT;
+    const pct = Math.min(100, (argueMashCount / maxUsefulMashes) * 100);
+    const bar = document.getElementById('argue-mash-bar'); if (bar) bar.style.width = pct + '%';
+    const timerEl = document.getElementById('argue-mash-timer'); if (timerEl) timerEl.innerText = Math.max(0, (duration-elapsed)/1000).toFixed(1);
+    if (elapsed < duration) requestAnimationFrame(tick);
+    else finishArgueMinigame(teamKey, isGameEnding, onDone, coach);
+  }
+  requestAnimationFrame(tick);
+}
+function registerArgueMash() {
+  if (!argueActive) return;
+  argueMashCount++;
+}
+function finishArgueMinigame(teamKey, isGameEnding, onDone, coach) {
+  argueActive = false;
+  const overlay = document.getElementById('argue-mash-overlay'); if (overlay) overlay.remove();
+  const intensity = Math.min(100, (argueMashCount / 22) * 100);
+  resolveArgueOutcome(teamKey, intensity, isGameEnding, onDone, coach);
+}
+function resolveArgueOutcome(teamKey, intensity, isGameEnding, onDone, coach) {
+  const call = window._lastPitchCall;
+  // 改判與驅逐出場永遠不會同時發生：先擲一次骰子決定「這次爭吵有沒有討到改判」，
+  // 只有真的沒討到改判時，才會再另外判斷會不會被主審驅逐出場，兩者互斥、不會同時發生。
+  //
+  // 「合不合理」用這球實際離好球帶邊界的距離來衡量：能走到教練上前抗議這一步，代表 ABS
+  // 鷹眼系統剛剛已經確認原判決是對的；如果這球其實離邊界很遠（明明沒出局硬凹出局、
+  // 明明出局硬凹沒出局、好球壞球差很多還硬要吵），代表這次爭吵本來就沒什麼道理，
+  // 改判機率會被大幅壓低，而且吵輸了之後更容易直接被趕出場；只有原本就在邊界附近、
+  // 真的判得很微妙的球，教練據理力爭才比較有機會成功，也比較不會被視為無理取鬧。
+  const unreasonable = THREE.MathUtils.clamp(Math.abs((call && call.sdf) || 0) * 3.2, 0, 1);
+  const successChance = THREE.MathUtils.clamp(0.08 + intensity * 0.005 - unreasonable * 0.28, 0.03, 0.65);
+  const overturned = Math.random() < successChance;
+
+  const useCount = argueUseCount[teamKey];
+  let ejected = false;
+  if (!overturned) {
+    // 惡意抗議認定：這球其實離好球帶邊界很遠、根本不是判得模稜兩可的球，教練還硬要衝出來理論，
+    // 才算無理取鬧的「惡意抗議」；只要不是這種情況，第一次上前理論最多就是被主審不理會、維持原判，
+    // 不會第一次就直接被趕出場——要嘛是本場多次抗議的累犯，要嘛這次根本是惡意鬧場，才會有明顯的驅逐機率。
+    const malicious = unreasonable > 0.62;
+    if (useCount <= 1 && !malicious) {
+      ejected = false;
+    } else {
+      const baseEject = (useCount - 1) * 0.16 + intensity * 0.0025;
+      const ejectChance = malicious
+        ? THREE.MathUtils.clamp(0.4 + unreasonable * 0.45 + baseEject, 0.4, 0.95) // 惡意抗議：即使是第一次，也有相當機率直接被驅逐
+        : THREE.MathUtils.clamp(baseEject + unreasonable * 0.3, 0, 0.85);
+      ejected = Math.random() < ejectChance;
+    }
+  }
+
+  setTimeout(() => {
+    if (ejected) {
+      coachEjected[teamKey] = true;
+      showMsg("EJECTED!", "#ff2222", "教練抗議過頭，被主審直接驅逐出場！本場比賽無法再使用 ABS 挑戰系統！");
+      AudioEngine.umpireCall("驅逐出場！", 1.0, 0.6);
+      animateUmpireCall('out');
+      if (umpireModel && umpireModel.joints) { gsap.to(umpireModel.joints.rArm.rotation, { x: -1.6, duration: 0.3, yoyo: true, repeat: 3 }); }
+      gsap.to(coach.rotation, { y: coach.rotation.y + 0.8, duration: 0.22, yoyo: true, repeat: 5 });
+      gsap.to(coach.position, { x: coach.position.x + (teamKey==='away' ? -24 : 24), z: 8, duration: 1.9, delay: 1.5, onComplete: () => scene.remove(coach) });
+    } else if (overturned) {
+      reverseLastPitchCall(call);
+      showMsg("ARGUMENT WORKS!", "#00ff88", "教練抗議成功，裁判當場改判！");
+      gsap.to(coach.position, { y: coach.position.y - 3, duration: 0.9, delay: 1.3, onComplete: () => scene.remove(coach) });
+    } else {
+      showMsg("NO CHANGE", "#ff8844", "裁判不為所動，維持原判！");
+      gsap.to(coach.position, { y: coach.position.y - 3, duration: 0.9, delay: 1.3, onComplete: () => scene.remove(coach) });
+    }
+    if (overturned && !ejected) finalizeAfterReview(isGameEnding, onDone);
+    else onDone();
+  }, 500);
+}
+
+
 
 /* =========================================================================================
    12. 觸身球 & 板凳清空衝突事件
@@ -3798,33 +5397,94 @@ function injureBatterFromHBP() {
    但衝上投手丘本身就是違規行為，無論打贏打輸都有機率被主審直接判驅逐出場。 */
 let brawlActive = false;
 let brawlMashCount = 0;
+let brawlExtras = []; // 觸身球衝突時，額外從休息室衝出來的雙方板凳球員（純視覺，不影響出賽名單）
 function triggerBrawl() {
   gameState = "BRAWL";
   const banner = document.getElementById('brawl-banner');
-  banner.innerText = "⚾ 觸身球！打者怒衝投手丘！ ⚾";
+  banner.innerText = "⚾ 觸身球！雙方球員衝出休息室，場面一片混亂！ ⚾";
   gsap.to(banner, { opacity: 1, duration: 0.3 });
   AudioEngine.crowdSwell(1.2);
   AudioEngine.umpireCall("雙方球員請退回休息區！", 1.0, 0.8);
 
   // 視覺化：打者怒衝投手丘、投手擺出對峙姿態、雙方守備員聚集、鏡頭混亂搖晃
   gsap.to(batterModel.position, { x: -0.3, z: -14, duration: 0.9, ease:"power2.in" });
-  gsap.to(batterModel.rotation, { y: Math.PI, duration: 0.9 });
-  gsap.to(pitcherModel.rotation, { y: 0.5, duration: 0.35, yoyo: true, repeat: -1, ease:"power1.inOut" });
+  gsap.to(batterModel.rotation, { y: Math.PI, duration: 1.3 });
+  gsap.to(pitcherModel.rotation, { y: 0.5, duration: 0.5, yoyo: true, repeat: -1, ease:"power1.inOut" });
   Object.values(fielderModels).forEach((f, i) => {
-    gsap.to(f.model.position, { x: (Math.random()-0.5)*4, z: -18.44 + (Math.random()-0.5)*4, duration: 1.0, delay: i*0.05 });
+    gsap.to(f.model.position, { x: (Math.random()-0.5)*4, z: -18.44 + (Math.random()-0.5)*4, duration: 1.4, delay: i*0.07 });
   });
-  const shakeT = gsap.timeline({ repeat: 3 });
+
+  // 雙方板凳／牛棚球員也跟著衝出來，讓衝突場面更有「兩隊全員清空休息室」的規模感——
+  // 純粹是額外加入場景的角色模型，會在衝突落幕後淡出移除，不影響任何出賽名單或戰績資料。
+  brawlExtras.forEach(m => scene.remove(m));
+  brawlExtras = [];
+  const extraCount = 5;
+  for (let i = 0; i < extraCount; i++) {
+    const fromAway = i % 2 === 0;
+    const team = fromAway ? TEAM_AWAY : TEAM_HOME;
+    const color = team ? team.colors.primary : (fromAway ? 0x334455 : 0x882233);
+    const m = createHumanoid(0xffd9b3, color, 0xf0f0f0, color, { seed: Math.random() });
+    m.scale.multiplyScalar(0.88);
+    const startX = fromAway ? -26 : 26;
+    m.position.set(startX, 0.25, -10 + (Math.random()-0.5)*6);
+    m.rotation.y = fromAway ? 0.9 : -0.9;
+    scene.add(m);
+    brawlExtras.push(m);
+    const cycle = startRunCycle(m, 0.9);
+    gsap.to(m.position, {
+      x: (Math.random()-0.5)*5, z: -18.44 + (Math.random()-0.5)*5, duration: 1.25 + i*0.07, delay: i*0.06, ease: "power1.in",
+      onComplete: () => stopRunCycle(cycle, m)
+    });
+  }
+
+  // 投手丘周圍的推擠拉扯＋不滿情緒動作：讓聚集在一起的角色們除了推擠晃動之外，還會不時舉手指
+  // 責、揮手怒吼（純粹是肢體語言動畫，不含任何血腥/受傷視覺），節奏放慢一些，讓整場衝突看起來
+  // 更像持續拉扯的僵持，而不是快速閃過的鬧劇。
+  window._brawlScrumT = gsap.timeline({ repeat: -1, delay: 1.4 });
+  const scrumTargets = [...Object.values(fielderModels).map(f => f.model), ...brawlExtras];
+  scrumTargets.forEach((m, i) => {
+    window._brawlScrumT.to(m.rotation, { y: m.rotation.y + (Math.random()-0.5)*0.5, duration: 0.28 + Math.random()*0.2 }, i*0.04);
+    window._brawlScrumT.to(m.position, { y: (Math.random()<0.15?-0.1:0), duration: 0.28 }, i*0.04);
+    if (m.joints && Math.random() < 0.6) {
+      const arm = Math.random() < 0.5 ? m.joints.rArm : m.joints.lArm;
+      window._brawlScrumT.to(arm.rotation, { x: -1.8 - Math.random()*0.6, duration: 0.18 }, i*0.04);
+      window._brawlScrumT.to(arm.rotation, { x: 0, duration: 0.3, delay: 0.24 }, i*0.04);
+    }
+    if (m.joints && m.joints.head && Math.random() < 0.5) {
+      window._brawlScrumT.to(m.joints.head.rotation, { z: (Math.random()-0.5)*0.5, duration: 0.2 }, i*0.04);
+      window._brawlScrumT.to(m.joints.head.rotation, { z: 0, duration: 0.3, delay: 0.2 }, i*0.04);
+    }
+  });
+  // 塵土效果：投手丘附近噴出幾團淡淡的沙塵粒子，強化混戰的物理感
+  spawnBrawlDust();
+
+  const shakeT = gsap.timeline({ repeat: 5 });
   for (let i = 0; i < 7; i++) {
-    shakeT.to(camera.position, { x: (Math.random()-0.5)*1.3, y: defaultCamPos.y + (Math.random()-0.5)*0.5, duration: 0.11 });
+    shakeT.to(camera.position, { x: (Math.random()-0.5)*1.6, y: defaultCamPos.y + (Math.random()-0.5)*0.6, duration: 0.15 });
   }
   window._brawlShakeT = shakeT;
 
-  setTimeout(startBrawlMashMinigame, 950);
+  setTimeout(startBrawlMashMinigame, 1400);
+}
+
+/* 混戰塵土粒子：純視覺的小沙塵噴發效果，讓投手丘附近的推擠看起來更有物理衝擊感 */
+function spawnBrawlDust() {
+  const dustMat = new THREE.MeshBasicMaterial({ color: 0xcbb896, transparent: true, opacity: 0.55 });
+  const puffs = [];
+  for (let i = 0; i < 10; i++) {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.06 + Math.random()*0.05, 6, 6), dustMat.clone());
+    puff.position.set((Math.random()-0.5)*3, 0.15, -18.44 + (Math.random()-0.5)*3);
+    scene.add(puff);
+    puffs.push(puff);
+    gsap.to(puff.position, { y: 0.5 + Math.random()*0.6, x: puff.position.x + (Math.random()-0.5)*1.2, duration: 0.9 + Math.random()*0.5, ease: "power1.out" });
+    gsap.to(puff.material, { opacity: 0, duration: 1.1 + Math.random()*0.4, delay: 0.2, onComplete: () => scene.remove(puff) });
+  }
 }
 
 function startBrawlMashMinigame() {
   brawlMashCount = 0;
   brawlActive = true;
+  window._brawlChaosStage = 0; // 追蹤進度條已經跨過哪些「越吵越激烈」的門檻，避免同一門檻重複觸發
   const overlay = document.createElement('div');
   overlay.id = 'brawl-mash-overlay';
   overlay.style.cssText = 'position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);z-index:95;text-align:center;font-family:Orbitron,sans-serif;color:#fff;';
@@ -3832,18 +5492,27 @@ function startBrawlMashMinigame() {
     <div style="width:320px;height:16px;background:rgba(255,255,255,0.15);border-radius:8px;margin:10px auto;overflow:hidden;border:1px solid rgba(255,255,255,0.3);">
       <div id="brawl-mash-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#ff5555,#ffcc00);transition:width 0.05s;"></div>
     </div>
-    <div id="brawl-mash-timer" style="font-size:13px;color:#ffcc00;letter-spacing:1px;">2.4</div>`;
+    <div id="brawl-mash-timer" style="font-size:13px;color:#ffcc00;letter-spacing:1px;">3.6</div>`;
   document.getElementById('canvas-container').appendChild(overlay);
 
-  const duration = 2400;
+  const duration = 3600; // 時間拉長，讓衝突小遊戲的節奏不會太趕、能撐久一點
   const startT = performance.now();
-  const maxUsefulMashes = 24; // 超過這個次數後再按也不會再提升，避免鍵盤連發外掛完全主導結果
+  const maxUsefulMashes = 26; // 超過這個次數後再按也不會再提升，避免鍵盤連發外掛完全主導結果
   function tick() {
     if (!brawlActive) return;
     const elapsed = performance.now() - startT;
     const pct = Math.min(100, (brawlMashCount / maxUsefulMashes) * 100);
     const bar = document.getElementById('brawl-mash-bar'); if (bar) bar.style.width = pct + '%';
     const timerEl = document.getElementById('brawl-mash-timer'); if (timerEl) timerEl.innerText = Math.max(0, (duration-elapsed)/1000).toFixed(1);
+    // 進度條按越高，場面要越吵越激烈：每跨過一個門檻就多噴一波塵土、多一下鏡頭晃動，
+    // 讓玩家能直接從畫面的混亂程度感受到「打得越用力、衝突越失控」。
+    const stage = pct >= 85 ? 3 : pct >= 60 ? 2 : pct >= 35 ? 1 : 0;
+    if (stage > window._brawlChaosStage) {
+      window._brawlChaosStage = stage;
+      spawnBrawlDust();
+      gsap.to(camera.position, { x: (Math.random()-0.5) * (0.8 + stage * 0.5), y: defaultCamPos.y + (Math.random()-0.5) * (0.3 + stage * 0.2), duration: 0.18, yoyo: true, repeat: 1 });
+      AudioEngine.crowdSwell(0.5 + stage * 0.25);
+    }
     if (elapsed < duration) requestAnimationFrame(tick);
     else finishBrawlMinigame();
   }
@@ -3861,7 +5530,7 @@ function finishBrawlMinigame() {
   const overlay = document.getElementById('brawl-mash-overlay');
   if (overlay) overlay.remove();
 
-  const maxUsefulMashes = 24;
+  const maxUsefulMashes = 26;
   const playerAnger = Math.min(100, (brawlMashCount / maxUsefulMashes) * 100);
   // 投手(電腦)的怒氣值：手感/心情越差的投手，這時候氣勢反而越弱一點，同時保留隨機性
   const composure = curPitcher.composure ?? 70;
@@ -3874,27 +5543,45 @@ function resolveBrawlOutcome(playerAnger, aiAnger) {
   const banner = document.getElementById('brawl-banner');
   const playerWon = playerAnger > aiAnger;
 
+  // 驅逐出場機率設計：進度條(playerAnger)打得越高，代表衝突鬧得越兇、動作越誇張，
+  // 主審越容易把投手「跟」打者一起抓出來驅逐；進度條壓得越低，衝突場面就相對克制，
+  // 打者幾乎不會被驅逐，投手是否出場則主要看這是不是本場「累犯」——
+  // mound_tension 記錄同一場比賽被觸身球的次數，投手要多次觸身球、次數疊加起來，
+  // 才會有明顯機率被判驅逐出場，單一次、進度條又打得低的觸身球幾乎不會讓投手出局。
+  const repeatOffense = Math.max(0, mound_tension - 1);
+  const angerFactor = Math.pow(THREE.MathUtils.clamp(playerAnger, 0, 100) / 100, 1.6);
+  const pitcherEjectChance = THREE.MathUtils.clamp(0.02 + repeatOffense * 0.15 + angerFactor * 0.55, 0.02, 0.95);
+  const batterEjectChance = THREE.MathUtils.clamp(Math.max(0, playerAnger - 50) / 50 * 0.6, 0, 0.8);
+  const pitcherInjuredChance = playerWon ? THREE.MathUtils.clamp((playerAnger - 78) * 0.018, 0, 0.4) : 0;
+
   setTimeout(() => {
     // 打者、投手與野手歸位
-    gsap.to(batterModel.position, { x: -0.75, z: 0, duration: 1.0 });
-    gsap.to(batterModel.rotation, { y: Math.PI/2, duration: 1.0 });
+    gsap.to(batterModel.position, { x: window._curBatterHand === 'L' ? 0.75 : -0.75, z: 0, duration: 1.4 });
+    gsap.to(batterModel.rotation, { y: window._batterRig ? window._batterRig.baseYaw : Math.PI/2, duration: 1.4 });
     gsap.killTweensOf(pitcherModel.rotation);
-    gsap.to(pitcherModel.rotation, { y: 0, duration: 0.4 });
-    Object.values(fielderModels).forEach(f => { gsap.to(f.model.position, { x: f.home.x, z: f.home.z, duration: 1.0 }); });
-    gsap.to(camera.position, { x: defaultCamPos.x, y: defaultCamPos.y, z: defaultCamPos.z, duration: 0.8 });
-    gsap.to(banner, { opacity: 0, duration: 0.5 });
+    gsap.to(pitcherModel.rotation, { y: 0, duration: 0.6 });
+    Object.values(fielderModels).forEach(f => { gsap.killTweensOf(f.model.rotation); gsap.killTweensOf(f.model.position); gsap.to(f.model.position, { x: f.home.x, y: 0.25, z: f.home.z, duration: 1.4 }); gsap.to(f.model.rotation, { y: 0, duration: 0.8 }); });
+    gsap.to(camera.position, { x: defaultCamPos.x, y: defaultCamPos.y, z: defaultCamPos.z, duration: 1.1 });
+    gsap.to(banner, { opacity: 0, duration: 0.7 });
 
-    // 衝上投手丘本身就違規，無論打贏打輸主審都有機率直接將打者驅逐；
-    // 怒氣值(playerAnger)越高、動作越誇張，越容易被主審盯上抓現行。
-    const umpireStepsIn = Math.random() < THREE.MathUtils.clamp(0.22 + playerAnger * 0.003, 0.22, 0.55);
+    // 裁判與教練介入拉開衝突：雙方板凳球員退回休息室後淡出移除場景
+    if (window._brawlScrumT) { window._brawlScrumT.kill(); window._brawlScrumT = null; }
+    brawlExtras.forEach((m, i) => {
+      gsap.killTweensOf(m.rotation); gsap.killTweensOf(m.position);
+      const fromAway = i % 2 === 0;
+      gsap.to(m.position, { x: fromAway ? -26 : 26, duration: 1.3, delay: i*0.05, onComplete: () => scene.remove(m) });
+    });
+    brawlExtras = [];
 
-    let pitcherInjured = false, pitcherEjected = false, batterEjected = false;
-    if (playerWon && !umpireStepsIn) {
-      pitcherInjured = true; pitcherEjected = true; // 裁判來不及阻止，投手真的被打傷退場
-    } else if (playerWon && umpireStepsIn) {
-      pitcherEjected = Math.random() < 0.5; batterEjected = true; // 拉開了，但打者率先動手被驅逐
-    } else {
-      pitcherEjected = Math.random() < 0.25; batterEjected = umpireStepsIn;
+    // 驅逐判定：進度條打得越高，投手與打者雙雙被驅逐的機率都同步上升；
+    // 進度條低的話，打者幾乎不會被驅逐，投手是否出場則看本場觸身球累犯次數(mound_tension)。
+    let pitcherEjected = Math.random() < pitcherEjectChance;
+    let batterEjected = Math.random() < batterEjectChance;
+    // 只有打者打贏(playerWon)、進度條又拉到接近爆表，才有機會演變成「真的打傷投手」的最壞情況；
+    // 這種情況下投手必定也一併被判驅逐（含受傷退場）。
+    let pitcherInjured = false;
+    if (playerWon && Math.random() < pitcherInjuredChance) {
+      pitcherInjured = true; pitcherEjected = true;
     }
 
     const ejectMsgs = [];
@@ -3935,8 +5622,8 @@ function resolveBrawlOutcome(playerAnger, aiAnger) {
     recordAtBatEnd();
     applyTeamColors(TEAM_AWAY, TEAM_HOME);
     updateHUD();
-    setTimeout(() => { afterPlayCheckOuts(); }, pitcherInjured ? 2900 : 400);
-  }, 300);
+    setTimeout(() => { afterPlayCheckOuts(); }, pitcherInjured ? 2900 : 700);
+  }, 500);
 }
 
 /* 打者衝突中真的把投手打傷退場（跟疲勞受傷的 injurePitcher 分開處理，起因與台詞不同） */
@@ -3967,8 +5654,7 @@ function playHomeRunCelebration() {
   celebrateWallCrowd();
 
   // 打者甩棒
-  gsap.to(bat3D.rotation, { z: Math.PI*2.4, duration: 0.8, ease:"power2.out" });
-  gsap.to(bat3D.position, { x: 0.4, y: -0.1, duration: 0.6, ease:"power2.out" });
+  batTossAnim();
 
   // 攝影機環繞飛越：全程持續看向外野看台/煙火方向，確保觀眾與煙火真的會入鏡
   const lookTarget = { x: 0, y: 9, z: -75 };
@@ -4186,6 +5872,7 @@ function updateBaseUI() {
       return `<div style="color:${color};white-space:nowrap;">${baseLabels[i]} ${runners[i].name} 速${getGrade(spd).replace(/<[^>]+>/g,'')}(${spd})</div>`;
     }).join('');
   }
+  updateHoldRunnerButtonVisibility();
 }
 function updateHUD() {
   const pitchingIsHuman = isHumanPitchingNow();
@@ -4204,6 +5891,7 @@ function updateHUD() {
 
   document.getElementById('batter-name').innerText = `打者: ${curBatter.name} (${curBatterTeam.short})${!pitchingIsHuman?' 🎮你操控':''}`;
   document.getElementById('batter-order').innerText = `(第${curBatterIdx+1}棒 ${curBatter.pos})`;
+  document.getElementById('batter-hand').innerText = deriveBatterHand(curBatter) === 'L' ? '(左打)' : '(右打)';
   document.getElementById('b-contact').innerHTML = getGrade(curBatter.contact);
   document.getElementById('b-power').innerHTML = getGrade(curBatter.power) + ` (${curBatter.power})`;
   document.getElementById('b-speed').innerHTML = getGrade(curBatter.speed);
@@ -4303,6 +5991,7 @@ function animate() {
   const dt = Math.min(0.033, clock.getDelta());
 
   updateTempoRing();
+  updateBatterRig(); // 打者雙手 IK 每幀追著球棒握把
 
   // 打擊游標平滑移動至滑鼠位置（僅打擊時顯示；投球時改顯示投手瞄準點）
   if (gameState === "PITCHING_WAIT" && isHumanPitchingNow()) {
@@ -4357,9 +6046,21 @@ function animate() {
     if (gameState === "PITCH_FLIGHT" && buntHeld) checkBuntContact();
 
     if (gameState === "PITCH_FLIGHT" && ballMesh.position.z >= -0.28) {
-      gameState = "DEAD";
-      if (buntHeld) { buntHeld = false; registerBuntStrike(); }
-      else judgeTakenPitch();
+      if (buntHeld) {
+        gameState = "DEAD";
+        buntHeld = false; registerBuntStrike();
+      } else if (window._cpuSwingPending && !isHumanBattingNow()) {
+        // 電腦打者已經決定要揮棒、只是排程的計時器還沒真正觸發，但球已經物理上飛抵好球帶了——
+        // 這時候必須立刻讓原本排定的揮棒生效，不能讓球被動地判成壞球/好球，
+        // 這樣「電腦打者決定出棒」跟「球抵達好球帶」兩件事之間就不會再有時序上的落差，
+        // 不會出現「打者明明要揮棒卻被系統動判壞球」這種不合理結果。
+        clearTimeout(window._cpuSwingTimer);
+        window._cpuSwingPending = false;
+        cpuBatterSwingContact();
+      } else {
+        gameState = "DEAD";
+        judgeTakenPitch();
+      }
     } else if (gameState === "BAT_SWING" && ballMesh.position.z > 1.4) {
       // 揮棒判定理應已經完成；這裡僅是安全煞停，避免判定延遲導致球飛出畫面外
       ballVel.set(0,0,0);
@@ -4392,8 +6093,14 @@ function animate() {
           ballVel.y = 0;
         }
       } else {
-        settleBattedBall();
+        // 一定要先把狀態標記為 DEAD，再呼叫 settleBattedBall()：
+        // 觸擊界外（好球數還沒到兩好球）等情況，settleBattedBall() 內部會一路同步呼叫到
+        // resetPlay()，直接把 gameState 換成 PITCHING_WAIT、重新啟動下一球的準備節奏；
+        // 如果沿用「先結算、後蓋回 DEAD」的舊順序，這裡的賦值會在 settleBattedBall() 執行完之後
+        // 才發生，等於把 resetPlay() 剛剛設定好的 PITCHING_WAIT 狀態直接覆蓋回 DEAD，
+        // 導致遊戲卡在 DEAD 狀態、再也不會排程下一球，畫面看起來就像整個當掉、無法操控。
         gameState = "DEAD";
+        settleBattedBall();
       }
     } else if (window._groundRolling) {
       window._groundRollTime += dt;
@@ -4406,13 +6113,31 @@ function animate() {
       // 滾動視覺：球速越快翻滾越明顯，繞著與滾動方向垂直的水平軸翻轉
       ballMesh.rotation.x += dt * (2 + speed * 3.4);
 
+      // 觸擊球專用的界內／界外即時判定：球最初落在界內、滾動途中只要還沒通過一壘／三壘壘包的
+      // 距離、又整個滾出界外線之外，就即時標記界外；一旦球在界內滾過一壘／三壘壘包的距離，
+      // 就永久鎖定為界內（之後即使再滾出界外線也算界內安打），完全比照真實棒球規則，而不是
+      // 碰球那一瞬間就用機率骰定生死。
+      if (window._hitContext && window._hitContext.isBunt && !window._hitContext.buntFoulLocked) {
+        const bx = ballMesh.position.x, bz = ballMesh.position.z;
+        const isFairNow = Math.abs(bx) <= Math.abs(bz) * 1.05;
+        const passedBaseMark = Math.abs(bz) >= BASE_DIST * 0.707;
+        if (passedBaseMark && isFairNow) {
+          window._hitContext.buntFoulLocked = true;
+          window._hitContext.isFoul = false;
+        } else {
+          window._hitContext.isFoul = !isFairNow;
+        }
+      }
+
       const nf = window._activeFielderPlay;
       const fielderNear = nf && nf.f && nf.f.model &&
         Math.hypot(nf.f.model.position.x - ballMesh.position.x, nf.f.model.position.z - ballMesh.position.z) < 1.15;
       if (speed < 0.5 || window._groundRollTime > 1.15 || fielderNear) {
         window._groundRolling = false;
-        settleBattedBall();
+        // 同理，先標記 DEAD 再結算，避免結算過程中（例如觸擊界外未達兩好球）同步呼叫
+        // resetPlay() 換回 PITCHING_WAIT 之後，又被這裡的賦值蓋回 DEAD 造成卡死。
         gameState = "DEAD";
+        settleBattedBall();
       }
     }
 
@@ -4420,7 +6145,11 @@ function animate() {
     if (trailPositions.length > 30) trailPositions.shift();
     trailGeo.setFromPoints(trailPositions);
 
-    camera.lookAt(ballMesh.position);
+    // 觸擊球移動範圍很小、又幾乎貼著地面，如果鏡頭逐幀緊盯球的位置，會一路把視角拉低、拉近到
+    // 本壘附近；一旦球停止滾動（gameState 切到 DEAD）這行就不會再執行，鏡頭角度就此凍結在
+    // 那個極近距離的畫面，看不到後續守備回傳跟跑者跑壘的過程。所以觸擊時改用上面
+    // resolveBuntBall() 設定好的固定寬視角，不要逐幀追著球跑。
+    if (!(window._hitContext && window._hitContext.isBunt)) camera.lookAt(ballMesh.position);
   }
 
   renderer.render(scene, camera);
