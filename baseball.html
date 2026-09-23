@@ -6,12 +6,28 @@
 <title>CPBL 職棒野球魂 - 真實擬真版</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<!-- 畫面後製效果（輝光 Bloom）：只用來讓球場燈光、大螢幕、高光等亮部產生電影感光暈，
+     純視覺加分，讀取失敗也不影響遊戲——下方初始化時有 try/catch 安全回退到原本的直接渲染。 -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/MaskPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; touch-action: none; }
 body { font-family: 'Noto Sans TC', sans-serif; background: #030507; color: #fff; }
 #canvas-container { width: 100vw; height: 100vh; position: relative; cursor: crosshair; touch-action: none; }
+/* 純 CSS 的電影感暗角（vignette）：疊在畫面最上層、不接收任何點擊事件，只是讓視線自然聚焦在
+   球場中央，是廣播/電影鏡頭常見的收邊處理，跟遊戲機制完全無關、零風險的視覺加分。 */
+#cinematic-vignette {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.38) 100%);
+  mix-blend-mode: multiply;
+}
 /* 可捲動的面板（選單、名單、戰術選單等）仍允許觸控捲動與點擊，不受上面 touch-action:none 影響 */
 #start-screen, #lineup-screen, #controls-guide, #matchup-hud, .sub-list, .modal-box, .bench-list, .lineup-cols {
   touch-action: pan-y;
@@ -21,12 +37,13 @@ button, select, .team-card, .side-btn, .difficulty-btn, .pitch-type-btn, .lineup
 }
 
 .glass-panel {
-  background: rgba(12, 16, 28, 0.62);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(165deg, rgba(20,26,42,0.68) 0%, rgba(9,12,20,0.6) 100%);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
   border: 1px solid rgba(0, 220, 255, 0.22);
+  border-top: 1px solid rgba(150, 225, 255, 0.38);
   border-radius: 14px;
-  box-shadow: 0 10px 34px rgba(0,0,0,0.55), inset 0 0 22px rgba(0,220,255,0.05);
+  box-shadow: 0 12px 38px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 26px rgba(0,220,255,0.05);
 }
 
 /* ---------- 開始畫面 / 選隊 ---------- */
@@ -108,29 +125,41 @@ button, select, .team-card, .side-btn, .difficulty-btn, .pitch-type-btn, .lineup
 #confirm-lineup-btn { margin-top: 6px; margin-bottom: 20px; font-family: 'Orbitron'; font-size: 17px; letter-spacing: 3px; padding: 13px 42px; border-radius: 30px; border: 2px solid #ffcc00; background: rgba(255,204,0,0.12); color: #ffcc00; cursor: pointer; transition: 0.2s; font-weight: bold; }
 #confirm-lineup-btn:hover { background: #ffcc00; color: #1a1400; box-shadow: 0 0 30px #ffcc00; }
 
-/* ---------- 記分板 ---------- */
-#scoreboard { position: absolute; top: 16px; left: 16px; padding: 12px 20px; display: flex; gap: 22px; align-items: center; z-index: 10; }
+/* ---------- 記分板：改成電視轉播常見的「score bug」風格 ---------- */
+/* 拿掉原本霧化玻璃卡片的科幻感，改用實色深色色塊＋銳利分隔線＋隊伍色條，
+   貼近 MLB/CPBL 轉播畫面左上角常見的計分條設計。 */
+#scoreboard {
+  position: absolute; top: 14px; left: 14px; padding: 0; display: flex; gap: 0; align-items: stretch; z-index: 10;
+  background: #0c1015; border: 1px solid rgba(255,255,255,0.14); border-radius: 5px; overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
 /* 難度按鈕樣式（現用於戰術選單內的「難度設定」分頁） */
 .difficulty-btn { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 6px 12px; border-radius: 16px; border: 2px solid rgba(0,229,255,0.3); background: rgba(0,229,255,0.05); color: #9fd; cursor: pointer; transition: 0.15s; }
 .difficulty-btn:hover { border-color: rgba(0,229,255,0.6); }
 .difficulty-btn.sel { border-color: #ffcc00; background: rgba(255,204,0,0.16); color: #ffcc00; box-shadow: 0 0 12px rgba(255,204,0,0.35); }
 .score-table { border-collapse: collapse; text-align: center; font-family: 'Orbitron', sans-serif; }
-.score-table th, .score-table td { padding: 3px 9px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; }
-.score-table th { color: #00e5ff; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-.score-table td.team-name { font-family: 'Noto Sans TC', sans-serif; font-weight: 900; font-size: 13px; text-align: left; padding-right: 12px; white-space: nowrap; }
-.score-highlight { color: #ffcc00; font-weight: 900; font-size: 17px; text-shadow: 0 0 10px rgba(255,204,0,0.5); }
+.score-table th, .score-table td { padding: 3px 8px; font-size: 12px; }
+.score-table th { background: #171d25; color: #7d93ab; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; padding: 4px 8px 3px; border-left: 1px solid rgba(255,255,255,0.06); }
+.score-table th:first-child, .score-table td.team-name { border-left: none; }
+.score-table td { border-left: 1px solid rgba(255,255,255,0.06); border-top: 1px solid rgba(255,255,255,0.08); color: #dfe8f0; }
+.score-table td.team-name {
+  font-family: 'Noto Sans TC', sans-serif; font-weight: 900; font-size: 12.5px; text-align: left; padding: 4px 12px 4px 9px;
+  white-space: nowrap; background: #161d26; color: #f2f6fa; border-right: 2px solid rgba(255,255,255,0.16);
+}
+.score-highlight { color: #ffd21a; font-weight: 900; font-size: 16px; background: rgba(255,210,26,0.08); }
 .inning-marker { color: #ff5577; font-weight: bold; }
 
-.bso-container { display: flex; flex-direction: column; gap: 6px; font-family: 'Orbitron', sans-serif; }
-.bso-row { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 2px; }
-.dot { width: 11px; height: 11px; border-radius: 50%; background: #1c1c1c; border: 1px solid #555; transition: 0.25s; }
-.dot.b { background: #00ff66; box-shadow: 0 0 12px #00ff66; border-color: #00ff66; }
-.dot.s { background: #ffcc00; box-shadow: 0 0 12px #ffcc00; border-color: #ffcc00; }
-.dot.o { background: #ff3333; box-shadow: 0 0 12px #ff3333; border-color: #ff3333; }
+.bso-container { display: flex; flex-direction: column; justify-content: center; gap: 5px; font-family: 'Orbitron', sans-serif; padding: 6px 12px; background: #10151b; }
+.bso-row { display: flex; align-items: center; gap: 5px; font-size: 10.5px; letter-spacing: 1.5px; color: #8fa5bd; font-weight: 700; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #232a33; border: 1px solid rgba(255,255,255,0.18); transition: 0.2s; }
+.dot.b { background: #2ecc6a; border-color: #2ecc6a; }
+.dot.s { background: #ffcc00; border-color: #ffcc00; }
+.dot.o { background: #e13c3c; border-color: #e13c3c; }
 
-.base-diamond { width: 46px; height: 46px; position: relative; transform: rotate(45deg); background: rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.18); border-radius: 4px; }
-.base { position: absolute; width: 16px; height: 16px; background: #222; border: 1px solid #777; border-radius: 2px; transition: 0.3s; }
-.base.active { background: #ffcc00; box-shadow: 0 0 15px #ffcc00; border-color: #fff; }
+.base-diamond { width: 40px; height: 40px; position: relative; transform: rotate(45deg); background: #0c1015; border: 2px solid rgba(255,255,255,0.2); margin: 8px; }
+.base { position: absolute; width: 14px; height: 14px; background: #232a33; border: 1px solid rgba(255,255,255,0.28); transition: 0.25s; }
+.base.active { background: #ffd21a; box-shadow: 0 0 10px rgba(255,210,26,0.7); border-color: #fff; }
 .base.stealing { animation: pulseBase 0.5s infinite alternate; }
 @keyframes pulseBase { from{opacity:0.5;} to{opacity:1;} }
 #b1 { top: 2px; right: 2px; } #b2 { top: 2px; left: 2px; } #b3 { bottom: 2px; left: 2px; }
@@ -140,14 +169,15 @@ button, select, .team-card, .side-btn, .difficulty-btn, .pitch-type-btn, .lineup
 /* ---------- 對戰 HUD ---------- */
 #matchup-hud { position: absolute; bottom: 16px; left: 16px; width: 330px; max-height: 62vh; overflow-y: auto; padding: 16px; z-index: 10; }
 #hud-collapse-btn { display: none; }
-.player-header { font-size: 16px; font-weight: 900; margin-bottom: 4px; display: flex; justify-content: space-between; }
-.pitcher-color { color: #00e5ff; text-shadow: 0 0 8px rgba(0,229,255,0.4); }
-.batter-color { color: #ff3366; text-shadow: 0 0 8px rgba(255,51,102,0.4); }
-.stat-row { font-size: 12.5px; margin-bottom: 3px; color: #ccc; }
-.stat-bar { background: #111; height: 5px; border-radius: 3px; overflow: hidden; margin: 4px 0 8px 0; border: 1px solid #333; }
-.stat-fill { height: 100%; background: linear-gradient(90deg, #00e5ff, #00ff66); transition: width 0.5s; }
-.trait-badge { display: inline-block; background: linear-gradient(45deg, #ff8c00, #ff2a00); color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 12px; margin-right: 4px; font-weight: bold; }
-hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 11px 0; }
+/* 投打對戰資訊：改成主播球員條常見的「白色主文字＋隊伍色重點條」設計，拿掉過度發光的霓虹字，更像電視轉播的下三分之一圖卡 */
+.player-header { font-size: 15px; font-weight: 900; margin-bottom: 4px; padding-left: 9px; border-left: 3px solid; display: flex; justify-content: space-between; color: #f0f4f8; }
+.pitcher-color { border-left-color: #3ea1ff; }
+.batter-color { border-left-color: #ff4d5e; }
+.stat-row { font-size: 12.5px; margin-bottom: 3px; color: #aab6c4; }
+.stat-bar { background: #10151b; height: 5px; border-radius: 2px; overflow: hidden; margin: 4px 0 8px 0; border: 1px solid rgba(255,255,255,0.12); }
+.stat-fill { height: 100%; background: linear-gradient(90deg, #3ea1ff, #38d47a); transition: width 0.5s; }
+.trait-badge { display: inline-block; background: #23303f; color: #ffb347; font-size: 10px; padding: 2px 7px; border-radius: 3px; margin-right: 4px; font-weight: bold; border: 1px solid rgba(255,179,71,0.35); }
+hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent); margin: 11px 0; }
 
 /* ---------- 投球節奏環 ---------- */
 #tempo-ring-wrap { position: absolute; bottom: 16px; left: 362px; width: 74px; height: 74px; z-index: 10; display:flex; align-items:center; justify-content:center; }
@@ -352,6 +382,7 @@ hr.hud-divider { border: 0; height: 1px; background: linear-gradient(90deg, tran
 <body>
 
 <div id="canvas-container">
+<div id="cinematic-vignette"></div>
 
   <!-- ============ 選隊開始畫面 ============ -->
   <div id="start-screen">
@@ -1274,8 +1305,33 @@ function initGame() {
    ========================================================================================= */
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1626);
 scene.fog = new THREE.FogExp2(0x0e1c30, 0.0052);
+// 天空改用漸層穹頂取代單一平面色，讓夜間球場的天空從深邃的高空漸層過渡到地平線附近
+// 被場燈染亮的淡藍光暈，畫面更有層次、更接近真實夜賽轉播鏡頭下的天空效果。
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: {
+    topColor: { value: new THREE.Color(0x040a16) },
+    bottomColor: { value: new THREE.Color(0x25405f) },
+    offset: { value: 18 },
+    exponent: { value: 0.62 }
+  },
+  vertexShader: `varying vec3 vWorldPosition;
+    void main() {
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPosition.xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent;
+    varying vec3 vWorldPosition;
+    void main() {
+      float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+      gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+    }`,
+  side: THREE.BackSide,
+  fog: false
+});
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(400, 24, 16), skyMat));
+scene.background = new THREE.Color(0x0d1626); // 備援色：天空穹頂材質若因任何原因未能繪出時，畫面仍有正確底色
 
 const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 1000);
 const defaultCamPos = { x: 0, y: 2.05, z: 4.6 };
@@ -1292,14 +1348,36 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = isTouchDevice ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-// 電影感色調映射：讓球場燈光的高光不死白、陰影保留層次，整體畫面更接近真實球場轉播的質感
+// 電影感色調映射：讓球場燈光的高光不死白、陰影保留層次，整體畫面更接近真實球場轉播的質感。
+// exposure 調降到較自然的曝光值，避免畫面整體偏白、缺乏對比的不真實感。
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.42;
+renderer.toneMappingExposure = 1.08;
 renderer.physicallyCorrectLights = true;
 container.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xbccdff, 0.72));
-const hemi = new THREE.HemisphereLight(0x9fbaff, 0x2c4018, 0.9);
+/* 電影感輝光後製（Bloom）：只加強場燈、大螢幕、球體高光這類亮部的柔光暈染，純視覺優化，
+   完全不影響任何判定或流程；外部後製模組載入失敗時，安全退回原本的直接渲染，不會讓遊戲壞掉。 */
+let composer = null, bloomPass = null;
+try {
+  if (typeof THREE.EffectComposer === 'function' && typeof THREE.RenderPass === 'function' && typeof THREE.UnrealBloomPass === 'function') {
+    composer = new THREE.EffectComposer(renderer);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      isTouchDevice ? 0.16 : 0.22,  // strength：大幅調低，只讓真正的高光(場燈/大螢幕)微微暈開，不會讓整個畫面泛白
+      0.55,                          // radius
+      0.94                           // threshold：拉高門檻，只有非常亮的像素才會觸發輝光
+    );
+    composer.addPass(bloomPass);
+  }
+} catch (e) {
+  composer = null; bloomPass = null;
+  console.warn('Bloom 後製模組初始化失敗，已自動退回標準渲染（不影響遊戲功能）。', e);
+}
+
+scene.add(new THREE.AmbientLight(0xbccdff, 0.5));
+const hemi = new THREE.HemisphereLight(0x9fbaff, 0x2c4018, 0.62);
 scene.add(hemi);
 // 主要日光方向燈：補強立體感與人物臉部/球衣皺褶的明暗層次，讓場景不再只靠環境光顯得扁平
 const sunLight = new THREE.DirectionalLight(0xfff2dd, 1.65);
@@ -1319,6 +1397,11 @@ scene.add(fillLight);
 const infieldFill = new THREE.PointLight(0xfff6e0, 0.85, 45, 2);
 infieldFill.position.set(0, 8, -8);
 scene.add(infieldFill);
+// 邊緣輪廓光（rim light）：從場地後方、較低角度打一道冷色光，讓球員身形邊緣在深色夜空背景前
+// 多一圈淡淡的分離光，是電影/球賽轉播常見的手法，讓角色不會整個糊在暗色背景裡。
+const rimLight = new THREE.DirectionalLight(0x8fd8ff, 0.5);
+rimLight.position.set(2, 6, -28);
+scene.add(rimLight);
 
 function makeStadiumLight(x, y, z) {
   const sl = new THREE.SpotLight(0xfff4dd, 2.6, 260, Math.PI / 5, 0.4, 1.3);
@@ -6252,7 +6335,7 @@ function animate() {
     if (!(window._hitContext && window._hitContext.isBunt)) camera.lookAt(ballMesh.position);
   }
 
-  renderer.render(scene, camera);
+  if (composer) composer.render(); else renderer.render(scene, camera);
 }
 
 window.addEventListener('resize', () => {
@@ -6260,6 +6343,7 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, _maxPixelRatio));
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (composer) composer.setSize(window.innerWidth, window.innerHeight);
 });
 // 手機瀏覽器旋轉螢幕（直向/橫向切換）或網址列收合都會觸發視窗尺寸變化，一併處理避免版面跑掉
 window.addEventListener('orientationchange', () => {
