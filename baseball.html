@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>實況中華職棒2026 Cam.Su</title>
+<title>實況風 中華職棒 2026</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,10 +20,6 @@
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:#000;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei','Zen Maru Gothic',sans-serif;color:#fff;touch-action:none}
 #wrap{position:fixed;inset:0;height:100dvh}
-@media (display-mode:fullscreen),(display-mode:standalone){#fsBtn{display:none!important}}
-#fsBtn{position:absolute;right:6px;top:50%;z-index:90;padding:6px 10px;border-radius:999px;border:1.5px solid #fff8;background:#000a;color:#fff;font-weight:900;font-size:12px;display:none;touch-action:manipulation}
-body.touch #fsBtn{display:block}
-body.playing #fsBtn{opacity:.55}
 canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 canvas#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hide{display:none!important}
@@ -195,7 +191,7 @@ html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-
 .adv summary::-webkit-details-marker{display:none}
 .adv summary::after{content:' ▾'}.adv[open] summary::after{content:' ▴'}
 .how div{margin:2px 0}
-#actMore{display:contents}#btnMore{display:none}
+#actMore{display:none;position:absolute;right:0;bottom:calc(100% + 6px);flex-direction:column;gap:6px;padding:6px;background:#06101cf2;border:2px solid #fff6;border-radius:12px;box-shadow:0 4px 14px #000a;z-index:40}#btnMore{display:block}#acts.open #btnMore{background:#ff7a1a}#acts.open #actMore{display:flex}#acts:not(.open) .sec{display:none!important}#actMore .abtn{white-space:nowrap;text-align:left}
 .k{font-style:normal}
 .sx{display:none}
 .pbtn .pn{font-weight:inherit}.pbtn em{font-style:normal}.pbtn em.sh{display:none}
@@ -290,12 +286,7 @@ body.mob #btnAct{width:80px;height:80px;font-size:19px;border-width:3px}
 body.mob #btnPow{padding:6px 10px;font-size:12px;border-width:2px;border-radius:10px}
 body.mob #acts{left:8px;right:auto;bottom:calc(var(--cap) + 8px);max-width:none;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
 body.mob .abtn{padding:7px 11px;font-size:12px;min-height:34px;border-width:2px;border-radius:9px;white-space:nowrap}
-body.mob #btnMore{display:block}
-body.mob #acts.open #btnMore{background:#ff7a1a}
-body.mob #actMore{display:none;position:absolute;left:0;bottom:calc(100% + 6px);flex-direction:column;gap:6px;padding:6px;background:#06101cf2;border:2px solid #fff6;border-radius:12px;box-shadow:0 4px 14px #000a}
-body.mob #acts.open #actMore{display:flex}
-body.mob:has(#absPanel:not(.hide)) #actMore{display:none!important}
-body.mob #acts:not(.open) .sec{display:none!important}
+body.mob #actMore{left:0;right:auto}
 body.mob #pitchPanel{left:8px;right:auto;top:auto;bottom:calc(var(--cap) + 52px);transform:none;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:4px;max-width:calc(100vw - 130px)}
 body.mob #pitchPanel .pbtn{min-width:0;padding:6px 9px;font-size:12px;border-width:2px;border-radius:9px;gap:4px}
 body.mob #pitchPanel .pbtn span{display:inline;font-size:9px}
@@ -466,7 +457,7 @@ body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + 
   <div id="pitchPanel" class="hide"></div>
   <div id="throwPanel" class="hide"></div>
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct">揮棒</button></div>
-  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button></div><button class="abtn" id="btnMore">☰ 更多</button><button class="abtn" id="btnSpeed">⏩ x1</button></div>
+  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="absInfo"></div><div id="absPanel" class="hide"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰 C</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -478,7 +469,6 @@ body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + 
   <div id="sub" class="hide"></div>
 </div>
 <div id="result" class="hide"></div>
-<button id="fsBtn" type="button">⛶ 全螢幕</button>
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
 <div id="audioPanel" class="hide">
   <div class="ap-h"><span>🎵 背景音設定</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
@@ -3624,7 +3614,7 @@ $('btnBunt').onclick = () => { toggleBunt(); updateActs(); applyBatStance(); };
 $('btnSteal').onclick = () => { G.stealReq = !G.stealReq; updateActs(); };
 $('btnPick').onclick = humanPickoff;
 $('btnMound').onclick = () => { if (humanPitches()) moundVisit(G.human); };
-$('btnSpeed').onclick = () => { G.ts = G.ts === 1 ? 2 : G.ts === 2 ? 4 : 1; $('btnSpeed').textContent = '⏩ x' + G.ts; };
+$('btnSpeed').onclick = () => { G.ts = G.ts === 1 ? 2 : G.ts === 2 ? 4 : 1; $('btnSpeed').textContent = '⏩ 遊戲速度 x' + G.ts; };
 $('btnSub').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
   if (G.phase !== 'pre') { say('投球前才能換投'); return; }
@@ -3686,7 +3676,7 @@ $('actMore').addEventListener('click', () => setTimeout(() => $('acts').classLis
 $('sb').addEventListener('click', () => { if (MOB) { $('sb').classList.toggle('open'); layoutTop(); } });
 let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
-document.addEventListener('pointerdown', e => { if (!MOB) return; for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) if (!e.target.closest(sel)) $(id).classList.remove('open'); }, true);
+document.addEventListener('pointerdown', e => { for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) { if (!MOB && id !== 'acts') continue; if (!e.target.closest(sel)) $(id).classList.remove('open'); } }, true);
 { const adv = $('adv'); if (adv && !MOB) adv.open = true; }
 /* ---------------- 背景音設定面板（「更多」→「背景音設定」開啟） ---------------- */
 (function () {
@@ -3763,21 +3753,16 @@ function boot() {
   requestAnimationFrame(frame);
 }
 window.YW = { simulateBall, classifyBatted, wallRadius, G, E, CAMC, get PL() { return PL; }, get PT() { return PT; }, newGame, TEAMS };
-/* ---------------- 全螢幕：Android 瀏覽器可點按鈕進入；加入主畫面後以全螢幕 PWA 開啟 ---------------- */
+/* ---------------- 全螢幕：放在「更多」選單；加入主畫面後以全螢幕 PWA 開啟 ---------------- */
 (function(){
-  const de=document.documentElement,btn=$('fsBtn');
-  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
-  const req=()=>{try{const f=de.requestFullscreen||de.webkitRequestFullscreen;if(f&&!isFs()){const r=f.call(de,{navigationUI:'hide'});if(r&&r.then)r.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>{});}}catch(e){}};
+  const de=document.documentElement,btn=$('btnFs');
+  const rq=de.requestFullscreen||de.webkitRequestFullscreen,ex=document.exitFullscreen||document.webkitExitFullscreen;
+  const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const standalone=()=>(window.matchMedia&&(matchMedia('(display-mode:fullscreen)').matches||matchMedia('(display-mode:standalone)').matches))||navigator.standalone;
+  if(!rq||standalone()){btn.remove();return;}      // iPhone Safari 不支援網頁全螢幕、或已是全螢幕App：不顯示此項
   const sync=()=>{btn.textContent=isFs()?'✕ 離開全螢幕':'⛶ 全螢幕';};
-  btn.addEventListener('click',e=>{e.stopPropagation();if(isFs()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}else req();});
-  btn.addEventListener('pointerdown',e=>e.stopPropagation());
-  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
-  if(/Android/i.test(navigator.userAgent)){ // Android 瀏覽器：第一次點擊畫面就自動進入全螢幕
-    const once=()=>{req();document.removeEventListener('pointerup',once,true);};document.addEventListener('pointerup',once,true);
-  }
-  let dp=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;btn.dataset.inst='1';});
-  window.addEventListener('appinstalled',()=>{dp=null;});
-  window.YW_install=()=>dp&&dp.prompt();
+  btn.addEventListener('click',()=>{try{if(isFs()){ex.call(document);}else{const r=rq.call(de);if(r&&r.then)r.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>{});}}catch(e){}});
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);sync();
 })();
 boot();
 
