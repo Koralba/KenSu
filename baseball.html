@@ -4,13 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>實況風 中華職棒 2026</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="實況風職棒">
+<meta name="theme-color" content="#000000">
+<meta name="application-name" content="實況風職棒">
+<script>
+(function(){try{var u=location.href.split('#')[0];var m={name:'實況風 中華職棒 2026',short_name:'實況風職棒',start_url:u,scope:u.replace(/[^\/]*$/,''),display:'fullscreen',display_override:['fullscreen','standalone'],orientation:'landscape',background_color:'#000000',theme_color:'#000000',icons:[{src:"data:image/svg+xml,"+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='36' fill='#0d6b3d'/><circle cx='96' cy='96' r='54' fill='#fff'/><path d='M62 62q20 34 0 68M130 62q-20 34 0 68' stroke='#d81818' stroke-width='6' fill='none'/></svg>"),sizes:'192x192 512x512',type:'image/svg+xml',purpose:'any'}]};var l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l);}catch(e){}})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Mochiy+Pop+One&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei','Zen Maru Gothic',sans-serif;color:#fff;touch-action:none}
-#wrap{position:fixed;inset:0}
+html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:#000;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei','Zen Maru Gothic',sans-serif;color:#fff;touch-action:none}
+#wrap{position:fixed;inset:0;height:100dvh}
+@media (display-mode:fullscreen),(display-mode:standalone){#fsBtn{display:none!important}}
+#fsBtn{position:absolute;right:6px;top:50%;z-index:90;padding:6px 10px;border-radius:999px;border:1.5px solid #fff8;background:#000a;color:#fff;font-weight:900;font-size:12px;display:none;touch-action:manipulation}
+body.touch #fsBtn{display:block}
+body.playing #fsBtn{opacity:.55}
 canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
 canvas#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hide{display:none!important}
@@ -261,11 +274,11 @@ body.mob #hitInfo .ha small{display:inline;font-size:.85em;margin-left:4px}
 body.mob #hitInfo .hs{font-size:11px;margin:0}
 
 /* --- ABS 挑戰：左側中間，兩顆大按鈕 --- */
-body.mob #absPanel{position:fixed!important;left:calc(8px + env(safe-area-inset-left));top:50%!important;transform:translateY(-50%)!important;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:6px;padding:8px 10px!important;background:#06182af2!important;border:2px solid #4cf!important;border-radius:12px;max-width:150px;z-index:30;box-shadow:0 4px 14px #000a}
-body.mob #absRem{flex:none;font-size:12px;text-align:center}
-body.mob #absPanel .bar{flex-basis:auto;height:4px!important}
-body.mob #absPanel .absBtns{flex-direction:column;gap:6px}
-body.mob #absPanel .absBtns .abtn{padding:9px 8px!important;font-size:14px!important;min-height:40px;border-width:2px!important;border-radius:9px!important}
+body.mob #absPanel{position:fixed!important;left:50%!important;top:auto!important;bottom:calc(var(--cap) + 62px)!important;transform:translateX(-50%)!important;flex-direction:row;align-items:center;flex-wrap:nowrap;gap:6px;padding:4px 8px!important;background:#06182af0!important;border:1.5px solid #4cf!important;border-radius:999px;max-width:78vw;z-index:30;box-shadow:0 2px 8px #000a}
+body.mob #absRem{flex:none;font-size:11px;text-align:center;white-space:nowrap}
+body.mob #absPanel .bar{display:none}
+body.mob #absPanel .absBtns{flex-direction:row;gap:4px}
+body.mob #absPanel .absBtns .abtn{padding:4px 10px!important;font-size:12px!important;min-height:28px;border-width:1.5px!important;border-radius:999px!important}
 
 /* --- 底部：字幕 / 左下操作 / 右下大按鈕 --- */
 body.mob #caption{height:var(--cap);padding:0 10px 0 16px;background:linear-gradient(90deg,#000d,#000d 75%,#0000)}
@@ -457,6 +470,7 @@ body.mob #outBanner .ob-s{font-size:13px}
   <div id="sub" class="hide"></div>
 </div>
 <div id="result" class="hide"></div>
+<button id="fsBtn" type="button">⛶ 全螢幕</button>
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
 <div id="audioPanel" class="hide">
   <div class="ap-h"><span>🎵 背景音設定</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
@@ -1208,8 +1222,8 @@ function resolveSwing(pt, sw, b) {
   const bp = clamp(s * .85 + hz * side * .30 + gauss() * .07 * mv, -1.25, 1.25);   // 球棒擊球位置：<0 球頭、>0 握把
   // 初速：球棒速度(力量)×擊球效率(Q、甜蜜點)＋來球速度，再乘心情加成與投手壓制力
   const pw = b.pow * 0.005;
-  let ev = 18 + 27.5 * Q * (0.5 + pw) * (sw.power ? 1.20 : 1) + (Q > .8 ? (sw.power ? 3 : 2) : 0);
-  ev += (pt.kmh - 140) * .045 * Q;
+  let ev = 15 + 22 * Q * (0.44 + pw) * (sw.power ? 1.16 : 1) + (Q > .88 ? (sw.power ? 2.4 : 1.2) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
+  ev += (pt.kmh - 140) * .04 * Q; if (pt.id !== 'ST') ev *= 1 - Math.max(0, pt.lv - 3) * .006 * (1 - Q * .4);
   ev *= 1 + mb * .55 - (pt.p.dom || 0) * .03;
   ev *= clamp(1 - Math.max(0, Math.abs(bp) - .4) * .22, .8, 1);            // 球頭/握把擊球：能量損失
   ev *= 1 - .22 * clamp(Math.abs(v) - .6, 0, 1);                           // 打在球的最上/最下緣：能量損失
@@ -1262,7 +1276,7 @@ function resolveBunt(pt, sw, b, dt, d, R0, Q) {
 }
 
 /* ---------------- ball physics ---------------- */
-const GRAV = 9.8, DRAG = 0.0011;
+const GRAV = 9.8, DRAG = 0.0028;
 const LIFT = .028, SIDEF = .028;
 function ballEnv(res) {            // 風、氣溫、旋轉、運氣 → 物理環境
   const w = G.wx || { spd: 0, dir: 0, temp: 26 }, gust = res ? clamp(res.luck, -2.2, 2.2) * 1.1 : 0;     // 擊球當下的陣風
@@ -3733,6 +3747,22 @@ function boot() {
   requestAnimationFrame(frame);
 }
 window.YW = { simulateBall, classifyBatted, wallRadius, G, E, CAMC, get PL() { return PL; }, get PT() { return PT; }, newGame, TEAMS };
+/* ---------------- 全螢幕：Android 瀏覽器可點按鈕進入；加入主畫面後以全螢幕 PWA 開啟 ---------------- */
+(function(){
+  const de=document.documentElement,btn=$('fsBtn');
+  const isFs=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  const req=()=>{try{const f=de.requestFullscreen||de.webkitRequestFullscreen;if(f&&!isFs()){const r=f.call(de,{navigationUI:'hide'});if(r&&r.then)r.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{});}catch(e){}}).catch(()=>{});}}catch(e){}};
+  const sync=()=>{btn.textContent=isFs()?'✕ 離開全螢幕':'⛶ 全螢幕';};
+  btn.addEventListener('click',e=>{e.stopPropagation();if(isFs()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}else req();});
+  btn.addEventListener('pointerdown',e=>e.stopPropagation());
+  document.addEventListener('fullscreenchange',sync);document.addEventListener('webkitfullscreenchange',sync);
+  if(/Android/i.test(navigator.userAgent)){ // Android 瀏覽器：第一次點擊畫面就自動進入全螢幕
+    const once=()=>{req();document.removeEventListener('pointerup',once,true);};document.addEventListener('pointerup',once,true);
+  }
+  let dp=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;btn.dataset.inst='1';});
+  window.addEventListener('appinstalled',()=>{dp=null;});
+  window.YW_install=()=>dp&&dp.prompt();
+})();
 boot();
 
 </script></body></html>
