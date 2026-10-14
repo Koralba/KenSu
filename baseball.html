@@ -224,18 +224,18 @@ body.mob #result .st{font-size:11px;line-height:1.5;max-width:92vw}
 body.mob #result button{padding:8px 26px;font-size:16px;border-width:2px}
 
 /* --- 上方資訊列：比分(左) / 投打(中) / 局數BSO(右) --- */
-body.mob #sb{left:6px;top:6px;bottom:auto;transform:none;padding:3px 6px;border-width:1.5px;border-radius:8px;pointer-events:auto;cursor:pointer;z-index:31}
+body.mob #sb{left:2px;top:2px;bottom:auto;transform:none;padding:3px 6px;border-width:1.5px;border-radius:8px;pointer-events:auto;cursor:pointer;z-index:31}
 body.mob #sb table{font-size:12px}
 body.mob #sb td,body.mob #sb th{padding:0 4px;min-width:0}
 body.mob #sb th{font-size:10px;line-height:1.1}
 body.mob #sb:not(.open) .in,body.mob #sb:not(.open) .x{display:none}
 body.mob #sb th:first-child::after{content:'▾';color:#9cf}
 body.mob #sb.open th:first-child::after{content:'▴'}
-body.mob #bso{right:6px;top:6px;transform:none;padding:3px 8px;gap:8px;border-width:1.5px;border-radius:8px}
+body.mob #bso{right:2px;top:2px;transform:none;padding:3px 8px;gap:8px;border-width:1.5px;border-radius:8px}
 body.mob #inn{font-size:18px;min-width:2.4em}
 body.mob #dia{width:34px;height:34px}
 body.mob #bso .lamps div{font-size:11px;height:1.35em}
-body.mob #pinfo{left:96px;right:164px;transform:none;top:6px;gap:4px;pointer-events:auto;cursor:pointer;align-items:flex-start}
+body.mob #pinfo{left:100px;right:176px;transform:none;top:2px;gap:4px;pointer-events:auto;cursor:pointer;align-items:flex-start}
 body.mob .pbox{flex:1;min-width:0;width:auto;padding:2px 7px;border-width:1.5px;border-radius:8px;overflow:hidden}
 body.mob .pbox .t,body.mob .pbox .s{display:none}
 body.mob .pbox .n{font-size:12px;overflow:hidden;text-overflow:ellipsis}
@@ -247,7 +247,7 @@ body.mob #pinfo.open .pbox .n{white-space:normal}
 body.mob #spd{font-size:11px;padding:2px 8px}
 
 /* --- 左側小資訊：風向 / ABS 次數 / 擊球資訊 --- */
-body.mob #leftCol{left:6px;top:64px;width:auto;max-width:34vw;gap:3px}
+body.mob #leftCol{left:2px;top:62px;width:auto;max-width:34vw;gap:3px}
 body.mob #windBox{padding:2px 7px;font-size:10px;gap:5px;flex-wrap:wrap;border-width:1px}
 body.mob #windBox .warr{font-size:13px}
 body.mob #absInfo{padding:2px 7px;font-size:10px;border-width:1px}
@@ -310,7 +310,7 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
 
 /* --- 直向：資訊列分兩排，底部控制往上疊 --- */
 @media (orientation:portrait){
- body.mob #pinfo{left:6px;right:6px;top:66px}
+ body.mob #pinfo{left:2px;right:2px;top:64px}
  body.mob #leftCol{top:106px}
  body.mob #throwPanel{width:160px;height:140px}
 }
@@ -322,7 +322,7 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
  body.mob .abtn{font-size:14px;padding:9px 14px}
  body.mob .pbox .n{font-size:14px}
  body.mob #sb table{font-size:14px}
- body.mob #pinfo{left:120px;right:200px}
+ body.mob #pinfo{left:124px;right:200px}
  body.mob #pitchPanel .pbtn{font-size:14px;padding:8px 12px}
  body.mob #pitchPanel{bottom:calc(var(--cap) + 62px)}
 }
@@ -1302,7 +1302,7 @@ function launchBall(res, pt) {
   }
   // fair ball : set up batter runner
   const br = makeBatterRunner(); PL.br = br;
-  if (cl.hr) { for (let i = 2; i >= 0; i--) { const r = G.on[i]; if (!r) continue; r.goal = 4; r.state = 'run'; r.from = i + 1; r.to = i + 2; r.s = (r.lead || 0) / BASE_LEN; r.dir = 1; r.isForce = true; G.on[i] = null; } br.goal = 4; br.spd *= .86; plan.kind = 'hr'; }
+  if (cl.hr) { for (let i = 2; i >= 0; i--) { const r = G.on[i]; if (!r) continue; r.goal = 4; r.state = 'run'; r.from = i + 1; r.to = i + 2; r.s = (r.lead || 0) / BASE_LEN; r.dir = 1; r.isForce = true; G.on[i] = null; } for (const r of E.runners) { if (r !== br && r.state === 'run' && r.goal < 4) { r.goal = 4; r.dir = 1; r.isForce = true; r.stall = 0; } } br.goal = 4; br.spd *= .86; plan.kind = 'hr'; }
   setupForced();
   assignRoles(plan);
   flowOnContact(PL);
@@ -1743,7 +1743,8 @@ function checkPlayEnd() {
 function endPlay() {
   if (!PL || PL.done) return; PL.done = true; const pl = PL;
   // settle runners
-  for (const r of E.runners) { if (r.state === 'run') { r.state = 'on'; if (r.dir > 0) { r.from = r.s > .5 ? r.to : r.from; } r.s = 0; r.to = r.from + 1; r.lead = 0; if (r.from >= 1 && r.from <= 3) G.on[r.from - 1] = r; } }
+  if (pl.plan && pl.plan.kind === 'hr') { for (const r of E.runners) if (r.state === 'run') { r.state = 'home'; r.rig.run = 0; r.rig.root.visible = false; scoreRunner(r); } }   // 全壘打：還沒跑完的跑者直接得分，不留在壘上
+  else for (const r of E.runners) { if (r.state === 'run') { r.state = 'on'; if (r.dir > 0) { r.from = r.s > .5 ? r.to : r.from; } r.s = 0; r.to = r.from + 1; r.lead = 0; if (r.from >= 1 && r.from <= 3) G.on[r.from - 1] = r; } }
   const fin = () => { setBall({ x: 0, y: 0, z: 0 }, false); flowOnPlayEnd(pl); };
   returnBall(pl, fin);
 }
@@ -2048,16 +2049,44 @@ function pickoffSuccess(r) { const lead = r.lead || 0; return Math.random() < cl
 
 /* -------- bench management -------- */
 function aiManagePitcher(sideIdx) {
+  // CPU 總教練：只在「兩個打者之間」判斷，且不會隨便換——
+  //  1) 體力見底／被打爆（緊急）  2) 體力下降、表現不佳、長時間不穩（至少面對 3 名打者後）
+  //  3) 關鍵局面針對特定打者（右投對強力左打 → 換左投）  4) 最後一局領先 1~3 分 → 終結者
+  //  換投後同半局不再換、新投手至少面對 2 名打者；牛棚只剩 1 人時除非緊急否則保留
   const t = G.teams[sideIdx]; if (G.human === sideIdx || G.over || G.forfeit >= 0) return;
-  const p = t.pitchers[t.cur]; if (p.out) return; if (!availPitchers(sideIdx).length) return;
-  const fat = p.fatigue, last = G.inning >= G.innings, diff = G.score[sideIdx] - G.score[1 - sideIdx];
+  const p = t.pitchers[t.cur]; if (!p || p.out) return;
+  const pool = availPitchers(sideIdx); if (!pool.length) return;
   const nb = G.teams[1 - sideIdx].lineup[G.bi[1 - sideIdx]];
-  let change = false;
-  const traffic = (p.hA || 0) + (p.bbA || 0), bad = (p.er >= 4 && p.role !== 'CL') || (traffic >= 9 && p.er >= 3) || (moodOf(p) < 18 && (traffic >= 4 || G.on.some(x => x)));
-  if (fat > 58 || (p.er >= 5 && p.role === 'SP') || (G.inning >= 7 && p.role === 'SP' && p.pc > 105) || bad || ((p.tilt || 0) > 26 && G.on.some(x => x) && Math.random() < .5)) change = true;
-  const cl = availPitchers(sideIdx).find(o => o.p.role === 'CL');
-  if (!change && last && diff > 0 && diff <= 3 && p.role !== 'CL' && cl && G.outs === 0 && !G.on.some(x => x)) { changePitcher(sideIdx, cl.i); return; }
-  if (change) { const i = chooseReliever(sideIdx, nb); if (i >= 0) changePitcher(sideIdx, i); }
+  const diff = G.score[sideIdx] - G.score[1 - sideIdx], left = G.innings - G.inning;
+  const nR = G.on.filter(x => x).length, risp = !!(G.on[1] || G.on[2]), clean = G.outs === 0 && nR === 0;
+  const faced = (p.outs || 0) + (p.hA || 0) + (p.bbA || 0) + (p.hbp || 0);
+  const fat = p.fatigue || 0, er = p.er || 0, mood = moodOf(p), shaky = p.shaky || 0;
+  const key = G.inning * 2 + G.half, justChanged = t.lastChg === key;
+  const blowout = diff <= -6 || diff >= 8, reserve = pool.length <= 1 && left >= 2;
+  const rel = q => q.ctl * .35 + q.kmh * .4 + (100 - (q.fatigue || 0)) * .1;
+  let why = '', pickI = -1;
+  const emergency = fat >= 72 || er >= 6 || (er >= 4 && mood < 22 && shaky >= 5);
+  if (emergency && !(reserve && fat < 85 && er < 8) && (faced >= 2 || fat >= 85)) why = fat >= 72 ? '體力見底' : '連續失分';
+  if (!why && faced >= 3 && !justChanged && !reserve) {
+    if (fat >= 58 && (clean || fat >= 66)) why = '體力下降';
+    else if (!blowout && er >= (p.role === 'SP' ? 4 : 3) && mood < 40 && shaky >= 3) why = '表現不佳';
+    else if (!blowout && shaky >= 5 && nR > 0 && mood < 45) why = '投球不穩';
+    else if (p.role === 'SP' && p.pc >= 100 && clean && !blowout) why = '投球數偏高';
+  }
+  if (!why && !justChanged && p.role !== 'CL' && G.inning >= G.innings && diff > 0 && diff <= 3 && clean) {
+    const cl = pool.find(o => o.p.role === 'CL'); if (cl) { pickI = cl.i; why = '終結者登板'; }
+  }
+  if (!why && !justChanged && !reserve && faced >= 3 && p.role !== 'CL' && nb && (nb.hand === 'L' || nb.hand === 'R') && (t.mchg || 0) < Math.max(1, Math.floor(G.innings / 3))) {
+    const lev = (risp ? 1 : 0) + (nR > 0 ? .4 : 0) + (G.inning >= G.innings - 1 && Math.abs(diff) <= 2 ? 1 : 0);
+    const edge = nb.hand === 'L' && p.hand === 'R' ? 'L' : (nb.hand === 'R' && p.hand === 'L' && lev >= 1.4 ? 'R' : '');
+    if (edge && lev >= 1 && strengthOf(nb) >= 57 && mood < 62 && Math.random() < (edge === 'L' ? .55 : .3)) {
+      const cands = pool.filter(o => o.p.hand === edge && o.p.role === 'RP' && (o.p.fatigue || 0) < 30 && rel(o.p) >= rel(p) - 8).sort((a, b) => rel(b.p) - rel(a.p));
+      if (cands.length) { pickI = cands[0].i; why = edge === 'L' ? '針對左打者換左投' : '針對右打者換右投'; t.mchg = (t.mchg || 0) + 1; }
+    }
+  }
+  if (!why) return;
+  const i = pickI >= 0 ? pickI : chooseReliever(sideIdx, nb);
+  if (i >= 0) changePitcher(sideIdx, i, false, why);
 }
 function aiPinch() {
   const side = G.half; if (G.human === side || !lvl().learn || G.over) return; const t = battingTeam(); if (!t.bench || !t.bench.length) return;
@@ -2147,6 +2176,7 @@ function updateLamps() {
   document.querySelectorAll('.lamp.b').forEach((e, i) => e.classList.toggle('on', i < G.balls)); document.querySelectorAll('.lamp.s').forEach((e, i) => e.classList.toggle('on', i < G.strikes)); document.querySelectorAll('.lamp.o').forEach((e, i) => e.classList.toggle('on', i < G.outs));
   ['b1', 'b2', 'b3'].forEach((id, i) => $(id).classList.toggle('on', !!G.on[i]));
   $('inn').innerHTML = G.inning + '<small>局' + (G.half ? '下' : '上') + '</small>';
+  layoutTop();
 }
 function updateScoreboard() {
   const n = Math.max(G.innings, G.inning), t = $('sbt'); let h = '<tr><th></th>'; for (let i = 1; i <= n; i++) h += '<th class="in">' + i + '</th>'; h += '<th>計</th><th class="x">安</th><th class="x">失</th></tr>';
@@ -2156,6 +2186,7 @@ function updateScoreboard() {
     h += '<td class="tot">' + G.score[s] + '</td><td class="x">' + G.hits[s] + '</td><td class="x">' + G.errs[1 - s === s ? s : s] + '</td></tr>';
   }
   t.innerHTML = h;
+  layoutTop();
 }
 function pitchSetText(p) { return p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' '); }
 function updatePlayerBoxes() {
@@ -2179,6 +2210,7 @@ function buildPitchPanel() {
 function updateActs() {
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
   $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
+  { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb))) sb0.classList.add('hide'); }
   { const bmo = $('btnMore'); if (bmo) bmo.style.display = (G.human >= 0 && (hb || hp)) ? '' : 'none'; }
   $('btnBunt').classList.toggle('on', !!G.callBunt && hb); $('btnSteal').classList.toggle('on', !!G.stealReq);
 }
@@ -2799,15 +2831,15 @@ function endHalf() {
   else { if (lastIn && G.score[0] !== G.score[1]) { after(1.6, endGame); return; } if (G.inning >= 12) { after(1.6, endGame); return; } G.half = 0; G.inning++; }
   updateScoreboard(); after(2.2, startHalf);
 }
-function changePitcher(side, idx, forced) {
+function changePitcher(side, idx, forced, why) {
   const t = G.teams[side]; const np = t.pitchers[idx]; if (!np || idx === t.cur || np.out) return;
-  const old = t.pitchers[t.cur]; old.used = true; t.cur = idx; np.pc = 0; np.fatigue = 0; np.tilt = clamp((60 - moodOf(np)) * .7, 0, 40);
+  const old = t.pitchers[t.cur]; old.used = true; t.cur = idx; t.lastChg = G.inning * 2 + G.half; np.pc = 0; np.fatigue = 0; np.tilt = clamp((60 - moodOf(np)) * .7, 0, 40);
   if (!t.dh) { const pb = genBatter(1, 'P', np.num, 8); pb.name = np.name; pb.isPitcherBat = true; pb.nat = 'P'; pb.out = false; pb.pos = 'P'; t.lineup[8] = pb; }
   if (side === 1 - G.half && E.F.P) {
     const f = E.F.P, st = teamStyle(side); disposeRig(f.rig);
     const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
   }
-  if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}`);
+  if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}${why ? '（' + why + '）' : ''}`);
   toast('換投', '#fff', '#39f'); updatePlayerBoxes();
 }
 /* ---------------- hooks called by the play engine ---------------- */
@@ -2869,7 +2901,7 @@ function flowOnPlayEnd(pl) {
   else if (br) { if (pl.err) kind = 'E'; else if (pl.outsMade > 0) kind = 'FC'; else kind = 'H' + br.from; }
   if (!pl.foul) { const kn = { HR: '全壘打', H4: '場內全壘打', H1: '一壘安打', H2: '二壘安打', H3: '三壘安打', E: '失誤上壘', FC: '野手選擇', out: '出局' }[kind] || ''; setHitResult(`<b>${areaWord(pl.plan.x, pl.plan.z)}・${kn}</b>${pl.great ? '（精彩守備）' : ''}${pl.badHop ? '（怪彈跳）' : ''}`); }
   const sac = pl.bunt && kind === 'out' && pl.runsMade + (E.runners.filter(r => r.state === 'on' && !r.bat).length) >= 0 && G.on.some(x => x);
-  if (kind === 'HR' || kind === 'H4') { st.ab++; st.h++; st.hr++; G.hits[half]++; if (kind === 'HR') { G.on = [null, null, null]; } }
+  if (kind === 'HR' || kind === 'H4') { st.ab++; st.h++; st.hr++; G.hits[half]++; if (kind === 'HR') { for (const r of G.on) if (r && r.state === 'on') { r.state = 'home'; r.rig.run = 0; scoreRunner(r); } G.on = [null, null, null]; for (const r of E.runners) if (r.state === 'on' || r.state === 'run') { r.state = 'home'; r.rig.root.visible = false; } } }
   else if (kind[0] === 'H') { st.ab++; st.h++; G.hits[half]++; const n = +kind[1]; say(`${areaWord(pl.plan.x, pl.plan.z)}方向，${HIT_NAME[n]}！`); toast(['', '安打！', '二壘安打！', '三壘安打！'][n], '#fff27a', '#ff7a1a'); flowSfx('cheer', .8); }
   else if (kind === 'E') { st.ab++; say('因失誤上壘！'); }
   else if (kind === 'FC') { st.ab++; say('野手選擇，打者跑者安全上壘'); }
@@ -3026,6 +3058,7 @@ function abMood(kind, b) {
   else if (kind === 'E') { adjustMood(pp, -2); adjustMood(b, 2); }
   else if (kind === 'FC') { adjustMood(pp, 1); adjustMood(b, -1); }
   else if (kind && kind[0] === 'H') { adjustMood(pp, -4); adjustMood(b, 6); pp.hA++; }
+  if (pp) { const hit = kind === 'HR' || kind === 'H4', bad = hit || kind === 'BB' || kind === 'IBB' || kind === 'HBP' || kind === 'E' || (kind && kind[0] === 'H'), good = kind === 'K' || kind === 'out' || kind === 'foulout' || kind === 'FC'; pp.shaky = clamp((pp.shaky || 0) + (hit ? 2 : bad ? 1 : good ? -1 : 0), 0, 8); }   // 不穩定累積值（長時間投不好才會上升）
   // 局面壓力：得點圈有人時投手心情更容易下滑
   if (G.on[1] || G.on[2]) adjustMood(pp, -.8);
   updatePlayerBoxes();
@@ -3310,8 +3343,9 @@ $('btnSpeed').onclick = () => { G.ts = G.ts === 1 ? 2 : G.ts === 2 ? 4 : 1; $('b
 $('btnSub').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
   if (G.phase !== 'pre') { say('投球前才能換投'); return; }
-  const side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.innerHTML = '<h3>換投<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
-  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h<span>${p.role}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (i !== t.cur) { changePitcher(side, i); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
+  if (G.human < 0 || !humanPitches()) { say('只有自己守備（投球）時才能換投'); return; }
+  const side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'p'; sub.innerHTML = '<h3>換投<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
+  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h<span>${p.role}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
   const c = document.createElement('div'); c.className = 'pbtn'; c.textContent = '關閉'; c.onclick = () => sub.classList.add('hide'); sub.appendChild(c);
 };
 /* ---------------- 代打／代跑 ---------------- */
@@ -3319,7 +3353,7 @@ $('btnBench').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
   if (G.phase !== 'pre' || !humanBats()) { say('投球前才能代打／代跑'); return; }
   const side = G.human, t = G.teams[side], b = curBatter(); const avail = t.bench.filter(x => !x.out);
-  sub.classList.remove('hide'); sub.innerHTML = '<h3>代打／代跑<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
+  sub.classList.remove('hide'); sub.dataset.k = 'b'; sub.innerHTML = '<h3>代打／代跑<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
   const mk = (txt, cls, fn) => { const d = document.createElement('div'); d.className = 'pbtn' + (cls ? ' ' + cls : ''); d.innerHTML = txt; d.onclick = fn; sub.appendChild(d); return d; };
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
   const fitTx = (x, pos) => { const p = fitPenalty(x.nat, pos); return p === 0 ? '守位適合' : p < .1 ? '守位尚可' : '守位不熟 ▼'; };
@@ -3348,10 +3382,21 @@ function buildCards() {
 }
 document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
 $('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; newGame(c); };
+/* ---------------- 手機版：中間面板依左右兩塊的實際寬度排版，避免重疊 ---------------- */
+let _lt = 0;
+function layoutTop() {
+  const pi = $('pinfo'); if (!pi) return;
+  if (!MOB || window.innerHeight > window.innerWidth) { pi.style.left = ''; pi.style.right = ''; return; }
+  const sb = $('sb'), bso = $('bso'); if (sb.classList.contains('open')) return;
+  const hr = $('hud').getBoundingClientRect(), a = sb.getBoundingClientRect(), b = bso.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+  pi.style.left = Math.round(a.right - hr.left + 4) + 'px'; pi.style.right = Math.round(hr.right - b.left + 4) + 'px';
+}
+window.addEventListener('resize', layoutTop); window.addEventListener('orientationchange', () => setTimeout(layoutTop, 200));
 /* ---------------- 手機版：可展開的小面板 ---------------- */
 $('btnMore').onclick = () => $('acts').classList.toggle('open');
 $('actMore').addEventListener('click', () => setTimeout(() => $('acts').classList.remove('open'), 0));
-$('sb').addEventListener('click', () => { if (MOB) $('sb').classList.toggle('open'); });
+$('sb').addEventListener('click', () => { if (MOB) { $('sb').classList.toggle('open'); layoutTop(); } });
 let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
 document.addEventListener('pointerdown', e => { if (!MOB) return; for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) if (!e.target.closest(sel)) $(id).classList.remove('open'); }, true);
@@ -3394,7 +3439,7 @@ function frame(now) {
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
   if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
   updateCamera(real, focus); camera.updateMatrixWorld(true);
-  updateAim(); drawOverlay(); syncTouch();
+  updateAim(); drawOverlay(); syncTouch(); if (MOB && (++_lt % 45) === 0) layoutTop();
   renderer.render(scene, camera);
 }
 /* ---------------- boot ---------------- */
