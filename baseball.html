@@ -326,6 +326,58 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
  body.mob #pitchPanel .pbtn{font-size:14px;padding:8px 12px}
  body.mob #pitchPanel{bottom:calc(var(--cap) + 62px)}
 }
+
+/* =====================================================================
+   手機／平板：上方資訊列 = 打者 | 投手 | 比分（打者與比分位置對調）＋ 精簡但完整的球員資訊
+   ===================================================================== */
+#topbar{display:none}
+.cp{display:none}
+body.mob #pinfo{display:none}
+body.mob #topbar{display:flex;position:absolute;left:2px;top:2px;right:calc(var(--bsow,130px) + 8px);gap:4px;align-items:flex-start;pointer-events:none;z-index:21}
+body.mob #topbar>*{pointer-events:auto}
+body.mob #topbar .pbox{flex:1 1 0;min-width:0;padding:3px 7px 4px;border-width:1.5px;border-radius:8px;overflow:hidden;width:auto}
+body.mob #bBox{border-color:#ffd35a}
+body.mob #pBox{border-color:#7ab8ff}
+body.mob .pbox .t,body.mob .pbox .s,body.mob .pbox>.bar{display:none}
+body.mob .pbox .n{font-size:12.5px;line-height:1.35}
+body.mob .pbox .n::before{display:inline-block;width:1.4em;height:1.4em;line-height:1.4em;border-radius:50%;text-align:center;font-size:.78em;margin-right:4px;font-weight:900;vertical-align:1px}
+body.mob #pBox .n::before{content:'投';background:#2a7bff;color:#fff}
+body.mob #bBox .n::before{content:'打';background:#ffc21a;color:#3a2000}
+body.mob .cp{display:block;font-size:10.5px;line-height:1.4;margin-top:1px;color:#dbe9ff;font-weight:700}
+body.mob .cp .ln{display:flex;flex-wrap:wrap;align-items:center;gap:0 7px}
+body.mob .cp .ln+.ln{margin-top:1px;opacity:.95}
+body.mob .cp b{font-weight:900;color:#fff;margin:0 1px}
+body.mob .cp b.hi{color:#ffe14a}body.mob .cp b.mid{color:#7dff7d}body.mob .cp b.lo{color:#ff9a8a}
+body.mob .cp .fat{display:inline-flex;align-items:center;gap:3px}
+body.mob .cp .fat i{display:inline-block;width:30px;height:5px;border-radius:3px;background:#0009;overflow:hidden;font-style:normal}
+body.mob .cp .fat u{display:block;height:100%;text-decoration:none}
+body.mob .cp .pt{color:#bfe0ff}
+body.mob .cp .md{font-weight:900;white-space:nowrap}
+body.mob #sb{position:relative;left:auto;top:auto;bottom:auto;flex:none}
+body.mob #sb.open{position:absolute;right:0;top:0;z-index:32;max-width:calc(100vw - var(--bsow,130px) - 16px);overflow-x:auto}
+@media (orientation:portrait){
+ body.mob #topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(var(--bsoh,52px),auto) auto;right:2px;row-gap:4px}
+ body.mob #bBox{grid-column:1/-1;grid-row:1;margin-right:calc(var(--bsow,130px) + 6px);align-self:start}
+ body.mob #pBox{grid-column:1;grid-row:2}
+ body.mob #sb{grid-column:2;grid-row:2;align-self:start}
+ body.mob #sb.open{right:calc(var(--bsow,130px) + 6px)}
+}
+@media (min-width:900px) and (min-height:600px){
+ body.mob .cp{font-size:12.5px}
+ body.mob .pbox .n{font-size:14px}
+ body.mob .cp .fat i{width:44px}
+}
+/* ---------- 背景音樂控制 ---------- */
+#audioDock{position:absolute;right:calc(8px + env(safe-area-inset-right));top:calc(8px + env(safe-area-inset-top));z-index:90;display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:manipulation}
+#audioBtn{width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#10243ae6;color:#fff;font-size:16px;line-height:1;cursor:pointer;box-shadow:0 2px 8px #0009;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+#audioBtn.muted{background:#4a1a1ae6;border-color:#ffb0b0}
+#audioPanel{background:#0b1a2cf5;border:2px solid #fff;border-radius:12px;padding:8px 12px 9px;min-width:210px;box-shadow:0 4px 14px #000a}
+#audioPanel .ap-t{font-weight:900;font-size:12px;color:#ffe14a;margin-bottom:6px;letter-spacing:.1em}
+#audioPanel .ap-r{display:flex;align-items:center;gap:8px}
+#audioPanel .ap-s{font-size:10px;opacity:.7;margin-top:5px}
+#audioMute{width:32px;height:32px;flex:none;border-radius:50%;border:2px solid #fff;background:#142a46;color:#fff;font-size:15px;cursor:pointer;touch-action:manipulation}
+#audioVol{flex:1;min-width:0;height:28px;accent-color:#ffb02e;cursor:pointer;touch-action:none}
+#audioNum{font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;min-width:2.2em;text-align:right}
 </style>
 </head>
 <body>
@@ -373,7 +425,8 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
 <div id="hud" class="hide">
   <div id="sb"><table id="sbt"></table></div>
   <div id="bso"><div id="inn">1<small>局 上</small></div><div id="dia"><i style="left:35%;top:2%" id="b2"></i><i style="left:68%;top:35%" id="b1"></i><i style="left:2%;top:35%" id="b3"></i></div><div class="lamps"><div>B <span class="lamp b"></span><span class="lamp b"></span><span class="lamp b"></span></div><div>S <span class="lamp s"></span><span class="lamp s"></span></div><div>O <span class="lamp o"></span><span class="lamp o"></span></div></div></div>
-  <div id="pinfo"><div class="pbox"><div class="t">投手 PITCHER</div><div class="n" id="pN">-</div><div class="s" id="pS">-</div><div class="bar"><i id="pBar" style="width:100%"></i></div></div><div class="pbox"><div class="t">打者 BATTER</div><div class="n" id="bN">-</div><div class="s" id="bS">-</div></div></div>
+  <div id="pinfo"><div class="pbox" id="pBox"><div class="t">投手 PITCHER</div><div class="n" id="pN">-</div><div class="s" id="pS">-</div><div class="bar"><i id="pBar" style="width:100%"></i></div><div class="cp" id="pC"></div></div><div class="pbox" id="bBox"><div class="t">打者 BATTER</div><div class="n" id="bN">-</div><div class="s" id="bS">-</div><div class="cp" id="bC"></div></div></div>
+  <div id="topbar"></div>
   <div id="spd">150<small>km/h</small></div>
   <div id="toast">STRIKE</div>
   <div id="pitchPanel" class="hide"></div>
@@ -392,6 +445,14 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
 </div>
 <div id="result" class="hide"></div>
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
+<div id="audioDock">
+  <button id="audioBtn" type="button" aria-label="背景音樂">🎵</button>
+  <div id="audioPanel" class="hide">
+    <div class="ap-t">🎵 背景音樂</div>
+    <div class="ap-r"><button id="audioMute" type="button" aria-label="靜音">🔊</button><input id="audioVol" type="range" min="0" max="100" step="1" value="60" aria-label="音量"><span id="audioNum">60</span></div>
+    <div class="ap-s">♪ 球場午後 · 輕鬆爵士</div>
+  </div>
+</div>
 </div>
 <script>
 'use strict';
@@ -607,7 +668,13 @@ const canvasGL = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas: canvasGL, antialias: true, powerPreference: 'high-performance' });
 const IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 let MOB = false;   // 手機／平板：觸控為主要輸入時啟用精簡版面（電腦版不受影響）
-function calcMob() { MOB = !!(IS_TOUCH && ((window.matchMedia && matchMedia('(pointer:coarse)').matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))); document.body.classList.toggle('mob', MOB); }
+function calcMob() { MOB = !!(IS_TOUCH && ((window.matchMedia && matchMedia('(pointer:coarse)').matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))); document.body.classList.toggle('mob', MOB); arrangeTop(); }
+function arrangeTop() {   // 手機版：把打者／投手／比分搬進同一列（打者在左、比分在右）；電腦版還原
+  const g = id => document.getElementById(id), tb = g('topbar'), pi = g('pinfo'), sb = g('sb'), hud = g('hud'), pB = g('pBox'), bB = g('bBox');
+  if (!tb || !pi || !sb || !pB || !bB) return;
+  if (MOB) { if (!tb.contains(bB)) tb.append(bB, pB, sb); }
+  else if (tb.contains(bB)) { pi.append(pB, bB); hud.insertBefore(sb, hud.firstChild); }
+}
 calcMob(); window.addEventListener('resize', calcMob);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, IS_TOUCH ? 1.5 : 2));
 const scene = new THREE.Scene();
@@ -2128,6 +2195,7 @@ function sndInit() {
     const len = C.sampleRate * 2, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * .97 + (Math.random() * 2 - 1) * .03; d[i] = l * 6; }
     const src = C.createBufferSource(); src.buffer = buf; src.loop = true; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = .5; const g = C.createGain(); g.gain.value = .12;
     src.connect(f); f.connect(g); g.connect(SND.master); src.start(); SND.crowdGain = g; SND.crowdF = f;
+    try { bgmInit(C); } catch (e2) { console.warn('bgm', e2); }
   } catch (e) { SND.ctx = null; }
 }
 function noiseBurst(dur, freq, q, gain, type) {
@@ -2159,6 +2227,132 @@ function flowSfx(n, v) {
     case 'pick': noiseBurst(.07, 700, 1, .5); break;
   }
 }
+/* ---------------- 背景音樂（WebAudio 即時合成：輕鬆爵士／球場午後） ---------------- */
+const BGM = { vol: 60, mute: false, ctx: null, bus: null, inst: null, lead: null, drum: null, noise: null, timer: 0, step: 0, t0: 0 };
+try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; } catch (e) { }
+const BGM_BPM = 100, BGM_BEAT = 60 / BGM_BPM, BGM_SWING = .6, BGM_LOOP = 128;
+const BGM_CH = {
+  Cmaj7: { r: 48, v: [55, 59, 62, 64] }, Am7: { r: 45, v: [55, 57, 60, 64] }, Dm7: { r: 50, v: [53, 57, 60, 62] }, G7: { r: 43, v: [53, 55, 59, 62] },
+  Em7: { r: 52, v: [55, 59, 62, 67] }, A7: { r: 45, v: [55, 59, 61, 64] }, Fmaj7: { r: 53, v: [57, 60, 64, 67] }
+};
+const BGM_SONG = [   // c: 和弦（1個＝整小節、2個＝各半小節）  m: 旋律 [八分音符位置, MIDI, 長度]
+  { c: ['Cmaj7'], m: [[0, 76, 2], [3, 74, 1], [4, 72, 2], [6, 67, 2]] },
+  { c: ['Am7'], m: [[0, 69, 2], [2, 72, 1], [3, 76, 3], [7, 74, 1]] },
+  { c: ['Dm7'], m: [[0, 74, 2], [3, 72, 1], [4, 69, 2], [6, 72, 2]] },
+  { c: ['G7'], m: [[0, 71, 2], [2, 74, 2], [4, 72, 1], [5, 71, 1], [6, 67, 2]] },
+  { c: ['Cmaj7'], m: [[0, 76, 2], [3, 79, 1], [4, 76, 2], [6, 74, 1], [7, 72, 1]] },
+  { c: ['Em7', 'A7'], m: [[0, 71, 2], [2, 76, 2], [4, 73, 2], [6, 76, 2]] },
+  { c: ['Dm7'], m: [[0, 74, 2], [2, 77, 2], [4, 76, 1], [5, 74, 1], [6, 72, 2]] },
+  { c: ['G7'], m: [[0, 71, 3], [3, 67, 1], [4, 69, 2], [6, 71, 2]] },
+  { c: ['Fmaj7'], m: [[0, 72, 2], [2, 76, 1], [3, 77, 1], [4, 76, 2], [6, 72, 2]] },
+  { c: ['Em7'], m: [[0, 71, 2], [2, 74, 1], [3, 76, 3], [6, 74, 2]] },
+  { c: ['Dm7'], m: [[0, 72, 2], [2, 74, 1], [3, 77, 1], [4, 76, 2], [6, 74, 2]] },
+  { c: ['G7'], m: [[0, 71, 2], [3, 74, 1], [4, 79, 3], [7, 77, 1]] },
+  { c: ['Em7'], m: [[0, 76, 3], [3, 74, 1], [4, 71, 2], [6, 74, 2]] },
+  { c: ['Am7'], m: [[0, 72, 2], [2, 76, 2], [4, 81, 2], [6, 76, 2]] },
+  { c: ['Dm7', 'G7'], m: [[0, 77, 2], [2, 74, 2], [4, 74, 1], [5, 71, 1], [6, 71, 2]] },
+  { c: ['Cmaj7'], m: [[0, 76, 3], [3, 72, 1], [4, 67, 4]] }
+];
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const bgmStepTime = i => Math.floor(i / 2) * BGM_BEAT + (i % 2 ? BGM_BEAT * BGM_SWING : 0);
+const bgmGainVal = () => BGM.mute ? 0 : Math.pow(BGM.vol / 100, 1.5) * 1.5;
+function bgmApplyVol(first) {
+  if (!BGM.bus) return; const t = BGM.ctx.currentTime;
+  BGM.bus.gain.cancelScheduledValues(t); BGM.bus.gain.setTargetAtTime(bgmGainVal(), t + (first ? .3 : 0), first ? 1.2 : .06);
+}
+function bgmInit(C) {
+  if (BGM.bus) return; BGM.ctx = C;
+  const bus = C.createGain(); bus.gain.value = 0; const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000; bus.connect(lp); lp.connect(C.destination);
+  const inst = C.createGain(); inst.connect(bus);
+  const len = Math.floor(C.sampleRate * 2.2), ir = C.createBuffer(2, len, C.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+  const conv = C.createConvolver(); conv.buffer = ir; const wet = C.createGain(); wet.gain.value = .22; inst.connect(conv); conv.connect(wet); wet.connect(bus);
+  const lead = C.createGain(); lead.connect(inst);
+  const dl = C.createDelay(1.5); dl.delayTime.value = BGM_BEAT * .75; const fb = C.createGain(); fb.gain.value = .28;
+  const dlp = C.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2600; const dw = C.createGain(); dw.gain.value = .3;
+  lead.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dw); dw.connect(inst);
+  const drum = C.createGain(); drum.gain.value = .8; drum.connect(bus);
+  const nb = C.createBuffer(1, C.sampleRate, C.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  BGM.bus = bus; BGM.inst = inst; BGM.lead = lead; BGM.drum = drum; BGM.noise = nb;
+  BGM.step = 0; BGM.t0 = C.currentTime + .25; bgmApplyVol(true);
+  BGM.timer = setInterval(bgmTick, 100);
+}
+function bgmTick() {
+  const C = BGM.ctx; if (!C || C.state !== 'running') return;
+  const horizon = C.currentTime + 1.0; let guard = 0;
+  while (guard++ < 64) {
+    const t = BGM.t0 + bgmStepTime(BGM.step); if (t > horizon) break;
+    if (t >= C.currentTime - .02 && !BGM.mute && BGM.vol > 0) { try { bgmPlayStep(BGM.step, t); } catch (e) { } }
+    BGM.step++;
+  }
+}
+function bgmRhodes(m, t, d, v) {
+  const C = BGM.ctx, f = mtof(m), e = Math.min(.45, d * .9);
+  const g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500 + v * 2200;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .09, t + .008); g.gain.exponentialRampToValueAtTime(v * .04, t + e); g.gain.setTargetAtTime(0, t + d, .14);
+  [[1, 1, 0, 0], [2, .2, 0, 1], [1, .45, 5, 0]].forEach(a => {
+    const o = C.createOscillator(); o.type = 'sine'; o.frequency.value = f * a[0]; o.detune.value = a[2]; const og = C.createGain(); og.gain.setValueAtTime(a[1], t);
+    if (a[3]) og.gain.exponentialRampToValueAtTime(.0005, t + .28); o.connect(og); og.connect(lp); o.start(t); o.stop(t + d + 1.1);
+  });
+  lp.connect(g); g.connect(BGM.inst);
+}
+function bgmBell(m, t, d, v) {
+  const C = BGM.ctx, f = mtof(m), dur = Math.max(d, .3) + .4; const g = C.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .11, t + .006); g.gain.exponentialRampToValueAtTime(.0008, t + dur);
+  [[1, 1, 1], [2, .22, .5], [4, .1, .12]].forEach(a => {
+    const o = C.createOscillator(); o.type = 'sine'; o.frequency.value = f * a[0]; const og = C.createGain(); og.gain.setValueAtTime(a[1], t); og.gain.exponentialRampToValueAtTime(.001, t + dur * a[2] + .05);
+    o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + .1);
+  });
+  g.connect(BGM.lead);
+}
+function bgmBass(m, t, d, v) {
+  const C = BGM.ctx, f = mtof(m), g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .2, t + .012); g.gain.exponentialRampToValueAtTime(v * .11, t + Math.min(.15, d * .5)); g.gain.setTargetAtTime(0, t + d, .06);
+  [['triangle', 1, 1], ['sine', 2, .15]].forEach(a => { const o = C.createOscillator(); o.type = a[0]; o.frequency.value = f * a[1]; const og = C.createGain(); og.gain.value = a[2]; o.connect(og); og.connect(lp); o.start(t); o.stop(t + d + .5); });
+  lp.connect(g); g.connect(BGM.inst);
+}
+function bgmPad(notes, t, d) {
+  const C = BGM.ctx, g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1100;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.012, t + .5); g.gain.setTargetAtTime(0, t + d, .5);
+  notes.forEach(m => [-7, 7].forEach(dt => { const o = C.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(lp); o.start(t); o.stop(t + d + 2.4); }));
+  lp.connect(g); g.connect(BGM.inst);
+}
+function bgmNoise(t, type, freq, q, dur, gain) {
+  const C = BGM.ctx, s = C.createBufferSource(); s.buffer = BGM.noise; const f = C.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = C.createGain(); g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0005, t + dur); s.connect(f); f.connect(g); g.connect(BGM.drum); s.start(t, Math.random() * .5); s.stop(t + dur + .02);
+}
+function bgmKick(t, v) {
+  const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(48, t + .12);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + .22); o.connect(g); g.connect(BGM.drum); o.start(t); o.stop(t + .25);
+}
+function bgmPlayStep(n, t) {
+  const s = n % BGM_LOOP, bar = s >> 3, st = s & 7, loop = Math.floor(n / BGM_LOOP), B = BGM_SONG[bar];
+  const tr = (loop % 4) >= 2 ? 2 : 0, intro = loop === 0 && bar < 2, hu = () => (Math.random() - .5) * .016;
+  const dur = k => bgmStepTime(n + k) - bgmStepTime(n);
+  const nc = B.c.length, clen = nc === 1 ? 8 : 4;
+  B.c.forEach((name, ci) => {
+    const at = ci * clen, C = BGM_CH[name]; if (!C) return;
+    const rel = st - at; if (rel < 0 || rel >= clen) return;
+    if (rel === 0 || rel === 3 || (rel === 6 && clen === 8)) {         // 電鋼琴：切分和弦
+      const first = rel === 0, d = first ? dur(2.7) : dur(1.4), v = first ? 1 : (rel === 3 ? .55 : .5);
+      C.v.forEach((m, i) => bgmRhodes(m + tr, t + i * .014 + hu(), d, v * (.9 + Math.random() * .2)));
+    }
+    if (rel === 0) bgmPad(C.v.map(m => m + tr), t, dur(clen));
+    if (!intro) {                                                       // 貝斯：根音－五度－根音
+      if (rel === 0) bgmBass(C.r + tr, t, dur(2.7), 1);
+      else if (rel === 3) bgmBass(C.r + 7 + tr, t, dur(1), .8);
+      else if (rel === 4 && clen === 8) bgmBass(C.r + tr, t, dur(2.6), .85);
+    }
+  });
+  B.m.forEach(x => { if (x[0] === st && !(loop % 2 === 1 && bar < 4)) bgmBell(x[1] + tr, t + hu() * .5, dur(x[2]), .85 + Math.random() * .25); });
+  if (!intro) {                                                         // 輕柔鼓組：刷鼓感
+    bgmNoise(t, 'highpass', 7500, .7, .04, st % 2 ? .035 : .055);
+    if (st === 0 || st === 4) bgmKick(t, .38);
+    if (st === 2 || st === 6) { bgmNoise(t, 'bandpass', 1800, .8, .09, .12); }
+    if (bar % 8 === 7 && st === 7) bgmNoise(t, 'bandpass', 2200, .8, .08, .09);
+  }
+}
+document.addEventListener('visibilitychange', () => { const c = SND.ctx; if (!c) return; if (document.hidden) c.suspend(); else c.resume(); });
 /* ---------------- HUD helpers ---------------- */
 let capTimer = null;
 function say(html, ms) { const e = $('capTx'); e.innerHTML = html; clearTimeout(capTimer); if (ms) capTimer = setTimeout(() => { if (e.innerHTML === html) e.innerHTML = ''; }, ms); G.lastSay = html; }
@@ -2167,7 +2361,7 @@ function toast(text, c1, c2) {
   t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
 }
 function showSpeed(kmh, name, col) {      // 球速／球路：小型膠囊，位置依「投手／打者資訊列」實際高度往下排，不遮擋上方介面
-  const s = $('spd'), pi = $('pinfo'); s.innerHTML = kmh + '<small>km/h</small> <small style="color:' + (col || '#fff') + '">' + name + '</small>';
+  const s = $('spd'), pi = MOB ? $('topbar') : $('pinfo'); s.innerHTML = kmh + '<small>km/h</small> <small style="color:' + (col || '#fff') + '">' + name + '</small>';
   const bt = pi ? pi.getBoundingClientRect().bottom : 0, hh = window.innerHeight; s.style.top = Math.round(Math.min(Math.max(bt + 6, hh * .1), hh * .3)) + 'px';
   s.style.opacity = 1; clearTimeout(showSpeed.t); showSpeed.t = setTimeout(() => s.style.opacity = 0, 1700);
 }
@@ -2198,6 +2392,14 @@ function updatePlayerBoxes() {
   const h = E.bat ? E.bat.hand : b.hand;
   $('bN').innerHTML = '<span style="color:#9cf">第' + (G.bi[G.half] + 1) + '棒</span> ' + b.name + ' <small>(' + (h === 'R' ? '右' : '左') + '打)</small>';
   $('bS').innerHTML = (b.pos || '') + '・巧打' + b.con + ' 力量' + b.pow + ' 速度' + b.spd + ' 選球' + b.eye + ' ・ 今日 ' + b.st.ab + '打數' + b.st.h + '安打' + (b.st.hr ? ' 全壘打' + b.st.hr : '') + '<br><small>' + (b.line || '') + '</small>' + mdiv(moodOf(b));
+  {   // 手機／平板精簡面板：能力與狀態一眼看完（兩行）
+    const fat = clamp(100 - p.fatigue, 0, 100), fc = fat >= 55 ? '#7dff7d' : fat >= 30 ? '#ffe14a' : '#ff6a5a';
+    const lv = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
+    const md = m => '<span class="md" style="color:' + moodColor(m) + '">' + moodFace(m) + ' ' + moodWord(m) + '</span>';
+    $('pC').innerHTML = '<div class="ln"><span><b>' + Math.round(p.kmh) + '</b>km/h</span><span>球數<b>' + p.pc + '</b></span><span class="fat">體力<i><u style="width:' + Math.round(fat) + '%;background:' + fc + '"></u></i><b style="color:' + fc + '">' + Math.round(fat) + '</b></span></div><div class="ln"><span class="pt">' + pitchSetText(p) + '</span>' + md(moodOf(p)) + '</div>';
+    $('bC').innerHTML = '<div class="ln"><span>巧打<b class="' + lv(b.con) + '">' + b.con + '</b></span><span>力量<b class="' + lv(b.pow) + '">' + b.pow + '</b></span><span>速度<b class="' + lv(b.spd) + '">' + b.spd + '</b></span><span>選球<b class="' + lv(b.eye) + '">' + b.eye + '</b></span></div><div class="ln"><span>' + (b.pos ? b.pos + '・' : '') + '今日<b>' + b.st.ab + '</b>打數<b>' + b.st.h + '</b>安打' + (b.st.hr ? '<b>' + b.st.hr + '</b>HR' : '') + '</span>' + md(moodOf(b)) + '</div>';
+    layoutTop();
+  }
 }
 function buildPitchPanel() {
   const pp = $('pitchPanel'); if (!humanPitches() || !(G.phase === 'pre')) { pp.classList.add('hide'); return; }
@@ -3289,7 +3491,7 @@ let tpt = null;                                              // touch drag state
 wrap.addEventListener('pointerdown', e => {
   if (G.mode === 'title') { toGame(); return; }
   if (EV.brawl && !(e.target.closest && e.target.closest('#absPanel'))) { registerMash(); return; }
-  if (e.target.closest && e.target.closest('#menu,.pbtn,.abtn,#sub,#result,#throwPanel,#touchBtns,#rot,#sb,#pinfo,#absPanel,#actMore')) return;
+  if (e.target.closest && e.target.closest('#menu,.pbtn,.abtn,#sub,#result,#throwPanel,#touchBtns,#rot,#sb,#pinfo,#topbar,#audioDock,#absPanel,#actMore')) return;
   if (e.pointerType === 'mouse') { aim.has = true; aim.cx = e.clientX; aim.cy = e.clientY; aim.shift = e.shiftKey || aim.shift; updateAim(); humanAction(); return; }
   if (!aim.has) { aim.has = true; aim.cx = e.clientX; aim.cy = e.clientY; updateAim(); }
   tpt = { id: e.pointerId, x: e.clientX, y: e.clientY, t0: performance.now(), moved: 0 };
@@ -3385,13 +3587,23 @@ $('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if 
 /* ---------------- 手機版：中間面板依左右兩塊的實際寬度排版，避免重疊 ---------------- */
 let _lt = 0;
 function layoutTop() {
-  const pi = $('pinfo'); if (!pi) return;
-  if (!MOB || window.innerHeight > window.innerWidth) { pi.style.left = ''; pi.style.right = ''; return; }
-  const sb = $('sb'), bso = $('bso'); if (sb.classList.contains('open')) return;
-  const hr = $('hud').getBoundingClientRect(), a = sb.getBoundingClientRect(), b = bso.getBoundingClientRect();
-  if (!a.width || !b.width) return;
-  pi.style.left = Math.round(a.right - hr.left + 4) + 'px'; pi.style.right = Math.round(hr.right - b.left + 4) + 'px';
+  const bso = $('bso'), tb = $('topbar'), lc = $('leftCol'), hudEl = $('hud'); if (!bso || !tb) return;
+  if (MOB && !hudEl.classList.contains('hide')) {
+    const bb = bso.getBoundingClientRect();
+    if (bb.width) { const st = document.documentElement.style; st.setProperty('--bsow', Math.ceil(bb.width) + 'px'); st.setProperty('--bsoh', Math.ceil(bb.height) + 'px'); }
+    const hr = hudEl.getBoundingClientRect(), t = tb.getBoundingClientRect();
+    if (t.height) lc.style.top = Math.round(t.bottom - hr.top + 4) + 'px';
+  } else lc.style.top = '';
+  placeDock();
 }
+function placeDock() {   // 音樂鈕：遊戲中放在 BSO／資訊列正下方，選單／標題時放右上角
+  const d = $('audioDock'), hudEl = $('hud'); if (!d) return;
+  if (hudEl.classList.contains('hide')) { d.style.top = ''; return; }
+  const bb = $('bso').getBoundingClientRect(); let bot = bb.bottom;
+  if (MOB) { const t = $('topbar').getBoundingClientRect(); if (t.height) bot = Math.max(bot, t.bottom); }
+  if (bot > 0) d.style.top = Math.round(bot + 4) + 'px';
+}
+setInterval(layoutTop, 400);
 window.addEventListener('resize', layoutTop); window.addEventListener('orientationchange', () => setTimeout(layoutTop, 200));
 /* ---------------- 手機版：可展開的小面板 ---------------- */
 $('btnMore').onclick = () => $('acts').classList.toggle('open');
@@ -3401,6 +3613,20 @@ let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
 document.addEventListener('pointerdown', e => { if (!MOB) return; for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) if (!e.target.closest(sel)) $(id).classList.remove('open'); }, true);
 { const adv = $('adv'); if (adv && !MOB) adv.open = true; }
+/* ---------------- 背景音樂：音量／靜音面板 ---------------- */
+(function () {
+  const dock = $('audioDock'), btn = $('audioBtn'), panel = $('audioPanel'), mute = $('audioMute'), vol = $('audioVol'), num = $('audioNum'); let hideT = 0;
+  const save = () => { try { localStorage.setItem('cpbl_bgm_vol', BGM.vol); localStorage.setItem('cpbl_bgm_mute', BGM.mute ? '1' : '0'); } catch (e) { } };
+  const sync = () => { const off = BGM.mute || BGM.vol === 0; btn.textContent = off ? '🔇' : '🎵'; btn.classList.toggle('muted', off); mute.textContent = off ? '🔇' : '🔊'; vol.value = BGM.vol; num.textContent = BGM.vol; };
+  const keep = () => { clearTimeout(hideT); hideT = setTimeout(() => panel.classList.add('hide'), 6000); };
+  dock.addEventListener('pointerdown', e => e.stopPropagation());
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('#audioDock')) panel.classList.add('hide'); }, true);
+  btn.addEventListener('click', () => { sndInit(); panel.classList.toggle('hide'); if (!panel.classList.contains('hide')) keep(); btn.blur(); });
+  mute.addEventListener('click', () => { sndInit(); if (BGM.mute || BGM.vol === 0) { BGM.mute = false; if (BGM.vol === 0) BGM.vol = 50; } else BGM.mute = true; bgmApplyVol(); save(); sync(); keep(); mute.blur(); });
+  vol.addEventListener('input', () => { sndInit(); BGM.vol = +vol.value; if (BGM.vol > 0) BGM.mute = false; bgmApplyVol(); save(); sync(); keep(); });
+  vol.addEventListener('change', () => vol.blur());
+  sync();
+})();
 /* ---------------- main loop ---------------- */
 G.ts = 1; let lastT = performance.now(); let lastFocus = new V3(0, 0, -20);
 window.__viol = []; let _ph = '', _phT = 0;
