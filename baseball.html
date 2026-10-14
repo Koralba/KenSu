@@ -404,6 +404,15 @@ body.mob #outBanner .ob-s{font-size:13px}
 #absPanel .absBtns,body.mob #absPanel .absBtns{flex-direction:row!important;gap:4px;margin:0}
 #absPanel .absBtns .abtn,body.mob #absPanel .absBtns .abtn{padding:3px 10px!important;font-size:12px!important;min-height:26px;border-width:1px!important;border-radius:999px!important;background:rgba(18,56,95,.7)!important}
 body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + env(safe-area-inset-right))!important}
+
+/* 左側半透明方向區：拖曳控制準心上下左右 */
+#movePad{display:none;left:calc(2.2vw + env(safe-area-inset-left));top:46%;width:min(27vh,138px);height:min(27vh,138px);transform:translateY(-50%);border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.09),rgba(255,255,255,.03) 70%);pointer-events:auto;touch-action:none;z-index:21;opacity:.5;transition:opacity .2s}
+body.touch #movePad.on{display:block}
+#movePad.act{opacity:.85}
+#movePad i{position:absolute;font-style:normal;font-size:11px;line-height:1;color:rgba(255,255,255,.55);pointer-events:none}
+#movePad .u{left:50%;top:7%;transform:translateX(-50%)}#movePad .d{left:50%;bottom:7%;transform:translateX(-50%)}#movePad .l{left:8%;top:50%;transform:translateY(-50%)}#movePad .r{right:8%;top:50%;transform:translateY(-50%)}
+#movePad b{position:absolute;left:50%;top:50%;width:38%;height:38%;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%);pointer-events:none}
+#movePad span{position:absolute;left:0;right:0;bottom:-16px;text-align:center;font-size:10px;letter-spacing:.15em;color:rgba(255,255,255,.55);pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -412,7 +421,7 @@ body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + 
 <canvas id="ov"></canvas>
 
 <div id="title">
-  <div class="kicker">實況Cam.Su</div>
+  <div class="kicker">實況風Cam.Su</div>
   <div class="logo"><span class="l1">中華</span><span class="l2">職棒</span><i class="tw" style="left:-.1em;top:.05em;animation-delay:.2s">✦</i><i class="tw" style="left:44%;top:-.12em;animation-delay:1.1s;font-size:.2em">✦</i><i class="tw" style="right:-.12em;top:.55em;animation-delay:1.9s">✦</i><i class="tw" style="left:20%;bottom:-.05em;animation-delay:2.4s;font-size:.18em">✦</i><i class="tw" style="right:30%;top:.1em;animation-delay:.7s;font-size:.16em">✦</i></div>
   <div class="en">CPBL 2026 SEASON</div>
   <div class="press"><span class="d-pc">PRESS ANY KEY / CLICK</span><span class="d-mob">點一下畫面開始</span></div>
@@ -459,6 +468,7 @@ body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + 
   <div id="outBanner" class="hide"><div class="ob-t">OUT</div><div class="ob-s"></div></div>
   <div id="pitchPanel" class="hide"></div>
   <div id="throwPanel" class="hide"></div>
+  <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b><span>移動準心</span></div>
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct">揮棒</button></div>
   <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div></div>
@@ -2861,6 +2871,7 @@ function newGame(cfg) {
   startHalf();
 }
 function startHalf() {
+  aim.need = true;
   G.outs = 0; G.balls = 0; G.strikes = 0; G.on = [null, null, null]; clearPlay(); tweens.length = 0; TIMERS = []; G.phase = 'change'; G.shift = null; G.pending = null; G.dead = false; G.runsPlay = [];
   aiManagePitcher(1 - G.half); aiCoachFielders();
   const ft = fieldingTeam(); G.selPitch = 'ST';
@@ -3298,7 +3309,7 @@ function skyLabel() {
   return lv;
 }
 const SKY = { clear: { bg: 0x8cc6ff, fog: 0xa8d4ff, fn: 140, ff: 360, hemi: .95, sun: .75, sc: 0xffffff, wall: 1, sp: [-40, 80, 40] },
-  sunny: { bg: 0x5ab0ff, fog: 0xbfe0ff, fn: 170, ff: 420, hemi: 1.08, sun: 1.4, sc: 0xfff0c8, wall: 1.1, sp: [-32, 95, 36] },
+  sunny: { bg: 0x72b8f5, fog: 0xb4d6f2, fn: 160, ff: 400, hemi: .96, sun: .85, sc: 0xfffaf0, wall: 1.0, sp: [-32, 95, 36] },
   overcast: { bg: 0x8d97a5, fog: 0x9ba4b1, fn: 110, ff: 300, hemi: .8, sun: .22, sc: 0xdde5ef, wall: .82, sp: [0, 90, 8] },
   storm: { bg: 0x4a5461, fog: 0x586272, fn: 70, ff: 230, hemi: .6, sun: .1, sc: 0xb9c6d8, wall: .6, sp: [0, 90, 8] } };
 const _c1 = new THREE.Color(), _c2 = new THREE.Color();
@@ -3313,8 +3324,8 @@ function applyLighting() {            // 依天氣（大晴天／陰暗天／雨
 function drawSky(c, W, H) {           // 大晴天：右上角耀眼陽光與暖色光暈；陰暗天：灰藍色調與四周暗角
   if (!G.wxOn || !G.wx || G.wx.dome || G.wx.off) return; const sc = G.wxScen;
   if (sc === 'sunny') { const k = 1 - clamp(rainK() * 3, 0, 1); if (k <= 0) return; const t = performance.now() * .0004, pul = .92 + Math.sin(t) * .08;
-    let g = c.createRadialGradient(W * .92, -H * .06, 0, W * .92, -H * .06, H * 1.15); g.addColorStop(0, `rgba(255,244,196,${.34 * k * pul})`); g.addColorStop(.35, `rgba(255,232,160,${.12 * k})`); g.addColorStop(1, 'rgba(255,220,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-    g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, `rgba(255,236,170,${.07 * k})`); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+    let g = c.createRadialGradient(W * .92, -H * .06, 0, W * .92, -H * .06, H * 1.15); g.addColorStop(0, `rgba(255,248,222,${.09 * k * pul})`); g.addColorStop(.35, `rgba(255,240,190,${.03 * k})`); g.addColorStop(1, 'rgba(255,220,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, `rgba(255,244,200,${.015 * k})`); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   else if (sc === 'overcast') { c.fillStyle = 'rgba(46,58,76,.12)'; c.fillRect(0, 0, W, H); const g = c.createRadialGradient(W / 2, H * .5, Math.min(W, H) * .35, W / 2, H * .5, Math.hypot(W, H) * .6); g.addColorStop(0, 'rgba(8,14,26,0)'); g.addColorStop(1, 'rgba(8,14,26,.38)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
 }
 function updateWindHud() {
@@ -3511,7 +3522,8 @@ function prepAction() {
    Part 7: overlay, input, menu, main loop, boot
    ===================================================================== */
 const ov = $('ov'), octx = ov.getContext('2d');
-const aim = { x: 0, y: ZC, cx: 0, cy: 0, has: false, shift: false };
+const PAD = { v: null };
+const aim = { need: true, x: 0, y: ZC, cx: 0, cy: 0, has: false, shift: false };
 const _v = new V3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
 function w2s(x, y, z) { _v.set(x, y, z).project(camera); return { x: (_v.x * .5 + .5) * ov.width, y: (-_v.y * .5 + .5) * ov.height }; }
 function pointerToZone(cx, cy) {
@@ -3591,7 +3603,7 @@ let tpt = null;                                              // touch drag state
 wrap.addEventListener('pointerdown', e => {
   if (G.mode === 'title') { toGame(); return; }
   if (EV.brawl && !(e.target.closest && e.target.closest('#absPanel'))) { registerMash(); return; }
-  if (e.target.closest && e.target.closest('#menu,.pbtn,.abtn,#sub,#result,#throwPanel,#touchBtns,#rot,#sb,#pinfo,#topbar,#audioPanel,#absPanel,#actMore')) return;
+  if (e.target.closest && e.target.closest('#menu,#movePad,.pbtn,.abtn,#sub,#result,#throwPanel,#touchBtns,#rot,#sb,#pinfo,#topbar,#audioPanel,#absPanel,#actMore')) return;
   if (e.pointerType === 'mouse') { aim.has = true; aim.cx = e.clientX; aim.cy = e.clientY; aim.shift = e.shiftKey || keyShift; updateAim(); humanAction(); return; }
   if (!aim.has) { aim.has = true; aim.cx = e.clientX; aim.cy = e.clientY; updateAim(); }
   tpt = { id: e.pointerId, x: e.clientX, y: e.clientY, t0: performance.now(), moved: 0 };
@@ -3607,6 +3619,15 @@ const endTouch = e => { if (!tpt || e.pointerId !== tpt.id) return; const tap = 
 wrap.addEventListener('pointerup', endTouch); wrap.addEventListener('pointercancel', endTouch);
 ['contextmenu', 'dblclick', 'gesturestart'].forEach(n => document.addEventListener(n, e => e.preventDefault()));
 if (IS_TOUCH) document.body.classList.add('touch');
+(function () {
+  const pad = $('movePad'), th = $('movePadT'); let pt = null;
+  const upd = e => { const r = pad.getBoundingClientRect(); let dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2), dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2); const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
+    pt.vx = Math.abs(dx) < .1 ? 0 : dx; pt.vy = Math.abs(dy) < .1 ? 0 : dy; th.style.transform = `translate(-50%,-50%) translate(${dx * r.width * .3}px,${dy * r.height * .3}px)`; };
+  const end = e => { if (!pt || e.pointerId !== pt.id) return; pt = null; PAD.v = null; pad.classList.remove('act'); th.style.transform = 'translate(-50%,-50%)'; };
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); sndInit(); pt = { id: e.pointerId, vx: 0, vy: 0 }; PAD.v = pt; aim.has = true; pad.classList.add('act'); try { pad.setPointerCapture(e.pointerId); } catch (_) { } upd(e); });
+  pad.addEventListener('pointermove', e => { if (pt && e.pointerId === pt.id) { e.preventDefault(); upd(e); } });
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end);
+})();
 $('btnAct').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); sndInit(); humanAction(); });
 $('btnPow').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); setPow(!aim.lock); });
 let _tsKey = '';
@@ -3614,6 +3635,7 @@ function syncTouch() {
   if (!IS_TOUCH) return;
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0, ph = G.phase;
   const on = G.mode === 'play' && (hb || hp) && (ph === 'pre' || ph === 'windup' || ph === 'flight');
+  const padOn = G.mode === 'play' && (hb || hp); $('movePad').classList.toggle('on', padOn);
   const key = [on, hb, hp, G.mode].join(); if (key === _tsKey) return; _tsKey = key;
   $('touchBtns').classList.toggle('on', on); $('btnAct').textContent = hp ? '投球' : '揮棒'; $('btnPow').style.display = hb ? '' : 'none';
   document.body.classList.toggle('playing', G.mode === 'play');
@@ -3766,6 +3788,8 @@ function frame(now) {
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
   if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
   updateCamera(real, focus); camera.updateMatrixWorld(true);
+  if (G.mode === 'play' && aim.need && CAMC.mode === 'bat' && CAMC.pos.distanceTo(CAMC.tpos) < .4) { const a = w2s(0, ZC, 0), dp = ov.width / window.innerWidth; if (isFinite(a.x)) { aim.cx = a.x / dp; aim.cy = a.y / dp; aim.has = true; aim.need = false; } }      // 開賽／換半局：準心先置於好球帶中央，不必等第一球
+  if (PAD.v && G.mode === 'play') { const sp = 1.4 * Math.min(window.innerWidth, window.innerHeight) * real; aim.cx = clamp(aim.cx + PAD.v.vx * sp, 0, window.innerWidth); aim.cy = clamp(aim.cy + PAD.v.vy * sp, 0, window.innerHeight); aim.has = true; }
   updateAim(); drawOverlay(); syncTouch(); if (MOB && (++_lt % 45) === 0) layoutTop();
   renderer.render(scene, camera);
 }
