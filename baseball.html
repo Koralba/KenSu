@@ -470,6 +470,39 @@ body.mob #topbar .pbox{flex:0 1 auto;width:fit-content;max-width:calc(50% - 4px)
 #menu .lvdesc[data-lv="3"]{color:#ffd0c4}#menu .lvdesc[data-lv="3"] b{color:#ff9070}
 body.mob #menu .lvdesc{font-size:11px;line-height:1.4;margin:0 0 4px}
 body.mob #menu::before{background-size:cover}
+/* ---------- 賽前編成 ---------- */
+#lineup{position:absolute;inset:0;z-index:92;background:#050d14;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding:2vh 2vw calc(3vh + env(safe-area-inset-bottom))}
+.lu-card{max-width:940px;margin:0 auto;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px 14px}
+.lu-h{display:flex;justify-content:space-between;align-items:center;font-size:18px;color:#f6d36a;margin-bottom:6px}
+.lu-x{width:34px;height:34px;border-radius:50%;border:2px solid #fff5;background:#142a46;color:#fff;font-size:15px;cursor:pointer}
+.lu-tabs{display:flex;gap:6px}
+.lu-tab{flex:1;padding:8px 6px;font-weight:900;font-size:14px;color:#cfe;background:#0007;border:1px solid #fff2;border-bottom:4px solid #fff3;border-radius:10px 10px 0 0;cursor:pointer}
+.lu-tab.on{color:#fff;background:#1c3a52}
+.lu-tip{font-size:12px;line-height:1.55;color:#bcd;margin:8px 0}
+.lu-sec{margin:12px 0 4px;font-weight:900;color:#9ff;letter-spacing:.1em;font-size:13px}
+.lr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;margin:4px 0;background:#0a1b2acc;border:1px solid #fff2;border-radius:10px}
+.lr.bn{opacity:.88}
+.lr .ln{width:1.7em;height:1.7em;line-height:1.7em;text-align:center;border-radius:50%;background:#ffc21a;color:#3a2000;font-weight:900;font-size:13px;flex:none}
+.lr.bn .ln{background:#5a6a7a;color:#fff;font-size:11px}
+.lr .mv{display:flex;gap:2px;flex:none}
+.lr .mv button{width:28px;height:28px;border-radius:7px;border:1px solid #fff4;background:#142a46;color:#fff;font-size:11px;cursor:pointer}
+.lr .mv button:disabled{opacity:.25;cursor:default}
+.lr select{background:#10243a;color:#fff;border:1px solid #fff5;border-radius:8px;padding:5px 6px;font-size:13px;font-weight:700;min-width:0}
+.lr .lp{flex:1 1 150px}.lr .ls{flex:0 1 96px}
+.lr .bnm{font-weight:900;font-size:14px;flex:1 1 150px}
+.lr .lc{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:3px 5px;font-size:11px;color:#cde}
+.chip{padding:1px 6px;border-radius:6px;background:#ffffff14;white-space:nowrap}
+.chip b{margin-left:2px}.chip b.hi{color:#ffe14a}.chip b.mid{color:#7dff7d}.chip b.lo{color:#ff9a8a}
+.chip.warn{background:#7a2a1a;color:#ffd0c0;font-weight:900}.chip.dim{opacity:.6;background:none}
+.lu-sp{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.spc{padding:8px 10px;border-radius:10px;border:2px solid #fff3;background:#0a1b2acc;cursor:pointer;font-size:13px;line-height:1.45}
+.spc small{opacity:.8}.spc.on{border-color:#ffe14a;background:#2a3a10cc;box-shadow:0 0 12px #ffe14a55}
+.lu-doc{margin-top:12px;font-size:12px;line-height:1.65;color:#cfe;background:#0006;border-radius:10px;padding:6px 10px}
+.lu-doc summary{cursor:pointer;font-weight:900;color:#9ff}
+.lu-btns{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.lu-btns .pillb{padding:10px 26px;font-size:15px}
+body.mob .lr .ls{flex:0 1 84px}
+
 </style>
 </head>
 <body>
@@ -514,6 +547,7 @@ body.mob #menu::before{background-size:cover}
     <div><b>打擊</b>：<span class="d-pc">圈住來球，球到本壘時點擊／空白鍵揮棒（Shift 強打、Q 盜壘、B 短打：圈住來球即自動觸擊）</span><span class="d-mob">拖曳圈住來球 → 球到時按「揮棒」（短打：圈住即觸擊）</span></div>
     <div><b>挑戰</b>：<span class="d-pc">下一球投出前按 C，申請 ABS 鷹眼</span><span class="d-mob">出現「挑戰」鈕時點一下</span></div>
   </div>
+  <div class="row"><button type="button" class="pillb" id="lineupBtn" style="font-size:15px;padding:10px 22px">🧢 球員編成（守備位置／打擊順序／先發投手）</button></div>
   <button id="startBtn">比賽開始！</button>
 </div>
 
@@ -530,7 +564,7 @@ body.mob #menu::before{background-size:cover}
   <div id="throwPanel" class="hide"></div>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct">揮棒</button></div>
-  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="absInfo"></div><div id="absPanel" class="hide"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰 C</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -543,6 +577,7 @@ body.mob #menu::before{background-size:cover}
 </div>
 <div id="result" class="hide"></div>
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
+<div id="lineup" class="hide"></div>
 <div id="audioPanel" class="hide">
   <div class="ap-h"><span>🎵 背景音設定</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
   <button id="audioMute" type="button" class="ap-sw on">🔊 背景音樂　開</button>
@@ -702,7 +737,7 @@ function mkBatter(r, slot, nat) {
   const traj = clamp(Math.round(1.5 + iso * 8 + (r.hr > 12 ? .5 : 0)), 1, 4);
   const pos = nat || r.p;
   return {
-    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: r.f, arm: r.ar, traj, zone: seededZone(r.n, con),
+    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: r.f, arm: r.ar, fld0: r.f, arm0: r.ar, traj, zone: seededZone(r.n, con),
     st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: Math.round(clamp(75 - pow * .5 + spd * .25, 25, 92)), out: false, slot,
     mood: Math.round(clamp(52 + (r.a - .265) * 150 + (Math.random() - .5) * 18, 30, 80)), dur: Math.round(clamp(72 + Math.random() * 22, 55, 96)), agg: Math.round(clamp(40 + r.sb * 1.6, 25, 95)),
     line: `2026 .${String(Math.round(r.a * 1000)).padStart(3, '0')}/.${String(Math.round(r.o * 1000)).padStart(3, '0')}/.${String(Math.round(r.s * 1000)).padStart(3, '0')} ${r.hr}HR ${r.sb}SB${r.est ? '（估）' : ''}`
@@ -713,7 +748,7 @@ function mkPitcher(r, slot) {
   const sp = r.r === 'SP';
   const lv = clamp(Math.round(3 + (r.k - 10) / 3.2), 3, 7);
   const pitches = [{ id: 'ST', lv: clamp(Math.round(3 + (r.v - 140) / 3.5), 3, 7) }];
-  r.ps.forEach((id, i) => pitches.push({ id, lv: clamp(lv + (i === 0 ? 0 : -1) + ri(-1, 0), 2, 7) }));
+  r.ps.forEach((id, i) => pitches.push({ id, lv: clamp(lv + (i === 0 ? 0 : -1) - ((hashStr(r.n + id) >>> 3) & 1), 2, 7) }));
   const ctl = Math.round(clamp(96 - r.bb * 4.0, 42, 94));
   return {
     kind: 'P', name: r.n, num: '', role: r.r, hand: r.h, kmh: r.v, ctl, sta: sp ? Math.round(clamp(60 + (r.ipg - 5.5) * 14, 55, 100)) : (r.r === 'CL' ? 32 : 42),
@@ -723,7 +758,23 @@ function mkPitcher(r, slot) {
     line: `2026 ERA ${r.era.toFixed(2)} K%${r.k.toFixed(1)} BB%${r.bb.toFixed(1)}${r.est ? '（估）' : ''}`
   };
 }
-function buildTeam(def, cfg) {
+const POS9 = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
+/* 設定球員守位：非本位會依適性（fitPenalty）折減守備範圍與傳球能力 */
+function setPos(pl, pos) {
+  pl.pos = pos; const pen = fitPenalty(pl.nat, pos); pl.penalty = pen;
+  pl.fld = Math.round((pl.fld0 != null ? pl.fld0 : pl.fld) * (1 - pen)); pl.arm = Math.round((pl.arm0 != null ? pl.arm0 : pl.arm) * (1 - pen * .6));
+}
+/* 套用玩家的賽前編成：9 名先發（棒次＋守位）＋其餘為板凳；資料不合法就退回預設 */
+function applyLineupEdit(ed, raw, benchRaw) {
+  const pool = raw.concat(benchRaw), by = {}; pool.forEach(p => { by[p.name] = p; });
+  if (!ed.order || ed.order.length !== 9) return null;
+  const ns = new Set(ed.order), ps = new Set(ed.order.map(n => ed.pos[n]));
+  if (ns.size !== 9 || ps.size !== 9 || !POS9.every(p => ps.has(p)) || !ed.order.every(n => by[n])) return null;
+  const lineup = ed.order.map((n, i) => { const p = by[n]; setPos(p, ed.pos[n]); p.slot = i; return p; });
+  const rest = pool.filter(p => lineup.indexOf(p) < 0); rest.forEach(p => { p.slot = undefined; setPos(p, p.nat); });
+  return { lineup, bench: rest };
+}
+function buildTeam(def, cfg, side) {
   cfg = cfg || {}; const D = CPBL[def.id];
   // 打線：8 守備 + 指定打擊（中職採 DH 制）
   const raw = D.bat.map((r, i) => mkBatter(r, i));
@@ -733,8 +784,11 @@ function buildTeam(def, cfg) {
   const top = rest.slice(0, 5);   // 前五強打者
   const order = [lead, top[1], top[0], top[2], top[3], top[4]].concat(rest.slice(5));
   order.forEach((b, i) => { b.slot = i; });
-  const bench = D.bench.map(r => mkBatter(r, undefined)); if (cfg.pn === 1) bench.length = Math.min(bench.length, 3);
-  const spList = D.sp, spIdx = cfg.spIdx !== undefined ? cfg.spIdx % spList.length : Math.floor(Math.random() * Math.min(3, spList.length));
+  let bench = D.bench.map(r => mkBatter(r, undefined)); if (cfg.pn === 1) bench.length = Math.min(bench.length, 3);
+  const ed = cfg.edit && cfg.edit[side] && cfg.edit[side].teamId === def.id ? cfg.edit[side] : null;
+  let lineupF = order, benchF = bench;
+  if (ed) { const ap = applyLineupEdit(ed, raw, D.bench.map(r => mkBatter(r, undefined))); if (ap) { lineupF = ap.lineup; benchF = ap.bench; } }
+  const spList = D.sp, spIdx = ed && ed.spIdx !== undefined ? ed.spIdx % spList.length : cfg.spIdx !== undefined ? cfg.spIdx % spList.length : Math.floor(Math.random() * Math.min(3, spList.length));
   const sp = mkPitcher(spList[spIdx]);
   const others = spList.filter((_, i) => i !== spIdx).map(r => Object.assign({}, r, { r: 'RP', ipg: 3 }));
   const rps = D.rp.slice(0, 2).map(r => mkPitcher(r));
@@ -742,7 +796,7 @@ function buildTeam(def, cfg) {
   const extra = others.map(r => { const p = mkPitcher(r); p.sta = 55; return p; });
   let pit = cfg.pn === 1 ? [sp, rps[0], cl] : [sp, rps[0], rps[1], extra[0], extra[1], cl].filter(Boolean);
   pit.forEach(p => { p.out = false; p.used = false; p.hbp = 0; });
-  return { def, id: def.id, name: def.name, short: def.short, c1: def.c1, c2: def.c2, cap: def.cap, lineup: order, bench, pitchers: pit, cur: 0, bi: 0, order: 0, inj: [], hbpTension: 0, forfeit: false, dh: true, home: def.home };
+  return { def, id: def.id, name: def.name, short: def.short, c1: def.c1, c2: def.c2, cap: def.cap, lineup: lineupF, bench: benchF, retired: [], pitchers: pit, cur: 0, bi: 0, order: 0, inj: [], hbpTension: 0, forfeit: false, dh: true, home: def.home };
 }
 /* ---------------- 心情值：越高越穩定、略有加成；越低越不可控 ---------------- */
 const moodOf = p => (p && p.mood != null ? p.mood : 55);
@@ -754,7 +808,7 @@ function moodColor(m) { return m >= 62 ? '#7dff7d' : m >= 42 ? '#ffe14a' : m >= 
 function adjustMood(p, d) { if (!p) return; p.mood = clamp(moodOf(p) + d, 0, 100); if (p.kind === 'P') p.tilt = clamp((60 - p.mood) * .7, 0, 40); }
 function adjustTilt(p, d) { adjustMood(p, -d * 1.5); }
 function genBatter(strength, pos, num, slot) {
-  return { kind: 'B', name: '臨時替補', num: '', pos, nat: pos, hand: 'R', con: 50, pow: 40, spd: 55, eye: 50, fld: 50, arm: 55, traj: 2, zone: [0, 0, 0, 0, 0, 0, 0, 0, 0], st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: 60, out: false, slot, mood: 50, dur: 70, agg: 45, line: '' };
+  return { kind: 'B', name: '臨時替補', num: '', pos, nat: pos, hand: 'R', con: 50, pow: 40, spd: 55, eye: 50, fld: 50, arm: 55, fld0: 50, arm0: 55, traj: 2, zone: [0, 0, 0, 0, 0, 0, 0, 0, 0], st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: 60, out: false, slot, mood: 50, dur: 70, agg: 45, line: '' };
 }
 
 /* =====================================================================
@@ -1155,7 +1209,7 @@ function teamStyle(side) {
 /* ---------------- entities ---------------- */
 function disposeRig(r) { scene.remove(r.root); }
 function fielderOf(pos) { return E.F[pos]; }
-function playerAt(team, pos) { if (pos === 'P') return team.pitchers[team.cur]; return team.lineup.find(p => p.pos === pos); }
+function playerAt(team, pos) { if (pos === 'P') return team.pitchers[team.cur]; return team.lineup.find(p => p.pos === pos) || team.lineup.find(p => p.pos === 'DH') || team.lineup[0]; }
 function rebuildField() {
   Object.values(E.F).forEach(f => disposeRig(f.rig)); E.F = {};
   if (E.bat) disposeRig(E.bat.rig); E.runners.forEach(r => disposeRig(r.rig)); E.runners = [];
@@ -1262,9 +1316,10 @@ function batterZoneRating(b, x, y) {         // -2..2 : in terms of absolute (ca
 
 /* ---------------- swing / contact ---------------- */
 function batterR(b, pt, power) {
-  let r = 0.22 + b.con * 0.0031 - Math.max(0, pt.kmh - 140) * 0.0022 - (pt.id === 'ST' ? 0 : pt.lv * 0.012);
+  let r = 0.22 + b.con * 0.0031 - Math.max(0, pt.kmh - 140) * 0.0022 - (pt.id === 'ST' ? 0 : pt.lv * 0.012 * clamp(1.35 - b.eye * .0065, .75, 1.15));   // 選球高→較能辨識變化球
   const z = batterZoneRating(b, pt.fx, pt.fy); if (z >= 0) r *= 1 + z * 0.055;
   const fatigue = pt.p.fatigue || 0; r *= 1 + fatigue * 0.0011;
+  { const bh = b.hand === 'S' ? (pt.p.hand === 'R' ? 'L' : 'R') : b.hand; r *= bh !== pt.p.hand ? 1.045 : .955; }      // 左右對決：異手打者較佔優勢、同手較吃虧（左右開弓永遠站有利一側）
   r *= (1 + moodBonus(b) * 1.1) * (1 - rainK() * .06);                                   // 心情加成（好→揮棒圈變大）
   r = clamp(r, 0.2, 0.8);
   if (power) r = Math.max(0.15, r * 0.70);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
@@ -2245,7 +2300,7 @@ function aiPickoffThink() {
   }
   return -1;
 }
-function pickoffSuccess(r) { const lead = r.lead || 0; return Math.random() < clamp((lead - 2.4) * .22 + (r.pl.spd < 50 ? .05 : 0) - ((r.pl.spd - 60) * .003), .02, .6); }
+function pickoffSuccess(r) { const lead = r.lead || 0, pp = curPitcher(); return Math.random() < clamp((lead - 2.4) * .22 + (r.pl.spd < 50 ? .05 : 0) - ((r.pl.spd - 60) * .003) + (r.from === 1 && pp.hand === 'L' ? .05 : 0) + (((pp.ctl || 60) - 60) * .0005), .02, .6); }
 
 /* -------- bench management -------- */
 function aiManagePitcher(sideIdx) {
@@ -2580,7 +2635,8 @@ function buildPitchPanel() {
 function updateActs() {
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
   $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
-  { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb))) sb0.classList.add('hide'); }
+  { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb) || (sb0.dataset.k === 'd' && !hp))) sb0.classList.add('hide'); }
+  { const bd = $('btnDef'); if (bd) bd.style.display = hp ? '' : 'none'; }
   { const bmo = $('btnMore'); if (bmo) bmo.style.display = ''; }
   $('btnBunt').classList.toggle('on', !!G.callBunt && hb); $('btnSteal').classList.toggle('on', !!G.stealReq);
 }
@@ -2630,7 +2686,8 @@ function updateAbsHud() {
 /* ---------------- 主審判決（有誤判機率，越貼邊越容易誤判） ---------------- */
 function umpireCall(pt) {
   const sdf = zoneSDF(pt.fx, pt.fy), truth = sdf <= 0;
-  const blownP = clamp((.30 - Math.abs(sdf) * 1.2) * (G.umpSkill || 1), 0, .34);
+  const Cp = E.F.C && E.F.C.pl, fr = (((Cp && Cp.fld) || 60) - 60) * .0016;      // 捕手接球技術（守備值）：邊角球更容易被判好球
+  const blownP = clamp((.30 - Math.abs(sdf) * 1.2) * (G.umpSkill || 1) + (truth ? (-fr * .6) : (sdf < .14 ? fr : 0)), 0, .34);
   const blown = Math.random() < blownP;
   return { strike: blown ? !truth : truth, truth, sdf, blown, px: pt.fx, py: pt.fy };
 }
@@ -2756,8 +2813,8 @@ function subInto(side, old, sub, why) {
   if (!sub) {                                                       // 板凳空了：臨時找人頂
     sub = genBatter(.7, old.pos, 99, old.slot || 5); sub.name = '臨時替補'; sub.nat = old.pos; sub.con = 52; sub.pow = 40; sub.spd = 55; sub.eye = 50; sub.fld = 50; sub.arm = 55; sub.out = false;
   } else t.bench.splice(t.bench.indexOf(sub), 1);
-  const pen = fitPenalty(sub.nat, old.pos); sub.pos = old.pos; if (pen) { sub.fld = Math.round(sub.fld * (1 - pen)); sub.arm = Math.round(sub.arm * (1 - pen * .6)); }
-  old.out = true; t.lineup[i] = sub; sub.slot = old.slot;
+  setPos(sub, old.pos);
+  old.out = true; (t.retired || (t.retired = [])).push(old); t.lineup[i] = sub; sub.slot = old.slot;
   if (side === 1 - G.half && old.pos !== 'DH' && E.F[old.pos]) swapFielderRig(old.pos, sub);
   return sub;
 }
@@ -2959,7 +3016,7 @@ function updateTweens(dt) {
   }
 }
 function newGame(cfg) {
-  G.teams = [buildTeam(TEAMS[cfg.away], cfg), buildTeam(TEAMS[cfg.home], cfg)]; if (cfg.ace) { G.teams.forEach(t => { }); }
+  G.teams = [buildTeam(TEAMS[cfg.away], cfg, 0), buildTeam(TEAMS[cfg.home], cfg, 1)]; if (cfg.ace) { G.teams.forEach(t => { }); }
   G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.easy = !!cfg.easy; G.innings = cfg.inn;
   G.score = [0, 0]; G.line = [[], []]; G.hits = [0, 0]; G.errs = [0, 0]; G.inning = 1; G.half = 0; G.bi = [0, 0]; G.pmodel = {}; G.batHist = {};
   G.over = false; G.walkoff = false; G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; initWeather(G.teams[1]); hideHitInfo(0);
@@ -3816,7 +3873,7 @@ $('btnBench').onclick = () => {
   sub.classList.remove('hide'); sub.dataset.k = 'b'; sub.innerHTML = '<h3>代打／代跑<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
   const mk = (txt, cls, fn) => { const d = document.createElement('div'); d.className = 'pbtn' + (cls ? ' ' + cls : ''); d.innerHTML = txt; d.onclick = fn; sub.appendChild(d); return d; };
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
-  const fitTx = (x, pos) => { const p = fitPenalty(x.nat, pos); return p === 0 ? '守位適合' : p < .1 ? '守位尚可' : '守位不熟 ▼'; };
+  const fitTx = (x, pos) => { const p = fitPenalty(x.nat, pos); return p === 0 ? '守位適合' : '守備 -' + Math.round(p * 100) + '%'; };
   const done = () => { sub.classList.add('hide'); updatePlayerBoxes(); updateActs(); };
   if (!avail.length) { head('板凳已經沒有人了'); }
   else {
@@ -3827,6 +3884,8 @@ $('btnBench').onclick = () => {
     runners.forEach(r => { head(`代跑：${r.from}壘跑者 ${r.pl.name}（速度${r.pl.spd}）`); avail.forEach(x => mk(`${x.name} (${x.nat})<span>速${x.spd}・${fitTx(x, r.pl.pos)}</span>`, '', () => {
       const old = r.pl, s2 = subInto(side, old, x); if (!s2) return; r.pl = s2; r.spd = 5.6 + s2.spd * .036; say(`代跑！${s2.name}代替 ${old.name} 站上${r.from}壘`); toast('代跑', '#fff', '#39f'); G.log.push('代跑'); done(); })); });
   }
+  { const ret = t.retired || []; head('規則：退場球員本場不得再上場；代打／代跑者承接被替換者的棒次與守位');
+    if (ret.length) { head('已退場名單'); ret.forEach(x => { const d = document.createElement('div'); d.className = 'pbtn'; d.style.opacity = '.5'; d.innerHTML = x.name + '<span>' + (x.nat || '') + '</span>'; sub.appendChild(d); }); } }
   mk('關閉', '', () => sub.classList.add('hide'));
 };
 /* ---------------- menu ---------------- */
@@ -3844,7 +3903,106 @@ const LV_DESC = ['<b>弱</b>　電腦反應較慢、容易失誤，適合新手�
 function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = (LV_DESC[v] || '') + (CFG.easy ? '<br><b>簡易模式</b>　打擊只要抓時機按「揮棒」、不用瞄準；守備由電腦自動傳球補位' : ''); e.dataset.lv = v; } }
 setLvDesc(CFG.lv);
 document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv' || k === 'easy') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
-$('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; newGame(c); };
+$('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return e && e.teamId === id ? e : null; }); newGame(c); };
+/* =====================================================================
+   賽前編成：守備位置／打擊順序／先發投手（中職真實名單）＋ 比賽中守備調整
+   ===================================================================== */
+const ED = [null, null];
+const ED_TAB = { v: 0 };
+const POS_LABEL = { C: '捕手', '1B': '一壘', '2B': '二壘', '3B': '三壘', SS: '游擊', LF: '左外野', CF: '中外野', RF: '右外野', DH: '指定打擊' };
+const _edPoolCache = {};
+function edPool(teamId) {          // 該隊 12 名野手（9 先發＋3 板凳）的能力值（與比賽中完全相同的換算結果）
+  if (_edPoolCache[teamId]) return _edPoolCache[teamId]; const D = CPBL[teamId], m = {};
+  D.bat.concat(D.bench).forEach(r => { m[r.n] = mkBatter(r, 0); }); return _edPoolCache[teamId] = m;
+}
+function edDefault(ti) {
+  const def = TEAMS[ti ? CFG.home : CFG.away], t = buildTeam(def, { spIdx: 0 }, undefined);
+  const pos = {}; t.lineup.forEach(p => { pos[p.name] = p.pos; });
+  return { teamId: def.id, order: t.lineup.map(p => p.name), pos, spIdx: 0 };
+}
+function edEnsure(ti) { const id = TEAMS[ti ? CFG.home : CFG.away].id; if (!ED[ti] || ED[ti].teamId !== id) ED[ti] = edDefault(ti); return ED[ti]; }
+const edChips = (p, pos) => { const pen = fitPenalty(p.nat, pos), fl = Math.round(p.fld0 * (1 - pen)), ar = Math.round(p.arm0 * (1 - pen * .6)), c = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
+  return `<span class="chip">巧<b class="${c(p.con)}">${p.con}</b></span><span class="chip">力<b class="${c(p.pow)}">${p.pow}</b></span><span class="chip">速<b class="${c(p.spd)}">${p.spd}</b></span><span class="chip">選<b class="${c(p.eye)}">${p.eye}</b></span><span class="chip">守<b class="${c(fl)}">${fl}</b></span><span class="chip">肩<b class="${c(ar)}">${ar}</b></span><span class="chip">${p.hand === 'S' ? '兩' : p.hand === 'L' ? '左' : '右'}打</span>${pen ? `<span class="chip warn">非本位 守備−${Math.round(pen * 100)}%</span>` : ''}`; };
+function renderLineup() {
+  const el = $('lineup'), ti = ED_TAB.v, ed = edEnsure(ti), def = TEAMS[ti ? CFG.home : CFG.away], D = CPBL[def.id], pool = edPool(def.id);
+  const names = Object.keys(pool), bench = names.filter(n => ed.order.indexOf(n) < 0);
+  const mine = CFG.side === ti;
+  let h = `<div class="lu-card"><div class="lu-h"><b>🧢 球員編成</b><button type="button" id="luX" class="lu-x">✕</button></div>
+  <div class="lu-tabs">${[0, 1].map(i => { const d = TEAMS[i ? CFG.home : CFG.away]; return `<button type="button" class="lu-tab${i === ti ? ' on' : ''}" data-t="${i}" style="border-bottom-color:${d.c1}">${i ? '主隊' : '客隊'}・${d.short}${CFG.side === i ? ' ★' : ''}</button>`; }).join('')}</div>
+  <div class="lu-tip">${mine ? '這是你操控的隊伍。' : (CFG.side === 2 ? '觀戰模式：兩隊都可調整。' : '這是電腦隊，也可以調整。')}選擇球員或守位若與其他列重複，會自動與該列互換。非本位守備的球員，守備範圍與傳球能力會依適性折減。</div>
+  <div class="lu-sec">打擊順序與守備位置（真實 2026 名單）</div>`;
+  ed.order.forEach((n, i) => {
+    const p = pool[n], pos = ed.pos[n];
+    h += `<div class="lr"><span class="ln">${i + 1}</span><span class="mv"><button type="button" data-up="${i}"${i ? '' : ' disabled'}>▲</button><button type="button" data-dn="${i}"${i < 8 ? '' : ' disabled'}>▼</button></span>
+    <select class="lp" data-i="${i}">${names.map(x => `<option value="${x}"${x === n ? ' selected' : ''}>${x}（${pool[x].nat}${bench.indexOf(x) >= 0 ? '・板凳' : ''}）</option>`).join('')}</select>
+    <select class="ls" data-i="${i}">${POS9.map(q => `<option value="${q}"${q === pos ? ' selected' : ''}>${POS_LABEL[q]}</option>`).join('')}</select>
+    <span class="lc">${edChips(p, pos)}<span class="chip dim">${p.line || ''}</span></span></div>`;
+  });
+  h += `<div class="lu-sec">板凳（可代打／代跑／代守）</div>`;
+  bench.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">板</span><span class="bnm">${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}</span></div>`; });
+  h += `<div class="lu-sec">先發投手</div><div class="lu-sp">`;
+  D.sp.forEach((r, i) => { const p = mkPitcher(r); h += `<div class="spc${ed.spIdx === i ? ' on' : ''}" data-sp="${i}"><b>${r.n}</b>（${r.h === 'L' ? '左' : '右'}投）<br><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}・K% ${r.k.toFixed(1)}・BB% ${r.bb.toFixed(1)}${r.est ? '（估）' : ''}</small><br><small>控球${p.ctl}・體力${p.sta}・${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`; });
+  h += `</div><details class="lu-doc"><summary>📖 能力值如何影響比賽</summary><div>
+  <b>打者</b>：巧打＝揮棒圈大小／碰到壞球的極限／打點穩定；力量＝擊球初速與全壘打；速度＝跑壘、盜壘與內野安打；選球＝辨識變化球、AI 選球耐心；強弱右左對決（異手打者圈 +4.5%、同手 −4.5%）。<br>
+  <b>投手</b>：球速與球種等級（Lv）決定位移幅度與尾勁；控球決定落點散布與暴投率；體力（球數）→疲勞→控球與球威下降；左投牽制一壘更有威脅。<br>
+  <b>守備</b>：守＝反應時間、跑速、飛撲成功率與失誤率；肩＝傳球速度與暴傳率；捕手守備值也影響邊角球被判好球的機率；非本位球員依適性折減。<br>
+  <b>心情</b>：越高越穩定並有最多 ±4.5% 加成，低落則表現更不可控。</div></details>
+  <div class="lu-btns"><button type="button" id="luReset" class="pillb">還原預設</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成</button></div></div>`;
+  el.innerHTML = h;
+}
+(function () {
+  const el = $('lineup'); let st = 0;
+  const open = () => { ED_TAB.v = CFG.side === 1 ? 1 : 0; edEnsure(0); edEnsure(1); renderLineup(); el.classList.remove('hide'); el.scrollTop = 0; };
+  $('lineupBtn').addEventListener('click', e => { e.stopPropagation(); open(); });
+  el.addEventListener('pointerdown', e => e.stopPropagation());
+  el.addEventListener('click', e => {
+    const t = e.target, ed = ED[ED_TAB.v]; if (!ed) return;
+    if (t.id === 'luX' || t.id === 'luDone') { el.classList.add('hide'); return; }
+    if (t.id === 'luReset') { ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
+    if (t.dataset.t !== undefined && t.classList.contains('lu-tab')) { ED_TAB.v = +t.dataset.t; renderLineup(); return; }
+    const sp = t.closest('[data-sp]'); if (sp) { ed.spIdx = +sp.dataset.sp; renderLineup(); return; }
+    if (t.dataset.up !== undefined || t.dataset.dn !== undefined) { const i = +(t.dataset.up !== undefined ? t.dataset.up : t.dataset.dn), j = t.dataset.up !== undefined ? i - 1 : i + 1; if (j < 0 || j > 8) return; [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; renderLineup(); }
+  });
+  el.addEventListener('change', e => {
+    const t = e.target, ed = ED[ED_TAB.v]; if (!ed || t.dataset.i === undefined) return; const i = +t.dataset.i;
+    if (t.classList.contains('lp')) {              // 換人：選到先發者＝兩人互換打序；選到板凳者＝替換並承接守位
+      const n = t.value, j = ed.order.indexOf(n), old = ed.order[i];
+      if (j >= 0) { if (j !== i) [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; }
+      else { ed.order[i] = n; ed.pos[n] = ed.pos[old]; delete ed.pos[old]; }
+    } else if (t.classList.contains('ls')) {       // 換守位：與持有該守位者互換
+      const q = t.value, me = ed.order[i], j = ed.order.findIndex(n => ed.pos[n] === q);
+      if (j >= 0 && ed.order[j] !== me) ed.pos[ed.order[j]] = ed.pos[me]; ed.pos[me] = q;
+    }
+    renderLineup();
+  });
+})();
+/* ---------------- 比賽中：守備調整（代守／互換守位） ---------------- */
+function openDefPanel(a) {
+  const sub = $('sub'), side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'd';
+  const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>';
+  const mk = (txt, fn, op) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (op) d.style.opacity = op; d.onclick = fn; sub.appendChild(d); };
+  const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
+  const fin = msg => { sub.classList.add('hide'); say(msg); updatePlayerBoxes(); updateActs(); };
+  const pct = (nat, pos) => { const p = fitPenalty(nat, pos); return p ? '守備 −' + Math.round(p * 100) + '%' : '守位適合'; };
+  if (!a) {
+    sub.innerHTML = '<h3>守備調整' + close + '</h3>'; head('點選要調整的野手（投球前、球進入死球狀態才能換）');
+    t.lineup.forEach(p => { if (p.out) return; mk(`${POS_LABEL[p.pos] || p.pos}　${p.name}<span>守${p.fld} 肩${p.arm}${p.penalty ? '・非本位' : ''}</span>`, () => openDefPanel(p)); });
+    mk('關閉', () => sub.classList.add('hide')); return;
+  }
+  sub.innerHTML = `<h3>${POS_LABEL[a.pos] || a.pos}　${a.name}${close}</h3>`;
+  head('代守：換上板凳球員（原球員退場、本場不得再上）');
+  const bn = t.bench.filter(x => !x.out); if (!bn.length) head('（板凳沒有人了）');
+  bn.forEach(x => mk(`${x.name}（${x.nat}）<span>${pct(x.nat, a.pos)}・巧${x.con} 守${x.fld0} 肩${x.arm0}</span>`, () => { const old = a, s2 = subInto(side, old, x); if (s2) { toast('代守', '#fff', '#39f'); fin(`代守！${sideName(side)}換上 <em>${s2.name}</em> 守${POS_LABEL[a.pos] || a.pos}，${old.name}退場`); } }));
+  if (a.pos === 'DH') head('指定打擊不能與野手互換守位（規則：DH 一旦守備即失去指定打擊資格）');
+  else { head('互換守位（兩人都留在場上）'); t.lineup.forEach(b => { if (b === a || b.out || b.pos === 'DH') return; mk(`與 ${POS_LABEL[b.pos]} ${b.name} 互換<span>你守${POS_LABEL[b.pos]}：${pct(a.nat, b.pos)}　他守${POS_LABEL[a.pos]}：${pct(b.nat, a.pos)}</span>`, () => { const pa = a.pos, pb = b.pos; setPos(a, pb); setPos(b, pa); swapFielderRig(pa, b); swapFielderRig(pb, a); toast('換守位', '#fff', '#39f'); fin(`守備調整：${a.name}改守${POS_LABEL[pb]}，${b.name}改守${POS_LABEL[pa]}`); }); }); }
+  mk('← 返回', () => openDefPanel()); 
+}
+$('btnDef').onclick = () => {
+  const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
+  if (G.human < 0 || !humanPitches() || G.phase !== 'pre') { say('自己守備、投球前才能調整守備'); return; }
+  openDefPanel();
+};
+
 /* ---------------- 手機版：中間面板依左右兩塊的實際寬度排版，避免重疊 ---------------- */
 let _lt = 0;
 function layoutTop() {
