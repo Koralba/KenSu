@@ -774,6 +774,30 @@ function applyLineupEdit(ed, raw, benchRaw) {
   const rest = pool.filter(p => lineup.indexOf(p) < 0); rest.forEach(p => { p.slot = undefined; setPos(p, p.nat); });
   return { lineup, bench: rest };
 }
+/* 電腦隊：依球員能力與守位適性，自動找出最適合的先發＋守位＋棒次；每場有「手感」隨機變化，所以每次開賽的組合與先發都不同 */
+function aiAutoEdit(def, cfg) {
+  const D = CPBL[def.id], pool = D.bat.concat(D.bench).map(r => mkBatter(r, 0)), form = new Map(pool.map(p => [p, gauss() * 4.5]));
+  const W = { C: .55, SS: .5, CF: .48, '2B': .42, '3B': .36, RF: .32, LF: .26, '1B': .16, DH: 0 };
+  const val = (p, pos) => { const pen = fitPenalty(p.nat, pos), fl = p.fld0 * (1 - pen), ar = p.arm0 * (1 - pen * .6); return p.con * .5 + p.pow * .45 + p.eye * .2 + p.spd * .08 + form.get(p) + W[pos] * (fl + ar * .5) - pen * 45; };
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const runs = [];
+  for (let k = 0; k < 10; k++) {
+    const sel = shuffle(pool).slice(0, 9), ps = shuffle(POS9); let imp = true, guard = 0;
+    while (imp && guard++ < 60) {
+      imp = false;
+      for (let i = 0; i < 9 && !imp; i++) for (let j = i + 1; j < 9 && !imp; j++) { if (val(sel[i], ps[j]) + val(sel[j], ps[i]) - val(sel[i], ps[i]) - val(sel[j], ps[j]) > .01) { [ps[i], ps[j]] = [ps[j], ps[i]]; imp = true; } }
+      if (imp) continue;
+      for (let i = 0; i < 9 && !imp; i++) for (const q of pool) { if (sel.indexOf(q) >= 0) continue; if (val(q, ps[i]) - val(sel[i], ps[i]) > .01) { sel[i] = q; imp = true; break; } }
+    }
+    runs.push({ sel, ps, cur: sel.reduce((a, p, i) => a + val(p, ps[i]), 0) });
+  }
+  runs.sort((a, b) => b.cur - a.cur);
+  const top = runs.filter(o => o.cur >= runs[0].cur - 4), ch = top[Math.floor(Math.random() * top.length)], pm = {}; ch.sel.forEach((p, i) => { pm[p.name] = ch.ps[i]; });
+  const f = p => form.get(p), lead = ch.sel.slice().sort((a, b) => (b.eye * .5 + b.spd * .6 + b.con * .5 + f(b)) - (a.eye * .5 + a.spd * .6 + a.con * .5 + f(a)))[0];
+  const rest = ch.sel.filter(x => x !== lead).sort((a, b) => (b.con + b.pow * .8 + b.eye * .35 + f(b)) - (a.con + a.pow * .8 + a.eye * .35 + f(a))), t5 = rest.slice(0, 5);
+  const order = [lead, t5[1], t5[0], t5[2], t5[3], t5[4]].concat(rest.slice(5));
+  return { teamId: def.id, order: order.map(p => p.name), pos: pm, spIdx: cfg && cfg.ace ? 0 : Math.floor(Math.random() * Math.min(3, D.sp.length)) };
+}
 function buildTeam(def, cfg, side) {
   cfg = cfg || {}; const D = CPBL[def.id];
   // 打線：8 守備 + 指定打擊（中職採 DH 制）
@@ -785,7 +809,8 @@ function buildTeam(def, cfg, side) {
   const order = [lead, top[1], top[0], top[2], top[3], top[4]].concat(rest.slice(5));
   order.forEach((b, i) => { b.slot = i; });
   let bench = D.bench.map(r => mkBatter(r, undefined)); if (cfg.pn === 1) bench.length = Math.min(bench.length, 3);
-  const ed = cfg.edit && cfg.edit[side] && cfg.edit[side].teamId === def.id ? cfg.edit[side] : null;
+  let ed = cfg.edit && cfg.edit[side] && cfg.edit[side].teamId === def.id ? cfg.edit[side] : null;
+  if (cfg.side !== undefined && side !== undefined && cfg.side !== side) ed = aiAutoEdit(def, cfg);        // 非玩家操控的隊伍：交給電腦自動編成
   let lineupF = order, benchF = bench;
   if (ed) { const ap = applyLineupEdit(ed, raw, D.bench.map(r => mkBatter(r, undefined))); if (ap) { lineupF = ap.lineup; benchF = ap.bench; } }
   const spList = D.sp, spIdx = ed && ed.spIdx !== undefined ? ed.spIdx % spList.length : cfg.spIdx !== undefined ? cfg.spIdx % spList.length : Math.floor(Math.random() * Math.min(3, spList.length));
@@ -840,6 +865,11 @@ const camera = new THREE.PerspectiveCamera(46, 1, 0.3, 700);
 const V3 = THREE.Vector3;
 const hemi = new THREE.HemisphereLight(0xf0f2e6, 0x4a7a40, 0.8); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-40, 80, 40); scene.add(sun);
+/* 彩虹：雨後放晴時，在外野後方遠處的天空出現（真正的 3D 物件，會被看台遮住下半部） */
+const rainbow = new THREE.Group(); rainbow.visible = false;
+[0xff4a4a, 0xff9a3a, 0xffe44a, 0x5ae06a, 0x4ac8e8, 0x4a6aff, 0x9a5aff].forEach((c, i) => rainbow.add(new THREE.Mesh(new THREE.RingGeometry(150 - (i + 1) * 5, 150 - i * 5, 96, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, fog: false }))));
+{ const gl = new THREE.Mesh(new THREE.RingGeometry(108, 160, 96, 1, 0, Math.PI), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, fog: false })); gl.userData.glow = true; rainbow.add(gl); }
+rainbow.position.set(0, -45, -320); scene.add(rainbow);
 
 function canvasTex(w, h, draw, rep) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
@@ -952,20 +982,68 @@ const GEO = {
 const shadowTex = canvasTex(64, 64, (g, w, h) => { const r = g.createRadialGradient(32, 32, 2, 32, 32, 30); r.addColorStop(0, 'rgba(0,0,0,.5)'); r.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = r; g.fillRect(0, 0, w, h); });
 const shadowGeo = new THREE.PlaneGeometry(1, 1);
 const MAT = {}; const mat = (c) => MAT[c] || (MAT[c] = new THREE.MeshLambertMaterial({ color: c }));
+
+/* ---------- 球員外觀／打擊姿勢／投球姿勢：依球員姓名決定（同一人每場都長一樣，不同人各有差異） ---------- */
+function mkRng(seed) { let q = seed >>> 0 || 1; return () => { q ^= q << 13; q >>>= 0; q ^= q >> 17; q ^= q << 5; q >>>= 0; return q / 4294967296; }; }
+const HAIR_COLS = ['#15110e', '#1b1612', '#241a14', '#2b2018', '#3a2a1c', '#4a3624', '#1a1a22', '#5a4030'];
+const HAIR_DYED = ['#7a4a22', '#9a6a2a', '#6a2a2a', '#b08a3a'];
+const SKINS = ['#ffd6b0', '#ffd2a8', '#f6c394', '#eebb8c', '#e3ac7c', '#d79e72'];
+const EAR_GEO = new THREE.SphereGeometry(.09, 8, 6);
+function visFor(key) {
+  const r = mkRng(hashStr('vis:' + key) ^ 0x9e3779b9), R = (a, b) => a + (b - a) * r(), pk = a => a[Math.floor(r() * a.length)];
+  const t = r(); let h, w, hs;
+  if (t < .3) { h = R(1.0, 1.07); w = R(.9, .97); hs = R(.94, 1.0); }            // 瘦高
+  else if (t < .72) { h = R(.97, 1.03); w = R(.98, 1.06); hs = R(.97, 1.04); }     // 普通
+  else if (t < .92) { h = R(.95, 1.0); w = R(1.08, 1.18); hs = R(1.0, 1.06); }     // 壯碩
+  else { h = R(.93, .97); w = R(.92, .99); hs = R(1.03, 1.08); }                   // 嬌小靈活
+  const hr = r(), hair = hr < .18 ? 'buzz' : hr < .46 ? 'short' : hr < .68 ? 'mid' : hr < .78 ? 'long' : hr < .85 ? 'pony' : hr < .93 ? 'curly' : 'short';
+  const hairCol = r() < .1 ? pk(HAIR_DYED) : pk(HAIR_COLS), br = r();
+  return { h, w, d: R(.92, 1.08), hs, ll: R(.97, 1.03), lw: R(.92, 1.0) + (w - 1) * .6, aw: R(.92, 1.0) + (w - 1) * .7, al: R(.97, 1.04),
+    belly: w > 1.1 && r() < .65 ? R(.1, .25) : 0, skin: pk(SKINS), hair, hairCol, burn: r() < .3, beard: br < .1 ? 1 : br < .15 ? 2 : 0,
+    eyeSp: R(.9, 1.12), eyeS: R(.85, 1.15), eyeH: R(.9, 1.25), ear: R(.8, 1.3) };
+}
+function addHairEars(head, vis) {
+  const hm = mat(vis.hairCol), sk = mat(vis.skin), PI = Math.PI;
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(EAR_GEO, sk); e.position.set(s * .5, -.04, -.02); e.scale.setScalar(vis.ear); head.add(e); }
+  const band = (len, rad, p0, pl) => { const m = new THREE.Mesh(new THREE.SphereGeometry(rad, 16, 8, p0, pl, PI * .5, PI * len), hm); head.add(m); return m; };
+  const T = vis.hair;
+  if (T === 'buzz') band(.07, .53, PI * .85, PI * 1.3);
+  else if (T === 'short') band(.12, .535, PI * .8, PI * 1.4);
+  else if (T === 'mid') band(.18, .538, PI * .75, PI * 1.5);
+  else if (T === 'long') { band(.24, .54, PI * .75, PI * 1.5); const b = new THREE.Mesh(new THREE.BoxGeometry(.7, .5, .14), hm); b.position.set(0, -.3, -.4); b.rotation.x = .12; head.add(b); }
+  else if (T === 'pony') { band(.12, .535, PI * .8, PI * 1.4); const ball = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), hm); ball.position.set(0, .0, -.57); head.add(ball); const tail = new THREE.Mesh(new THREE.CylinderGeometry(.08, .03, .42, 8), hm); tail.position.set(0, -.2, -.62); tail.rotation.x = -.15; head.add(tail); }
+  else if (T === 'curly') { band(.1, .53, PI * .8, PI * 1.4); for (let i = 0; i < 14; i++) { const ph = PI * (.85 + 1.3 * i / 13), th = PI * (.53 + (i % 2) * .08), c = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), hm); c.position.set(-.54 * Math.cos(ph) * Math.sin(th), .54 * Math.cos(th), .54 * Math.sin(ph) * Math.sin(th)); head.add(c); } }
+  if (vis.burn) for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.07, .22, .07), hm); b.position.set(s * .49, -.1, .17); head.add(b); }
+  if (vis.beard) { const m = new THREE.MeshLambertMaterial({ color: vis.hairCol, transparent: vis.beard === 1, opacity: vis.beard === 1 ? .5 : 1 }); head.add(new THREE.Mesh(new THREE.SphereGeometry(.525, 14, 8, 0, PI, PI * .64, PI * (vis.beard === 1 ? .12 : .17)), m)); }
+}
+const BS_DEF = { yaw: -.45, lean: .1, crouch: 0, llx: -.1, lrx: .12, hd: 0, spread: .5, hy: 0, bth: -2.8, btl: .95, wag: .03, wagF: 3, tap: 0, tapF: 2, kick: 0, ld: .25, cth: 0, up: 0, cby: 0, fin: 1, finT: 1, rel: 0 };
+const PS_DEF = { ab: .1, lift: 1, twist: .6, lean: 1, stride: 1, hi: 0, tilt: 0, tempo: 1 };
+function batStyle(key) {      // 每位打者的預備動作與揮棒習慣
+  const r = mkRng(hashStr('bat:' + key) ^ 0xc2b2ae35), R = (a, b) => a + (b - a) * r();
+  return { yaw: R(-.7, -.25), lean: R(.02, .32), crouch: R(0, .15), llx: R(-.3, .06), lrx: R(0, .32), hd: R(-.2, .22), spread: R(.38, .62), hy: R(.15, .4),
+    bth: R(-3.0, -2.55), btl: R(.6, 1.25), wag: R(.015, .11), wagF: R(1.8, 5.2), tap: r() < .4 ? R(.4, 1) : 0, tapF: R(1.4, 2.6), kick: r() < .35 ? R(.45, 1) : R(0, .2),
+    ld: R(.14, .4), cth: R(-.14, .14), up: R(-.03, .2), cby: R(-.1, .14), fin: R(.85, 1.2), finT: R(.8, 1.2), rel: r() < .4 ? R(.5, 1) : 0 };
+}
+function pitStyle(key) {      // 每位投手的投球姿勢：出手角度、抬腿高度、扭轉、前傾、跨步、雙手舉過頭、節奏
+  const r = mkRng(hashStr('pit:' + key) ^ 0x85ebca6b), R = (a, b) => a + (b - a) * r(), k = r();
+  const ab = k < .42 ? R(0, .12) : k < .8 ? R(.25, .5) : k < .94 ? R(.55, .78) : R(.85, 1.0);
+  return { ab, lift: R(.75, 1.55), twist: R(.35, .95), lean: R(.68, 1.0), stride: R(.82, 1.2), hi: r() < .28 ? R(.5, 1) : 0, tilt: R(-.1, .1), tempo: R(.93, 1.1) };
+}
 function makeChibi(o) {
-  const root = new THREE.Group(), jc = mat(o.jersey), pc = mat(o.pants || '#f4f4f4'), sk = mat(o.skin || '#ffd2a8'), cc = mat(o.cap || o.jersey);
+  const vkey = o.pl ? o.pl.name : 'x' + Math.random(), vis = o.vis || visFor(vkey), root = new THREE.Group(), jc = mat(o.jersey), pc = mat(o.pants || '#f4f4f4'), sk = mat(o.skin || vis.skin), cc = mat(o.cap || o.jersey);
   const sh = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .04; sh.scale.set(1.8, 1.8, 1); root.add(sh);
   const body = new THREE.Group(); root.add(body);
-  const torso = new THREE.Mesh(GEO.torso, jc); torso.position.y = .86; body.add(torso);
-  const belt = new THREE.Mesh(new THREE.CylinderGeometry(.285, .285, .1, 14), mat(o.belt || '#222')); belt.position.y = .6; body.add(belt);
-  const head = new THREE.Group(); head.position.y = 1.62; body.add(head);
+  const torso = new THREE.Mesh(GEO.torso, jc); torso.position.y = .86; body.add(torso); torso.scale.set(vis.w, 1, vis.w * vis.d);
+  if (vis.belly > .02) { const bl = new THREE.Mesh(new THREE.SphereGeometry(.28, 12, 10), jc); bl.scale.set(vis.w * .95, .75, .8 + vis.belly * 2); bl.position.set(0, .78, .08); body.add(bl); }
+  const belt = new THREE.Mesh(new THREE.CylinderGeometry(.285, .285, .1, 14), mat(o.belt || '#222')); belt.position.y = .6; body.add(belt); belt.scale.set(vis.w, 1, vis.w * vis.d);
+  const head = new THREE.Group(); head.position.y = 1.62; body.add(head); head.scale.setScalar(vis.hs);
   head.add(new THREE.Mesh(GEO.head, sk));
-  for (const s of [-1, 1]) { const e = new THREE.Mesh(GEO.eye, mat('#1a1a1a')); e.position.set(s * .17, -.02, .485); head.add(e); const ch = new THREE.Mesh(GEO.cheek, new THREE.MeshBasicMaterial({ color: 0xff9a9a, transparent: true, opacity: .55 })); ch.position.set(s * .3, -.12, .42); ch.lookAt(s * .6, -.12, 1.2); head.add(ch); }
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(GEO.eye, mat('#1a1a1a')); e.position.set(s * .17 * vis.eyeSp, -.02, .485); e.scale.set(vis.eyeS, vis.eyeS * vis.eyeH, 1); head.add(e); const ch = new THREE.Mesh(GEO.cheek, new THREE.MeshBasicMaterial({ color: 0xff9a9a, transparent: true, opacity: .55 })); ch.position.set(s * .3, -.12, .42); ch.lookAt(s * .6, -.12, 1.2); head.add(ch); }
   const capm = new THREE.Mesh(o.helmet ? GEO.helm : GEO.cap, o.helmet ? new THREE.MeshPhongMaterial({ color: o.cap || o.jersey, shininess: 80 }) : cc); capm.rotation.x = -.1; capm.position.y = .03; head.add(capm);
-  const brim = new THREE.Mesh(GEO.brim, o.helmet ? capm.material : cc); brim.position.set(0, .13, .5); brim.rotation.x = .12; head.add(brim);
+  const brim = new THREE.Mesh(GEO.brim, o.helmet ? capm.material : cc); brim.position.set(0, .13, .5); brim.rotation.x = .12; head.add(brim); addHairEars(head, vis);
   const mkLimb = (x, y, geo, len, m, hand) => { const g = new THREE.Group(); g.position.set(x, y, 0); const l = new THREE.Mesh(geo, m); l.position.y = -len / 2; g.add(l); if (hand) { const h = new THREE.Mesh(GEO.hand, sk); h.position.y = -len - .02; g.add(h); } return g; };
-  const armL = mkLimb(.4, 1.12, GEO.arm, .5, jc, true), armR = mkLimb(-.4, 1.12, GEO.arm, .5, jc, true); body.add(armL, armR);
-  const legL = mkLimb(-.17, .56, GEO.leg, .55, pc), legR = mkLimb(.17, .56, GEO.leg, .55, pc); root.add(legL, legR);
+  const armL = mkLimb(.4, 1.12, GEO.arm, .5, jc, true), armR = mkLimb(-.4, 1.12, GEO.arm, .5, jc, true); body.add(armL, armR); { const sx = .3 * vis.w + .1; armL.position.x = sx; armR.position.x = -sx; for (const a of [armL, armR]) a.scale.set(vis.aw, vis.al, vis.aw); }
+  const legL = mkLimb(-.17, .56, GEO.leg, .55, pc), legR = mkLimb(.17, .56, GEO.leg, .55, pc); root.add(legL, legR); { const lx = .17 * (.85 + .15 * vis.w); legL.position.x = -lx; legR.position.x = lx; for (const l of [legL, legR]) l.scale.set(vis.lw, vis.ll, vis.lw); }
   for (const l of [legL, legR]) { const s = new THREE.Mesh(GEO.shoe, mat('#222')); s.position.set(0, -.56, .06); l.add(s); }
   let gloveM = null, bat = null;
   if (o.glove) { gloveM = new THREE.Mesh(GEO.glove, mat('#8a5a2a')); gloveM.position.set(0, -.58, .1); armL.add(gloveM); }
@@ -977,8 +1055,8 @@ function makeChibi(o) {
     const br = new THREE.Mesh(new THREE.CylinderGeometry(.095, .055, .95, 10), mat('#e8c080')); br.position.y = .95;
     const kn = new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 6), mat('#caa060')); bm.add(hd, br, kn); body.add(bat);
   }
-  root.scale.setScalar(o.scale || 1);
-  const rig = { root, body, head, torso, armL, armR, legL, legR, bat, batTilt, glove: gloveM, anim: null, t: 0, run: 0, side: 1, baseY: 0, fade: 1 };
+  root.scale.setScalar((o.scale || 1) * vis.h);
+  const rig = { root, body, head, torso, armL, armR, legL, legR, bat, batTilt, glove: gloveM, anim: null, t: 0, run: 0, side: 1, baseY: 0, fade: 1, vis, bs: batStyle(vkey), ps: pitStyle(vkey) };
   rig.mats = [];
   return rig;
 }
@@ -1001,21 +1079,23 @@ function rigStep(r, dt) {
       setRigPose(r, pose); break;
     }
     case 'pitch': {            // 完整投球動作：重心後移→抬腿→跨步(身體前移)→手臂揮出(出手在 u=.62)→收尾回正
-      const h = o.hand || 1, S = 1.05, REL = .62, ss = sstep;
+      const h = o.hand || 1, PS = r.ps || PS_DEF, S = 1.05 * PS.stride, REL = .62, ss = sstep, tw = PS.twist, LK = .8 * PS.lean;
       const lift = u < .12 ? 0 : u < .34 ? ss((u - .12) / .22) : u < .5 ? 1 - ss((u - .34) / .16) * .75 : .25 * (1 - ss((u - .5) / .12));
       const stride = u < .34 ? 0 : u < .62 ? ss((u - .34) / .28) : u < .74 ? 1 : 1 - ss((u - .74) / .26);
       // 手臂角度 θ（rotation.x，負＝向前）：合掌(θ≈-1.1) → 向下、向後拉到後方水平(θ=1.6) → 由上方甩過頭頂(θ=π) → 前上方出手(θ=4.2) → 收尾回垂直(θ=2π)
       let arm;
-      if (u < .34) arm = -1.05 - .15 * ss(u / .34); else if (u < .5) arm = -1.2 + 2.8 * ss((u - .34) / .16); else if (u < REL) arm = 1.6 + 2.6 * ss((u - .5) / (REL - .5)); else if (u < .8) arm = 4.2 + 1.3 * ss((u - REL) / (.8 - REL)); else arm = 5.5 + .78 * ss((u - .8) / .2);
-      const glove = u < .34 ? -1.05 : u < .5 ? -1.05 - .45 * ss((u - .34) / .16) : u < REL ? -1.5 + 1.1 * ss((u - .5) / (REL - .5)) : -.4 + .4 * ss((u - REL) / (1 - REL));
-      const yaw = u < .12 ? 0 : u < .5 ? -h * .6 * ss((u - .12) / .38) : u < REL ? -h * .6 + h * 1.1 * ss((u - .5) / (REL - .5)) : h * .5 * (1 - ss((u - REL) / .38));
-      const lean = u < .12 ? -.1 * ss(u / .12) : u < .34 ? -.1 + .02 * ss((u - .12) / .22) : u < REL ? -.08 + .88 * ss((u - .34) / (REL - .34)) : .8 * (1 - ss((u - .78) / .22) * .95);
-      const pose = { by: yaw, bx: lean, y: -.06 * ss(clamp((u - .45) / .17, 0, 1)) * (u < .8 ? 1 : 1 - ss((u - .8) / .2)), hx: .12 * ss(clamp((u - .2) / .3, 0, 1)) * (1 - ss(clamp((u - .8) / .2, 0, 1))), alz: u < .34 ? -.45 : 0, arz: u < .34 ? .45 : 0 };
-      const lead = -1.35 * lift + (u > .5 ? .55 * stride : 0), trail = u > .56 ? .5 * ss((u - .56) / .16) * (1 - ss((u - .8) / .2)) : 0;     // 前腳抬起→踏出；後腳拖地
+      if (u < .34) arm = -1.05 - .15 * ss(u / .34) - PS.hi * 1.7 * Math.sin(Math.PI * u / .34); else if (u < .5) arm = -1.2 + 2.8 * ss((u - .34) / .16); else if (u < REL) arm = 1.6 + 2.6 * ss((u - .5) / (REL - .5)); else if (u < .8) arm = 4.2 + 1.3 * ss((u - REL) / (.8 - REL)); else arm = 5.5 + .78 * ss((u - .8) / .2);
+      const glove = u < .34 ? -1.05 - PS.hi * 1.7 * Math.sin(Math.PI * u / .34) : u < .5 ? -1.05 - .45 * ss((u - .34) / .16) : u < REL ? -1.5 + 1.1 * ss((u - .5) / (REL - .5)) : -.4 + .4 * ss((u - REL) / (1 - REL));
+      const yaw = u < .12 ? 0 : u < .5 ? -h * tw * ss((u - .12) / .38) : u < REL ? -h * tw + h * (tw + .5) * ss((u - .5) / (REL - .5)) : h * .5 * (1 - ss((u - REL) / .38));
+      const lean = u < .12 ? -.1 * ss(u / .12) : u < .34 ? -.1 + .02 * ss((u - .12) / .22) : u < REL ? -.08 + (LK + .08) * ss((u - .34) / (REL - .34)) : LK * (1 - ss((u - .78) / .22) * .95);
+      const pose = { by: yaw, bx: lean, y: -.06 * ss(clamp((u - .45) / .17, 0, 1)) * (u < .8 ? 1 : 1 - ss((u - .8) / .2)), hx: .12 * ss(clamp((u - .2) / .3, 0, 1)) * (1 - ss(clamp((u - .8) / .2, 0, 1))), alz: u < .34 ? -.45 : 0, arz: u < .34 ? .45 : 0, hz: PS.tilt * ss(clamp((u - .3) / .3, 0, 1)) * (1 - ss(clamp((u - .8) / .2, 0, 1))) };
+      { const abk = u < .34 ? 0 : u < .5 ? ss((u - .34) / .16) : u < .8 ? 1 : 1 - ss((u - .8) / .2), ab = PS.ab * abk; if (h > 0) pose.arz -= ab; else pose.alz += ab; pose.bz = -h * PS.ab * .22 * abk; }
+      const lead = -1.35 * PS.lift * lift + (u > .5 ? .55 * stride : 0), trail = u > .56 ? .5 * ss((u - .56) / .16) * (1 - ss((u - .8) / .2)) : 0;     // 前腳抬起→踏出；後腳拖地
       if (h > 0) { pose.llx = lead; pose.lrx = trail; pose.arx = arm; pose.alx = glove; } else { pose.lrx = lead; pose.llx = trail; pose.alx = arm; pose.arx = glove; }
       setRigPose(r, pose); r.stride = S * stride; break;
     }
-    case 'swing': batterPose(r, 'swing', u); break;
+    case 'swing': batterPose(r, 'swing', u); if (u >= 1 && r.bat && E.bat && E.bat.rig === r) { r.anim = { name: 'recover', t: 0, dur: .75, opt: { whiff: o.whiff } }; return; } break;
+    case 'recover': batterPose(r, 'recover', u); if (u >= 1) { if (E.bat && E.bat.rig === r && G.phase !== 'inplay') batterStance(); else r.anim = null; } return;
     case 'bunt': batterPose(r, 'bunt', 1); break;
     case 'throw': {
       const e = u < .35 ? -2.4 * sstep(u / .35) : -2.4 + 4.4 * sstep((u - .35) / .35);
@@ -1061,25 +1141,36 @@ function rigStep(r, dt) {
   if (u >= 1 && !o.hold) { r.anim = null; }
 }
 function ghostRig(r, op) { r.root.traverse(o => { if (o.isMesh && o.material && !o.material.map) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = op; o.material.depthWrite = false; } }); }
-function batterPose(r, kind, u) {
-  const bat = r.bat, tilt = r.batTilt; if (!bat) return;
-  const arms = { alx: -1.25, arx: -1.25, alz: -.5, arz: .5 };
-  if (kind === 'stance') {
-    const b = Math.sin(r.t * 3) * .03;
-    setRigPose(r, Object.assign({ by: -.45, bx: .1, llx: -.1, lrx: .12, y: b }, arms));
-    bat.position.set(-.1, 1.14 + b, .45); bat.rotation.set(0, -2.8, 0); tilt.rotation.set(0, 0, .95);
-  } else if (kind === 'swing') {
-    let th, tl, by; const sm = k => k * k * (3 - 2 * k);
-    if (u < .15) { const k = sm(u / .15); th = -2.8 - .25 * k; tl = .95 - .1 * k; by = -.45 - .25 * k; }
-    else if (u < .5) { const k = sm((u - .15) / .35); th = -3.05 + 2.85 * k; tl = .85 - .82 * k; by = -.7 + 1.5 * k; }
-    else { const k = sm((u - .5) / .5), wh = r.anim && r.anim.opt && r.anim.opt.whiff ? 1 : 0; th = -.2 + (1.1 + .6 * wh) * k; tl = .03 + .95 * k; by = .8 + (.35 + .45 * wh) * k; }
-    const whx = r.anim && r.anim.opt && r.anim.opt.whiff && u > .5 ? .3 * sm((u - .5) / .5) : 0;
-    setRigPose(r, Object.assign({ by, bx: .1 + whx, llx: .1 * u + whx * .6, lrx: -.1 * u - whx * .6 }, arms));
-    bat.position.set(-.1, 1.14, .45); bat.rotation.set(0, th, 0); tilt.rotation.set(0, 0, tl);
+const smx = k => k * k * (3 - 2 * k);
+const BP_KEYS = ['by', 'bx', 'bz', 'y', 'llx', 'lrx', 'alx', 'arx', 'alz', 'arz', 'hx', 'hy', 'hz', 'px', 'py', 'pz', 'th', 'tl'];
+function bsParams(r, kind, u) {          // 依該打者的個人風格，算出（站姿／揮棒／短打）的身體與球棒姿勢
+  const S = r.bs || BS_DEF, t = r.t, P = {}, wg = Math.sin(t * S.wagF), bob = Math.sin(t * 3) * .03, ax = -1.25 + S.hd;
+  const base = { px: -.1, py: 1.14 - S.hd * .45, pz: .45 - S.hd * .2 };
+  if (kind === 'swing') {
+    const wh = r.anim && r.anim.opt && r.anim.opt.whiff ? 1 : 0; let th, tl, by;
+    const th0 = S.bth, tl0 = S.btl, by0 = S.yaw, th1 = th0 - S.ld, tl1 = tl0 - .1, by1 = by0 - S.ld, th2 = -.2 + S.cth, tl2 = .03 + S.up, by2 = .8 + S.cby;
+    if (u < .15) { const k = smx(u / .15); th = th0 + (th1 - th0) * k; tl = tl0 + (tl1 - tl0) * k; by = by0 + (by1 - by0) * k; }
+    else if (u < .5) { const k = smx((u - .15) / .35); th = th1 + (th2 - th1) * k; tl = tl1 + (tl2 - tl1) * k; by = by1 + (by2 - by1) * k; }
+    else { const k = smx((u - .5) / .5); th = th2 + (1.1 + .6 * wh) * S.fin * k; tl = tl2 + .95 * S.finT * k; by = by2 + (.35 + .45 * wh) * S.fin * k; }
+    const whx = wh && u > .5 ? .3 * smx((u - .5) / .5) : 0, kick = S.kick * Math.sin(Math.PI * clamp(u / .42, 0, 1)) * .95, rk = S.rel > 0 && u > .62 ? smx((u - .62) / .38) * S.rel : 0;
+    Object.assign(P, { by, bx: S.lean + (u > .15 ? S.up * 1.6 * smx(clamp((u - .15) / .35, 0, 1)) : 0) + whx, y: -S.crouch * (1 - .6 * u), llx: S.llx * (1 - u) + .12 * u - kick + whx * .6, lrx: S.lrx * (1 - u) - .1 * u - whx * .6,
+      alx: ax, arx: ax, alz: -S.spread + rk * 1.3, arz: S.spread, hy: S.hy * (1 - .6 * u) }, base, { th, tl });
+  } else if (kind === 'stance') {
+    const tapK = S.tap * Math.pow(Math.max(0, Math.sin(t * S.tapF)), 5);
+    Object.assign(P, { by: S.yaw, bx: S.lean, y: -S.crouch + bob, llx: S.llx - tapK * .55, lrx: S.lrx, alx: ax + wg * S.wag * .5, arx: ax + wg * S.wag * .5, alz: -S.spread, arz: S.spread, hy: S.hy },
+      { px: base.px, py: base.py + bob + wg * S.wag * .25, pz: base.pz, th: S.bth + wg * S.wag * .6, tl: S.btl + wg * S.wag * 1.4 });
   } else {
-    setRigPose(r, { bx: .5, by: .95, alx: -1.0, arx: -1.0, alz: -.45, arz: .45, llx: -.4, lrx: -.4, y: -.1 });
-    bat.position.set(0, 1.0, .5); bat.rotation.set(0, -1.57, 0); tilt.rotation.set(0, 0, .05);
+    Object.assign(P, { bx: .5, by: .95, alx: -1.0, arx: -1.0, alz: -.45, arz: .45, llx: -.4, lrx: -.4, y: -.1, px: 0, py: 1.0, pz: .5, th: -1.57, tl: .05 });
   }
+  return P;
+}
+function batterPose(r, kind, u) {
+  const bat = r.bat, tilt = r.batTilt; if (!bat) return; let P;
+  if (kind === 'recover') {            // 揮完（尤其揮空）後：先停一下收揮棒，再自然回到自己的預備姿勢
+    const A = bsParams(r, 'swing', 1), B = bsParams(r, 'stance', 0), k = smx(clamp((u - .35) / .65, 0, 1)); P = {};
+    for (const key of BP_KEYS) P[key] = (A[key] || 0) + ((B[key] || 0) - (A[key] || 0)) * k;
+  } else P = bsParams(r, kind, u);
+  setRigPose(r, P); bat.position.set(P.px || 0, P.py || 0, P.pz || 0); bat.rotation.set(0, P.th || 0, 0); tilt.rotation.set(0, 0, P.tl || 0);
 }
 function faceRig(r, x, z) { const dx = x - r.root.position.x, dz = z - r.root.position.z; if (dx * dx + dz * dz > 1e-4) r.root.rotation.y = Math.atan2(dx, dz); }
 
@@ -1231,14 +1322,14 @@ function rebuildField() {
   if (E.ump) disposeRig(E.ump);
   const ft = fieldingTeam(), st = teamStyle(1 - G.half);
   for (const pos of POS_LIST) {
-    const pl = playerAt(ft, pos); const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true });
+    const pl = playerAt(ft, pos); const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl });
     scene.add(rig.root); const d = DEFAULT_POS[pos];
     const f = { pos, pl, rig, x: d.x, z: d.z, tx: d.x, tz: d.z, hasBall: false, busy: 0, dive: false };
     rig.root.position.set(d.x, 0, d.z); faceRig(rig, 0, 0); rig.ready = pos !== 'C';
     E.F[pos] = f;
   }
   E.F.C.rig.anim = { name: 'crouch', t: 0, dur: 1e9, opt: { hold: true } }; ghostRig(E.F.C.rig, .28);
-  E.ump = makeChibi({ jersey: '#1a1a22', pants: '#3a3a44', cap: '#111', scale: 1 }); E.ump.root.position.set(1.2, 0, 5.7); E.ump.root.rotation.y = Math.PI; scene.add(E.ump.root); E.ump.root.rotation.y = Math.PI; ghostRig(E.ump, .28);
+  E.ump = makeChibi({ jersey: '#1a1a22', pants: '#3a3a44', cap: '#111', scale: 1, pl: { name: '主審' } }); E.ump.root.position.set(1.2, 0, 5.7); E.ump.root.rotation.y = Math.PI; scene.add(E.ump.root); E.ump.root.rotation.y = Math.PI; ghostRig(E.ump, .28);
   setupBatter();
 }
 function fspeed(f) { const pl = f.pl; return 4.3 + (pl.fld || 55) * 0.028 + (f.pos === 'P' ? -.5 : 0); }
@@ -1248,7 +1339,7 @@ function setupBatter() {
   if (E.bat) disposeRig(E.bat.rig);
   let h = pl.hand; if (h === 'S') h = ph.hand === 'R' ? 'L' : 'R';
   const side = h === 'R' ? 1 : -1;                       // +1 : right handed batter (stands on the 3B side, x<0)
-  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, helmet: true, bat: true });
+  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, helmet: true, bat: true, pl });
   rig.side = side; rig.root.position.set(-1.9 * side, 0, 0.35); scene.add(rig.root); faceRig(rig, 0, 0.35); rig.root.rotation.y = side > 0 ? Math.PI / 2 : -Math.PI / 2; rig.ready = true;
   rig.body.scale.x = side > 0 ? 1 : -1;
   E.bat = { pl, rig, side, hand: h, x: -1.9 * side, z: .35 };
@@ -1358,7 +1449,7 @@ function resolveSwing(pt, sw, b) {
   // sw = {tc, cx, cy, power, bunt}; returns {kind: whiff|hit, ...}
   const mv = moodVol(b), mb = moodBonus(b);
   const W = WIN * (sw.power ? 0.85 : 1) * (sw.bunt ? 1.25 : 1), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
-  const dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - pt.T + gauss() * .004 * Math.max(0, mv - .7), adt = Math.abs(dt);
+  const dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - pt.T, adt = Math.abs(dt);      // 時機＝揮棒接觸瞬間與球到達本壘板時刻的差，無隨機誤差
   const jx = gauss() * .02 * Math.max(0, mv - .7), jy = gauss() * .02 * Math.max(0, mv - .7);
   const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y, d = Math.hypot(bxp - sw.cx + jx, byp - sw.cy + jy);
   if (adt > W * 1.15 || d > R0 + 0.02) return { kind: 'whiff', dt, d, R: R0 };
@@ -1366,7 +1457,7 @@ function resolveSwing(pt, sw, b) {
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (W * 1.15), 0, 1), 1.5));
   Q = clamp(Q, 0, 1);
   const side = E.bat.side;
-  let chase = 0;                                                            // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
+  let chase = 0, far = false;                                               // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
   if (!sw.bunt) {
     const od = outsideDist(pt.fx, pt.fy);
     if (od > 0) {
@@ -2906,7 +2997,7 @@ function subInto(side, old, sub, why) {
 }
 function swapFielderRig(pos, pl) {
   const f = E.F[pos]; if (!f) return; const st = teamStyle(1 - G.half); disposeRig(f.rig);
-  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = pl; rig.ready = pos !== 'C'; faceRig(rig, 0, 0);
+  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = pl; rig.ready = pos !== 'C'; faceRig(rig, 0, 0);
   if (pos === 'C') { rig.anim = { name: 'crouch', t: 0, dur: 1e9, opt: { hold: true } }; ghostRig(rig, .28); }
 }
 const FIELD_INJ = ['奮力飛撲接球，手腕著地扭傷', '追球衝撞外野全壘打牆，肩膀受傷', '急停轉身瞬間腳踝扭到', '接球瞬間手指遭球直接撞擊挫傷', '與隊友相撞，膝蓋疼痛站不起來'];
@@ -3159,7 +3250,7 @@ function nextBatter() {
   after(.2, go);
 }
 function prePitch(first) {
-  if (G.over) return; if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); resetFormation(false); if (E.F.P) E.F.P.sp = 6.5; G.phase = 'pre'; G.preT = 0; G.prepT = .12 + Math.random() * .25; { const rr = Math.random(); let d = rr < .4 ? .45 + Math.random() * .35 : rr < .85 ? .8 + Math.random() * .55 : 1.4 + Math.random() * .7; if (first) d += .25; if (G.on.some(x => x)) d *= .85; G.pitchDelay = d; } PT = null; G.runnerGo = []; G.hitAndRun = false;
+  if (G.over) return; if (E.bat && E.bat.rig && !E.bat.rig.anim) batterStance(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); resetFormation(false); if (E.F.P) E.F.P.sp = 6.5; G.phase = 'pre'; G.preT = 0; G.prepT = .12 + Math.random() * .25; { const rr = Math.random(); let d = rr < .4 ? .45 + Math.random() * .35 : rr < .85 ? .8 + Math.random() * .55 : 1.4 + Math.random() * .7; if (first) d += .25; if (G.on.some(x => x)) d *= .85; G.pitchDelay = d; } PT = null; G.runnerGo = []; G.hitAndRun = false;
   setBall({ x: 0, y: 1.5, z: MOUND.z + .6 }, true); E.F.P.rig.anim = null;
   if (!humanBats()) { G.callBunt = false; G.sneak = false; aiOffenseCall(); if (G.callBunt && !G.sneak && E.bat) E.bat.rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } }; }     // 一般犧牲短打：提早擺出短打姿勢（防守看得出來）；奇襲短打則到投手出手才轉身
   else if (G.sneak && G.callBunt) { G.sneak = false; }
@@ -3205,7 +3296,7 @@ function doPitch(sel) {
   if (G.phase !== 'pre') return; const p = curPitcher(); G.phase = 'windup'; pitcherToMound(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); $('pitchPanel').classList.add('hide'); hideHitInfo(0);
   const pt = makePitch(p, sel.id, sel.x, sel.y); PT = pt; pt.ibb = !!sel.ibb; pt.pitchout = !!sel.pitchout;
   const anyRun = G.on.some(x => x); const rhy = Math.random(), rk = rhy < .2 ? .85 : rhy < .8 ? 1 : 1.18;     // 快速投球／一般／慢節奏，每球不同
-  const th0 = defenseThreat(), wind = (anyRun ? .85 - Math.min(.1, th0.t * .05) : 1.2) * rk * (.92 + Math.random() * .16);       // 提防盜壘時投手改用快速投球(滑步)       // 出手時間（從開始投球動作算起）；有人在壘＝快速投球
+  const th0 = defenseThreat(), wind = (anyRun ? .85 - Math.min(.1, th0.t * .05) : 1.2) * rk * (.92 + Math.random() * .16) * ((E.F.P && E.F.P.rig.ps && E.F.P.rig.ps.tempo) || 1);       // 提防盜壘時投手改用快速投球(滑步)       // 出手時間（從開始投球動作算起）；有人在壘＝快速投球
   const set = humanPitches() && !G.intWalk ? .1 + Math.random() * .3 : (Math.random() < .18 ? .9 + Math.random() * .6 : .2 + Math.random() * .55);   // 出手前先站定、看捕手暗號，偶爾停更久
   if (set > .12) { const P = E.F.P; faceRig(P.rig, 0, 4); P.rig.anim = { name: 'stretch', t: 0, dur: set + .05, opt: { hand: p.hand === 'R' ? 1 : -1 } }; }       // 出手前雙手併胸站定
   after(set, () => { if (PT === pt) E.F.P.rig.anim = { name: 'pitch', t: 0, dur: wind / .62, opt: { hand: p.hand === 'R' ? 1 : -1, hold: false } }; });
@@ -3377,7 +3468,7 @@ function changePitcher(side, idx, forced, why) {
   if (!t.dh) { const pb = genBatter(1, 'P', np.num, 8); pb.name = np.name; pb.isPitcherBat = true; pb.nat = 'P'; pb.out = false; pb.pos = 'P'; t.lineup[8] = pb; }
   if (side === 1 - G.half && E.F.P) {
     const f = E.F.P, st = teamStyle(side); disposeRig(f.rig);
-    const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
+    const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl: np }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
   }
   if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}${why ? '（' + why + '）' : ''}`);
   toast('換投', '#fff', '#39f'); updatePlayerBoxes(); introPitcher(side, np, old);
@@ -3494,16 +3585,16 @@ function initWeather(homeTeam) {
   const sc = G.wxScen;
   G.windBase = !on || dome ? 0 : (sc === 'calm' || sc === 'sunny') ? Math.random() * .8 + (sc === 'sunny' ? .2 : 0) : sc === 'overcast' ? clamp(Math.abs(gauss()) * 1.4 + .5, 0, 3.5) : clamp(Math.abs(gauss()) * 2.4 + .6, 0, 7);
   G.windBoost = sc === 'storm' ? 6 : sc === 'heavy' ? 3 : 1.2;
-  if (sc === 'drizzle') G.rain = G.rainT = .08 + Math.random() * .1; else if (sc === 'heavy') G.rain = G.rainT = .55 + Math.random() * .2; else if (sc === 'storm') G.rain = G.rainT = .85 + Math.random() * .15;
+  if (sc === 'drizzle') G.rain = G.rainT = .14 + Math.random() * .12; else if (sc === 'heavy') G.rain = G.rainT = .55 + Math.random() * .2; else if (sc === 'storm') G.rain = G.rainT = .85 + Math.random() * .15;
   G.windMean = G.windMeanT = G.windBase; G.windDir = G.windDirT = Math.random() * 360; G.gust = { cd: 3 + Math.random() * 6, t: 0, dur: 0, amp: 0, env: 0 }; G.windClock = 0; G._windCls = ''; G._windNoteT = 0; G._windHudT = 0;
-  G.cloudBase = cloudFor(sc); G.cloud = G.cloudBase;
+  G.cloudBase = cloudFor(sc); G.cloud = G.cloudBase; G.rb = 0; G.rbT = 0; G._rbArm = false; rainbow.visible = false;
   G.wx = { spd: G.windBase + G.rain * G.windBoost, dir: G.windDir, gust: 0, temp: !on ? 26 : dome ? 25 : Math.round(22 + Math.random() * 10 - G.rain * 4), dome, venue: st, off: !on };
   G.wxLv = wxLevel(G.rain)[0]; G._windCls = windClass(); updateWindHud(); applyLighting();
 }
 function weatherRetarget() {                // 每隔十餘球決定下一階段的雨勢目標
-  if (!G.wxOn || G.wx.dome) return; if (Math.random() < .3) shiftScene(); const sc = G.wxScen, r = Math.random();
+  if (!G.wxOn || G.wx.dome) return; if (Math.random() < .5) shiftScene(); const sc = G.wxScen, r = Math.random();
   if (sc === 'calm' || sc === 'sunny' || sc === 'overcast') G.rainT = 0;
-  else if (sc === 'drizzle') G.rainT = clamp(.07 + Math.random() * .16, 0, 1);
+  else if (sc === 'drizzle') G.rainT = clamp(.14 + Math.random() * .14, 0, 1);
   else if (sc === 'heavy') G.rainT = clamp(.5 + Math.random() * .4, 0, 1);
   else if (sc === 'storm') G.rainT = clamp(.8 + Math.random() * .2, 0, 1);
   else { const cur = G.rainT; G.rainT = r < .35 ? (cur > .05 ? 0 : .2 + Math.random() * .2) : r < .7 ? clamp(cur + .15 + Math.random() * .3, 0, .95) : clamp(cur - .25 - Math.random() * .3, 0, 1); if (G.rainT < .08) G.rainT = Math.random() < .6 ? 0 : G.rainT; }
@@ -3533,11 +3624,19 @@ function windImpactTxt(cls) {
   const s = lv >= 3 ? '強' : lv === 2 ? '中等' : '微';
   return { tail: `${s}順風！高飛球會多飛、更容易出牆，滯空時間縮短`, head: `${s}逆風！飛球被壓回，長打變難、外野手往前站`, right: `${s}風由左往右吹，高飛球會往右外野偏、落點難抓`, left: `${s}風由右往左吹，高飛球會往左外野偏、落點難抓` }[k] || '';
 }
+function updateRainbow(dt) {
+  if (G.rain > .12) G._rbArm = true;                                                    // 下過雨才有機會出彩虹
+  if (G._rbArm && G.rain < .04 && cloudK() < .7 && !(G.rbT > 0)) { G._rbArm = false; if (Math.random() < .85) { G.rbT = 90 + Math.random() * 90; if (G.mode === 'play' && !G.over) { say('🌈 雨過天晴，天邊出現了彩虹！'); toast('彩虹出現', '#fff', '#c5a'); } } }
+  if (G.rbT > 0) { G.rbT -= dt; if (G.rain > .12 || cloudK() > .85) G.rbT = 0; }
+  const tg = G.rbT > 0 ? 1 : 0, cur = G.rb || 0; G.rb = clamp(cur + clamp(tg - cur, -dt * .08, dt * .1), 0, 1);
+  rainbow.visible = G.rb > .01;
+  if (rainbow.visible) for (const m of rainbow.children) m.material.opacity = m.userData.glow ? G.rb * .12 : G.rb * .5;
+}
 function updateWeather(dt) {
-  if (!G.wxOn || !G.wx || G.wx.dome) return;
+  if (!G.wxOn || !G.wx || G.wx.dome) { if (rainbow.visible) rainbow.visible = false; return; }
   G.rain = clamp(G.rain + clamp(G.rainT - G.rain, -dt * .035, dt * .035), 0, 1);
   { const tg = Math.max(G.cloudBase || 0, clamp(G.rain * 2.5, 0, 1)); G.cloud = (G.cloud || 0) + clamp(tg - (G.cloud || 0), -dt * .04, dt * .04); }
-  windStep(dt);
+  windStep(dt); updateRainbow(dt);
   const lv = wxLevel(G.rain)[0];
   if (lv !== G.wxLv) {
     const old = G.wxLv, worse = G.rain > (G._lastRain || 0); G.wxLv = lv; updateWindHud();
@@ -3581,13 +3680,13 @@ const mixHex = (a, b, t) => _c3.set(a).lerp(new THREE.Color(b), t).getHex();
 function mixSky(a, b, t) { const n = (x, y) => x + (y - x) * t; return { bg: mixHex(a.bg, b.bg, t), fog: mixHex(a.fog, b.fog, t), fn: n(a.fn, b.fn), ff: n(a.ff, b.ff), hemi: n(a.hemi, b.hemi), sun: n(a.sun, b.sun), sc: mixHex(a.sc, b.sc, t), wall: n(a.wall, b.wall), sp: a.sp.map((v, i) => n(v, b.sp[i])) }; }
 const cloudFor = sc => ({ sunny: 0, calm: .45, overcast: .95, drizzle: 1, change: .6, heavy: 1, storm: 1 }[sc] ?? .3);
 const cloudK = () => clamp(G.cloud === undefined ? .3 : G.cloud, 0, 1);
-const WX_NEXT = { calm: [['calm', 5], ['sunny', 2], ['overcast', 3]], sunny: [['sunny', 6], ['calm', 2], ['overcast', 2]], overcast: [['overcast', 5], ['sunny', 2], ['calm', 1], ['drizzle', 2]], drizzle: [['drizzle', 4], ['overcast', 3], ['heavy', 2], ['calm', 1]], change: [['change', 7], ['overcast', 2], ['drizzle', 1]], heavy: [['heavy', 4], ['drizzle', 4], ['storm', 1]], storm: [['storm', 5], ['heavy', 5]] };
+const WX_NEXT = { calm: [['calm', 4], ['sunny', 2], ['overcast', 3], ['drizzle', 1]], sunny: [['sunny', 4], ['calm', 2], ['overcast', 3], ['drizzle', 1]], overcast: [['overcast', 3], ['sunny', 3], ['calm', 2], ['drizzle', 3], ['heavy', 1]], drizzle: [['drizzle', 3], ['overcast', 3], ['sunny', 2], ['calm', 1], ['heavy', 2]], change: [['change', 4], ['overcast', 2], ['drizzle', 2], ['sunny', 2]], heavy: [['heavy', 3], ['drizzle', 4], ['overcast', 2], ['storm', 1]], storm: [['storm', 3], ['heavy', 5], ['drizzle', 1]] };      // 好天氣可能轉雨、雨天也會轉好（暴雨→大雨→毛毛雨→陰→放晴）
 function shiftScene() {              // 隨比賽進行，天氣情境會慢慢轉變（晴→多雲→陰→雨，或雲散放晴）
   const cur = G.wxScen, tb = WX_NEXT[cur]; if (!tb) return;
   const nx = weighted(tb.map(x => x[0]), tb.map(x => x[1])); if (nx === cur) return;
   G.wxScen = nx; G.cloudBase = cloudFor(nx); G.windBoost = nx === 'storm' ? 6 : nx === 'heavy' ? 3 : 1.2;
   const clear = s => s === 'sunny' || s === 'calm';
-  if (G.mode === 'play' && !G.over) { if (clear(cur) && nx === 'overcast') say('☁️ 雲層變厚了，天色漸漸暗下來…'); else if (cur === 'overcast' && clear(nx)) say('🌤 雲層散開，陽光露臉，天氣轉好了！'); else if (nx === 'sunny' && cur !== 'calm') say('☀️ 天空放晴，陽光灑滿球場！'); }
+  if (G.mode === 'play' && !G.over) { if (clear(cur) && nx === 'overcast') say('☁️ 雲層變厚了，天色漸漸暗下來…'); else if (cur === 'overcast' && clear(nx)) say('🌤 雲層散開，陽光露臉，天氣轉好了！'); else if (nx === 'sunny' && cur !== 'calm') say('☀️ 天空放晴，陽光灑滿球場！'); else if ((nx === 'drizzle' || nx === 'heavy' || nx === 'storm') && (clear(cur) || cur === 'overcast')) say('🌦 烏雲壓境，雨點開始落下了…'); else if ((cur === 'drizzle' || cur === 'heavy' || cur === 'storm') && (nx === 'overcast' || nx === 'calm')) say('🌥 雨勢漸漸減弱，天空慢慢轉亮…'); }
 }
 const _c1 = new THREE.Color(), _c2 = new THREE.Color();
 function applyLighting() {            // 依天氣（大晴天／陰暗天／雨勢）調整天空、霧、日照、場邊廣告牆與觀眾席亮度
@@ -3596,6 +3695,7 @@ function applyLighting() {            // 依天氣（大晴天／陰暗天／雨
   scene.background.copy(col(base.bg, st.bg)); scene.fog.color.copy(col(base.fog, st.fog)); scene.fog.near = mix(base.fn, st.fn); scene.fog.far = mix(base.ff, st.ff);
   hemi.intensity = mix(base.hemi, st.hemi); sun.intensity = mix(base.sun, st.sun); sun.color.copy(col(base.sc, st.sc));
   sun.position.set(mix(base.sp[0], st.sp[0]), mix(base.sp[1], st.sp[1]), mix(base.sp[2], st.sp[2]));
+  { const rb = G.rb || 0; if (rb > .01) { sun.color.lerp(_c2.set(0xffd9a0), rb * .6); sun.intensity += .16 * rb; hemi.intensity += .05 * rb; } }      // 彩虹時：暖色斜射光
   const w = mix(base.wall, st.wall); wallMat.color.setScalar(w); stand.material.color.setScalar(clamp(w * .98, .4, 1.1));
 }
 function drawSky(c, W, H) {           // 晴：右上角柔和暖陽光暈；陰：灰藍色調與暗角（依雲量連續變化）
@@ -3603,6 +3703,7 @@ function drawSky(c, W, H) {           // 晴：右上角柔和暖陽光暈；陰
   const k = (1 - cl) * (1 - clamp(rainK() * 3, 0, 1));
   if (k > .02) { const t = performance.now() * .0004, pul = .94 + Math.sin(t) * .06;
     const g = c.createRadialGradient(W * .92, -H * .06, 0, W * .92, -H * .06, H * 1.1); g.addColorStop(0, `rgba(255,214,130,${.075 * k * pul})`); g.addColorStop(.4, `rgba(255,200,110,${.025 * k})`); g.addColorStop(1, 'rgba(255,190,100,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+  if ((G.rb || 0) > .01) { const g = c.createRadialGradient(W * .5, H * .25, 0, W * .5, H * .25, Math.hypot(W, H) * .6); g.addColorStop(0, `rgba(255,226,170,${.1 * G.rb})`); g.addColorStop(1, 'rgba(255,226,170,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   const a = clamp((cl - .35) / .65, 0, 1);
   if (a > 0) { c.fillStyle = `rgba(46,58,76,${.12 * a})`; c.fillRect(0, 0, W, H); const g = c.createRadialGradient(W / 2, H * .5, Math.min(W, H) * .35, W / 2, H * .5, Math.hypot(W, H) * .6); g.addColorStop(0, 'rgba(8,14,26,0)'); g.addColorStop(1, `rgba(8,14,26,${.38 * a})`); c.fillStyle = g; c.fillRect(0, 0, W, H); }
 }
@@ -3622,11 +3723,12 @@ function coverSteal(idxs) {               // 盜壘起跑時，負責補位的�
     f.tx = bs.x + (base === 2 ? (f.pos === 'SS' ? -.6 : .6) : .5); f.tz = bs.z + .5; f.sp = fspeed(f) * 1.08; f.cover = base; f.wait = clamp(.16 - ((f.pl.fld || 55) - 55) * .002, .05, .3);
   }
 }
-function drawRain(c, W, H) {            // 雨量依強度非線性：毛毛雨只有稀疏細絲，小雨略多，大雨/暴雨才密集
+function drawRain(c, W, H) {            // 雨量：毛毛雨＝細密雨絲＋薄霧；小雨＝明顯雨幕；大雨/暴雨＝密集粗雨
   const r = rainK(); if (r < .03) return; const dpr = W / VW(), wind = (G.wx.spd || 0) * .6 + 2;
-  const n = Math.floor(5 + 380 * Math.pow(r, 1.6)), len = (7 + r * 26) * dpr;
+  const n = Math.floor(30 + 560 * Math.pow(r, 1.15)), len = (9 + r * 24) * dpr;
+  c.fillStyle = `rgba(150,170,196,${(.035 + Math.min(r, .5) * .12).toFixed(3)})`; c.fillRect(0, 0, W, H);                // 薄霧：低雨量也看得出空氣濕濛
   c.fillStyle = `rgba(12,24,44,${(r * .15).toFixed(3)})`; c.fillRect(0, 0, W, H);
-  c.strokeStyle = `rgba(205,228,255,${(.12 + r * .42).toFixed(2)})`; c.lineWidth = (.7 + r * 1.1) * dpr; c.beginPath();
+  c.strokeStyle = `rgba(205,228,255,${(.22 + r * .4).toFixed(2)})`; c.lineWidth = (.9 + r * 1.0) * dpr; c.beginPath();
   for (let i = 0; i < n; i++) { const x = Math.random() * (W + 80 * dpr), y = Math.random() * H; c.moveTo(x, y); c.lineTo(x - wind * 1.6 * dpr * (len / (30 * dpr)), y + len); } c.stroke();
 }
 function slipRunner(r, why) {            // 跑者在濕滑場地滑倒
@@ -3804,9 +3906,9 @@ const ov = $('ov'), octx = ov.getContext('2d');
 const PAD = { v: null };
 const aim = { need: true, x: 0, y: ZC, cx: 0, cy: 0, has: false, shift: false };
 const _v = new V3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
-function w2s(x, y, z) { _v.set(x, y, z).project(camera); return { x: (_v.x * .5 + .5) * ov.width, y: (-_v.y * .5 + .5) * ov.height }; }
+function w2s(x, y, z) { camera.updateMatrixWorld(); _v.set(x, y, z).project(camera); return { x: (_v.x * .5 + .5) * ov.width, y: (-_v.y * .5 + .5) * ov.height }; }
 function pointerToZone(cx, cy) {
-  _ndc.set(cx / VW() * 2 - 1, -(cy / VH() * 2 - 1)); _ray.setFromCamera(_ndc, camera);
+  camera.updateMatrixWorld(); _ndc.set(cx / VW() * 2 - 1, -(cy / VH() * 2 - 1)); _ray.setFromCamera(_ndc, camera);
   const o = _ray.ray.origin, d = _ray.ray.direction; if (Math.abs(d.z) < 1e-5) return null; const t = -o.z / d.z; if (t < 0) return null;
   return { x: o.x + d.x * t, y: o.y + d.y * t };
 }
@@ -3821,8 +3923,8 @@ function cursorR() {
   return batterR(b, fake, powOn() && !G.callBunt) * (G.callBunt ? 1.25 : 1);
 }
 function drawRing(x, y, r, col, lw, dash) {
-  const a = w2s(x, y, 0), b = w2s(x + r, y, 0), rad = Math.abs(b.x - a.x);
-  octx.beginPath(); octx.arc(a.x, a.y, rad, 0, TAU); octx.strokeStyle = col; octx.lineWidth = lw; if (dash) octx.setLineDash(dash); octx.stroke(); octx.setLineDash([]); return { a, rad };
+  const a = w2s(x, y, 0), b = w2s(x + r, y, 0), u2 = w2s(x, y + r, 0), rad = Math.abs(b.x - a.x), ry = Math.abs(u2.y - a.y);     // 圈是本壘板平面上的圓：投影成橢圓才與判定範圍完全一致
+  octx.beginPath(); octx.ellipse(a.x, a.y, rad, ry, 0, 0, TAU); octx.strokeStyle = col; octx.lineWidth = lw; if (dash) octx.setLineDash(dash); octx.stroke(); octx.setLineDash([]); return { a, rad };
 }
 function drawOverlay() {
   octx.clearRect(0, 0, ov.width, ov.height);
@@ -3850,10 +3952,10 @@ function drawOverlay() {
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     c.font = `900 ${14 * dpr}px sans-serif`; c.fillStyle = '#fff'; c.textAlign = 'center'; c.fillText(spec.jp, r.a.x, r.a.y - r.rad - 8 * dpr);
   } else if (hb && !G.easy && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) {
-    const R = cursorR(); const swung = PT && PT.sw;
+    const R = cursorR(); const swung = PT && PT.sw; const ax = swung ? PT.sw.cx : aim.x, ay = swung ? PT.sw.cy : aim.y;      // 揮棒後圈圈固定在實際判定的位置
     const col = swung ? 'rgba(255,255,255,.4)' : (powOn() ? '#ff6a3a' : G.callBunt ? '#7aff9a' : '#ffe14a');
-    drawRing(aim.x, aim.y, R, col.startsWith('#') ? col + '55' : col, 1.5 * dpr, [5 * dpr, 5 * dpr]);                       // 外圈：能碰到球的範圍（打不好）
-    const r = drawRing(aim.x, aim.y, R * .5, col, 3 * dpr);                                                                  // 內圈：甜蜜點
+    drawRing(ax, ay, R, col.startsWith('#') ? col + '55' : col, 1.5 * dpr, [5 * dpr, 5 * dpr]);                       // 外圈：能碰到球的範圍（打不好）
+    const r = drawRing(ax, ay, R * .5, col, 3 * dpr);                                                                  // 內圈：甜蜜點
     c.beginPath(); c.moveTo(r.a.x - 5 * dpr, r.a.y); c.lineTo(r.a.x + 5 * dpr, r.a.y); c.moveTo(r.a.x, r.a.y - 5 * dpr); c.lineTo(r.a.x, r.a.y + 5 * dpr); c.lineWidth = 1.5 * dpr; c.strokeStyle = col; c.stroke();
     c.font = `900 ${13 * dpr}px sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.fillText(G.callBunt ? '短打（球碰棒即觸擊；壞球請按 B 收棒）' : powOn() ? '強打（圈小・打更遠）' : '擊球', r.a.x, r.a.y + r.rad + 16 * dpr);
   }
@@ -3870,7 +3972,7 @@ function humanAction() {
   if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { updateAim(); doPitch({ id: G.selPitch, x: aim.x, y: aim.y }); }
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + .02) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
-    updateAim(); const pTc = PT.t + clamp((performance.now() - lastT) / 1000, 0, .03) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
+    updateAim(); const pTc = PT.t + clamp((performance.now() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
     if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); cx = bq0.x + gauss() * n; cy = bq0.y + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
     startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
   }
@@ -3992,7 +4094,7 @@ const LV_DESC = ['<b>弱</b>　電腦反應較慢、容易失誤，適合新手�
 function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = (LV_DESC[v] || '') + (CFG.easy ? '<br><b>簡易模式</b>　打擊只要抓時機按「揮棒」、不用瞄準；守備由電腦自動傳球補位' : ''); e.dataset.lv = v; } }
 setLvDesc(CFG.lv);
 document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv' || k === 'easy') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
-function launchGame() { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return e && e.teamId === id ? e : null; }); $('lineup').classList.add('hide'); newGame(c); }
+function launchGame() { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return CFG.side === i && e && e.teamId === id ? e : null; }); $('lineup').classList.add('hide'); newGame(c); }
 $('startBtn').onclick = () => { sndInit(); openLineup(); };
 /* =====================================================================
    賽前編成：守備位置／打擊順序／先發投手（中職真實名單）＋ 比賽中守備調整
@@ -4019,8 +4121,15 @@ function renderLineup() {
   const mine = CFG.side === ti;
   let h = `<div class="lu-card"><div class="lu-h"><b>🧢 賽前編成</b><button type="button" id="luX" class="lu-x" title="返回比賽設定">✕</button></div>
   <div class="lu-tabs">${[0, 1].map(i => { const d = TEAMS[i ? CFG.home : CFG.away]; return `<button type="button" class="lu-tab${i === ti ? ' on' : ''}" data-t="${i}" style="border-bottom-color:${d.c1}">${i ? '主隊' : '客隊'}・${d.short}${CFG.side === i ? ' ★' : ''}</button>`; }).join('')}</div>
-  <div class="lu-tip">${mine ? '這是你操控的隊伍。' : (CFG.side === 2 ? '觀戰模式：兩隊都可調整。' : '這是電腦隊，也可以調整。')}選擇球員或守位若與其他列重複，會自動與該列互換。非本位守備的球員，守備範圍與傳球能力會依適性折減。</div>
-  <div class="lu-sec">打擊順序與守備位置（真實 2026 名單）</div>`;
+  <div class="lu-tip">${mine ? '這是你操控的隊伍。選擇球員或守位若與其他列重複，會自動與該列互換。非本位守備的球員，守備範圍與傳球能力會依適性折減。' : '🤖 這是電腦隊伍，無法調整。電腦會依球員能力與守位適性，自動判斷最適合的棒次、守位與先發投手；每場比賽開始時都會隨機產生不同的合理組合。' + (CFG.side === 2 ? '（觀戰模式：兩隊皆由電腦編成）' : '')}</div>
+  <div class="lu-sec">${mine ? '打擊順序與守備位置（真實 2026 名單）' : '球隊陣容（先發名單於開賽時才決定）'}</div>`;
+  if (!mine) {
+    names.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">兵</span><span class="bnm">${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}<span class="chip dim">${p.line || ''}</span></span></div>`; });
+    h += `<div class="lu-sec">投手群（先發由電腦開賽時決定）</div><div class="lu-sp">`;
+    D.sp.forEach(r => { const p = mkPitcher(r); h += `<div class="spc" style="cursor:default"><b>${r.n}</b>（${r.h === 'L' ? '左' : '右'}投）<br><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}・K% ${r.k.toFixed(1)}・BB% ${r.bb.toFixed(1)}${r.est ? '（估）' : ''}</small><br><small>控球${p.ctl}・體力${p.sta}・${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`; });
+    h += `</div><div class="lu-btns"><button type="button" id="luBack" class="pillb">← 返回設定</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成，開始遊戲 ▶</button></div></div>`;
+    el.innerHTML = h; return;
+  }
   ed.order.forEach((n, i) => {
     const p = pool[n], pos = ed.pos[n];
     h += `<div class="lr"><span class="ln">${i + 1}</span><span class="mv"><button type="button" data-up="${i}"${i ? '' : ' disabled'}>▲</button><button type="button" data-dn="${i}"${i < 8 ? '' : ' disabled'}>▼</button></span>
@@ -4049,13 +4158,13 @@ function renderLineup() {
     const t = e.target, ed = ED[ED_TAB.v]; if (!ed) return;
     if (t.id === 'luX' || t.id === 'luBack') { el.classList.add('hide'); return; }
     if (t.id === 'luDone') { launchGame(); return; }
-    if (t.id === 'luReset') { ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
+    if (t.id === 'luReset') { if (CFG.side !== ED_TAB.v) return; ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
     if (t.dataset.t !== undefined && t.classList.contains('lu-tab')) { ED_TAB.v = +t.dataset.t; renderLineup(); return; }
-    const sp = t.closest('[data-sp]'); if (sp) { ed.spIdx = +sp.dataset.sp; renderLineup(); return; }
+    if (CFG.side !== ED_TAB.v) return; const sp = t.closest('[data-sp]'); if (sp) { ed.spIdx = +sp.dataset.sp; renderLineup(); return; }
     if (t.dataset.up !== undefined || t.dataset.dn !== undefined) { const i = +(t.dataset.up !== undefined ? t.dataset.up : t.dataset.dn), j = t.dataset.up !== undefined ? i - 1 : i + 1; if (j < 0 || j > 8) return; [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; renderLineup(); }
   });
   el.addEventListener('change', e => {
-    const t = e.target, ed = ED[ED_TAB.v]; if (!ed || t.dataset.i === undefined) return; const i = +t.dataset.i;
+    const t = e.target, ed = ED[ED_TAB.v]; if (!ed || t.dataset.i === undefined || CFG.side !== ED_TAB.v) return; const i = +t.dataset.i;
     if (t.classList.contains('lp')) {              // 換人：選到先發者＝兩人互換打序；選到板凳者＝替換並承接守位
       const n = t.value, j = ed.order.indexOf(n), old = ed.order[i];
       if (j >= 0) { if (j !== i) [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; }
