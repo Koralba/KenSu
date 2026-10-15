@@ -1804,7 +1804,8 @@ function moveFielder(f, dt) {
     const vt = Math.min(sp, Math.sqrt(2 * acc * d) + .6);                                   // 接近目標時自然減速
     f.v += clamp(vt - f.v, -acc * 1.5 * dt, acc * dt);                                      // 加速度 → 起跑／煞車更流暢
     const st = Math.min(d, f.v * dt); f.x += dx / d * st; f.z += dz / d * st;
-    const ty = Math.atan2(dx, dz); let dy = ty - rig.root.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); rig.root.rotation.y += dy * Math.min(1, dt * 14);   // 平滑轉身
+    const ty = (f.pos === 'C' && !PL) ? Math.atan2(-f.x, MOUND.z - f.z) : Math.atan2(dx, dz); let dy = ty - rig.root.rotation.y;      // 捕手擊球前即使橫移接球也面向投手
+     dy = Math.atan2(Math.sin(dy), Math.cos(dy)); rig.root.rotation.y += dy * Math.min(1, dt * 14);   // 平滑轉身
     rig.run = f.v > 5 ? 1.4 : f.v > .8 ? .6 : 0;
     if (rig.anim && (rig.anim.name === 'stance' || rig.anim.name === 'crouch') && f.pos !== 'C') rig.anim = null;
   } else { f.v *= Math.max(0, 1 - dt * 9); rig.run = 0; if (f.hold > 0) f.hold -= dt; }
@@ -1813,10 +1814,11 @@ function moveFielder(f, dt) {
 }
 function fieldFace(f, dt) {                  // 野手站定時的朝向：未擊球＝全員看打者；球打出後＝全員看球（球在誰手上就看誰）
   const rig = f.rig; if (!rig || G.mode !== 'play' || rig.run > 0 || f.hasBall || (f.v || 0) > .8) return;
-  if (rig.anim && rig.anim.name !== 'stance') return;
+  if (rig.anim && rig.anim.name !== 'stance' && !(f.pos === 'C' && rig.anim.name === 'crouch')) return;
   let tx, tz;
   if (PL) { tx = ballMesh.position.x; tz = ballMesh.position.z; }
-  else { if (f.pos === 'P' || f.pos === 'C') return; tx = E.bat ? E.bat.x : 0; tz = 0; }
+  else if (f.pos === 'C') { tx = 0; tz = MOUND.z; }          // 捕手面向投手
+  else { if (f.pos === 'P') return; tx = E.bat ? E.bat.x : 0; tz = 0; }
   const dx = tx - f.x, dz = tz - f.z; if (dx * dx + dz * dz < .25) return;
   let dy = Math.atan2(dx, dz) - rig.root.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); rig.root.rotation.y += dy * Math.min(1, dt * 9);
 }
