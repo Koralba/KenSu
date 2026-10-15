@@ -469,7 +469,9 @@ body.mob #topbar .pbox{flex:0 1 auto;width:fit-content;max-width:calc(50% - 4px)
 #menu .card:hover{border-color:rgba(255,255,255,.4);transform:translateY(-2px)}
 #menu .card .sw{box-shadow:0 0 10px currentColor}
 #menu .pill{transition:background .15s,transform .15s}
-#menu .pill:hover{background:rgba(255,255,255,.14)}
+#menu .pill:not(.sel):hover{background:rgba(255,255,255,.14)}
+#menu#menu .pill.sel{background:linear-gradient(#f7d572,#e29a1c);color:#33200a;border-color:rgba(255,255,255,.55);box-shadow:0 2px 8px rgba(226,154,28,.45)}      /* 選中的選項永遠維持黃底（不被 hover／觸控殘留的 hover 蓋掉） */
+#menu#menu .pill.sel[data-k="lv"][data-v="3"]{background:linear-gradient(#ff8a5e,#c8281c);color:#fff;border-color:rgba(255,255,255,.55);box-shadow:0 0 14px rgba(255,90,60,.55)}
 #menu .pill[data-k="lv"][data-v="3"]{border-color:rgba(255,122,90,.6);color:#ffd9cc;position:relative}
 #menu .pill[data-k="lv"][data-v="3"]::after{content:'MAX';position:absolute;right:-6px;top:-9px;font-size:9px;letter-spacing:.08em;padding:1px 5px;border-radius:6px;background:linear-gradient(#ff7a5a,#d8281a);color:#fff;font-weight:900}
 #menu .pill.sel[data-k="lv"][data-v="3"]{background:linear-gradient(#ff8a5e,#c8281c);color:#fff;border-color:rgba(255,255,255,.55);box-shadow:0 0 14px rgba(255,90,60,.55)}
@@ -4243,7 +4245,7 @@ function drawOverlay() {
     drawRing(ax, ay, R, col.startsWith('#') ? col + '55' : col, 1.5 * dpr, [5 * dpr, 5 * dpr]);                       // 外圈：能碰到球的範圍（打不好）
     const r = drawRing(ax, ay, R * .5, col, 3 * dpr);                                                                  // 內圈：甜蜜點
     c.beginPath(); c.moveTo(r.a.x - 5 * dpr, r.a.y); c.lineTo(r.a.x + 5 * dpr, r.a.y); c.moveTo(r.a.x, r.a.y - 5 * dpr); c.lineTo(r.a.x, r.a.y + 5 * dpr); c.lineWidth = 1.5 * dpr; c.strokeStyle = col; c.stroke();
-    c.font = `900 ${13 * dpr}px sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.fillText(G.callBunt ? '短打（球碰棒即觸擊；壞球請按 B 收棒）' : powOn() ? '強打' : '擊球', r.a.x, r.a.y + r.rad + 16 * dpr);
+    c.font = `900 ${13 * dpr}px sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.fillText(G.callBunt ? '短打' : powOn() ? '強打' : '擊球', r.a.x, r.a.y + r.rad + 16 * dpr);
   }
 }
 /* ---------------- input ---------------- */
