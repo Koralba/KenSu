@@ -1594,7 +1594,7 @@ function batterR(b, pt, power) {
   const z = batterZoneRating(b, pt.fx, pt.fy); if (z >= 0) r *= 1 + z * 0.055;
   const fatigue = pt.p.fatigue || 0; r *= 1 + fatigue * 0.0011;
   { const bh = b.hand === 'S' ? (pt.p.hand === 'R' ? 'L' : 'R') : b.hand; r *= bh !== pt.p.hand ? 1.045 : .955; }      // 左右對決：異手打者較佔優勢、同手較吃虧（左右開弓永遠站有利一側）
-  r *= (1 + moodBonus(b) * 1.1) * (1 - rainBK() * .095);                                   // 心情加成（好→揮棒圈變大）
+  r *= (1 + moodBonus(b) * 1.1) * (1 - rainBK() * .07);                                   // 心情加成（好→揮棒圈變大）
   r = clamp(r, 0.2, 0.8);
   if (power) r = Math.max(0.14, r * 0.66);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
   return r;
@@ -1609,23 +1609,26 @@ function resolveSwing(pt, sw, b) {
   const W = WIN * (sw.power ? 0.80 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
   const dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - pt.T;      // 時機＝揮棒接觸瞬間與球到達本壘板時刻的差，無隨機誤差
   const dtE = dt - idealS * W, Wd = W * (dtE < 0 ? 1 - outK * .12 + inK * .04 : 1 + outK * .12 - inK * .10), adt = Math.abs(dtE);   // 相對最佳時機的偏差；內角晚側窗口窄、外角晚側窗口寬／早側窗口窄
-  const jx = gauss() * .02 * Math.max(0, mv - .7), jy = gauss() * .02 * Math.max(0, mv - .7);
+  const jx = gauss() * .012 * Math.max(0, mv - .7), jy = gauss() * .012 * Math.max(0, mv - .7);
   const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y;
   const pj = sw.auto ? { x: bxp, y: byp } : (projPlane(bq.x, bq.y, bq.z), { x: _pj.x, y: _pj.y }), d = Math.hypot(pj.x - sw.cx + jx, pj.y - sw.cy + jy);   // 以畫面上看到的球位置判定擊球框
-  if (adt > Wd * 1.15 || d > R0 + 0.02) return { kind: 'whiff', dt, d, R: R0 };
+  if (adt > Wd * 1.15 || d > R0 + BALL_R * .5) return { kind: 'whiff', dt, d, R: R0 };      // 球心落在擊球框（含球半徑）內且時機在窗口內＝一定碰得到
   const dn = clamp((d / R0 - .25) / .75, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 圈心附近＝甜蜜點，越往外越差
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (Wd * 1.15), 0, 1), 1.5));
   Q = clamp(Q, 0, 1);
   const side = sideB;
   let chase = 0, far = false;                                               // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
   if (!sw.bunt) {
-    const od = outsideDist(pt.fx, pt.fy);
+    const od = Math.max(0, outsideDist(pt.fx, pt.fy) - ZPAD);                 // 擦到判定好球帶邊緣（含球半徑）者視同好球帶內
     if (od > 0) {
       const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .06 : 0) - rainBK() * .03, .22, .72);
       if (od > reach * 1.15) return { kind: 'whiff', dt, d, R: R0 };          // 太外側的壞球：揮空
       chase = clamp(od / reach, 0, 1);
-      const brk = ['SL', 'CU', 'FK', 'SV', 'SK', 'SH'].includes(pt.id) ? .88 : 1;
-      if (Math.random() > clamp(1 - Math.pow(chase, 1.3) * .8, .15, 1) * brk) return { kind: 'whiff', dt, d, R: R0 };    // 壞球較容易揮空
+      // 邊緣壞球（chase<.3）只要位置與時機到位就必定碰到；愈遠愈難，變化球愈遠愈容易揮空
+      const brk = ['SL', 'CU', 'FK', 'SV', 'SK', 'SH'].includes(pt.id) ? 1 - .12 * clamp((chase - .3) / .7, 0, 1) : 1;
+      const tight = (d < R0 * .5 && adt < Wd * .5) ? .5 : 1;                  // 擊球點與時機都很準：不容易被壞球騙到揮空
+      const pc = chase < .3 ? 1 : clamp(1 - Math.pow((chase - .3) / .7, 1.3) * .8 * tight, .15, 1);
+      if (Math.random() > pc * brk) return { kind: 'whiff', dt, d, R: R0 };
       Q = clamp(Q * (1 - chase * .45), 0, 1);                                  // 擊球點差：甜蜜點命中率下降、很難打成安打／全壘打
     }
   }
@@ -1659,7 +1662,7 @@ function resolveSwing(pt, sw, b) {
   ev *= 1 - .22 * clamp(Math.abs(v) - .6, 0, 1);                           // 打在球的最上/最下緣：能量損失
   if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .15 * (.6 + skill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
   ev *= 1 + clamp((w0.temp - 24) * .0009, -.017, .017);                      // 氣溫：天熱球彈性好、天冷偏悶
-  ev *= (1 + gauss() * .02 * mv) * (1 - rainBK() * .045);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
+  ev *= (1 + gauss() * .02 * mv) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
   let ang = 6 + b.traj * 3.2 + v * 26 + gauss() * (3 + 9 * (1 - Q)) * (.6 + .4 * mv);
   if (sw.power) ang += 3.8 + Q * 2.3;                                      // 強打：揮棒上揚、擊球仰角較高（甜蜜點時更明顯）→ 容易飛得夠遠
   // 球種特性：沉球／指叉／曲球容易打出滾地球，直球上飄容易打成飛球
@@ -1674,7 +1677,7 @@ function resolveSwing(pt, sw, b) {
   // 旋轉：打球下緣→後旋（飄得遠）；打上緣→前旋（急墜）。握把壓制減少後旋、外角打球頭增加前旋
   const spinB = clamp(1 + v * .95 + (ang - 18) * .012 - Math.max(0, bp - .4) * .5 - outK * Math.max(0, -bp - .3) * .6 + gauss() * .12 * mv, -.8, 2.1);
   const spinS = clamp(bp * .22 * side + gauss() * .12 * mv, -.55, .55);
-  const luck = gauss() * (.9 + .5 * mv) * (1 + windK() * .3);              // 不可控因素：陣風、擊中縫線、地面彈跳…（風大時更不穩定）
+  const luck = gauss() * (.9 + .5 * mv) * (1 + windK() * .3 + Math.max(0, rainBK() - .8) * .35);              // 不可控因素：陣風、擊中縫線、地面彈跳…（風大時更不穩定）
   return { kind: 'hit', ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, sR, v, hz, bp, cz, inside, press, spinB, spinS, luck, W: Wd, mv, px: bxp, py: byp, pz: bq.z };
 }
 function resolveBunt(pt, sw, b, dt, d, R0, Q) {
@@ -1714,8 +1717,8 @@ const GRAV = 9.8, DRAG = 0.0028;
 const LIFT = .028, SIDEF = .028;
 function ballEnv(res) {            // 風、氣溫、旋轉、運氣 → 物理環境
   const w = G.wx || { spd: 0, dir: 0, temp: 26 }, gust = res ? clamp(res.luck, -2.4, 2.4) * .95 : 0;     // 擊球當下的陣風
-  const wm = 1 + Math.max(0, rainK() - .5) * .5, wx = w.spd * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5, wz = -w.spd * wm * Math.cos(w.dir * Math.PI / 180) - gust;
-  return { wx, wz, back: res ? res.spinB : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .07), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
+  const rr = rainK(), wm = 1 + clamp(rr - .55, 0, .25) * .5 + clamp(rr - .8, 0, .2) * 1.5, wx = w.spd * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5, wz = -w.spd * wm * Math.cos(w.dir * Math.PI / 180) - gust;
+  return { wx, wz, back: res ? res.spinB * (1 - rainBK() * .08) : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .09), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
 }
 function simulateBall(p0, v0, maxT, env) {
   env = env || { wx: 0, wz: 0, back: 1, side: 0, hop: 0, drag: 1, roll: 1, rest: 1 };
@@ -3804,7 +3807,13 @@ function pitcherToMound() {                // 投手每球都從投手丘站好�
    ===================================================================== */
 /* ---------------- 天氣與球場（風、雨、動態變化；可於開賽前關閉） ---------------- */
 const rainK = () => (G.wxOn && G.rain) ? G.rain : 0;
-const rainBK = () => { const r = rainK(); return r + Math.max(0, r - .5) * .7; };     // 打擊用雨勢：大雨(>.55)與狂風暴雨額外加重
+const rainBK = () => {                      // 打擊／球飛行用雨勢（分段加重）：毛毛雨、小雨影響很小；大雨明顯；狂風暴雨(>.8)再大幅加重
+  const r = rainK(); if (r <= 0) return 0;
+  if (r < .3) return r * .35;                                    // 毛毛雨：最多 .105
+  if (r < .55) return .105 + (r - .3) * .8;                       // 小雨：.105 ~ .305
+  if (r < .8) return .305 + (r - .55) * 2.0;                      // 大雨：.305 ~ .805
+  return .805 + (r - .8) * 3.5;                                   // 狂風暴雨：.805 ~ 1.505（明顯大於大雨）
+};
 const WX_SCEN = [['calm', 24], ['sunny', 32], ['overcast', 20], ['drizzle', 8], ['change', 11], ['heavy', 3], ['storm', 2]];
 function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .55 ? ['小雨', '🌧'] : r < .8 ? ['大雨', '🌧'] : ['狂風暴雨', '⛈']; }
 function initWeather(homeTeam) {
