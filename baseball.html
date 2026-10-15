@@ -496,6 +496,7 @@ body.mob #menu::before{background-size:cover}
     <div class="opt"><b>操控</b><span class="pill sel" data-k="side" data-v="0">客隊先攻</span><span class="pill" data-k="side" data-v="1">主隊後攻</span><span class="pill" data-k="side" data-v="2">只觀戰</span></div>
     <div class="opt"><b>局數</b><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill sel" data-k="inn" data-v="5">5 局</span><span class="pill" data-k="inn" data-v="9">9 局</span></div>
     <div class="opt"><b>CPU</b><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div>
+    <div class="opt"><b>模式</b><span class="pill sel" data-k="easy" data-v="0">正常</span><span class="pill" data-k="easy" data-v="1">簡易</span></div>
   </div>
   <div class="lvdesc" id="lvDesc"></div>
   <details id="adv" class="adv" open><summary>更多設定</summary>
@@ -1956,7 +1957,7 @@ function returnBall(pl, cb) {
   });
 }
 /* ---------------- human-controlled throwing ---------------- */
-const humanDef = () => G.human >= 0 && G.human === 1 - G.half && !G.intWalk;
+const humanDef = () => !G.easy && G.human >= 0 && G.human === 1 - G.half && !G.intWalk;
 const BASE_NAME = { 1: '一壘', 2: '二壘', 3: '三壘', 0: '本壘' };
 function openAsk(f, best, auto) {
   PL.ask = { f, t: 2.1, T: 2.1, auto, rec: best ? best.b : -1 };
@@ -2578,7 +2579,7 @@ function buildPitchPanel() {
 }
 function updateActs() {
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
-  $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb ? '' : 'none'; $('btnPowPc').style.display = hb ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
+  $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
   { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb))) sb0.classList.add('hide'); }
   { const bmo = $('btnMore'); if (bmo) bmo.style.display = ''; }
   $('btnBunt').classList.toggle('on', !!G.callBunt && hb); $('btnSteal').classList.toggle('on', !!G.stealReq);
@@ -2959,7 +2960,7 @@ function updateTweens(dt) {
 }
 function newGame(cfg) {
   G.teams = [buildTeam(TEAMS[cfg.away], cfg), buildTeam(TEAMS[cfg.home], cfg)]; if (cfg.ace) { G.teams.forEach(t => { }); }
-  G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.innings = cfg.inn;
+  G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.easy = !!cfg.easy; G.innings = cfg.inn;
   G.score = [0, 0]; G.line = [[], []]; G.hits = [0, 0]; G.errs = [0, 0]; G.inning = 1; G.half = 0; G.bi = [0, 0]; G.pmodel = {}; G.batHist = {};
   G.over = false; G.walkoff = false; G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; initWeather(G.teams[1]); hideHitInfo(0);
   $('hud').classList.remove('hide'); $('menu').classList.add('hide'); $('title').classList.add('hide'); $('result').classList.add('hide'); $('sub').classList.add('hide');
@@ -3668,7 +3669,7 @@ function updateAim() {
   if (!aim.has) return; const p = pointerToZone(aim.cx, aim.cy); if (!p) return;
   aim.x = clamp(p.x, -1.75, 1.75); aim.y = clamp(p.y, ZC - 1.65, ZC + 1.65);
 }
-const powOn = () => !!(aim.shift || aim.lock);
+const powOn = () => !G.easy && !!(aim.shift || aim.lock);
 function setPow(v) { aim.lock = v; const b = $('btnPow'), b2 = $('btnPowPc'); if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } }
 function cursorR() {
   const b = curBatter(); const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() };
@@ -3703,7 +3704,7 @@ function drawOverlay() {
     const hs = p.hand === 'R' ? 1 : -1, br2 = lv / 7, e = w2s(aim.x + spec.bx * br2 * hs * .55, aim.y + spec.by * br2 * .55, 0);
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     c.font = `900 ${14 * dpr}px sans-serif`; c.fillStyle = '#fff'; c.textAlign = 'center'; c.fillText(spec.jp, r.a.x, r.a.y - r.rad - 8 * dpr);
-  } else if (hb && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) {
+  } else if (hb && !G.easy && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) {
     const R = cursorR(); const swung = PT && PT.sw;
     const col = swung ? 'rgba(255,255,255,.4)' : (powOn() ? '#ff6a3a' : G.callBunt ? '#7aff9a' : '#ffe14a');
     drawRing(aim.x, aim.y, R, col.startsWith('#') ? col + '55' : col, 1.5 * dpr, [5 * dpr, 5 * dpr]);                       // 外圈：能碰到球的範圍（打不好）
@@ -3724,8 +3725,9 @@ function humanAction() {
   if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { updateAim(); doPitch({ id: G.selPitch, x: aim.x, y: aim.y }); }
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
-    updateAim(); const R = cursorR();
-    startSwing(PT, { tc: PT.t + SWING_DELAY, cx: aim.x, cy: aim.y, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
+    updateAim(); let R = cursorR(), cx = aim.x, cy = aim.y;
+    if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); cx = PT.fx + gauss() * n; cy = PT.fy + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
+    startSwing(PT, { tc: PT.t + SWING_DELAY, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
   }
 }
 function toGame() {
@@ -3767,9 +3769,9 @@ function syncTouch() {
   if (!IS_TOUCH) return;
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0, ph = G.phase;
   const on = G.mode === 'play' && (hb || hp) && (ph === 'pre' || ph === 'windup' || ph === 'flight');
-  const padOn = G.mode === 'play' && (hb || hp); $('movePad').classList.toggle('on', padOn);
-  const key = [on, hb, hp, G.mode].join(); if (key === _tsKey) return; _tsKey = key;
-  $('touchBtns').classList.toggle('on', on); $('btnAct').textContent = hp ? '投球' : '揮棒'; $('btnPow').style.display = hb ? '' : 'none';
+  const padOn = G.mode === 'play' && (hb || hp); $('movePad').classList.toggle('on', padOn && !(hb && G.easy));
+  const key = [on, hb, hp, G.mode, G.easy].join(); if (key === _tsKey) return; _tsKey = key;
+  $('touchBtns').classList.toggle('on', on); $('btnAct').textContent = hp ? '投球' : '揮棒'; $('btnPow').style.display = hb && !G.easy ? '' : 'none';
   document.body.classList.toggle('playing', G.mode === 'play');
 }
 let keyShift = false;
@@ -3828,7 +3830,7 @@ $('btnBench').onclick = () => {
   mk('關閉', '', () => sub.classList.add('hide'));
 };
 /* ---------------- menu ---------------- */
-const CFG = { away: 0, home: 1, side: 0, inn: 5, lv: 1, abs: 1, pn: 0, evt: 1, ace: 0, wx: 1 };
+const CFG = { easy: 0, away: 0, home: 1, side: 0, inn: 5, lv: 1, abs: 1, pn: 0, evt: 1, ace: 0, wx: 1 };
 function buildCards() {
   for (const [id, key] of [['awayCards', 'away'], ['homeCards', 'home']]) {
     const box = $(id); box.innerHTML = '';
@@ -3839,9 +3841,9 @@ function buildCards() {
   }
 }
 const LV_DESC = ['<b>弱</b>　電腦反應較慢、容易失誤，適合新手練習', '<b>普通</b>　標準難度，電腦表現均衡，推薦首次遊玩', '<b>強</b>　電腦會讀球、針對你的弱點配球，守備與跑壘更積極', '<b>宗師・最高難度</b>　電腦極度聰明強悍：選球與配球近乎精準、記住並攻擊你的弱點、守備反應更快，專為高手設計'];
-function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = LV_DESC[v] || ''; e.dataset.lv = v; } }
+function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = (LV_DESC[v] || '') + (CFG.easy ? '<br><b>簡易模式</b>　打擊只要抓時機按「揮棒」、不用瞄準；守備由電腦自動傳球補位' : ''); e.dataset.lv = v; } }
 setLvDesc(CFG.lv);
-document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
+document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv' || k === 'easy') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
 $('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; newGame(c); };
 /* ---------------- 手機版：中間面板依左右兩塊的實際寬度排版，避免重疊 ---------------- */
 let _lt = 0;
