@@ -19,8 +19,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;height:100dvh;overflow:hidden;background:#000;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei','Zen Maru Gothic',sans-serif;color:#fff;touch-action:none}
-#wrap{position:fixed;inset:0;height:100dvh}
-canvas#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+#wrap{position:fixed;left:0;top:0;width:100%;height:100vh;height:100dvh;overflow:hidden}
+@supports (height:100svh){#wrap{height:100dvh}}
+canvas#gl{position:absolute;left:0;top:0;width:100%;height:100%;display:block;image-rendering:auto;transform:translateZ(0)}
 canvas#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hide{display:none!important}
 /* ---------- title ---------- */
@@ -427,7 +428,7 @@ body.touch #movePad.on{display:block}
 
 /* ===== v3：選單質感背景／簡化設定、資訊欄依內容縮放 ===== */
 #menu{background:radial-gradient(1100px 520px at 50% -8%,rgba(72,176,124,.26),transparent 62%),radial-gradient(800px 480px at 105% 105%,rgba(52,110,200,.24),transparent 60%),radial-gradient(700px 400px at -5% 100%,rgba(255,200,90,.08),transparent 60%),repeating-linear-gradient(135deg,rgba(255,255,255,.022) 0 1px,transparent 1px 26px),linear-gradient(180deg,#0d1f27,#07111a)}
-#menu h2{background:linear-gradient(#fff1b8,#f2b53a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;letter-spacing:.12em;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+#menu h2{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;-webkit-text-fill-color:#ffd84a!important;color:#ffd84a!important;text-shadow:0 2px 0 #7a3b00,0 4px 10px rgba(0,0,0,.55)!important;letter-spacing:.12em;filter:none!important;-webkit-text-stroke:0!important;opacity:1}
 #menu .row.teams,#menu .adv,#menu>.row.opts{max-width:980px;margin:1.2vh auto;padding:14px 18px;border-radius:18px;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
 #menu .adv .row.opts{margin:6px 0 0;gap:8px 22px}
 #menu .adv summary{color:#a9d9c4;letter-spacing:.2em;pointer-events:none}
@@ -547,8 +548,7 @@ body.mob .lr .ls{flex:0 1 84px}
     <div><b>打擊</b>：<span class="d-pc">圈住來球，球到本壘時點擊／空白鍵揮棒（Shift 強打、Q 盜壘、B 短打：圈住來球即自動觸擊）</span><span class="d-mob">拖曳圈住來球 → 球到時按「揮棒」（短打：圈住即觸擊）</span></div>
     <div><b>挑戰</b>：<span class="d-pc">下一球投出前按 C，申請 ABS 鷹眼</span><span class="d-mob">出現「挑戰」鈕時點一下</span></div>
   </div>
-  <div class="row"><button type="button" class="pillb" id="lineupBtn" style="font-size:15px;padding:10px 22px">🧢 球員編成（守備位置／打擊順序／先發投手）</button></div>
-  <button id="startBtn">比賽開始！</button>
+  <button id="startBtn">進入遊戲</button>
 </div>
 
 <div id="hud" class="hide">
@@ -814,6 +814,13 @@ function genBatter(strength, pos, num, slot) {
 /* =====================================================================
    Part 3: three.js scene — stadium, chibi players, ball, camera
    ===================================================================== */
+const VP = { w: window.innerWidth, h: window.innerHeight, dpr: 1 };
+const VW = () => VP.w, VH = () => VP.h;
+function measureVP() {
+  const wr = document.getElementById('wrap'), vv = window.visualViewport;
+  let w = (wr && wr.clientWidth) || (vv && vv.width) || window.innerWidth, h = (wr && wr.clientHeight) || (vv && vv.height) || window.innerHeight;
+  VP.w = Math.max(1, Math.round(w)); VP.h = Math.max(1, Math.round(h));
+}
 const canvasGL = document.getElementById('gl');
 const renderer = new THREE.WebGLRenderer({ canvas: canvasGL, antialias: true, powerPreference: 'high-performance' });
 const IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -826,7 +833,6 @@ function arrangeTop() {   // 手機版：把打者／投手／比分搬進同一
   else if (tb.contains(bB)) { pi.append(pB, bB); hud.insertBefore(sb, hud.firstChild); }
 }
 calcMob(); window.addEventListener('resize', calcMob);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, IS_TOUCH ? 1.5 : 2));
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x8cc6ff);
 scene.fog = new THREE.Fog(0xa8d4ff, 140, 360);
@@ -1156,18 +1162,18 @@ function updateBursts(dt) { for (let i = 0; i < bursts.length; i++) { const b = 
 /* ---------- camera controller ---------- */
 const CAMC = { mode: 'title', pos: new V3(0, 30, 50), look: new V3(0, 0, -25), fov: 46, tpos: new V3(), tlook: new V3(), tfov: 46, k: 3, orbit: 0, shake: 0 };
 function camSnap() { CAMC.pos.copy(CAMC.tpos); CAMC.look.copy(CAMC.tlook); CAMC.fov = CAMC.tfov; }
-function setCamBat(snap) { CAMC.mode = 'bat'; CAMC.tpos.set(0, 4.6, 9.4); CAMC.tlook.set(0, 1.45, -9); CAMC.tfov = 42; CAMC.k = 4; if (snap) camSnap(); }
+function setCamBat(snap) { CAMC.mode = 'bat'; CAMC.tpos.set(0, 4.6, 9.4); CAMC.tlook.set(0, 1.45, -9); CAMC.tfov = 42 * (VP.fk || 1); CAMC.k = 4; if (snap) camSnap(); }
 function setCamPlayTarget(f) { CAMC.mode = 'play'; }
 function updateCamera(dt, focus) {
   if (CAMC.mode === 'title') {
     CAMC.orbit += dt * .08; const a = CAMC.orbit, r = 62;
-    CAMC.tpos.set(Math.sin(a) * 12, 23, 47 + Math.cos(a) * 3); CAMC.tlook.set(Math.sin(a * 1.3) * 6, 0, -27); CAMC.tfov = 58; CAMC.k = 1.2;
+    CAMC.tpos.set(Math.sin(a) * 12, 23, 47 + Math.cos(a) * 3); CAMC.tlook.set(Math.sin(a * 1.3) * 6, 0, -27); CAMC.tfov = 58 * (VP.fk || 1); CAMC.k = 1.2;
   } else if (CAMC.mode === 'play' && focus) {
     const d = Math.hypot(focus.x, focus.z);
     CAMC.tlook.set(focus.x * .9, Math.max(0, focus.y * .3), focus.z * .95 - 3);
-    CAMC.tpos.set(focus.x * .3, 17 + d * .26, Math.max(-12, focus.z * .3) + 26 + d * .12); CAMC.tfov = 50; CAMC.k = 2.6;
+    CAMC.tpos.set(focus.x * .3, 17 + d * .26, Math.max(-12, focus.z * .3) + 26 + d * .12); CAMC.tfov = 50 * (VP.fk || 1); CAMC.k = 2.6;
   } else if (CAMC.mode === 'close' && focus) {
-    CAMC.tlook.set(focus.x, 1, focus.z); CAMC.tpos.set(focus.x + (focus.x >= 0 ? 8 : -8), 7, focus.z + 12); CAMC.tfov = 46; CAMC.k = 3.4;
+    CAMC.tlook.set(focus.x, 1, focus.z); CAMC.tpos.set(focus.x + (focus.x >= 0 ? 8 : -8), 7, focus.z + 12); CAMC.tfov = 46 * (VP.fk || 1); CAMC.k = 3.4;
   }
   const f = 1 - Math.exp(-dt * CAMC.k);
   CAMC.pos.lerp(CAMC.tpos, f); CAMC.look.lerp(CAMC.tlook, f); CAMC.fov += (CAMC.tfov - CAMC.fov) * f;
@@ -1176,12 +1182,21 @@ function updateCamera(dt, focus) {
   camera.fov = CAMC.fov; camera.lookAt(CAMC.look); camera.updateProjectionMatrix();
 }
 function resize() {
-  const w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h;
-  const ov = document.getElementById('ov'); ov.width = w * Math.min(devicePixelRatio || 1, 2); ov.height = h * Math.min(devicePixelRatio || 1, 2);
-  if (CAMC.mode === 'bat') CAMC.tfov = camera.aspect < 1.2 ? 60 : 42;
+  measureVP(); const w = VP.w, h = VP.h, dpr = Math.min(window.devicePixelRatio || 1, IS_TOUCH ? 2 : 2);
+  // 依解析度自動調整像素比：像素總量過大的設備（高 DPR 平板）自動降比例，維持流暢又清晰
+  const maxPx = IS_TOUCH ? 2.6e6 : 5e6; const pr = Math.max(1, Math.min(dpr, Math.sqrt(maxPx / (w * h))));
+  VP.dpr = pr; renderer.setPixelRatio(pr); renderer.setSize(w, h, false); camera.aspect = w / h;
+  const ov = document.getElementById('ov'); ov.width = Math.round(w * pr); ov.height = Math.round(h * pr);
+  // 直式／窄螢幕：垂直視角加大，確保水平視野不被裁切、比例不變形
+  const asp = w / h, k = asp < 1.78 ? Math.min(1.9, Math.pow(1.78 / asp, .62)) : 1; VP.fk = k;
+  if (CAMC.mode === 'bat') CAMC.tfov = 42 * k;
   camera.updateProjectionMatrix();
 }
-window.addEventListener('resize', resize); resize();
+window.addEventListener('resize', resize); window.addEventListener('orientationchange', () => { resize(); setTimeout(resize, 250); setTimeout(resize, 700); });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+if (window.ResizeObserver) { try { new ResizeObserver(() => resize()).observe(document.getElementById('wrap')); } catch (e) { } }
+document.addEventListener('fullscreenchange', () => setTimeout(resize, 120)); document.addEventListener('webkitfullscreenchange', () => setTimeout(resize, 120));
+resize();
 function crowdCheer(amt) { crowdCheer.v = Math.max(crowdCheer.v || 0, amt); }
 
 /* =====================================================================
@@ -1285,6 +1300,8 @@ function makePitch(p, id, aimX, aimY) {
   const bxPos = E.bat.x;
   if (Math.abs(fx - bxPos) < .5 && fy > .35 && fy < 1.95 && (fx * E.bat.side) < -ZW * .4) pt.hitBatter = true;
   pt.hbpHigh = pt.hitBatter && fy > 1.45;
+  pt.tm = clamp(3.8 / Math.max(15, kmh / 3.6 * .8), .09, .26);                              // 過本壘後飛向捕手手套的時間
+  pt.mitt = { x: clamp(fx, -1.9, 1.9), y: Math.max(.3, fy), z: (E.F.C ? E.F.C.z : 4) - .25 };
   return pt;
 }
 function pitchBase(pt, v, out) {
@@ -1300,6 +1317,17 @@ const _pb0 = new V3(), _pb1 = new V3();
 function pitchPos(pt, t, out) {
   const u = t / pt.T;
   return pitchBase(pt, clamp(u, 0, 1), out);      // 球到終點就停在終點，不再外插下墜
+}
+function pitchPosEx(pt, t, out) {          // 球過本壘板後繼續飛進捕手手套
+  if (t <= pt.T) return pitchBase(pt, clamp(t / pt.T, 0, 1), out);
+  pitchBase(pt, 1, out); if (pt.hitBatter || !pt.tm) return out;
+  const u = clamp((t - pt.T) / pt.tm, 0, 1), m = pt.mitt;
+  out.x += (m.x - out.x) * u; out.y += (m.y - out.y) * u - .2 * u * (1 - u); out.z = m.z * u; return out;
+}
+const _sbp = new V3();
+function swingBallPos(pt, sw) {            // 揮棒接觸瞬間「球實際所在位置」
+  if (sw.auto) return { x: sw.bx, y: sw.by, z: sw.bz };
+  pitchPosEx(pt, clamp(sw.tc, 0, pt.T + (pt.tm || 0)), _sbp); return { x: _sbp.x, y: _sbp.y, z: _sbp.z };
 }
 function isStrikeLoc(x, y) { return Math.abs(x) <= ZW + ZPAD && Math.abs(y - ZC) <= ZH + ZPAD; }
 /* 距離「判定好球帶」邊界的有號距離：<0 在好球帶內（好球），>0 在帶外（壞球） */
@@ -1325,22 +1353,22 @@ function batterR(b, pt, power) {
   if (power) r = Math.max(0.15, r * 0.70);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
   return r;
 }
-const SWING_DELAY = 0.055, WIN = 0.105;      // 揮棒延遲縮短：球視覺上到達本壘板的瞬間按下，就是擊球瞬間
+const SWING_DELAY = 0.035, WIN = 0.07;      // 揮棒延遲縮短：球視覺上到達本壘板的瞬間按下，就是擊球瞬間
 function resolveSwing(pt, sw, b) {
   // sw = {tc, cx, cy, power, bunt}; returns {kind: whiff|hit, ...}
   const mv = moodVol(b), mb = moodBonus(b);
   const W = WIN * (sw.power ? 0.85 : 1) * (sw.bunt ? 1.25 : 1), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
   const dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - pt.T + gauss() * .004 * Math.max(0, mv - .7), adt = Math.abs(dt);
   const jx = gauss() * .02 * Math.max(0, mv - .7), jy = gauss() * .02 * Math.max(0, mv - .7);
-  const bxp = sw.auto ? sw.bx : pt.fx, byp = sw.auto ? sw.by : pt.fy, d = Math.hypot(bxp - sw.cx + jx, byp - sw.cy + jy);
-  if (adt > W * 1.25 || d > R0 + 0.06) return { kind: 'whiff', dt, d, R: R0 };
+  const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y, d = Math.hypot(bxp - sw.cx + jx, byp - sw.cy + jy);
+  if (adt > W * 1.15 || d > R0 + 0.02) return { kind: 'whiff', dt, d, R: R0 };
   const dn = clamp((d / R0 - .25) / .75, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 圈心附近＝甜蜜點，越往外越差
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (W * 1.15), 0, 1), 1.5));
   Q = clamp(Q, 0, 1);
   const side = E.bat.side;
   let chase = 0;                                                            // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
   if (!sw.bunt) {
-    const od = outsideDist(bxp, byp);
+    const od = outsideDist(pt.fx, pt.fy);
     if (od > 0) {
       const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .06 : 0), .22, .72);
       if (od > reach * 1.15) return { kind: 'whiff', dt, d, R: R0 };          // 太外側的壞球：揮空
@@ -1354,8 +1382,8 @@ function resolveSwing(pt, sw, b) {
   const marginal = d > R0 * 0.92 || adt > W * 0.98 || chase > .7;
   // —— 擊球幾何 ——
   const s = clamp(dt / W, -1.2, 1.2);                                     // 時機：<0 偏早 / >0 偏晚
-  const v = clamp((pt.fy - sw.cy) / Math.max(R0, .3), -1.2, 1.2);          // >0：球棒打在球的下半部（上飄/後旋）
-  const hz = clamp((pt.fx - sw.cx) / Math.max(R0, .3), -1.2, 1.2);         // 內外角偏移
+  const v = clamp((byp - sw.cy) / Math.max(R0, .3), -1.2, 1.2);          // >0：球棒打在球的下半部（上飄/後旋）
+  const hz = clamp((bxp - sw.cx) / Math.max(R0, .3), -1.2, 1.2);         // 內外角偏移
   const bp = clamp(s * .85 + hz * side * .30 + gauss() * .07 * mv, -1.25, 1.25);   // 球棒擊球位置：<0 球頭、>0 握把
   // 初速：球棒速度(力量)×擊球效率(Q、甜蜜點)＋來球速度，再乘心情加成與投手壓制力
   const pw = b.pow * 0.005;
@@ -1372,25 +1400,25 @@ function resolveSwing(pt, sw, b) {
   ang += (BRK[pt.id] || 0) * (.6 + pt.lv * .07) * (1.15 - Q * .55);
   if (bp > .7) { ang += (bp - .7) * 9; ev *= 1 - (bp - .7) * .18; }
   ang = clamp(ang, -26, 78);
-  let th = side * s * 40 + (pt.fx - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);
+  let th = side * s * 40 + (bxp - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);
   if (marginal) { th += (Math.random() < .5 ? -1 : 1) * (22 + Math.random() * 40); ev *= 0.7; }
   // 旋轉：打球下緣→後旋（飄得遠）；打上緣→前旋（急墜）。橫向旋轉造成滑/勾
   const spinB = clamp(1 + v * .95 + (ang - 18) * .012 + gauss() * .12 * mv, -.8, 2.1);
   const spinS = clamp(bp * .22 * side + gauss() * .12 * mv, -.55, .55);
   const luck = gauss() * (.75 + .5 * mv);                                    // 不可控因素：陣風、擊中縫線、地面彈跳…
-  return { kind: 'hit', ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, v, hz, bp, spinB, spinS, luck, W, mv };
+  return { kind: 'hit', ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, v, hz, bp, spinB, spinS, luck, W, mv, px: bxp, py: byp, pz: bq.z };
 }
 function resolveBunt(pt, sw, b, dt, d, R0, Q) {
   // 短打：結果由「球在棒上的接觸點(內外/上下)」「接觸時機(深度)」「球種球速與好壞球位置」「打者短打技術・心情・雨天」共同決定。
   // 技術越高越能把球壓死、控制方向；來球快、變化大、位置差（偏高／偏外）會增加小飛球、界外、擦棒與強彈的機率。
   const skill = clamp(((b.bunt || 60) / 100) * (1 + moodBonus(b) * .6) * (1 - rainK() * .05), .2, .97), sneak = !!G.sneak, mv = moodVol(b), side = E.bat.side;
-  const bxp = sw.auto ? sw.bx : pt.fx, byp = sw.auto ? sw.by : pt.fy;
+  const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y;
   const s = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) : clamp(dt / WIN, -1.2, 1.2);              // <0：球還在前面就碰到(偏早)　>0：球已深入(偏晚)
   const hz = clamp((bxp - sw.cx) / Math.max(R0, .3), -1.2, 1.2), v = clamp((byp - sw.cy) / Math.max(R0, .3), -1.2, 1.2);   // 球相對棒心的內外／高低
   const od = Math.max(0, outsideDist(pt.fx, pt.fy)), mov = (pt.spec.sx || 1) * .5 + (pt.spec.sy || 1) * .5;
   const hard = clamp((pt.kmh - 125) * .006 + pt.lv * .022 + (['SL', 'CU', 'FK', 'SV', 'CT'].includes(pt.id) ? .07 : 0) + (mov - 1) * .1 + od * .35 + Math.max(0, Math.abs(pt.fx) - ZW) * .15, 0, .65);
   const Qe = clamp(Q - hard * .45 + (skill - .6) * .25 + gauss() * .05 * mv, 0, 1);
-  const mk = (extra) => Object.assign({ kind: 'hit', Q: Qe, bunt: true, sneak, dt, d, R: R0, s, v: 0, bp: 0, spinB: -.3, spinS: 0, hz, px: bxp, py: byp, pz: sw.auto ? sw.bz : -.05 }, extra);
+  const mk = (extra) => Object.assign({ kind: 'hit', Q: Qe, bunt: true, sneak, dt, d, R: R0, s, v: 0, bp: 0, spinB: -.3, spinS: 0, hz, px: bxp, py: byp, pz: bq.z }, extra);
   // 擦棒／球棒邊緣：容易變成界外球（二好球時＝三振）
   if (Qe < .2 && Math.random() < .55 + (1 - skill) * .35) { const dir = (hz * side >= 0 ? 1 : -1) * (Math.random() < .7 ? 1 : -1); return mk({ ev: 2 + Math.random() * 3, ang: 8 + Math.random() * 28, th: dir * (52 + Math.random() * 40), luck: gauss() * .5, tip: true }); }
   if (Qe < .08 && Math.random() < (1 - skill) * .6) return { kind: 'whiff', dt, d, R: R0 };            // 完全沒碰準（球從棒下／上擦過）
@@ -1514,7 +1542,7 @@ function idleFace(f) { if (f.rig.run === 0 && PL === null) { const t = G.phase =
 function launchBall(res, pt) {
   const a = res.ang * Math.PI / 180, th = res.th * Math.PI / 180;
   const v0 = new V3(res.ev * Math.cos(a) * Math.sin(th), res.ev * Math.sin(a), -res.ev * Math.cos(a) * Math.cos(th));
-  const p0 = res.px !== undefined ? new V3(clamp(res.px * .9, -1.6, 1.6), clamp(res.py, .25, 1.9), clamp(res.pz, -1, .05)) : new V3(pt ? clamp(pt.fx * .9, -1.6, 1.6) : 0, pt ? clamp(pt.fy, .25, 1.9) : .95, -0.05);
+  const p0 = res.px !== undefined ? new V3(clamp(res.px, -1.6, 1.6), clamp(res.py, .25, 1.9), clamp(res.pz, -1.2, .05)) : new V3(pt ? clamp(pt.fx * .9, -1.6, 1.6) : 0, pt ? clamp(pt.fy, .25, 1.9) : .95, -0.05);
   const env = ballEnv(res), sim = simulateBall(p0, v0, 12, env), cl = classifyBatted(sim);
   const hang = (() => { let m = 0; for (const s of sim.S) if (s.y > m) m = s.y; return m; })();
   const kind = res.bunt ? 'bunt' : res.ang < 8 ? 'gb' : res.ang < 20 ? (hang < 9 ? 'ld' : 'fb') : res.ang < 42 ? 'fb' : 'pu';
@@ -1755,7 +1783,7 @@ function ballETA(b) {
   return 2.2 + dist2(PL.loose ? PL.loose.x : 0, PL.loose ? PL.loose.z : 0, B.x, B.z) / 28;
 }
 function holderThink(f) {
-  if (!PL || PL.state !== 'held' || PL.holder !== f) return;
+  if (!PL || PL.state !== 'held' || PL.holder !== f || PL.tagChase) return;
   const runners = E.runners.filter(r => r.state === 'run');
   let best = null;
   for (const r of runners) {
@@ -1774,9 +1802,61 @@ function holderThink(f) {
   }
   if (!best) { return; }
   if (humanDef() && !PL.done) { openAsk(f, best, best); return; }
+  { const tg = bestTagChase(f); if (tg && aiPrefersTag(f, best, tg)) { startTagChase(f, tg.r); return; } }
   // 第一優先：把球傳到需要防守的壘包（來不及阻殺也要傳，牽制跑者、不讓其他跑者多跑）；遠處野手由中繼員接力
   if (best.self) { f.tx = baseSpot(best.b).x; f.tz = baseSpot(best.b).z; f.sp = fspeed(f) * 1.05; f.selfTag = best.b; f.hold = 0; PL.selfTag = f; return; }
   throwTo(f, best.recv, best.b, best);
+}
+/* ---------------- 野手持球直接用身體觸殺跑者 ---------------- */
+function runnerTaggable(r) {
+  if (!r || r.state !== 'run' || r.sliding) return false;
+  if (r.bat && r.from === 0) return r.pre <= 0 && r.s < .985;
+  if (r.pre > 0) return false;
+  return r.dir > 0 ? (r.s > .03 && r.s < .985) : (r.s > .015 && r.s < .985);
+}
+function runnerFuture(r, t) { const s1 = clamp(r.s + r.dir * r.spd * t / BASE_LEN, 0, 1), a = baseSpot(r.from), b = baseSpot(r.to); return { x: lerp(a.x, b.x, s1), z: lerp(a.z, b.z, s1) }; }
+function bestTagChase(f, loose) {          // 持球者能否在跑者到壘前追上並觸殺？回傳最有把握的那位
+  if (!PL || !f) return null; const sp = fspeed(f) * 1.05, lag = (f.hold > 0 ? f.hold : 0) + .12; let best = null, near = null;
+  for (const r of E.runners) {
+    if (!runnerTaggable(r)) continue; runnerXZ(r, _rp);
+    const dNow = dist2(f.x, f.z, _rp.x, _rp.z), tArr = (r.dir > 0 ? 1 - r.s : r.s) * BASE_LEN / r.spd;
+    if (!near || dNow < near.dist) near = { r, tI: tArr, margin: 0, dist: dNow };
+    if (tArr < .25) continue;
+    for (let t = .12; t <= tArr - .08; t += .08) { const q = runnerFuture(r, t); if (dist2(f.x, f.z, q.x, q.z) / sp + lag <= t) { const m = tArr - t; if (!best || m > best.margin) best = { r, tI: t, margin: m, dist: dNow }; break; } }
+  }
+  return best || (loose ? near : null);
+}
+function aiPrefersTag(f, best, tg) {       // 電腦自行判斷：直接追人觸殺，還是傳球給壘包上的守備員
+  const N = lvl().noise, thr = best.margin;
+  if (best.tb === 4 && best.r !== tg.r && best.margin > -.4) return false;
+  if (best.r === tg.r && thr > .35 && tg.dist > 3.5) return false;
+  const score = tg.margin + (tg.dist < 6 ? (6 - tg.dist) * .04 : 0) + gauss() * .07 * N;
+  return score > .1 && (thr < .25 || tg.dist < 5.5 || tg.margin > thr);
+}
+function startTagChase(f, r) {
+  PL.tagChase = { f, r, t: 0 }; f.hold = 0; f.wait = 0; f.sp = fspeed(f) * 1.08; f.chaser = false; f.hasBall = true; f.selfTag = null; PL.selfTag = null;
+  say(`${POS_FULL[f.pos]}${f.pl.name}拿著球直接追向 <em>${r.pl.name}</em>，要用身體觸殺！`);
+}
+function endTagChase(think) {
+  const tc = PL && PL.tagChase; if (!tc) return; PL.tagChase = null; const f = tc.f; f.tx = f.x; f.tz = f.z;
+  if (think) after(.12, () => { if (PL && PL.state === 'held' && PL.holder === f && G.outs < 3) holderThink(f); });
+}
+function updateTagChase(dt) {
+  const tc = PL.tagChase; if (!tc) return; const f = tc.f, r = tc.r; tc.t += dt;
+  if (PL.holder !== f || !runnerTaggable(r) || G.outs >= 3 || tc.t > 7) { endTagChase(true); return; }
+  runnerXZ(r, _rp); const d = dist2(f.x, f.z, _rp.x, _rp.z), tl = clamp(d / (fspeed(f) * 1.08), 0, 1.2), q = runnerFuture(r, tl * .9);
+  f.tx = q.x; f.tz = q.z; f.sp = fspeed(f) * 1.08; f.hold = 0; f.wait = 0;
+}
+function tagCheck() {                      // 持球野手身體碰到跑者（跑者不在壘包上）＝觸殺出局
+  const f = PL.holder; if (!f || PL.pick || PL.foul || G.outs >= 3) return;
+  for (const r of E.runners) {
+    if (!runnerTaggable(r)) continue; runnerXZ(r, _rp);
+    if (dist2(f.x, f.z, _rp.x, _rp.z) < .85) {
+      if (!r.bat) r.isForce = false; tagAnim(f); putOut(r, 'tag');
+      say(`${POS_FULL[f.pos]}${f.pl.name}直接用手套觸殺！<em>${r.pl.name}</em>出局！`); toast('觸殺！', '#fff', '#e22');
+      if (PL.tagChase && PL.tagChase.r === r) endTagChase(true); break;
+    }
+  }
 }
 function nearestCover(x, z, except) {      // 補位人選：排除正在追球的野手
   let b = null, bd = 1e9; for (const f of Object.values(E.F)) { if (f === except || f.chaser || (PL && PL.looseF === f)) continue; const d = dist2(f.x, f.z, x, z); if (d < bd) { bd = d; b = f; } }
@@ -1913,6 +1993,7 @@ function updatePlay(dt) {
     if (PL.pick) { PL.pick.t += dt; const k = clamp(PL.pick.t / PL.pick.dur, 0, 1); by = lerp(.14, 1.25, k * k); bz = f.z + lerp(.5, .2, k); if (k >= 1) PL.pick = null; }
     setBall({ x: f.x, y: by, z: bz }, true);
     if (PL.ask) askUpdate(dt);
+    if (PL.tagChase) updateTagChase(dt); tagCheck();
     if (PL.selfTag === f && dist2(f.x, f.z, f.tx, f.tz) < .4) {
       const b = f.selfTag; PL.selfTag = null; f.selfTag = null; const b4 = b === 0 ? 4 : b;
       for (const r of E.runners.slice()) { if (r.state === 'run' && r.dir > 0 && r.to === b4 && r.s < .985) { tagAnim(f); putOut(r, 'force'); } }
@@ -1944,6 +2025,10 @@ function runnersThink(dt) {
   for (const r of rs) {
     if (r.from < 1 && !r.bat && r.state !== 'run') continue;
     if (PL.caught && (r.tag || r.dir < 0 || r.state === 'on')) continue;
+    if (PL.tagChase && PL.tagChase.r === r && r.state === 'run' && r.dir > 0 && !r.isForce && !r.bat && r.from >= 1 && r.s < .6) {      // 被追的非強迫跑者：有機會折返原壘
+      PL.revd = PL.revd || new Set(); const cf = PL.tagChase.f; runnerXZ(r, _rp);
+      if (!PL.revd.has(r) && dist2(cf.x, cf.z, _rp.x, _rp.z) < 7 && baseFree(r.from, r)) { PL.revd.add(r); if (Math.random() < .5 + G.lv * .1) { r.dir = -1; r.goal = r.from; continue; } }
+    }
     const frac = r.state === 'run' ? r.s : 0;
     const base = r.state === 'run' ? r.to : r.from + 1;
     const dirNow = r.state === 'run' ? r.dir : 1;
@@ -1982,7 +2067,7 @@ function checkPlayEnd() {
   if (!PL) return;
   if (G.outs >= 3 && PL.state !== 'flight') { if (!PL.ending) { PL.ending = true; after(.8, () => endPlay()); } return; }
   const moving = E.runners.some(r => r.state === 'run');
-  if ((PL.state === 'held' || PL.state === 'hrdone') && !moving && !PL.selfTag && PL.tAge > .3) {
+  if ((PL.state === 'held' || PL.state === 'hrdone') && !moving && !PL.selfTag && !PL.tagChase && PL.tAge > .3) {
     if (!PL.ending) { PL.ending = true; after(PL.state === 'hrdone' ? .9 : .35, () => endPlay()); }
   }
   if (PL.tAge > 40 && !PL.ending) { PL.ending = true; endPlay(); }
@@ -2019,9 +2104,10 @@ function openAsk(f, best, auto) {
   const tp = $('throwPanel'); tp.classList.remove('hide');
   const pos = { 0: [50, 84], 1: [84, 50], 2: [50, 16], 3: [16, 50] };
   let h = '<svg viewBox="0 0 100 100"><polygon points="50,16 84,50 50,84 16,50" fill="none" stroke="#fff" stroke-width="2"/></svg><div class="tt">傳往哪個壘包？</div><div class="tbar"><i id="tAskBar"></i></div>';
+  if (bestTagChase(f, true)) h += '<div class="tb" data-b="tag" style="left:50%;top:50%">追人<small>T</small></div>';
   for (const b of [2, 3, 1, 0]) h += `<div class="tb" data-b="${b}" style="left:${pos[b][0]}%;top:${pos[b][1]}%">${BASE_NAME[b]}<small>${b === 0 ? '4' : b}</small></div>`;
   tp.innerHTML = h;
-  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); humanThrow(+el.dataset.b); }; el.addEventListener('pointerdown', go); });
+  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); humanThrow(el.dataset.b === 'tag' ? 'tag' : +el.dataset.b); }; el.addEventListener('pointerdown', go); });
   askMark();
 }
 function askMark() {
@@ -2041,7 +2127,7 @@ function execThrow(f, b, info) {
   if (cov === f) { f.tx = spot.x; f.tz = spot.z; f.sp = fspeed(f) * 1.05; f.selfTag = b; f.hold = 0; PL.selfTag = f; return; }
   throwTo(f, cov || nearestFielderTo(spot.x, spot.z, f), b, info || {});
 }
-function humanThrow(b) { if (!PL || !PL.ask) return; const f = PL.ask.f; closeAsk(); execThrow(f, b, {}); }
+function humanThrow(b) { if (!PL || !PL.ask) return; const f = PL.ask.f; closeAsk(); if (b === 'tag') { const tg = bestTagChase(f, true); if (tg) startTagChase(f, tg.r); return; } execThrow(f, b, {}); }
 function clearPlay() { const tp = document.getElementById('throwPanel'); if (tp) tp.classList.add('hide'); PL = null; for (const f of Object.values(E.F)) { f.hasBall = false; f.chaser = false; f.dive = false; f.divePlayed = f.divePlayed2 = f.fdPlayed = false; f.selfTag = null; f.hold = 0; f.wait = 0; f.v = 0; } }
 
 /* =====================================================================
@@ -2183,7 +2269,7 @@ function aiBatPlan(pt, b) {
   // bunt ?
   if (G.callBunt) {
     const noise = (.26 - b.bunt * .0018) * N * .8;
-    return { swing: true, bunt: true, tc: pt.T - SWING_DELAY + gauss() * .02 * N, cx: pt.fx + gauss() * noise, cy: pt.fy + gauss() * noise, power: false, take: od > .25 };
+    return { swing: true, bunt: true, tc: pt.T - .01 + gauss() * .02 * N, cx: pt.fx + gauss() * noise, cy: pt.fy + gauss() * noise, power: false, take: od > .25 };
   }
   let p;
   if (od < -.2) p = .6; else if (od < 0) p = .46; else if (od < .15) p = .38; else if (od < .35) p = .14; else p = .04;
@@ -2216,7 +2302,7 @@ function aiBatPlan(pt, b) {
     else if (sit[0] && out < 2 && !sit[1]) cy += shift * .22;            // avoid DP (hit it in the air)
     else if (sit[0] && out < 2) cy -= shift * .15;
   }
-  let tc = pt.T - SWING_DELAY + gauss() * (.011 + (100 - b.eye) * .00035) * N * (match ? .65 : (guess ? 1.0 : .9)) * (1 - Math.min(.25, G.seq.length * .06 * L.learn));      // 看過幾球後，時機掌握越來越準
+  let tc = pt.T - .012 + gauss() * (.011 + (100 - b.eye) * .00035) * N * (match ? .65 : (guess ? 1.0 : .9)) * (1 - Math.min(.25, G.seq.length * .06 * L.learn));      // 看過幾球後，時機掌握越來越準
   if (guess && !match) tc += (guess === 'ST' ? 1 : -1) * (pt.id === 'ST' ? 0 : .03) * (guess === 'ST' && pt.id !== 'ST' ? -1 : 1) * -.6 * N;
   if (L.learn > .5) {                                                    // spray intent
     const s = E.bat.side;
@@ -2585,7 +2671,7 @@ function toast(text, c1, c2) {
 }
 function showSpeed(kmh, name, col) {      // 球速／球路：小型膠囊，位置依「投手／打者資訊列」實際高度往下排，不遮擋上方介面
   const s = $('spd'), pi = MOB ? $('topbar') : $('pinfo'); s.innerHTML = kmh + '<small>km/h</small> <small style="color:' + (col || '#fff') + '">' + name + '</small>';
-  const bt = pi ? pi.getBoundingClientRect().bottom : 0, hh = window.innerHeight; s.style.top = Math.round(Math.min(Math.max(bt + 6, hh * .1), hh * .3)) + 'px';
+  const bt = pi ? pi.getBoundingClientRect().bottom : 0, hh = VH(); s.style.top = Math.round(Math.min(Math.max(bt + 6, hh * .1), hh * .3)) + 'px';
   s.style.opacity = 1; clearTimeout(showSpeed.t); showSpeed.t = setTimeout(() => s.style.opacity = 0, 1700);
 }
 function flashScreen(a) { const f = $('flash'); f.style.transition = 'none'; f.style.opacity = a || .5; void f.offsetWidth; f.style.transition = 'opacity .5s'; f.style.opacity = 0; }
@@ -3151,7 +3237,7 @@ function updateModelAfterRelease(pt) { updatePitcherModel(pt, curBatter()); }
 function startSwing(pt, sw) {
   pt.sw = Object.assign({ tc: pt.t + SWING_DELAY }, sw); if (sw.tc !== undefined) pt.sw.tc = sw.tc;
   const rig = E.bat.rig; if (sw.bunt) { rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } }; }
-  else { rig.anim = { name: 'swing', t: 0, dur: SWING_DELAY / .42, opt: {} }; flowSfx('swing'); }
+  else { rig.anim = { name: 'swing', t: .14 * .175, dur: .175, opt: {} }; flowSfx('swing'); }
 }
 const _pp = new V3();
 // 各球種視覺：軌跡長度/亮度(n,op)、旋轉轉速(rps：x=前後旋 y=側旋 z=子彈旋)、變化點閃光位置(flash：飛行進度)
@@ -3166,12 +3252,14 @@ function pitchFx(pt) {
 function updateFlight(dt) {
   const pt = PT; if (!pt || pt.done) return;
   pt.t += dt;
-  if (pt.sw ? pt.t <= pt.T + .14 : pt.t <= pt.T) { pitchPos(pt, pt.sw ? pt.t : Math.min(pt.t, pt.T), _pp); setBall(_pp, true, pt.spec.col, pt.tfx || TFX[pt.id]); pt.pos = _pp; pitchFx(pt); }   // 沒揮棒：球停在真正的進壘點，不再外插下滑
+  const tEnd = pt.hitBatter ? pt.T : pt.T + pt.tm;
+  if (!pt.cprep && pt.t > pt.T * .5 && E.F.C) { pt.cprep = true; const C = E.F.C; C.tx = clamp(pt.fx, -1.9, 1.9); C.tz = C.z; C.sp = 9; C.wait = 0; }
+  if (pt.t <= tEnd) { pitchPosEx(pt, pt.t, _pp); setBall(_pp, true, pt.spec.col, pt.tfx || TFX[pt.id]); pt.pos = _pp; pitchFx(pt); }   // 沒揮棒：球停在真正的進壘點，不再外插下滑
   if (pt.plan && pt.plan.swing && !pt.sw && pt.t >= pt.plan.tc - SWING_DELAY) startSwing(pt, { tc: pt.plan.tc, cx: pt.plan.cx, cy: pt.plan.cy, power: pt.plan.power, bunt: pt.plan.bunt });
-  if (pt.waitCatch) { if (pt.t >= pt.T) { pt.waitCatch = false; pt.done = true; flowSfx('mitt'); catcherCatch(pt); pitchResult('swing'); } return; }
+  if (pt.waitCatch) { if (pt.t >= tEnd) { pt.waitCatch = false; pt.done = true; flowSfx('mitt'); catcherCatch(pt); pitchResult('swing'); } return; }
   if (!pt.sw && G.callBunt && humanBats() && G.human >= 0 && !pt.hitBatter && pt.t >= pt.T * .6 && autoBuntContact(pt)) return;     // 玩家短打：不用再按揮擊鍵，球碰到棒子（圈子）就短打出去
   if (pt.sw && !pt.sw.done && pt.t >= pt.sw.tc) { pt.sw.done = true; handleSwing(pt); return; }
-  if (!pt.sw && pt.t >= pt.T) { pt.done = true; takePitch(pt); }
+  if (!pt.sw && pt.t >= tEnd) { pt.done = true; takePitch(pt); }
 }
 function autoBuntContact(pt) {              // 球進入球棒可觸及的範圍（本壘前方～壘板上方），且落在棒子圈內 → 立刻短打
   const bp = pt.pos || _pp; if (!bp || bp.z < -1.0 || bp.z > .25) return false;                       // 球棒觸及深度：本壘板前方約 1 公尺內
@@ -3199,7 +3287,7 @@ function handleSwing(pt) {
   hitSfx(res);
   CAMC.shake = clamp(res.Q * .3, 0, .25);
   G.lastPitch = pt; G.seq.push(pt.id);
-  spawnBurst(clamp(pt.fx * .9, -1.6, 1.6), clamp(pt.fy, .3, 1.9), .15, .9 + res.Q * 1.6);
+  spawnBurst(clamp(res.px, -1.6, 1.6), clamp(res.py, .3, 1.9), .15, .9 + res.Q * 1.6);
   if (!res.bunt) hitStop(res.Q > .7 ? .13 : res.Q > .4 ? .09 : .05);
   if (res.Q > .7 && !res.bunt) adjustMood(b, .8);
   launchBall(res, pt);
@@ -3218,11 +3306,11 @@ function takePitch(pt) {
   absFlow(pt, call, k => pitchResult(k));
 }
 function catcherCatch(pt, hbp) {
-  const C = E.F.C, bx = hbp ? E.bat.x : pt.fx * .5;
+  const C = E.F.C, bx = hbp ? E.bat.x : pt.fx * .5, a0 = ballMesh.visible ? { x: ballMesh.position.x, y: ballMesh.position.y, z: ballMesh.position.z } : { x: pt.fx, y: pt.fy, z: 0 };
   const wild = !hbp && !pt.ibb && !pt.pitchout && G.on.some(x => x) && (Math.abs(pt.fx) > ZW + 1.25 - rainK() * .5 || pt.fy < ZC - ZH - .95 + rainK() * .3) && Math.random() < .28 * (1.25 - (C.pl.fld || 60) / 100 * .9) * (1 + rainK() * 1.8);
   pt.wild = wild; G.lastPitch = pt; if (!G.seq.length || G.seq[G.seq.length - 1] !== pt.id || true) { if (!hbp) G.seq.push(pt.id); }
-  if (wild) { C.rig.anim = { name: 'down', t: 0, dur: .6, opt: {} }; flowSfx('bounce'); ballTween({ x: pt.fx, y: pt.fy, z: 0 }, { x: pt.fx * 2.2, y: .2, z: 12 }, .6, 1.2); }
-  else { C.x = clamp(pt.fx, -1.9, 1.9); C.tx = C.x; C.tz = C.z; C.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; flowSfx('mitt', .8); (E.runners.some(r => r.state === 'run') ? ballTween({ x: pt.fx, y: pt.fy, z: 0 }, { x: pt.fx, y: Math.max(.3, pt.fy), z: C.z - .3 }, .09, 0) : ballTween({ x: pt.fx, y: pt.fy, z: 0 }, { x: pt.fx, y: Math.max(.25, pt.fy), z: C.z - .25 }, .06, 0, () => setBall({ x: 0, y: 0, z: 0 }, false))); spawnBurst(clamp(pt.fx, -1.9, 1.9), Math.max(.3, pt.fy), .35, clamp((pt.kmh - 118) * .022, .22, .9), '#ffe9a0'); if (pt.kmh >= 148) CAMC.shake = Math.max(CAMC.shake || 0, .05 + (pt.kmh - 148) * .008); }   // 手套就在球的落點接球
+  if (wild) { C.rig.anim = { name: 'down', t: 0, dur: .6, opt: {} }; flowSfx('bounce'); ballTween(a0, { x: pt.fx * 2.2, y: .2, z: 12 }, .6, 1.2); }
+  else { C.x = clamp(pt.fx, -1.9, 1.9); C.tx = C.x; C.tz = C.z; C.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; flowSfx('mitt', .8); (E.runners.some(r => r.state === 'run') ? ballTween(a0, { x: pt.fx, y: Math.max(.3, pt.fy), z: C.z - .3 }, .09, 0) : ballTween(a0, { x: pt.fx, y: Math.max(.25, pt.fy), z: C.z - .25 }, .06, 0, () => setBall({ x: 0, y: 0, z: 0 }, false))); spawnBurst(clamp(pt.fx, -1.9, 1.9), Math.max(.3, pt.fy), .35, clamp((pt.kmh - 118) * .022, .22, .9), '#ffe9a0'); if (pt.kmh >= 148) CAMC.shake = Math.max(CAMC.shake || 0, .05 + (pt.kmh - 148) * .008); }   // 手套就在球的落點接球
 }
 function pitchResult(kind) {
   const b = curBatter(); G.phase = 'result'; let end = null; { const pp = curPitcher(); if (kind === 'strikeLook') { adjustMood(pp, .8); adjustMood(b, -.5); } else if (kind === 'swing') { adjustMood(pp, 1); adjustMood(b, -1); } else if (kind === 'ball') { adjustMood(pp, -.5); adjustMood(b, .3); } }
@@ -3535,7 +3623,7 @@ function coverSteal(idxs) {               // 盜壘起跑時，負責補位的�
   }
 }
 function drawRain(c, W, H) {            // 雨量依強度非線性：毛毛雨只有稀疏細絲，小雨略多，大雨/暴雨才密集
-  const r = rainK(); if (r < .03) return; const dpr = W / window.innerWidth, wind = (G.wx.spd || 0) * .6 + 2;
+  const r = rainK(); if (r < .03) return; const dpr = W / VW(), wind = (G.wx.spd || 0) * .6 + 2;
   const n = Math.floor(5 + 380 * Math.pow(r, 1.6)), len = (7 + r * 26) * dpr;
   c.fillStyle = `rgba(12,24,44,${(r * .15).toFixed(3)})`; c.fillRect(0, 0, W, H);
   c.strokeStyle = `rgba(205,228,255,${(.12 + r * .42).toFixed(2)})`; c.lineWidth = (.7 + r * 1.1) * dpr; c.beginPath();
@@ -3718,7 +3806,7 @@ const aim = { need: true, x: 0, y: ZC, cx: 0, cy: 0, has: false, shift: false };
 const _v = new V3(), _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2();
 function w2s(x, y, z) { _v.set(x, y, z).project(camera); return { x: (_v.x * .5 + .5) * ov.width, y: (-_v.y * .5 + .5) * ov.height }; }
 function pointerToZone(cx, cy) {
-  _ndc.set(cx / window.innerWidth * 2 - 1, -(cy / window.innerHeight * 2 - 1)); _ray.setFromCamera(_ndc, camera);
+  _ndc.set(cx / VW() * 2 - 1, -(cy / VH() * 2 - 1)); _ray.setFromCamera(_ndc, camera);
   const o = _ray.ray.origin, d = _ray.ray.direction; if (Math.abs(d.z) < 1e-5) return null; const t = -o.z / d.z; if (t < 0) return null;
   return { x: o.x + d.x * t, y: o.y + d.y * t };
 }
@@ -3741,7 +3829,7 @@ function drawOverlay() {
   if (G.mode === 'play') { drawSky(octx, ov.width, ov.height); drawRain(octx, ov.width, ov.height); }
   if (G.mode !== 'play' || !(G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight' || G.phase === 'result' || G.phase === 'abs')) return;
   const hb = humanBats(), hp = humanPitches(); const trk = G.lastLoc && G.lastLoc.t < 3; if (G.human < 0 && !trk) return;
-  const dpr = ov.width / window.innerWidth, c = octx;
+  const dpr = ov.width / VW(), c = octx;
   const tl = w2s(-ZW, ZC + ZH, 0), tr = w2s(ZW, ZC + ZH, 0), bl = w2s(-ZW, ZC - ZH, 0), br = w2s(ZW, ZC - ZH, 0);
   const b = curBatter();
   // heat cells
@@ -3781,10 +3869,10 @@ function humanAction() {
   if (G.mode !== 'play') return;
   if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { updateAim(); doPitch({ id: G.selPitch, x: aim.x, y: aim.y }); }
-  else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
-    updateAim(); let R = cursorR(), cx = aim.x, cy = aim.y;
-    if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); cx = PT.fx + gauss() * n; cy = PT.fy + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
-    startSwing(PT, { tc: PT.t + SWING_DELAY, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
+  else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + .02) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
+    updateAim(); const pTc = PT.t + clamp((performance.now() - lastT) / 1000, 0, .03) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
+    if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); cx = bq0.x + gauss() * n; cy = bq0.y + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
+    startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
   }
 }
 function toGame() {
@@ -3805,7 +3893,7 @@ wrap.addEventListener('pointermove', e => {
   if (e.pointerType === 'mouse') { aim.mx = e.clientX; aim.my = e.clientY; if (aim.lm) { if (Math.hypot(e.clientX - aim.lm.x, e.clientY - aim.lm.y) < 10) return; aim.lm = null; } aim.has = true; aim.cx = e.clientX; aim.cy = e.clientY; aim.shift = e.shiftKey || keyShift; return; }
   if (!tpt || e.pointerId !== tpt.id) return;
   const dx = e.clientX - tpt.x, dy = e.clientY - tpt.y; tpt.x = e.clientX; tpt.y = e.clientY; tpt.moved += Math.abs(dx) + Math.abs(dy); tpt.ox = clamp(tpt.ox + dx * .5, -40, 40); tpt.oy = clamp(tpt.oy + dy * .5, -40, 40); padHint(tpt.ox, tpt.oy, true);
-  aim.cx = clamp(aim.cx + dx * 1.25, 0, window.innerWidth); aim.cy = clamp(aim.cy + dy * 1.25, 0, window.innerHeight); aim.has = true;
+  aim.cx = clamp(aim.cx + dx * 1.25, 0, VW()); aim.cy = clamp(aim.cy + dy * 1.25, 0, VH()); aim.has = true;
 });
 const endTouch = e => { if (!tpt || e.pointerId !== tpt.id) return; const tap = tpt.moved < 12 && performance.now() - tpt.t0 < 280; tpt = null; padHint(0, 0, false); if (tap && G.mode === 'play' && e.type === 'pointerup') humanAction(); };
 wrap.addEventListener('pointerup', endTouch); wrap.addEventListener('pointercancel', endTouch);
@@ -3813,7 +3901,7 @@ wrap.addEventListener('pointerup', endTouch); wrap.addEventListener('pointercanc
 if (IS_TOUCH) document.body.classList.add('touch');
 function padHint(x, y, act) { const pad = $('movePad'), th = $('movePadT'); if (!pad) return; pad.classList.toggle('act', !!act); th.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`; }
 function recenterAim() {            // 換打者：準心回到好球帶正中央
-  const w = window.innerWidth, h = window.innerHeight, tc = new THREE.PerspectiveCamera(CAMC.tfov, w / h, camera.near, camera.far);
+  const w = VW(), h = VH(), tc = new THREE.PerspectiveCamera(CAMC.tfov, w / h, camera.near, camera.far);
   tc.position.copy(CAMC.tpos); tc.lookAt(CAMC.tlook); tc.updateMatrixWorld(); tc.updateProjectionMatrix();
   const v = new THREE.Vector3(0, ZC, 0).project(tc);
   aim.cx = (v.x * .5 + .5) * w; aim.cy = (-v.y * .5 + .5) * h; aim.x = 0; aim.y = ZC; aim.has = true;
@@ -3839,6 +3927,7 @@ window.addEventListener('keydown', e => {
   if (EV.brawl) { if (e.code === 'Space') { registerMash(); e.preventDefault(); } return; }
   if (EV.abs) { const k = e.key.toLowerCase(); if (EV.abs.protest ? k === 'r' : k === 'c') { absResolveInput(true); e.preventDefault(); return; } if (e.code === 'Space' || k === 'escape') { absResolveInput(false); e.preventDefault(); return; } }
   if (!EV.abs && G.absPend && e.key.toLowerCase() === 'c') { runPend(); e.preventDefault(); return; }
+  if (PL && PL.ask && /^[tT]$/.test(e.key)) { humanThrow('tag'); e.preventDefault(); return; }
   if (PL && PL.ask && /^[0-4]$|^[hH]$/.test(e.key)) { humanThrow(/^[hH0]$/.test(e.key) ? 0 : +e.key === 4 ? 0 : +e.key); e.preventDefault(); return; }
   if (e.code === 'Space') { humanAction(); e.preventDefault(); }
   else if (/^[1-8]$/.test(e.key) && humanPitches() && G.phase === 'pre') { const p = curPitcher().pitches[+e.key - 1]; if (p) { G.selPitch = p.id; buildPitchPanel(); } }
@@ -3903,7 +3992,8 @@ const LV_DESC = ['<b>弱</b>　電腦反應較慢、容易失誤，適合新手�
 function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = (LV_DESC[v] || '') + (CFG.easy ? '<br><b>簡易模式</b>　打擊只要抓時機按「揮棒」、不用瞄準；守備由電腦自動傳球補位' : ''); e.dataset.lv = v; } }
 setLvDesc(CFG.lv);
 document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv' || k === 'easy') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
-$('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return e && e.teamId === id ? e : null; }); newGame(c); };
+function launchGame() { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return e && e.teamId === id ? e : null; }); $('lineup').classList.add('hide'); newGame(c); }
+$('startBtn').onclick = () => { sndInit(); openLineup(); };
 /* =====================================================================
    賽前編成：守備位置／打擊順序／先發投手（中職真實名單）＋ 比賽中守備調整
    ===================================================================== */
@@ -3927,7 +4017,7 @@ function renderLineup() {
   const el = $('lineup'), ti = ED_TAB.v, ed = edEnsure(ti), def = TEAMS[ti ? CFG.home : CFG.away], D = CPBL[def.id], pool = edPool(def.id);
   const names = Object.keys(pool), bench = names.filter(n => ed.order.indexOf(n) < 0);
   const mine = CFG.side === ti;
-  let h = `<div class="lu-card"><div class="lu-h"><b>🧢 球員編成</b><button type="button" id="luX" class="lu-x">✕</button></div>
+  let h = `<div class="lu-card"><div class="lu-h"><b>🧢 賽前編成</b><button type="button" id="luX" class="lu-x" title="返回比賽設定">✕</button></div>
   <div class="lu-tabs">${[0, 1].map(i => { const d = TEAMS[i ? CFG.home : CFG.away]; return `<button type="button" class="lu-tab${i === ti ? ' on' : ''}" data-t="${i}" style="border-bottom-color:${d.c1}">${i ? '主隊' : '客隊'}・${d.short}${CFG.side === i ? ' ★' : ''}</button>`; }).join('')}</div>
   <div class="lu-tip">${mine ? '這是你操控的隊伍。' : (CFG.side === 2 ? '觀戰模式：兩隊都可調整。' : '這是電腦隊，也可以調整。')}選擇球員或守位若與其他列重複，會自動與該列互換。非本位守備的球員，守備範圍與傳球能力會依適性折減。</div>
   <div class="lu-sec">打擊順序與守備位置（真實 2026 名單）</div>`;
@@ -3947,17 +4037,18 @@ function renderLineup() {
   <b>投手</b>：球速與球種等級（Lv）決定位移幅度與尾勁；控球決定落點散布與暴投率；體力（球數）→疲勞→控球與球威下降；左投牽制一壘更有威脅。<br>
   <b>守備</b>：守＝反應時間、跑速、飛撲成功率與失誤率；肩＝傳球速度與暴傳率；捕手守備值也影響邊角球被判好球的機率；非本位球員依適性折減。<br>
   <b>心情</b>：越高越穩定並有最多 ±4.5% 加成，低落則表現更不可控。</div></details>
-  <div class="lu-btns"><button type="button" id="luReset" class="pillb">還原預設</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成</button></div></div>`;
+  <div class="lu-btns"><button type="button" id="luReset" class="pillb">還原預設</button><button type="button" id="luBack" class="pillb">← 返回設定</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成，開始遊戲 ▶</button></div></div>`;
   el.innerHTML = h;
 }
 (function () {
   const el = $('lineup'); let st = 0;
   const open = () => { ED_TAB.v = CFG.side === 1 ? 1 : 0; edEnsure(0); edEnsure(1); renderLineup(); el.classList.remove('hide'); el.scrollTop = 0; };
-  $('lineupBtn').addEventListener('click', e => { e.stopPropagation(); open(); });
+  window.openLineup = open;
   el.addEventListener('pointerdown', e => e.stopPropagation());
   el.addEventListener('click', e => {
     const t = e.target, ed = ED[ED_TAB.v]; if (!ed) return;
-    if (t.id === 'luX' || t.id === 'luDone') { el.classList.add('hide'); return; }
+    if (t.id === 'luX' || t.id === 'luBack') { el.classList.add('hide'); return; }
+    if (t.id === 'luDone') { launchGame(); return; }
     if (t.id === 'luReset') { ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
     if (t.dataset.t !== undefined && t.classList.contains('lu-tab')) { ED_TAB.v = +t.dataset.t; renderLineup(); return; }
     const sp = t.closest('[data-sp]'); if (sp) { ed.spIdx = +sp.dataset.sp; renderLineup(); return; }
@@ -4083,8 +4174,8 @@ function frame(now) {
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
   if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
   updateCamera(real, focus); camera.updateMatrixWorld(true);
-  if (G.mode === 'play' && aim.need && CAMC.mode === 'bat' && CAMC.pos.distanceTo(CAMC.tpos) < .4) { const a = w2s(0, ZC, 0), dp = ov.width / window.innerWidth; if (isFinite(a.x)) { aim.cx = a.x / dp; aim.cy = a.y / dp; aim.has = true; aim.need = false; } }      // 開賽／換半局：準心先置於好球帶中央，不必等第一球
-  if (PAD.v && G.mode === 'play') { const sp = 1.4 * Math.min(window.innerWidth, window.innerHeight) * real; aim.cx = clamp(aim.cx + PAD.v.vx * sp, 0, window.innerWidth); aim.cy = clamp(aim.cy + PAD.v.vy * sp, 0, window.innerHeight); aim.has = true; }
+  if (G.mode === 'play' && aim.need && CAMC.mode === 'bat' && CAMC.pos.distanceTo(CAMC.tpos) < .4) { const a = w2s(0, ZC, 0), dp = ov.width / VW(); if (isFinite(a.x)) { aim.cx = a.x / dp; aim.cy = a.y / dp; aim.has = true; aim.need = false; } }      // 開賽／換半局：準心先置於好球帶中央，不必等第一球
+  if (PAD.v && G.mode === 'play') { const sp = 1.4 * Math.min(VW(), VH()) * real; aim.cx = clamp(aim.cx + PAD.v.vx * sp, 0, VW()); aim.cy = clamp(aim.cy + PAD.v.vy * sp, 0, VH()); aim.has = true; }
   updateAim(); drawOverlay(); syncTouch(); if (MOB && (++_lt % 45) === 0) layoutTop();
   renderer.render(scene, camera);
 }
