@@ -139,7 +139,7 @@ body.touch #pitchPanel .pbtn span{display:none}
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 @media (max-height:520px),(max-width:900px){
  #throwPanel{width:min(40vh,210px);height:min(34vh,170px);bottom:calc(clamp(54px,9.5vh,92px) + 1vh)}.tb{border-width:2px;border-radius:10px}
- #pinfo{left:1vw;transform:none;gap:6px}.pbox{min-width:0;width:27vw;padding:3px 8px}.pbox .t{font-size:9px}.pbox .n{font-size:12px}.pbox .s{font-size:9px;white-space:normal;line-height:1.2}
+ #pinfo{left:1vw;transform:none;gap:6px}.pbox{min-width:0;width:fit-content;max-width:44vw;padding:3px 8px}.pbox .t{font-size:9px}.pbox .n{font-size:12px}.pbox .s{font-size:9px;white-space:normal;line-height:1.2}
  #bso{transform:scale(.82);transform-origin:top right;right:1vw;top:1vh}#sb{transform:scale(.85);transform-origin:bottom left}#toast{font-size:clamp(34px,9vw,80px)}
  .abtn{padding:6px 9px;font-size:11px}#pitchPanel{right:.8vw}.pbtn{min-width:104px;padding:5px 8px;font-size:11px}#caption .tx{font-size:clamp(13px,2.2vw,20px)}
 }
@@ -416,7 +416,7 @@ body.mob #outBanner .ob-s{font-size:13px}
 body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + env(safe-area-inset-right))!important}
 
 /* 左側半透明方向區：拖曳控制準心上下左右 */
-#movePad{display:none;left:calc(.3vw + env(safe-area-inset-left));bottom:calc(clamp(54px,9.5vh,92px) + 15vh);top:auto;width:min(24vh,118px);height:min(24vh,118px);border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.09),rgba(255,255,255,.03) 70%);pointer-events:none;touch-action:none;z-index:21;opacity:.5;transition:opacity .2s}
+#movePad{display:none;left:calc(env(safe-area-inset-left) * .2 - 14px);bottom:calc(clamp(54px,9.5vh,92px) + 15vh);top:auto;width:min(24vh,118px);height:min(24vh,118px);border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.09),rgba(255,255,255,.03) 70%);pointer-events:none;touch-action:none;z-index:21;opacity:.5;transition:opacity .2s}
 body.mob #movePad{bottom:calc(var(--cap) + 58px + 11vh);width:min(22vh,92px);height:min(22vh,92px)}
 body.touch #movePad.on{display:block}
 #movePad.act{opacity:.85}
@@ -424,6 +424,52 @@ body.touch #movePad.on{display:block}
 #movePad .u{left:50%;top:7%;transform:translateX(-50%)}#movePad .d{left:50%;bottom:7%;transform:translateX(-50%)}#movePad .l{left:8%;top:50%;transform:translateY(-50%)}#movePad .r{right:8%;top:50%;transform:translateY(-50%)}
 #movePad b{position:absolute;left:50%;top:50%;width:38%;height:38%;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%);pointer-events:none}
 #movePad span{position:absolute;left:50%;transform:translateX(-50%);top:-17px;text-align:center;font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.65);pointer-events:none;white-space:nowrap;text-shadow:0 1px 3px #000}
+
+/* ===== v3：選單質感背景／簡化設定、資訊欄依內容縮放 ===== */
+#menu{background:radial-gradient(1100px 520px at 50% -8%,rgba(72,176,124,.26),transparent 62%),radial-gradient(800px 480px at 105% 105%,rgba(52,110,200,.24),transparent 60%),radial-gradient(700px 400px at -5% 100%,rgba(255,200,90,.08),transparent 60%),repeating-linear-gradient(135deg,rgba(255,255,255,.022) 0 1px,transparent 1px 26px),linear-gradient(180deg,#0d1f27,#07111a)}
+#menu h2{background:linear-gradient(#fff1b8,#f2b53a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;letter-spacing:.12em;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+#menu .row.teams,#menu .adv,#menu>.row.opts{max-width:980px;margin:1.2vh auto;padding:14px 18px;border-radius:18px;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+#menu .adv .row.opts{margin:6px 0 0;gap:8px 22px}
+#menu .adv summary{color:#a9d9c4;letter-spacing:.2em;pointer-events:none}
+#menu .adv summary::after{content:''}
+#menu .col .lab{color:#a9d9c4}
+#menu .card{background:rgba(8,18,26,.72);border:1.5px solid rgba(255,255,255,.14);border-radius:12px;color:#f2f7f5}
+#menu .card.sel{border-color:#f4c64a;background:linear-gradient(rgba(244,198,74,.22),rgba(244,198,74,.08));box-shadow:0 0 0 1px rgba(244,198,74,.5),0 6px 18px rgba(0,0,0,.4);transform:scale(1.03)}
+#menu .opt b{color:#a9d9c4;font-size:13px;letter-spacing:.08em}
+#menu .pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);font-weight:700;padding:6px 14px;font-size:13px;color:#e8f2ee}
+#menu .pill.sel{background:linear-gradient(#f7d572,#e29a1c);color:#33200a;border-color:rgba(255,255,255,.35);box-shadow:0 2px 8px rgba(226,154,28,.35)}
+#menu .how{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);color:#d4e6de}
+#menu #startBtn{background:linear-gradient(#5fd98f,#1f9150);border:2px solid rgba(255,255,255,.75);text-shadow:0 2px 0 #0d5a2e;box-shadow:0 6px 0 #0f5a30,0 12px 24px rgba(0,0,0,.45)}
+#menu #startBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #0f5a30}
+body.mob #menu .row.teams,body.mob #menu .adv,body.mob #menu>.row.opts{padding:6px 8px;border-radius:12px;margin:5px 0}
+body.mob #menu #startBtn{box-shadow:0 4px 0 #0f5a30,0 6px 14px #000a}
+body.mob #menu::after{background:linear-gradient(#07111a00,#07111a 55%)}
+body.mob .adv summary{border:none;margin-top:0;padding:2px}
+.pbox{width:fit-content;max-width:min(34vw,320px)}
+.pbox .n,.pbox .s{text-wrap:balance}
+.mood .mb{flex:none;width:44px}
+body.mob #topbar .pbox{flex:0 1 auto;width:fit-content;max-width:calc(50% - 4px)}
+@media (orientation:portrait){body.mob #pBox,body.mob #bBox{justify-self:start}body.mob #topbar .pbox{max-width:100%}}
+
+/* ===== v4：難度說明、宗師樣式、更精緻的選單背景 ===== */
+#menu::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 55%,transparent 52%,rgba(0,0,0,.5) 100%),conic-gradient(from 168deg at 4% -6%,transparent 0 6%,rgba(255,236,190,.13) 9%,transparent 15%),conic-gradient(from 192deg at 96% -6%,transparent 0 6%,rgba(255,236,190,.13) 9%,transparent 15%),url("data:image/svg+xml;utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201200%20800'%20preserveAspectRatio='xMidYMax%20slice'%3E%3Cg%20fill='none'%20stroke='white'%20stroke-opacity='.075'%20stroke-width='2'%3E%3Cpath%20d='M600%20780%20L1010%20370%20L600%20-40%20L190%20370%20Z'/%3E%3Cpath%20d='M600%20780%20L1560%20-180%20M600%20780%20L-360%20-180'/%3E%3Ccircle%20cx='600'%20cy='370'%20r='40'/%3E%3Ccircle%20cx='600'%20cy='370'%20r='270'%20stroke-dasharray='3%2011'/%3E%3Cpath%20d='M600%20780%20m-16%200%20l16%20-16%20l16%2016%20l0%2012%20l-32%200%20z'/%3E%3Cpath%20d='M1010%20370%20m-12%20-12%20l12%20-12%20l12%2012%20l-12%2012%20z%20M600%20-40%20m-12%2012%20l12%2012%20l12%20-12%20l-12%20-12%20z%20M190%20370%20m-12%20-12%20l12%20-12%20l12%2012%20l-12%2012%20z'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat}
+#menu>*{position:relative;z-index:1}
+#menu h2{padding-bottom:.35em;margin-bottom:.5em}
+#menu h2::after{content:'';display:block;width:min(46vw,260px);height:2px;margin:.35em auto 0;background:linear-gradient(90deg,transparent,#f2c14e,transparent);border-radius:2px}
+#menu .row.teams,#menu .adv,#menu>.row.opts{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.03)}
+#menu .card{transition:transform .18s,box-shadow .18s,border-color .18s}
+#menu .card:hover{border-color:rgba(255,255,255,.4);transform:translateY(-2px)}
+#menu .card .sw{box-shadow:0 0 10px currentColor}
+#menu .pill{transition:background .15s,transform .15s}
+#menu .pill:hover{background:rgba(255,255,255,.14)}
+#menu .pill[data-k="lv"][data-v="3"]{border-color:rgba(255,122,90,.6);color:#ffd9cc;position:relative}
+#menu .pill[data-k="lv"][data-v="3"]::after{content:'MAX';position:absolute;right:-6px;top:-9px;font-size:9px;letter-spacing:.08em;padding:1px 5px;border-radius:6px;background:linear-gradient(#ff7a5a,#d8281a);color:#fff;font-weight:900}
+#menu .pill.sel[data-k="lv"][data-v="3"]{background:linear-gradient(#ff8a5e,#c8281c);color:#fff;border-color:rgba(255,255,255,.55);box-shadow:0 0 14px rgba(255,90,60,.55)}
+#menu .lvdesc{max-width:760px;margin:-2px auto 6px;text-align:center;font-size:12.5px;line-height:1.55;color:#c7e0d6;padding:0 12px}
+#menu .lvdesc b{color:#f6d36a;margin-right:.3em}
+#menu .lvdesc[data-lv="3"]{color:#ffd0c4}#menu .lvdesc[data-lv="3"] b{color:#ff9070}
+body.mob #menu .lvdesc{font-size:11px;line-height:1.4;margin:0 0 4px}
+body.mob #menu::before{background-size:cover}
 </style>
 </head>
 <body>
@@ -449,16 +495,17 @@ body.touch #movePad.on{display:block}
   <div class="row opts">
     <div class="opt"><b>操控</b><span class="pill sel" data-k="side" data-v="0">客隊先攻</span><span class="pill" data-k="side" data-v="1">主隊後攻</span><span class="pill" data-k="side" data-v="2">只觀戰</span></div>
     <div class="opt"><b>局數</b><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill sel" data-k="inn" data-v="5">5 局</span><span class="pill" data-k="inn" data-v="9">9 局</span></div>
-    <div class="opt"><b>CPU</b><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill" data-k="lv" data-v="1">普通</span><span class="pill sel" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">弱力級</span></div>
+    <div class="opt"><b>CPU</b><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div>
   </div>
-  <details id="adv" class="adv"><summary>更多設定</summary>
+  <div class="lvdesc" id="lvDesc"></div>
+  <details id="adv" class="adv" open><summary>更多設定</summary>
     <div class="row opts">
       <div class="opt"><b>牛棚</b><span class="pill sel" data-k="pn" data-v="0">6 人</span><span class="pill" data-k="pn" data-v="1">3 人</span></div>
-      <div class="opt"><b>衝突傷退</b><span class="pill" data-k="evt" data-v="0">關</span><span class="pill sel" data-k="evt" data-v="1">一般</span><span class="pill" data-k="evt" data-v="2">頻繁</span></div>
+      <div class="opt"><b>意外</b><span class="pill" data-k="evt" data-v="0">關</span><span class="pill sel" data-k="evt" data-v="1">一般</span><span class="pill" data-k="evt" data-v="2">頻繁</span></div>
       <div class="opt"><b>天氣</b><span class="pill sel" data-k="wx" data-v="1">開</span><span class="pill" data-k="wx" data-v="0">關</span></div>
       <div class="opt"><b>先發</b><span class="pill sel" data-k="ace" data-v="0">隨機</span><span class="pill" data-k="ace" data-v="1">王牌</span></div>
-      <div class="opt"><b>背景音</b><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div>
-      <div class="opt"><b>ABS 挑戰</b><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div>
+      <div class="opt"><b>ABS</b><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div>
+      <div class="opt"><b>音樂</b><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div>
     </div>
   </details>
   <div class="how">
@@ -480,7 +527,7 @@ body.touch #movePad.on{display:block}
   <div id="outBanner" class="hide"><div class="ob-t">OUT</div><div class="ob-s"></div></div>
   <div id="pitchPanel" class="hide"></div>
   <div id="throwPanel" class="hide"></div>
-  <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b><span>空白處拖曳移動準心</span></div>
+  <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct">揮棒</button></div>
   <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div></div>
@@ -1086,7 +1133,7 @@ function crowdCheer(amt) { crowdCheer.v = Math.max(crowdCheer.v || 0, amt); }
    Part 4a: game state, entities, pitch model, swing/contact model, ball physics
    ===================================================================== */
 const G = {
-  mode: 'title', teams: [null, null], human: 0, lv: 2, innings: 5, inning: 1, half: 0, outs: 0, balls: 0, strikes: 0,
+  mode: 'title', teams: [null, null], human: 0, lv: 1, innings: 5, inning: 1, half: 0, outs: 0, balls: 0, strikes: 0,
   score: [0, 0], line: [[], []], hits: [0, 0], errs: [0, 0], on: [null, null, null], bi: [0, 0], phase: 'idle', ts: 1, over: false,
   pitchNo: 0, seq: [], batHist: {}, lastPitch: null, runsPlay: [], playId: 0, intWalk: false, auto: false, wx: { spd: 0, dir: 0, temp: 26, dome: false, venue: '' }, visits: [3, 3]
 };
@@ -1459,7 +1506,7 @@ function planFielding(sim, cl, foul, res) {
   for (const f of list) {
     const fl = f.pl.fld || 55, spd = fspeed(f) * 1.0, lag = spd / (2 * (12 + fl * .05));
     const readErr = Math.abs(gauss()) * Math.max(.02 * windK(), .17 - fl * .0014 + windK() * .09) * (res && res.ang > 14 ? 1 + windK() * 1.1 : .35);     // 風大時高飛球更難判斷落點（風向風速仍在變化→守備差的更吃虧）     // 判斷落點的失誤（守備差、高飛球更明顯）
-    let react = 0.38 - fl * .0012 + readErr + lag + rainK() * .05;
+    let react = 0.38 - fl * .0012 + readErr + lag + rainK() * .05 - (G.lv >= 3 && G.human !== 1 - G.half ? .035 : 0);
     if (res && res.bunt) { react += (f.pos === 'P' ? .1 : 0); if (res.sneak) react += (.12 + Math.abs(gauss()) * .1) * (aiExpectBunt() ? .5 : 1) * (1.15 - fl * .004); }   // 投手剛投完球重心未穩；奇襲短打讓全隊來不及反應
     let got = null, dive = null, sup = null;
     const wT = sim.wallT || 1e9;
@@ -1948,7 +1995,7 @@ const LVL = [
   { name: '弱', noise: 1.7, temp: .9, think: .55, steal: 1.0, shift: false, learn: 0 },
   { name: '普通', noise: 1.15, temp: .5, think: .75, steal: .85, shift: true, learn: .5 },
   { name: '強', noise: .75, temp: .28, think: .92, steal: .75, shift: true, learn: 1 },
-  { name: '弱力級', noise: .42, temp: .14, think: 1.0, steal: .68, shift: true, learn: 1.4 }
+  { name: '宗師', noise: .24, temp: .07, think: 1.0, steal: .6, shift: true, learn: 2.0 }
 ];
 const lvl = () => LVL[G.lv];
 function phi(x) { const t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2); const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return x > 0 ? 1 - p : p; }
@@ -3622,7 +3669,7 @@ function updateAim() {
   aim.x = clamp(p.x, -1.75, 1.75); aim.y = clamp(p.y, ZC - 1.65, ZC + 1.65);
 }
 const powOn = () => !!(aim.shift || aim.lock);
-function setPow(v) { aim.lock = v; const b = $('btnPow'), b2 = $('btnPowPc'); if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } if (G.mode === 'play') say(v ? '<em>強打模式 ON</em>：擊球圈縮小，打得更遠' : '強打模式 OFF'); }
+function setPow(v) { aim.lock = v; const b = $('btnPow'), b2 = $('btnPowPc'); if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } }
 function cursorR() {
   const b = curBatter(); const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() };
   return batterR(b, fake, powOn() && !G.callBunt) * (G.callBunt ? 1.25 : 1);
@@ -3781,7 +3828,7 @@ $('btnBench').onclick = () => {
   mk('關閉', '', () => sub.classList.add('hide'));
 };
 /* ---------------- menu ---------------- */
-const CFG = { away: 0, home: 1, side: 0, inn: 5, lv: 2, abs: 1, pn: 0, evt: 1, ace: 0, wx: 1 };
+const CFG = { away: 0, home: 1, side: 0, inn: 5, lv: 1, abs: 1, pn: 0, evt: 1, ace: 0, wx: 1 };
 function buildCards() {
   for (const [id, key] of [['awayCards', 'away'], ['homeCards', 'home']]) {
     const box = $(id); box.innerHTML = '';
@@ -3791,7 +3838,10 @@ function buildCards() {
     });
   }
 }
-document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
+const LV_DESC = ['<b>弱</b>　電腦反應較慢、容易失誤，適合新手練習', '<b>普通</b>　標準難度，電腦表現均衡，推薦首次遊玩', '<b>強</b>　電腦會讀球、針對你的弱點配球，守備與跑壘更積極', '<b>宗師・最高難度</b>　電腦極度聰明強悍：選球與配球近乎精準、記住並攻擊你的弱點、守備反應更快，專為高手設計'];
+function setLvDesc(v) { const e = $('lvDesc'); if (e) { e.innerHTML = LV_DESC[v] || ''; e.dataset.lv = v; } }
+setLvDesc(CFG.lv);
+document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
 $('startBtn').onclick = () => { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; newGame(c); };
 /* ---------------- 手機版：中間面板依左右兩塊的實際寬度排版，避免重疊 ---------------- */
 let _lt = 0;
@@ -3813,7 +3863,7 @@ $('sb').addEventListener('click', () => { if (MOB) { $('sb').classList.toggle('o
 let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
 document.addEventListener('pointerdown', e => { for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) { if (!MOB && id !== 'acts') continue; if (!e.target.closest(sel)) $(id).classList.remove('open'); } }, true);
-{ const adv = $('adv'); if (adv && !MOB) adv.open = true; }
+{ const adv = $('adv'); if (adv) adv.open = true; }
 /* ---------------- 背景音設定面板（「更多」→「背景音設定」開啟） ---------------- */
 (function () {
   const panel = $('audioPanel'), mute = $('audioMute'), vol = $('audioVol'), num = $('audioNum');
@@ -3881,11 +3931,11 @@ function frame(now) {
 /* ---------------- boot ---------------- */
 function boot() {
   buildCards(); srand(20261012); window.__dbg = new URLSearchParams(location.search).get('dbg') === '1';
-  G.teams = [buildTeam(TEAMS[0]), buildTeam(TEAMS[1])]; G.half = 0; G.human = -1; G.lv = 2; G.mode = 'title';
+  G.teams = [buildTeam(TEAMS[0]), buildTeam(TEAMS[1])]; G.half = 0; G.human = -1; G.lv = 1; G.mode = 'title';
   rebuildField(); resetFormation(true); CAMC.mode = 'title'; updateCamera(.1, null); camSnap();
   const q = new URLSearchParams(location.search);
   if (q.get('auto')) {
-    window.__ts = +(q.get('ts') || 1); const cfg = { away: +(q.get('away') || 0), home: +(q.get('home') || 1), side: q.get('side') !== null ? +q.get('side') : 2, inn: +(q.get('inn') || 3), lv: +(q.get('lv') || 2), evt: q.get('evt') !== null ? +q.get('evt') : undefined, pn: +(q.get('pn') || 0) };
+    window.__ts = +(q.get('ts') || 1); const cfg = { away: +(q.get('away') || 0), home: +(q.get('home') || 1), side: q.get('side') !== null ? +q.get('side') : 2, inn: +(q.get('inn') || 3), lv: +(q.get('lv') || 1), evt: q.get('evt') !== null ? +q.get('evt') : undefined, pn: +(q.get('pn') || 0) };
     G.mode = 'menu'; newGame(cfg);
   }
   requestAnimationFrame(frame);
