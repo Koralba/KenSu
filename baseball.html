@@ -511,6 +511,79 @@ body.mob #menu::before{background-size:cover}
 .lu-btns .pillb{padding:10px 26px;font-size:15px}
 body.mob .lr .ls{flex:0 1 84px}
 
+/* ===== v5：選隊／編排畫面（觸控友善、精簡） ===== */
+#menu#menu{display:flex;flex-direction:column;align-items:center;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left))}
+#menu#menu>*{width:100%;max-width:1000px;flex:none}
+#menu#menu h2{font-size:clamp(20px,3vw,30px);margin:2px 0 8px;padding-bottom:.2em}
+#menu#menu::after{display:none}
+#menu .mgrid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:780px){#menu .mgrid{grid-template-columns:1.25fr 1fr;align-items:start}}
+#menu .mcard,#menu#menu .adv,#menu#menu .how{padding:12px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 24px rgba(0,0,0,.35);margin:10px 0 0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#menu .mgrid .mcard{margin:0}
+#menu .tpick{display:grid;grid-template-columns:1fr;gap:8px;align-items:stretch}
+@media (min-width:600px){#menu .tpick{grid-template-columns:1fr auto 1fr}}
+#menu .tside .lab{margin:0 0 6px;text-align:center;font-size:15px;letter-spacing:.12em;color:#bfe6d4;font-weight:900}
+#menu .tside .lab small{opacity:.7;font-size:12px;letter-spacing:.05em;margin-left:.4em;font-weight:500}
+#menu#menu .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+@media (min-width:600px){#menu#menu .cards{grid-template-columns:repeat(2,1fr)}}
+#menu#menu .card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:8px 4px;font-size:15px;border-radius:14px;position:relative;transform:none}
+#menu#menu .card:hover{transform:none}
+#menu#menu .card:active{transform:scale(.96)}
+#menu .card .bdg{width:26px;height:26px;border-radius:50%;border:2px solid #fff9;box-shadow:0 2px 6px #0008}
+#menu#menu .card.sel{transform:none;border-color:#f4c64a;background:linear-gradient(rgba(244,198,74,.28),rgba(244,198,74,.1))}
+#menu .card.sel::after{content:'✓';position:absolute;right:7px;top:3px;font-size:14px;font-weight:900;color:#f4c64a}
+#menu .swap{align-self:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;min-height:54px;border-radius:14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#ffe9a8;font-size:22px;font-weight:900;cursor:pointer;touch-action:manipulation;line-height:1.1}
+#menu .swap small{font-size:11px;font-weight:700}
+@media (max-width:599px){#menu .swap{flex-direction:row;gap:8px;min-height:44px}#menu .swap small{font-size:13px}}
+#menu .sets .opt{display:grid;grid-template-columns:3.6em minmax(0,1fr);gap:8px;align-items:center;padding:4px 0;width:100%;margin:0}
+#menu .sets .opt b{margin:0;width:auto;font-size:14px;color:#bfe6d4;letter-spacing:.04em}
+#menu .pl{display:flex;flex-wrap:wrap;gap:8px}
+#menu#menu .pill,#menu#menu .pillb{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;font-size:15px;border-width:1.5px;flex:1 1 auto;touch-action:manipulation}
+#menu .pill[data-k="lv"][data-v="3"]::after{top:-7px;right:-3px}
+#menu .lvdesc{margin:4px 0 0;text-align:left;padding:0 2px}
+#menu#menu .adv summary,#menu#menu .how summary{pointer-events:auto;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;border:none;margin:0;padding:0;font-size:15px;letter-spacing:.1em;color:#cfeee0;list-style:none}
+#menu .adv summary::-webkit-details-marker,#menu .how summary::-webkit-details-marker{display:none}
+#menu#menu .adv summary::after,#menu#menu .how summary::after{content:'▾';margin-left:.5em}
+#menu .adv[open] summary::after,#menu .how[open] summary::after{content:'▴'}
+#menu .how>div{margin-top:6px}
+#menu .mbar{position:sticky;bottom:0;z-index:5;display:flex;gap:10px;justify-content:center;padding:12px 0 calc(12px + env(safe-area-inset-bottom));margin-top:auto;background:linear-gradient(rgba(7,17,26,0),#07111a 34%)}
+#menu#menu #startBtn{position:static;margin:0;flex:1.6 1 0;width:auto;max-width:340px;min-height:54px;padding:0 18px;font-size:clamp(17px,2.4vw,22px);display:flex;align-items:center;justify-content:center;border-width:2px}
+#menu .qbtn{flex:1 1 0;max-width:200px;min-height:54px;border-radius:14px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;font-weight:900;font-size:16px;cursor:pointer;touch-action:manipulation}
+#menu .qbtn:active{transform:translateY(2px)}
+/* 賽前編排 */
+#lineup .lu-card{max-width:960px;padding:12px 14px}
+#lineup .lu-h{font-size:19px}
+#lineup .lu-x{width:44px;height:44px;font-size:18px}
+#lineup .lu-tab{min-height:48px;font-size:15px}
+#lineup .lu-tip{font-size:13px;margin:8px 0 4px}
+#lineup .lu-quick{display:flex;gap:8px;margin:8px 0 2px}
+#lineup .lu-quick .pillb{flex:1;min-height:46px;font-size:15px;padding:0 10px}
+#lineup .lu-sec{margin:14px 0 6px;font-size:14px}
+#lineup .lr{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:6px 8px;align-items:center;padding:8px;margin:6px 0}
+#lineup .lr .ln{grid-row:1/3;grid-column:1}
+#lineup .lr .lp{grid-row:1;grid-column:2}
+#lineup .lr .ls{grid-row:2;grid-column:2}
+#lineup .lr .mv{grid-row:1/3;grid-column:3}
+#lineup .lr .lc{grid-row:3;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;font-size:12px}
+#lineup .lr select{min-height:46px;font-size:16px;padding:0 8px;width:100%}
+#lineup .lr .mv{gap:4px}
+#lineup .lr .mv button{width:40px;height:46px;font-size:14px;border-radius:9px}
+#lineup .lr.bn{grid-template-columns:32px minmax(0,1fr)}
+#lineup .lr.bn .ln{grid-row:auto}
+#lineup .lr.bn .bnm{grid-row:1;grid-column:2}
+#lineup .lr.bn .lc{grid-row:2;grid-column:2}
+#lineup .lr.bn .bnm{font-size:15px}
+@media (min-width:820px){#lineup .lr{grid-template-columns:32px minmax(0,1.1fr) 120px auto minmax(0,1.5fr)}#lineup .lr .ln,#lineup .lr .lp,#lineup .lr .ls,#lineup .lr .mv,#lineup .lr .lc{grid-row:auto;grid-column:auto}#lineup .lr.bn{grid-template-columns:32px minmax(0,1fr) minmax(0,1.6fr)}#lineup .lr.bn .bnm,#lineup .lr.bn .lc{grid-row:auto;grid-column:auto}}
+#lineup .lu-sp{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+#lineup .spc{min-height:66px;padding:10px;display:flex;flex-direction:column;gap:2px;font-size:13px;border-radius:12px}
+#lineup .spc b{font-size:15px}#lineup .spc em{font-style:normal;font-size:12px;opacity:.8;margin-left:6px}
+#lineup .lu-roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+#lineup .rc{padding:8px 10px;border-radius:10px;background:#0a1b2acc;border:1px solid #fff2;display:flex;flex-direction:column;gap:4px;font-size:14px}
+#lineup .rc .lc{display:flex;flex-wrap:wrap;gap:3px;font-size:11px}
+#lineup .lu-btns{position:sticky;bottom:0;z-index:3;margin:14px -14px -12px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(5,13,20,0),#050d14 32%);gap:10px}
+#lineup .lu-btns .pillb{flex:1;max-width:240px;min-height:54px;font-size:16px;padding:0 14px}
+#lineup .lu-btns #luDone{flex:1.7;max-width:320px}
+
 </style>
 </head>
 <body>
@@ -528,34 +601,38 @@ body.mob .lr .ls{flex:0 1 84px}
 
 <div id="menu" class="hide">
   <h2>⚾ 比賽設定</h2>
-  <div class="row teams">
-    <div class="col"><div class="lab">客隊（先攻）</div><div class="cards" id="awayCards"></div></div>
-    <div class="col vs">VS</div>
-    <div class="col"><div class="lab">主隊（後攻）</div><div class="cards" id="homeCards"></div></div>
+  <div class="mgrid">
+    <section class="mcard">
+      <div class="tpick">
+        <div class="tside"><div class="lab">客隊<small>先攻</small></div><div class="cards" id="awayCards"></div></div>
+        <button type="button" id="swapTeams" class="swap" title="交換主客隊"><span>⇄</span><small>交換</small></button>
+        <div class="tside"><div class="lab">主隊<small>後攻</small></div><div class="cards" id="homeCards"></div></div>
+      </div>
+    </section>
+    <section class="mcard sets">
+      <div class="opt"><b>我操控</b><div class="pl"><span class="pill sel" data-k="side" data-v="0">客隊</span><span class="pill" data-k="side" data-v="1">主隊</span><span class="pill" data-k="side" data-v="2">只觀戰</span></div></div>
+      <div class="opt"><b>局數</b><div class="pl"><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill sel" data-k="inn" data-v="5">5 局</span><span class="pill" data-k="inn" data-v="9">9 局</span></div></div>
+      <div class="opt"><b>電腦</b><div class="pl"><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div></div>
+      <div class="opt"><b>模式</b><div class="pl"><span class="pill sel" data-k="easy" data-v="0">正常</span><span class="pill" data-k="easy" data-v="1">簡易</span></div></div>
+      <div class="lvdesc" id="lvDesc"></div>
+    </section>
   </div>
-  <div class="row opts">
-    <div class="opt"><b>操控</b><span class="pill sel" data-k="side" data-v="0">客隊先攻</span><span class="pill" data-k="side" data-v="1">主隊後攻</span><span class="pill" data-k="side" data-v="2">只觀戰</span></div>
-    <div class="opt"><b>局數</b><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill sel" data-k="inn" data-v="5">5 局</span><span class="pill" data-k="inn" data-v="9">9 局</span></div>
-    <div class="opt"><b>CPU</b><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div>
-    <div class="opt"><b>模式</b><span class="pill sel" data-k="easy" data-v="0">正常</span><span class="pill" data-k="easy" data-v="1">簡易</span></div>
-  </div>
-  <div class="lvdesc" id="lvDesc"></div>
-  <details id="adv" class="adv" open><summary>更多設定</summary>
-    <div class="row opts">
-      <div class="opt"><b>牛棚</b><span class="pill sel" data-k="pn" data-v="0">6 人</span><span class="pill" data-k="pn" data-v="1">3 人</span></div>
-      <div class="opt"><b>意外</b><span class="pill" data-k="evt" data-v="0">關</span><span class="pill sel" data-k="evt" data-v="1">一般</span><span class="pill" data-k="evt" data-v="2">頻繁</span></div>
-      <div class="opt"><b>天氣</b><span class="pill sel" data-k="wx" data-v="1">開</span><span class="pill" data-k="wx" data-v="0">關</span></div>
-      <div class="opt"><b>先發</b><span class="pill sel" data-k="ace" data-v="0">隨機</span><span class="pill" data-k="ace" data-v="1">王牌</span></div>
-      <div class="opt"><b>ABS</b><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div>
-      <div class="opt"><b>音樂</b><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div>
+  <details id="adv" class="adv"><summary>⚙ 更多設定</summary>
+    <div class="sets">
+      <div class="opt"><b>牛棚</b><div class="pl"><span class="pill sel" data-k="pn" data-v="0">6 人</span><span class="pill" data-k="pn" data-v="1">3 人</span></div></div>
+      <div class="opt"><b>意外</b><div class="pl"><span class="pill" data-k="evt" data-v="0">關</span><span class="pill sel" data-k="evt" data-v="1">一般</span><span class="pill" data-k="evt" data-v="2">頻繁</span></div></div>
+      <div class="opt"><b>天氣</b><div class="pl"><span class="pill sel" data-k="wx" data-v="1">開</span><span class="pill" data-k="wx" data-v="0">關</span></div></div>
+      <div class="opt"><b>先發</b><div class="pl"><span class="pill sel" data-k="ace" data-v="0">隨機</span><span class="pill" data-k="ace" data-v="1">王牌</span></div></div>
+      <div class="opt"><b>ABS</b><div class="pl"><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div></div>
+      <div class="opt"><b>音樂</b><div class="pl"><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div></div>
     </div>
   </details>
-  <div class="how">
+  <details class="how"><summary>📖 操作說明</summary>
     <div><b>投球</b>：<span class="d-pc">選球種（1~5）→ 移動瞄準圈 → 點擊／空白鍵（E 牽制）</span><span class="d-mob">選球種 → 拖曳瞄準 → 按「投球」</span></div>
     <div><b>打擊</b>：<span class="d-pc">圈住來球，球到本壘時點擊／空白鍵揮棒（Shift 強打、Q 盜壘、B 短打：圈住來球即自動觸擊）</span><span class="d-mob">拖曳圈住來球 → 球到時按「揮棒」（短打：圈住即觸擊）</span></div>
     <div><b>挑戰</b>：<span class="d-pc">下一球投出前按 C，申請 ABS 鷹眼</span><span class="d-mob">出現「挑戰」鈕時點一下</span></div>
-  </div>
-  <button id="startBtn">進入遊戲</button>
+  </details>
+  <div class="mbar"><button type="button" id="quickBtn" class="qbtn">⚡ 直接開賽</button><button id="startBtn">編排陣容 ▶</button></div>
 </div>
 
 <div id="hud" class="hide">
@@ -995,19 +1072,40 @@ const MAT = {}; const mat = (c) => MAT[c] || (MAT[c] = new THREE.MeshLambertMate
 function mkRng(seed) { let q = seed >>> 0 || 1; return () => { q ^= q << 13; q >>>= 0; q ^= q >> 17; q ^= q << 5; q >>>= 0; return q / 4294967296; }; }
 const HAIR_COLS = ['#15110e', '#1b1612', '#241a14', '#2b2018', '#3a2a1c', '#4a3624', '#1a1a22', '#5a4030'];
 const HAIR_DYED = ['#7a4a22', '#9a6a2a', '#6a2a2a', '#b08a3a'];
+const HAIR_FUN = ['#f2e29a', '#e9e9f0', '#d8402e', '#27a6d8', '#8a44d8', '#ff7ab8', '#e8a23a', '#3ad8a0'];      // 前衛染髮：金、白金、紅、藍、紫、粉、橘、薄荷
 const SKINS = ['#ffd6b0', '#ffd2a8', '#f6c394', '#eebb8c', '#e3ac7c', '#d79e72'];
+const SKINS_F = SKINS.concat(['#f8dcc4', '#c68a5c', '#a8714a', '#8a5a3a', '#6e4630']);
+/* 外籍球員（造型較前衛：染髮、髒辮、爆炸頭、鬍鬚、耳環、墨鏡）。球員名單可自行增減 */
+const FOREIGN = new Set(['羅戈', '勝騎士', '德保拉', '布雷克', '獅帝芬', '喬登', '馬傑森', '威克', '威能帝', '艾菩樂', '魔力藍', '梅賽鍶', '鋼龍', '魔神龍', '魔鷹', '艾速特', '坎南', '魔爾曼', '髙塩將樹', '鈴木駿輔']);
+const FOREIGN_JP = new Set(['髙塩將樹', '鈴木駿輔']);
 const EAR_GEO = new THREE.SphereGeometry(.09, 8, 6);
-function visFor(key) {
-  const r = mkRng(hashStr('vis:' + key) ^ 0x9e3779b9), R = (a, b) => a + (b - a) * r(), pk = a => a[Math.floor(r() * a.length)];
-  const t = r(); let h, w, hs;
-  if (t < .3) { h = R(1.0, 1.07); w = R(.9, .97); hs = R(.94, 1.0); }            // 瘦高
-  else if (t < .72) { h = R(.97, 1.03); w = R(.98, 1.06); hs = R(.97, 1.04); }     // 普通
-  else if (t < .92) { h = R(.95, 1.0); w = R(1.08, 1.18); hs = R(1.0, 1.06); }     // 壯碩
-  else { h = R(.93, .97); w = R(.92, .99); hs = R(1.03, 1.08); }                   // 嬌小靈活
-  const hr = r(), hair = hr < .18 ? 'buzz' : hr < .46 ? 'short' : hr < .68 ? 'mid' : hr < .78 ? 'long' : hr < .85 ? 'pony' : hr < .93 ? 'curly' : 'short';
-  const hairCol = r() < .1 ? pk(HAIR_DYED) : pk(HAIR_COLS), br = r();
-  return { h, w, d: R(.92, 1.08), hs, ll: R(.97, 1.03), lw: R(.92, 1.0) + (w - 1) * .6, aw: R(.92, 1.0) + (w - 1) * .7, al: R(.97, 1.04),
-    belly: w > 1.1 && r() < .65 ? R(.1, .25) : 0, skin: pk(SKINS), hair, hairCol, burn: r() < .3, beard: br < .1 ? 1 : br < .15 ? 2 : 0,
+const wpick = (r, tbl) => { let s = 0; for (const x of tbl) s += x[1]; let q = r() * s; for (const x of tbl) { if ((q -= x[1]) < 0) return x[0]; } return tbl[0][0]; };
+function visFor(key) {      // 外觀只影響視覺，不影響任何能力值
+  const fg = FOREIGN.has(key), jp = FOREIGN_JP.has(key), r = mkRng(hashStr('vis:' + key) ^ 0x9e3779b9), R = (a, b) => a + (b - a) * r(), pk = a => a[Math.floor(r() * a.length)];
+  // ---- 體型：瘦高／普通／敦實／肌肉／圓潤／嬌小／高壯 ----
+  const bt = wpick(r, fg ? [['lean', 12], ['avg', 16], ['stout', 14], ['muscle', 24], ['round', 8], ['small', 2], ['big', 24]] : [['lean', 15], ['avg', 30], ['stout', 14], ['muscle', 10], ['round', 10], ['small', 11], ['big', 10]]);
+  let h, w, hs, aw0 = null, belly = 0;
+  switch (bt) {
+    case 'lean': h = R(1.03, 1.1); w = R(.84, .93); hs = R(.93, 1.0); break;
+    case 'avg': h = R(.98, 1.04); w = R(.97, 1.05); hs = R(.97, 1.04); break;
+    case 'stout': h = R(.95, 1.01); w = R(1.1, 1.2); hs = R(1.0, 1.06); break;
+    case 'muscle': h = R(1.0, 1.07); w = R(1.08, 1.16); hs = R(.95, 1.02); aw0 = R(1.12, 1.28); break;
+    case 'round': h = R(.93, 1.0); w = R(1.15, 1.28); hs = R(1.02, 1.09); belly = R(.2, .36); break;
+    case 'small': h = R(.88, .94); w = R(.88, .97); hs = R(1.04, 1.1); break;
+    default: h = R(1.06, 1.12); w = R(1.1, 1.22); hs = R(.97, 1.03); if (r() < .4) belly = R(.08, .2);
+  }
+  // ---- 髮型：本土球員有光頭、辮子頭、包包頭等；外籍球員偏前衛 ----
+  const hair = wpick(r, fg
+    ? (jp ? [['buzz', 14], ['short', 24], ['mid', 20], ['long', 10], ['bun', 10], ['braid', 8], ['curly', 8], ['pony', 6]]
+          : [['dreads', 20], ['afro', 11], ['braid', 7], ['short', 12], ['mid', 9], ['long', 8], ['curly', 7], ['bun', 8], ['bald', 8], ['buzz', 10]])
+    : [['bald', 8], ['buzz', 12], ['short', 22], ['mid', 16], ['long', 6], ['pony', 6], ['curly', 6], ['braid', 7], ['bun', 5], ['dreads', 3], ['afro', 2], ['short', 7]]);
+  const natural = pk(HAIR_COLS), hairCol = fg ? (r() < (jp ? .55 : .68) ? pk(HAIR_FUN) : natural) : (r() < .04 ? '#d8b868' : r() < .1 ? pk(HAIR_DYED) : natural);
+  const tipCol = fg ? (r() < .6 ? pk(HAIR_FUN) : hairCol) : (hair === 'braid' ? (r() < .5 ? '#c0392b' : hairCol) : hairCol);
+  const br = r(), beard = fg ? (br < .30 ? 0 : br < .55 ? 1 : 2) : (br < .1 ? 1 : br < .15 ? 2 : 0);
+  return { h, w, d: R(.92, 1.08), hs, ll: R(.96, 1.04), lw: R(.92, 1.0) + (w - 1) * .6, aw: aw0 !== null ? aw0 : R(.92, 1.0) + (w - 1) * .7, al: R(.97, 1.04),
+    belly, skin: (fg && !jp) ? pk(SKINS_F) : pk(SKINS), hair, hairCol, tipCol, beardCol: natural, burn: hair !== 'bald' && r() < .3, beard: hair === 'bald' && !beard && r() < .5 ? 1 : beard,
+    braids: r() < .45 ? 2 : 1, dreadN: 9 + Math.floor(r() * 4), dreadL: R(.5, .85),
+    earring: fg ? (r() < .55 ? (r() < .6 ? 2 : 1) : 0) : (r() < .04 ? 1 : 0), shades: fg ? r() < .3 : r() < .02, eyeblack: r() < (fg ? .3 : .22),
     eyeSp: R(.9, 1.12), eyeS: R(.85, 1.15), eyeH: R(.9, 1.25), ear: R(.8, 1.3) };
 }
 function addHairEars(head, vis) {
@@ -1015,14 +1113,43 @@ function addHairEars(head, vis) {
   for (const s of [-1, 1]) { const e = new THREE.Mesh(EAR_GEO, sk); e.position.set(s * .5, -.04, -.02); e.scale.setScalar(vis.ear); head.add(e); }
   const band = (len, rad, p0, pl) => { const m = new THREE.Mesh(new THREE.SphereGeometry(rad, 16, 8, p0, pl, PI * .5, PI * len), hm); head.add(m); return m; };
   const T = vis.hair;
-  if (T === 'buzz') band(.07, .53, PI * .85, PI * 1.3);
+  if (T === 'bald') { /* 光頭：不加髮片 */ }
+  else if (T === 'buzz') band(.07, .53, PI * .85, PI * 1.3);
   else if (T === 'short') band(.12, .535, PI * .8, PI * 1.4);
   else if (T === 'mid') band(.18, .538, PI * .75, PI * 1.5);
   else if (T === 'long') { band(.24, .54, PI * .75, PI * 1.5); const b = new THREE.Mesh(new THREE.BoxGeometry(.7, .5, .14), hm); b.position.set(0, -.3, -.4); b.rotation.x = .12; head.add(b); }
   else if (T === 'pony') { band(.12, .535, PI * .8, PI * 1.4); const ball = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), hm); ball.position.set(0, .0, -.57); head.add(ball); const tail = new THREE.Mesh(new THREE.CylinderGeometry(.08, .03, .42, 8), hm); tail.position.set(0, -.2, -.62); tail.rotation.x = -.15; head.add(tail); }
   else if (T === 'curly') { band(.1, .53, PI * .8, PI * 1.4); for (let i = 0; i < 14; i++) { const ph = PI * (.85 + 1.3 * i / 13), th = PI * (.53 + (i % 2) * .08), c = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), hm); c.position.set(-.54 * Math.cos(ph) * Math.sin(th), .54 * Math.cos(th), .54 * Math.sin(ph) * Math.sin(th)); head.add(c); } }
+  else if (T === 'braid') {       // 辮子頭：1～2 條粗辮從後腦垂下，尾端綁色圈
+    band(.12, .535, PI * .8, PI * 1.4); const tm = mat(vis.tipCol);
+    for (const bx of (vis.braids === 2 ? [-.2, .2] : [0])) {
+      for (let i = 0; i < 6; i++) { const sp = new THREE.Mesh(new THREE.SphereGeometry(.105 - i * .008, 8, 6), hm); sp.position.set(bx, -.1 - i * .16, -.5 - i * .03); sp.scale.y = 1.15; head.add(sp); }
+      const tp = new THREE.Mesh(new THREE.SphereGeometry(.062, 6, 5), tm); tp.position.set(bx, -.1 - 6 * .16, -.5 - 6 * .03); head.add(tp);
+    }
+  }
+  else if (T === 'dreads') {      // 髒辮：後腦一圈細長辮，尾端可染色
+    band(.15, .54, PI * .78, PI * 1.44); const tm = mat(vis.tipCol), n = vis.dreadN;
+    for (let i = 0; i < n; i++) {
+      const a = (i / (n - 1) - .5) * 2.3, L = vis.dreadL * (.78 + ((i * 37) % 5) * .1), g = new THREE.Group();
+      g.position.set(Math.sin(a) * .5, -.06, -Math.cos(a) * .5); g.rotation.set(.12, 0, Math.sin(a) * .22);
+      const up = new THREE.Mesh(new THREE.CylinderGeometry(.048, .04, L * .68, 6), hm); up.position.y = -L * .34; g.add(up);
+      const dn = new THREE.Mesh(new THREE.CylinderGeometry(.04, .03, L * .34, 6), tm); dn.position.y = -L * .68 - L * .15; g.add(dn); head.add(g);
+    }
+  }
+  else if (T === 'afro') {        // 爆炸頭：帽簷下蓬起的髮團
+    band(.1, .53, PI * .8, PI * 1.4);
+    for (let i = 0; i < 15; i++) { const a = (i / 14 - .5) * 3.8, row = i % 3, rad = .5 + (row === 1 ? .09 : 0), y = row === 2 ? .1 : row === 1 ? .0 : -.1, sp = new THREE.Mesh(new THREE.SphereGeometry(.17 + (i % 2) * .03, 8, 6), hm); sp.position.set(Math.sin(a) * rad, y, -Math.cos(a) * rad); head.add(sp); }
+  }
+  else if (T === 'bun') { band(.12, .535, PI * .8, PI * 1.4); const bn = new THREE.Mesh(new THREE.SphereGeometry(.19, 10, 8), hm); bn.position.set(0, .12, -.56); head.add(bn); const rb = new THREE.Mesh(new THREE.TorusGeometry(.17, .025, 6, 12), mat(vis.tipCol)); rb.position.set(0, .12, -.56); rb.rotation.y = PI / 2; head.add(rb); }
   if (vis.burn) for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.07, .22, .07), hm); b.position.set(s * .49, -.1, .17); head.add(b); }
-  if (vis.beard) { const m = new THREE.MeshLambertMaterial({ color: vis.hairCol, transparent: vis.beard === 1, opacity: vis.beard === 1 ? .5 : 1 }); head.add(new THREE.Mesh(new THREE.SphereGeometry(.525, 14, 8, 0, PI, PI * .64, PI * (vis.beard === 1 ? .12 : .17)), m)); }
+  if (vis.beard) { const m = new THREE.MeshLambertMaterial({ color: vis.beardCol, transparent: vis.beard === 1, opacity: vis.beard === 1 ? .5 : 1 }); head.add(new THREE.Mesh(new THREE.SphereGeometry(.525, 14, 8, 0, PI, PI * .64, PI * (vis.beard === 1 ? .12 : .17)), m)); }
+  if (vis.earring) for (const s of (vis.earring === 2 ? [-1, 1] : [-1])) { const e = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 6), mat(s < 0 ? '#f2c23a' : '#e4e8ee')); e.position.set(s * .56, -.15, -.02); head.add(e); }
+  if (vis.eyeblack) for (const s of [-1, 1]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.14, .035, .03), mat('#111')); m.position.set(s * .19, -.105, .468); m.rotation.z = -s * .15; head.add(m); }
+  if (vis.shades) {               // 墨鏡掛在帽簷上方
+    const sg = new THREE.Group(); sg.position.set(0, .46, .3); sg.rotation.x = .56; const lm = mat('#10141c');
+    for (const s of [-1, 1]) { const l = new THREE.Mesh(new THREE.BoxGeometry(.2, .03, .12), lm); l.position.x = s * .15; sg.add(l); }
+    const bg = new THREE.Mesh(new THREE.BoxGeometry(.1, .03, .03), lm); sg.add(bg); head.add(sg);
+  }
 }
 const BS_DEF = { yaw: -.45, lean: .1, crouch: 0, llx: -.1, lrx: .12, hd: 0, spread: .5, hy: 0, bth: -2.8, btl: .95, wag: .03, wagF: 3, tap: 0, tapF: 2, kick: 0, ld: .25, cth: 0, up: 0, cby: 0, fin: 1, finT: 1, rel: 0 };
 const PS_DEF = { ab: .1, lift: 1, twist: .6, lean: 1, stride: 1, hi: 0, tilt: 0, tempo: 1 };
@@ -1467,7 +1594,7 @@ function batterR(b, pt, power) {
   const z = batterZoneRating(b, pt.fx, pt.fy); if (z >= 0) r *= 1 + z * 0.055;
   const fatigue = pt.p.fatigue || 0; r *= 1 + fatigue * 0.0011;
   { const bh = b.hand === 'S' ? (pt.p.hand === 'R' ? 'L' : 'R') : b.hand; r *= bh !== pt.p.hand ? 1.045 : .955; }      // 左右對決：異手打者較佔優勢、同手較吃虧（左右開弓永遠站有利一側）
-  r *= (1 + moodBonus(b) * 1.1) * (1 - rainK() * .06);                                   // 心情加成（好→揮棒圈變大）
+  r *= (1 + moodBonus(b) * 1.1) * (1 - rainBK() * .095);                                   // 心情加成（好→揮棒圈變大）
   r = clamp(r, 0.2, 0.8);
   if (power) r = Math.max(0.14, r * 0.66);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
   return r;
@@ -1479,7 +1606,7 @@ function resolveSwing(pt, sw, b) {
   const sideB = E.bat.side, insA = sw.bunt ? 0 : clamp(-(pt.fx * sideB) / ZW, -1.4, 1.4);          // >0 內角（靠近身體）、<0 外角
   const inK = Math.min(Math.max(insA, 0), 1.2), outK = Math.min(Math.max(-insA, 0), 1.2);
   const idealS = -.10 * inK + .26 * outK;                                    // 最佳出手時機：內角略早（要在身體前方打）、外角偏晚（讓球多飛一點再打）
-  const W = WIN * (sw.power ? 0.80 : 1) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
+  const W = WIN * (sw.power ? 0.80 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
   const dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - pt.T;      // 時機＝揮棒接觸瞬間與球到達本壘板時刻的差，無隨機誤差
   const dtE = dt - idealS * W, Wd = W * (dtE < 0 ? 1 - outK * .12 + inK * .04 : 1 + outK * .12 - inK * .10), adt = Math.abs(dtE);   // 相對最佳時機的偏差；內角晚側窗口窄、外角晚側窗口寬／早側窗口窄
   const jx = gauss() * .02 * Math.max(0, mv - .7), jy = gauss() * .02 * Math.max(0, mv - .7);
@@ -1494,7 +1621,7 @@ function resolveSwing(pt, sw, b) {
   if (!sw.bunt) {
     const od = outsideDist(pt.fx, pt.fy);
     if (od > 0) {
-      const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .06 : 0), .22, .72);
+      const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .06 : 0) - rainBK() * .03, .22, .72);
       if (od > reach * 1.15) return { kind: 'whiff', dt, d, R: R0 };          // 太外側的壞球：揮空
       chase = clamp(od / reach, 0, 1);
       const brk = ['SL', 'CU', 'FK', 'SV', 'SK', 'SH'].includes(pt.id) ? .88 : 1;
@@ -1522,7 +1649,7 @@ function resolveSwing(pt, sw, b) {
   const cz = bp > .62 ? 'handle' : bp > .32 ? 'near' : bp < -.58 ? 'end' : bp < -.30 ? 'tip' : 'sweet';
   // 初速：球棒速度(力量)×擊球效率(Q、甜蜜點)＋來球速度，再乘心情加成與投手壓制力
   const pw = b.pow * 0.005, w0 = G.wx || { temp: 26 };
-  let ev = 15 + 22 * Q * (0.44 + pw) * (sw.power ? 1.26 : 1) + (Q > .88 ? (sw.power ? 3.4 : 1.2) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
+  let ev = 15 + 22 * Q * (0.44 + pw) * (sw.power ? 1.295 : 1) + (Q > .88 ? (sw.power ? 3.8 : 1.2) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
   ev += (pt.kmh - 140) * .04 * Q; if (pt.id !== 'ST') ev *= 1 - Math.max(0, pt.lv - 3) * .006 * (1 - Q * .4);
   ev *= 1 + mb * .55 - dom * .03;
   ev *= clamp(1 - Math.max(0, Math.abs(bp) - .3) * .30 * (bp > 0 ? 1.1 + press * .35 : 1), .6, 1);    // 離開甜蜜點：握把端（被壓制）損失比球頭端更大
@@ -1530,11 +1657,11 @@ function resolveSwing(pt, sw, b) {
   if (outK > .2) ev *= 1 - clamp(.07 * (1.05 - skill) * outK * Math.max(0, sR), 0, .08);           // 外角推向反方向：力量不足的打者長打力減弱
   if (outK > .2 && sR < -.25) ev *= 1 - clamp((-sR - .25) * outK * (.10 + OA * .6), 0, .14);       // 外角出棒過早：球棒壓過球，力道流失
   ev *= 1 - .22 * clamp(Math.abs(v) - .6, 0, 1);                           // 打在球的最上/最下緣：能量損失
-  if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .12 * (.6 + skill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
+  if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .15 * (.6 + skill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
   ev *= 1 + clamp((w0.temp - 24) * .0009, -.017, .017);                      // 氣溫：天熱球彈性好、天冷偏悶
-  ev *= (1 + gauss() * .02 * mv) * (1 - rainK() * .025);                 // 雨天：球濕滑、衝擊力略減
+  ev *= (1 + gauss() * .02 * mv) * (1 - rainBK() * .045);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
   let ang = 6 + b.traj * 3.2 + v * 26 + gauss() * (3 + 9 * (1 - Q)) * (.6 + .4 * mv);
-  if (sw.power) ang += 3.5 + Q * 2;                                      // 強打：揮棒上揚、擊球仰角較高（甜蜜點時更明顯）→ 容易飛得夠遠
+  if (sw.power) ang += 3.8 + Q * 2.3;                                      // 強打：揮棒上揚、擊球仰角較高（甜蜜點時更明顯）→ 容易飛得夠遠
   // 球種特性：沉球／指叉／曲球容易打出滾地球，直球上飄容易打成飛球
   const BRK = { SK: -4.5, TS: -2.2, SH: -2, CH: -2.4, FK: -5, CU: -3.2, SL: -1.4, SV: -2.2, ST: 1.6, CT: -.4 };
   ang += (BRK[pt.id] || 0) * (.6 + pt.lv * .07) * (1.15 - Q * .55);
@@ -1553,7 +1680,7 @@ function resolveSwing(pt, sw, b) {
 function resolveBunt(pt, sw, b, dt, d, R0, Q) {
   // 短打：結果由「球在棒上的接觸點(內外/上下)」「接觸時機(深度)」「球種球速與好壞球位置」「打者短打技術・心情・雨天」共同決定。
   // 技術越高越能把球壓死、控制方向；來球快、變化大、位置差（偏高／偏外）會增加小飛球、界外、擦棒與強彈的機率。
-  const skill = clamp(((b.bunt || 60) / 100) * (1 + moodBonus(b) * .6) * (1 - rainK() * .05), .2, .97), sneak = !!G.sneak, mv = moodVol(b), side = E.bat.side;
+  const skill = clamp(((b.bunt || 60) / 100) * (1 + moodBonus(b) * .6) * (1 - rainBK() * .08), .2, .97), sneak = !!G.sneak, mv = moodVol(b), side = E.bat.side;
   const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y;
   const s = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) : clamp(dt / WIN, -1.2, 1.2);              // <0：球還在前面就碰到(偏早)　>0：球已深入(偏晚)
   const hz = clamp((bxp - sw.cx) / Math.max(R0, .3), -1.2, 1.2), v = clamp((byp - sw.cy) / Math.max(R0, .3), -1.2, 1.2);   // 球相對棒心的內外／高低
@@ -1587,8 +1714,8 @@ const GRAV = 9.8, DRAG = 0.0028;
 const LIFT = .028, SIDEF = .028;
 function ballEnv(res) {            // 風、氣溫、旋轉、運氣 → 物理環境
   const w = G.wx || { spd: 0, dir: 0, temp: 26 }, gust = res ? clamp(res.luck, -2.4, 2.4) * .95 : 0;     // 擊球當下的陣風
-  const wx = w.spd * Math.sin(w.dir * Math.PI / 180) + gust * .5, wz = -w.spd * Math.cos(w.dir * Math.PI / 180) - gust;
-  return { wx, wz, back: res ? res.spinB : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, drag: (1 - (w.temp - 24) * .0025) * (1 + rainK() * .04), roll: 1 + rainK() * .35 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainK() * .10 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
+  const wm = 1 + Math.max(0, rainK() - .5) * .5, wx = w.spd * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5, wz = -w.spd * wm * Math.cos(w.dir * Math.PI / 180) - gust;
+  return { wx, wz, back: res ? res.spinB : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .07), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
 }
 function simulateBall(p0, v0, maxT, env) {
   env = env || { wx: 0, wz: 0, back: 1, side: 0, hop: 0, drag: 1, roll: 1, rest: 1 };
@@ -3677,6 +3804,7 @@ function pitcherToMound() {                // 投手每球都從投手丘站好�
    ===================================================================== */
 /* ---------------- 天氣與球場（風、雨、動態變化；可於開賽前關閉） ---------------- */
 const rainK = () => (G.wxOn && G.rain) ? G.rain : 0;
+const rainBK = () => { const r = rainK(); return r + Math.max(0, r - .5) * .7; };     // 打擊用雨勢：大雨(>.55)與狂風暴雨額外加重
 const WX_SCEN = [['calm', 24], ['sunny', 32], ['overcast', 20], ['drizzle', 8], ['change', 11], ['heavy', 3], ['storm', 2]];
 function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .55 ? ['小雨', '🌧'] : r < .8 ? ['大雨', '🌧'] : ['狂風暴雨', '⛈']; }
 function initWeather(homeTeam) {
@@ -4214,8 +4342,8 @@ function buildCards() {
   for (const [id, key] of [['awayCards', 'away'], ['homeCards', 'home']]) {
     const box = $(id); box.innerHTML = '';
     TEAMS.forEach((t, i) => {
-      const d = document.createElement('div'); d.className = 'card' + (CFG[key] === i ? ' sel' : ''); d.innerHTML = `<div class="sw" style="background:linear-gradient(90deg,${t.c1},${t.c2})"></div>${t.short}`;
-      d.onclick = () => { CFG[key] = i; buildCards(); }; box.appendChild(d);
+      const d = document.createElement('div'); d.className = 'card' + (CFG[key] === i ? ' sel' : ''); d.innerHTML = `<i class="bdg" style="background:linear-gradient(135deg,${t.c1} 50%,${t.c2} 50%)"></i><span>${t.short}</span>`; d.setAttribute('role', 'button');
+      d.onclick = () => { const ok = key === 'away' ? 'home' : 'away'; if (CFG[ok] === i) CFG[ok] = CFG[key]; CFG[key] = i; buildCards(); }; box.appendChild(d);   // 選到對方隊伍時自動互換，避免同隊對戰
     });
   }
 }
@@ -4225,6 +4353,8 @@ setLvDesc(CFG.lv);
 document.querySelectorAll('.pill').forEach(p => p.onclick = () => { const k = p.dataset.k; CFG[k] = +p.dataset.v; if (k === 'lv' || k === 'easy') setLvDesc(CFG.lv); document.querySelectorAll(`.pill[data-k="${k}"]`).forEach(x => x.classList.toggle('sel', x === p)); });
 function launchGame() { sndInit(); const c = Object.assign({}, CFG); if (c.ace) c.spIdx = 0; c.edit = [0, 1].map(i => { const e = ED[i], id = TEAMS[i ? CFG.home : CFG.away].id; return CFG.side === i && e && e.teamId === id ? e : null; }); $('lineup').classList.add('hide'); newGame(c); }
 $('startBtn').onclick = () => { sndInit(); openLineup(); };
+$('quickBtn').onclick = () => { sndInit(); ED[0] = ED[1] = null; launchGame(); };          // 直接開賽：雙方使用預設陣容
+$('swapTeams').onclick = () => { const t = CFG.away; CFG.away = CFG.home; CFG.home = t; buildCards(); };
 /* =====================================================================
    賽前編成：守備位置／打擊順序／先發投手（中職真實名單）＋ 比賽中守備調整
    ===================================================================== */
@@ -4242,40 +4372,45 @@ function edDefault(ti) {
   return { teamId: def.id, order: t.lineup.map(p => p.name), pos, spIdx: 0 };
 }
 function edEnsure(ti) { const id = TEAMS[ti ? CFG.home : CFG.away].id; if (!ED[ti] || ED[ti].teamId !== id) ED[ti] = edDefault(ti); return ED[ti]; }
-const edChips = (p, pos) => { const pen = fitPenalty(p.nat, pos), fl = Math.round(p.fld0 * (1 - pen)), ar = Math.round(p.arm0 * (1 - pen * .6)), c = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
-  return `<span class="chip">巧<b class="${c(p.con)}">${p.con}</b></span><span class="chip">力<b class="${c(p.pow)}">${p.pow}</b></span><span class="chip">速<b class="${c(p.spd)}">${p.spd}</b></span><span class="chip">選<b class="${c(p.eye)}">${p.eye}</b></span><span class="chip">守<b class="${c(fl)}">${fl}</b></span><span class="chip">肩<b class="${c(ar)}">${ar}</b></span><span class="chip">${p.hand === 'S' ? '兩' : p.hand === 'L' ? '左' : '右'}打</span>${pen ? `<span class="chip warn">非本位 守備−${Math.round(pen * 100)}%</span>` : ''}`; };
+const edChips = (p, pos) => { const pen = fitPenalty(p.nat, pos), fl = Math.round(p.fld0 * (1 - pen)), c = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
+  return `<span class="chip">巧<b class="${c(p.con)}">${p.con}</b></span><span class="chip">力<b class="${c(p.pow)}">${p.pow}</b></span><span class="chip">速<b class="${c(p.spd)}">${p.spd}</b></span><span class="chip">守<b class="${c(fl)}">${fl}</b></span><span class="chip">${p.hand === 'S' ? '兩' : p.hand === 'L' ? '左' : '右'}打</span>${pen ? `<span class="chip warn">非本位 −${Math.round(pen * 100)}%</span>` : ''}`; };
+function spCardHtml(r, i, on, clickable) {
+  const p = mkPitcher(r);
+  return `<div class="spc${on ? ' on' : ''}"${clickable ? ` data-sp="${i}"` : ' style="cursor:default"'}><div><b>${r.n}</b><em>${r.h === 'L' ? '左' : '右'}投</em></div><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}${r.est ? '（估）' : ''}</small><small>${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`;
+}
 function renderLineup() {
   const el = $('lineup'), ti = ED_TAB.v, ed = edEnsure(ti), def = TEAMS[ti ? CFG.home : CFG.away], D = CPBL[def.id], pool = edPool(def.id);
   const names = Object.keys(pool), bench = names.filter(n => ed.order.indexOf(n) < 0);
   const mine = CFG.side === ti;
-  let h = `<div class="lu-card"><div class="lu-h"><b>🧢 賽前編成</b><button type="button" id="luX" class="lu-x" title="返回比賽設定">✕</button></div>
+  let h = `<div class="lu-card"><div class="lu-h"><b>🧢 賽前編排</b><button type="button" id="luX" class="lu-x" title="返回比賽設定">✕</button></div>
   <div class="lu-tabs">${[0, 1].map(i => { const d = TEAMS[i ? CFG.home : CFG.away]; return `<button type="button" class="lu-tab${i === ti ? ' on' : ''}" data-t="${i}" style="border-bottom-color:${d.c1}">${i ? '主隊' : '客隊'}・${d.short}${CFG.side === i ? ' ★' : ''}</button>`; }).join('')}</div>
-  <div class="lu-tip">${mine ? '這是你操控的隊伍。選擇球員或守位若與其他列重複，會自動與該列互換。非本位守備的球員，守備範圍與傳球能力會依適性折減。' : '🤖 這是電腦隊伍，無法調整。電腦會依球員能力與守位適性，自動判斷最適合的棒次、守位與先發投手；每場比賽開始時都會隨機產生不同的合理組合。' + (CFG.side === 2 ? '（觀戰模式：兩隊皆由電腦編成）' : '')}</div>
-  <div class="lu-sec">${mine ? '打擊順序與守備位置（真實 2026 名單）' : '球隊陣容（先發名單於開賽時才決定）'}</div>`;
+  <div class="lu-tip">${mine ? '點「名字」或「守位」直接更換，選到重複的會自動互換。' : '🤖 電腦隊伍會在開賽時自動決定先發與棒次。' + (CFG.side === 2 ? '（觀戰模式：兩隊皆由電腦編排）' : '')}</div>`;
   if (!mine) {
-    names.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">兵</span><span class="bnm">${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}<span class="chip dim">${p.line || ''}</span></span></div>`; });
-    h += `<div class="lu-sec">投手群（先發由電腦開賽時決定）</div><div class="lu-sp">`;
-    D.sp.forEach(r => { const p = mkPitcher(r); h += `<div class="spc" style="cursor:default"><b>${r.n}</b>（${r.h === 'L' ? '左' : '右'}投）<br><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}・K% ${r.k.toFixed(1)}・BB% ${r.bb.toFixed(1)}${r.est ? '（估）' : ''}</small><br><small>控球${p.ctl}・體力${p.sta}・${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`; });
-    h += `</div><div class="lu-btns"><button type="button" id="luBack" class="pillb">← 返回設定</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成，開始遊戲 ▶</button></div></div>`;
+    h += `<div class="lu-sec">球隊野手</div><div class="lu-roster">`;
+    names.forEach(n => { const p = pool[n]; h += `<div class="rc"><b>${n}<small style="opacity:.7;font-weight:500">（${p.nat}）</small></b><span class="lc">${edChips(p, p.nat)}</span></div>`; });
+    h += `</div><div class="lu-sec">投手群</div><div class="lu-sp">${D.sp.map((r, i) => spCardHtml(r, i, false, false)).join('')}</div>
+    <div class="lu-btns"><button type="button" id="luBack" class="pillb">← 返回</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">開始比賽 ▶</button></div></div>`;
     el.innerHTML = h; return;
   }
+  h += `<div class="lu-quick"><button type="button" id="luAuto" class="pillb">🤖 智慧編排</button><button type="button" id="luReset" class="pillb">↺ 還原預設</button></div>
+  <div class="lu-sec">先發投手</div><div class="lu-sp">${D.sp.map((r, i) => spCardHtml(r, i, ed.spIdx === i, true)).join('')}</div>
+  <div class="lu-sec">打擊順序・守備位置</div>`;
   ed.order.forEach((n, i) => {
     const p = pool[n], pos = ed.pos[n];
-    h += `<div class="lr"><span class="ln">${i + 1}</span><span class="mv"><button type="button" data-up="${i}"${i ? '' : ' disabled'}>▲</button><button type="button" data-dn="${i}"${i < 8 ? '' : ' disabled'}>▼</button></span>
+    h += `<div class="lr"><span class="ln">${i + 1}</span>
     <select class="lp" data-i="${i}">${names.map(x => `<option value="${x}"${x === n ? ' selected' : ''}>${x}（${pool[x].nat}${bench.indexOf(x) >= 0 ? '・板凳' : ''}）</option>`).join('')}</select>
     <select class="ls" data-i="${i}">${POS9.map(q => `<option value="${q}"${q === pos ? ' selected' : ''}>${POS_LABEL[q]}</option>`).join('')}</select>
-    <span class="lc">${edChips(p, pos)}<span class="chip dim">${p.line || ''}</span></span></div>`;
+    <span class="mv"><button type="button" data-up="${i}"${i ? '' : ' disabled'}>▲</button><button type="button" data-dn="${i}"${i < 8 ? '' : ' disabled'}>▼</button></span>
+    <span class="lc">${edChips(p, pos)}</span></div>`;
   });
   h += `<div class="lu-sec">板凳（可代打／代跑／代守）</div>`;
   bench.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">板</span><span class="bnm">${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}</span></div>`; });
-  h += `<div class="lu-sec">先發投手</div><div class="lu-sp">`;
-  D.sp.forEach((r, i) => { const p = mkPitcher(r); h += `<div class="spc${ed.spIdx === i ? ' on' : ''}" data-sp="${i}"><b>${r.n}</b>（${r.h === 'L' ? '左' : '右'}投）<br><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}・K% ${r.k.toFixed(1)}・BB% ${r.bb.toFixed(1)}${r.est ? '（估）' : ''}</small><br><small>控球${p.ctl}・體力${p.sta}・${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`; });
-  h += `</div><details class="lu-doc"><summary>📖 能力值如何影響比賽</summary><div>
-  <b>打者</b>：巧打＝揮棒圈大小／碰到壞球的極限／打點穩定；力量＝擊球初速與全壘打；速度＝跑壘、盜壘與內野安打；選球＝辨識變化球、AI 選球耐心；強弱右左對決（異手打者圈 +4.5%、同手 −4.5%）。<br>
-  <b>投手</b>：球速與球種等級（Lv）決定位移幅度與尾勁；控球決定落點散布與暴投率；體力（球數）→疲勞→控球與球威下降；左投牽制一壘更有威脅。<br>
-  <b>守備</b>：守＝反應時間、跑速、飛撲成功率與失誤率；肩＝傳球速度與暴傳率；捕手守備值也影響邊角球被判好球的機率；非本位球員依適性折減。<br>
-  <b>心情</b>：越高越穩定並有最多 ±4.5% 加成，低落則表現更不可控。</div></details>
-  <div class="lu-btns"><button type="button" id="luReset" class="pillb">還原預設</button><button type="button" id="luBack" class="pillb">← 返回設定</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">完成，開始遊戲 ▶</button></div></div>`;
+  h += `<details class="lu-doc"><summary>📖 能力值如何影響比賽</summary><div>
+  <b>打者</b>：巧打＝揮棒圈大小／碰到壞球的極限；力量＝擊球初速與全壘打；速度＝跑壘、盜壘與內野安打；選球＝辨識變化球。異手對決打者較有利。<br>
+  <b>投手</b>：球速與球種等級（Lv）決定位移幅度；控球決定落點與暴投率；球數增加會疲勞。<br>
+  <b>守備</b>：守＝反應、跑速、飛撲與失誤率；肩＝傳球速度；非本位球員依適性折減。<br>
+  <b>天氣</b>：大雨與狂風暴雨會縮小揮棒圈、削弱擊球力道，並讓球路與滾地球更難掌握。</div></details>
+  <div class="lu-btns"><button type="button" id="luBack" class="pillb">← 返回</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">開始比賽 ▶</button></div></div>`;
   el.innerHTML = h;
 }
 (function () {
@@ -4287,6 +4422,7 @@ function renderLineup() {
     const t = e.target, ed = ED[ED_TAB.v]; if (!ed) return;
     if (t.id === 'luX' || t.id === 'luBack') { el.classList.add('hide'); return; }
     if (t.id === 'luDone') { launchGame(); return; }
+    if (t.id === 'luAuto') { if (CFG.side !== ED_TAB.v) return; const na = aiAutoEdit(TEAMS[ED_TAB.v ? CFG.home : CFG.away], { ace: 1 }); na.spIdx = ed.spIdx || 0; ED[ED_TAB.v] = na; renderLineup(); return; }
     if (t.id === 'luReset') { if (CFG.side !== ED_TAB.v) return; ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
     if (t.dataset.t !== undefined && t.classList.contains('lu-tab')) { ED_TAB.v = +t.dataset.t; renderLineup(); return; }
     if (CFG.side !== ED_TAB.v) return; const sp = t.closest('[data-sp]'); if (sp) { ed.spIdx = +sp.dataset.sp; renderLineup(); return; }
@@ -4352,7 +4488,7 @@ $('sb').addEventListener('click', () => { if (MOB) { $('sb').classList.toggle('o
 let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
 document.addEventListener('pointerdown', e => { for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) { if (!MOB && id !== 'acts') continue; if (!e.target.closest(sel)) $(id).classList.remove('open'); } }, true);
-{ const adv = $('adv'); if (adv) adv.open = true; }
+
 /* ---------------- 背景音設定面板（「更多」→「背景音設定」開啟） ---------------- */
 (function () {
   const panel = $('audioPanel'), mute = $('audioMute'), vol = $('audioVol'), num = $('audioNum');
