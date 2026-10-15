@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>實況中華職棒 2026</title>
+<title>實況中華職棒2026 Cam.Su</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -88,9 +88,9 @@ canvas#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .pbox .n{font-size:clamp(12px,1.25vw,15px);font-weight:900;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;line-height:1.2}
 .pbox .s{font-size:clamp(9px,.85vw,11px);opacity:.9;margin-top:1px;white-space:normal;line-height:1.25}
 .bar{height:6px;background:#0008;border-radius:3px;margin-top:3px;overflow:hidden}.bar>i{display:block;height:100%;background:linear-gradient(90deg,#3f8,#fd3)}
-#caption{left:0;right:0;bottom:0;height:clamp(54px,9.5vh,92px);display:flex;align-items:center;padding-left:12vw;padding-right:14vw;background:linear-gradient(90deg,#000a 0%,#000c 30%,#000c 80%,#0000)}
-#caption::before{content:'';position:absolute;left:11vw;top:12%;bottom:12%;width:5px;background:#e8232a}
-#caption .tx{font-size:clamp(16px,2.5vw,32px);font-weight:900;line-height:1.25;text-shadow:0 2px 6px #000}
+#caption{left:0;right:0;bottom:0;height:clamp(54px,9.5vh,92px);display:flex;align-items:center;padding-left:11vw;padding-right:14vw;background:none;pointer-events:none}
+#caption .tx{display:inline-block;width:fit-content;max-width:100%;box-sizing:border-box;padding:.18em .7em .18em .6em;background:rgba(0,0,0,.45);border-left:5px solid #e8232a;border-radius:0 6px 6px 0;font-size:clamp(16px,2.5vw,32px);font-weight:900;line-height:1.25;text-shadow:0 2px 6px #000}
+#caption .tx:empty{display:none}
 #caption .tx em{font-style:normal;color:#ff4a4a}
 #caption .sm{position:absolute;right:2vw;top:6px;font-size:11px;color:#9cf;letter-spacing:.25em;font-family:'Orbitron'}
 #toast{left:50%;top:38%;transform:translate(-50%,-50%) scale(1);font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';font-size:clamp(40px,9vw,120px);white-space:nowrap;-webkit-text-stroke:.1em #fff;paint-order:stroke fill;filter:drop-shadow(0 .05em 0 #0008);opacity:0;pointer-events:none}
@@ -281,8 +281,8 @@ body.mob #absPanel .absBtns{flex-direction:row;gap:4px}
 body.mob #absPanel .absBtns .abtn{padding:4px 10px!important;font-size:12px!important;min-height:28px;border-width:1.5px!important;border-radius:999px!important}
 
 /* --- 底部：字幕 / 左下操作 / 右下大按鈕 --- */
-body.mob #caption{height:var(--cap);padding:0 10px 0 16px;background:linear-gradient(90deg,#000d,#000d 75%,#0000)}
-body.mob #caption::before{left:8px;width:3px;top:18%;bottom:18%}
+body.mob #caption{height:var(--cap);padding:0 10px 0 8px;background:none}
+body.mob #caption .tx{border-left-width:3px;padding:.15em .55em .15em .5em}
 body.mob #caption .tx{font-size:13px;line-height:1.2;max-height:2.4em;overflow:hidden}
 body.mob #caption .sm{display:none}
 body.mob #touchBtns{right:10px;bottom:calc(var(--cap) + 8px);gap:8px}
@@ -2368,7 +2368,15 @@ function aiBatPlan(pt, b) {
   if (str === 2) { p = od < .05 ? .97 : p; if (od > 0 && od < .42) p = Math.max(p, .72 - b.eye * .003); }
   const z = batterZoneRating(b, px, py); if (z >= 1 && od < 0) p += .08 * z; if (z <= -1 && od < 0) p -= .1 * -z;
   if (bal === 3 && str === 0) p = (od < -.35 && strengthOf(b) > 66 && L.learn > 0 ? .35 : od < -.1 ? .08 : .0);
-  else if (bal >= 2 && str < 2 && od < 0) p += .07; else if (bal === 0 && str === 0) p *= (b.eye > 60 && L.learn > 0 ? .8 : .92);
+  else if (bal >= 2 && str < 2 && od < 0) p += .07;
+  // 每個打席隨機決定「打擊心態」：積極／正常／耐心（受選手積極度、打擊強度、選球與 AI 難度影響），不再固定前兩球不揮
+  if (!G.seq.length || !G._apr || G._aprKey !== b.name + b.num) { const ag = ((b.agg || 50) - 50) * .006, st = (strengthOf(b) - 60) * .003, ey = (b.eye - 60) * .0025; G._aprKey = b.name + b.num; G._apr = clamp(gauss() * (.2 + .08 * L.noise) + ag + st - ey - (L.learn > 1 ? .04 : 0), -.55, .7); }
+  { const ap = G._apr, early = str < 2 && bal < 3;
+    if (early && od < .12) { p *= 1 + ap * (str === 0 && bal === 0 ? 1.0 : .7); }
+    if (early && od < -.05) { const fl = (.14 + Math.max(0, ap + .25) * .38) * (L.learn === 0 ? 1.15 : L.learn >= 2 ? .85 : 1); p = Math.max(p, fl * (str === 0 && bal === 0 ? 1 : .9)); }     // 好球帶內至少有一定揮棒機率，弱／強打者機率不同
+    if (early && od > .12 && od < .4 && Math.random() < .05 * L.noise * (1 + Math.max(0, ap))) p = Math.max(p, .5);                                         // 偶爾被壞球誘出（追球）
+    if (od < -.1 && str < 2 && Math.random() < .06 * (1 + L.noise * .5)) p *= .35;                                                                         // 偶爾好球也放著看
+  }
   if (bal === 3 && str === 2) p = od < .12 ? .98 : .0;
   if (match && od < 0) p += .1;
   { const pp0 = curPitcher(); if (L.learn > 0 && od > -.1) { const wildish = clamp((pp0.fatigue || 0) * .003 + (100 - pp0.ctl) * .004 - .1, 0, .3); p *= 1 - wildish * (b.eye / 100) * L.learn * (str === 2 ? .3 : 1); } }      // 投手控球差／疲勞時，選球好的打者更有耐心
@@ -3576,28 +3584,28 @@ function pitcherToMound() {                // 投手每球都從投手丘站好�
    ===================================================================== */
 /* ---------------- 天氣與球場（風、雨、動態變化；可於開賽前關閉） ---------------- */
 const rainK = () => (G.wxOn && G.rain) ? G.rain : 0;
-const WX_SCEN = [['calm', 14], ['sunny', 26], ['overcast', 20], ['drizzle', 14], ['change', 22], ['heavy', 10], ['storm', 9]];
-function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .6 ? ['小雨', '🌧'] : r < .85 ? ['大雨', '🌧'] : ['狂風暴雨', '⛈']; }
+const WX_SCEN = [['calm', 24], ['sunny', 32], ['overcast', 20], ['drizzle', 8], ['change', 11], ['heavy', 3], ['storm', 2]];
+function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .55 ? ['小雨', '🌧'] : r < .8 ? ['大雨', '🌧'] : ['狂風暴雨', '⛈']; }
 function initWeather(homeTeam) {
   const on = G.wxOn !== false, dome = Math.random() < .12; const st = dome ? '台北大巨蛋' : (homeTeam && homeTeam.home) || pick(STADIUMS.slice(0, 6));
   G.rain = 0; G.rainT = 0; G.wxClock = 0; G.wxLv = 0; G.wxScen = 'calm'; G.windBase = 0; G.windBoost = 0;
   if (on && !dome) { G.wxScen = weighted(WX_SCEN.map(x => x[0]), WX_SCEN.map(x => x[1])); }
   const sc = G.wxScen;
   G.windBase = !on || dome ? 0 : (sc === 'calm' || sc === 'sunny') ? Math.random() * .8 + (sc === 'sunny' ? .2 : 0) : sc === 'overcast' ? clamp(Math.abs(gauss()) * 1.4 + .5, 0, 3.5) : clamp(Math.abs(gauss()) * 2.4 + .6, 0, 7);
-  G.windBoost = sc === 'storm' ? 6 : sc === 'heavy' ? 3 : 1.2;
-  if (sc === 'drizzle') G.rain = G.rainT = .14 + Math.random() * .12; else if (sc === 'heavy') G.rain = G.rainT = .55 + Math.random() * .2; else if (sc === 'storm') G.rain = G.rainT = .85 + Math.random() * .15;
+  G.windBoost = sc === 'storm' ? 6 : sc === 'heavy' ? 1.4 : 1;
+  if (sc === 'drizzle') G.rain = G.rainT = .14 + Math.random() * .12; else if (sc === 'heavy') G.rain = G.rainT = .5 + Math.random() * .15; else if (sc === 'storm') G.rain = G.rainT = .85 + Math.random() * .15;
   G.windMean = G.windMeanT = G.windBase; G.windDir = G.windDirT = Math.random() * 360; G.gust = { cd: 3 + Math.random() * 6, t: 0, dur: 0, amp: 0, env: 0 }; G.windClock = 0; G._windCls = ''; G._windNoteT = 0; G._windHudT = 0;
   G.cloudBase = cloudFor(sc); G.cloud = G.cloudBase; G.rb = 0; G.rbT = 0; G._rbArm = false; rainbow.visible = false;
   G.wx = { spd: G.windBase + G.rain * G.windBoost, dir: G.windDir, gust: 0, temp: !on ? 26 : dome ? 25 : Math.round(22 + Math.random() * 10 - G.rain * 4), dome, venue: st, off: !on };
   G.wxLv = wxLevel(G.rain)[0]; G._windCls = windClass(); updateWindHud(); applyLighting();
 }
 function weatherRetarget() {                // 每隔十餘球決定下一階段的雨勢目標
-  if (!G.wxOn || G.wx.dome) return; if (Math.random() < .5) shiftScene(); const sc = G.wxScen, r = Math.random();
+  if (!G.wxOn || G.wx.dome) return; if (Math.random() < .22) shiftScene(); const sc = G.wxScen, r = Math.random();
   if (sc === 'calm' || sc === 'sunny' || sc === 'overcast') G.rainT = 0;
   else if (sc === 'drizzle') G.rainT = clamp(.14 + Math.random() * .14, 0, 1);
-  else if (sc === 'heavy') G.rainT = clamp(.5 + Math.random() * .4, 0, 1);
+  else if (sc === 'heavy') G.rainT = clamp(.48 + Math.random() * .22, 0, .72);
   else if (sc === 'storm') G.rainT = clamp(.8 + Math.random() * .2, 0, 1);
-  else { const cur = G.rainT; G.rainT = r < .35 ? (cur > .05 ? 0 : .2 + Math.random() * .2) : r < .7 ? clamp(cur + .15 + Math.random() * .3, 0, .95) : clamp(cur - .25 - Math.random() * .3, 0, 1); if (G.rainT < .08) G.rainT = Math.random() < .6 ? 0 : G.rainT; }
+  else { const cur = G.rainT; G.rainT = r < .45 ? (cur > .05 ? 0 : .15 + Math.random() * .15) : r < .65 ? clamp(cur + .1 + Math.random() * .2, 0, .55) : clamp(cur - .25 - Math.random() * .3, 0, 1); if (G.rainT < .08) G.rainT = Math.random() < .6 ? 0 : G.rainT; }
   G.wx.dir = (G.wx.dir + (Math.random() - .5) * 90 + 360) % 360;
 }
 function windRetarget(strong) {            // 風：每 5~10 球決定新的平均風速／風向目標（之後漸進轉變，不會瞬間跳變）
@@ -3609,7 +3617,7 @@ function windRetarget(strong) {            // 風：每 5~10 球決定新的平�
   G.windDirT = (G.windDirT + turn + 720) % 360;
 }
 function weatherPitch() {
-  if (!G.wxOn) return; G.wxClock++; if (G.wxClock >= 9 + Math.floor(Math.random() * 8)) { G.wxClock = 0; weatherRetarget(); }
+  if (!G.wxOn) return; G.wxClock++; if (G.wxClock >= 24 + Math.floor(Math.random() * 14)) { G.wxClock = 0; weatherRetarget(); }
   G.windClock = (G.windClock || 0) + 1; if (G.windClock >= 5 + Math.floor(Math.random() * 6)) { G.windClock = 0; windRetarget(); }
 }
 const windK = () => (G.wxOn && G.wx && !G.wx.dome && !G.wx.off) ? clamp((G.wx.spd || 0) / 8, 0, 1) : 0;     // 風力強度 0~1（影響控球、外野手判斷）
@@ -3634,8 +3642,8 @@ function updateRainbow(dt) {
 }
 function updateWeather(dt) {
   if (!G.wxOn || !G.wx || G.wx.dome) { if (rainbow.visible) rainbow.visible = false; return; }
-  G.rain = clamp(G.rain + clamp(G.rainT - G.rain, -dt * .035, dt * .035), 0, 1);
-  { const tg = Math.max(G.cloudBase || 0, clamp(G.rain * 2.5, 0, 1)); G.cloud = (G.cloud || 0) + clamp(tg - (G.cloud || 0), -dt * .04, dt * .04); }
+  G.rain = clamp(G.rain + clamp(G.rainT - G.rain, -dt * .014, dt * .014), 0, 1);
+  { const tg = Math.max(G.cloudBase || 0, clamp(G.rain * 2.5, 0, 1)); G.cloud = (G.cloud || 0) + clamp(tg - (G.cloud || 0), -dt * .018, dt * .018); }
   windStep(dt); updateRainbow(dt);
   const lv = wxLevel(G.rain)[0];
   if (lv !== G.wxLv) {
@@ -3680,17 +3688,17 @@ const mixHex = (a, b, t) => _c3.set(a).lerp(new THREE.Color(b), t).getHex();
 function mixSky(a, b, t) { const n = (x, y) => x + (y - x) * t; return { bg: mixHex(a.bg, b.bg, t), fog: mixHex(a.fog, b.fog, t), fn: n(a.fn, b.fn), ff: n(a.ff, b.ff), hemi: n(a.hemi, b.hemi), sun: n(a.sun, b.sun), sc: mixHex(a.sc, b.sc, t), wall: n(a.wall, b.wall), sp: a.sp.map((v, i) => n(v, b.sp[i])) }; }
 const cloudFor = sc => ({ sunny: 0, calm: .45, overcast: .95, drizzle: 1, change: .6, heavy: 1, storm: 1 }[sc] ?? .3);
 const cloudK = () => clamp(G.cloud === undefined ? .3 : G.cloud, 0, 1);
-const WX_NEXT = { calm: [['calm', 4], ['sunny', 2], ['overcast', 3], ['drizzle', 1]], sunny: [['sunny', 4], ['calm', 2], ['overcast', 3], ['drizzle', 1]], overcast: [['overcast', 3], ['sunny', 3], ['calm', 2], ['drizzle', 3], ['heavy', 1]], drizzle: [['drizzle', 3], ['overcast', 3], ['sunny', 2], ['calm', 1], ['heavy', 2]], change: [['change', 4], ['overcast', 2], ['drizzle', 2], ['sunny', 2]], heavy: [['heavy', 3], ['drizzle', 4], ['overcast', 2], ['storm', 1]], storm: [['storm', 3], ['heavy', 5], ['drizzle', 1]] };      // 好天氣可能轉雨、雨天也會轉好（暴雨→大雨→毛毛雨→陰→放晴）
+const WX_NEXT = { calm: [['calm', 8], ['sunny', 3], ['overcast', 3], ['drizzle', .4]], sunny: [['sunny', 8], ['calm', 3], ['overcast', 3], ['drizzle', .3]], overcast: [['overcast', 6], ['sunny', 3], ['calm', 3], ['drizzle', 1.2], ['heavy', .2]], drizzle: [['drizzle', 4], ['overcast', 4], ['sunny', 2], ['calm', 1], ['heavy', .5]], change: [['change', 5], ['overcast', 3], ['drizzle', 1], ['sunny', 3]], heavy: [['heavy', 3], ['drizzle', 5], ['overcast', 2], ['storm', .3]], storm: [['storm', 2], ['heavy', 5], ['drizzle', 1]] };      // 好天氣可能轉雨、雨天也會轉好（暴雨→大雨→毛毛雨→陰→放晴）
 function shiftScene() {              // 隨比賽進行，天氣情境會慢慢轉變（晴→多雲→陰→雨，或雲散放晴）
   const cur = G.wxScen, tb = WX_NEXT[cur]; if (!tb) return;
   const nx = weighted(tb.map(x => x[0]), tb.map(x => x[1])); if (nx === cur) return;
-  G.wxScen = nx; G.cloudBase = cloudFor(nx); G.windBoost = nx === 'storm' ? 6 : nx === 'heavy' ? 3 : 1.2;
+  G.wxScen = nx; G.cloudBase = cloudFor(nx); G.windBoost = nx === 'storm' ? 6 : nx === 'heavy' ? 1.4 : 1;
   const clear = s => s === 'sunny' || s === 'calm';
   if (G.mode === 'play' && !G.over) { if (clear(cur) && nx === 'overcast') say('☁️ 雲層變厚了，天色漸漸暗下來…'); else if (cur === 'overcast' && clear(nx)) say('🌤 雲層散開，陽光露臉，天氣轉好了！'); else if (nx === 'sunny' && cur !== 'calm') say('☀️ 天空放晴，陽光灑滿球場！'); else if ((nx === 'drizzle' || nx === 'heavy' || nx === 'storm') && (clear(cur) || cur === 'overcast')) say('🌦 烏雲壓境，雨點開始落下了…'); else if ((cur === 'drizzle' || cur === 'heavy' || cur === 'storm') && (nx === 'overcast' || nx === 'calm')) say('🌥 雨勢漸漸減弱，天空慢慢轉亮…'); }
 }
 const _c1 = new THREE.Color(), _c2 = new THREE.Color();
 function applyLighting() {            // 依天氣（大晴天／陰暗天／雨勢）調整天空、霧、日照、場邊廣告牆與觀眾席亮度
-  const on = G.wxOn !== false && G.wx && !G.wx.off && !G.wx.dome; const base = on ? mixSky(SKY.sunny, SKY.overcast, cloudK()) : SKY.clear, st = SKY.storm, k = on ? clamp(Math.pow(rainK(), 1.15) * 1.05, 0, 1) : 0;
+  const on = G.wxOn !== false && G.wx && !G.wx.off && !G.wx.dome; const base = on ? mixSky(SKY.sunny, SKY.overcast, cloudK()) : SKY.clear, st = SKY.storm, k = on ? clamp(Math.pow(rainK(), 1.6) * 1.05, 0, 1) : 0;
   const mix = (a, b) => a + (b - a) * k, col = (a, b) => _c1.set(a).lerp(_c2.set(b), k);
   scene.background.copy(col(base.bg, st.bg)); scene.fog.color.copy(col(base.fog, st.fog)); scene.fog.near = mix(base.fn, st.fn); scene.fog.far = mix(base.ff, st.ff);
   hemi.intensity = mix(base.hemi, st.hemi); sun.intensity = mix(base.sun, st.sun); sun.color.copy(col(base.sc, st.sc));
@@ -3704,6 +3712,13 @@ function drawSky(c, W, H) {           // 晴：右上角柔和暖陽光暈；陰
   if (k > .02) { const t = performance.now() * .0004, pul = .94 + Math.sin(t) * .06;
     const g = c.createRadialGradient(W * .92, -H * .06, 0, W * .92, -H * .06, H * 1.1); g.addColorStop(0, `rgba(255,214,130,${.075 * k * pul})`); g.addColorStop(.4, `rgba(255,200,110,${.025 * k})`); g.addColorStop(1, 'rgba(255,190,100,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   if ((G.rb || 0) > .01) { const g = c.createRadialGradient(W * .5, H * .25, 0, W * .5, H * .25, Math.hypot(W, H) * .6); g.addColorStop(0, `rgba(255,226,170,${.1 * G.rb})`); g.addColorStop(1, 'rgba(255,226,170,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+  if ((G.rb || 0) > .01) {                                                           // 彩虹：天空中的微微七彩弧光（柔和、半透明）
+    const rb = G.rb, cx = W * .5, cy = H * .78, R = Math.min(H * .72, W * .42), bw = R * .045, cols = ['255,74,74', '255,154,58', '255,228,74', '90,224,106', '74,200,232', '74,106,255', '154,90,255'];
+    c.save(); c.globalCompositeOperation = 'screen';
+    c.lineWidth = bw * 9; c.strokeStyle = `rgba(255,236,200,${.035 * rb})`; c.beginPath(); c.arc(cx, cy, R - bw * 3, Math.PI * 1.06, Math.PI * 1.94); c.stroke();
+    for (let i = 0; i < 7; i++) { c.lineWidth = bw + 1; c.strokeStyle = `rgba(${cols[i]},${(.13 * rb).toFixed(3)})`; c.beginPath(); c.arc(cx, cy, R - i * bw, Math.PI * 1.06, Math.PI * 1.94); c.stroke(); }
+    c.restore();
+  }
   const a = clamp((cl - .35) / .65, 0, 1);
   if (a > 0) { c.fillStyle = `rgba(46,58,76,${.12 * a})`; c.fillRect(0, 0, W, H); const g = c.createRadialGradient(W / 2, H * .5, Math.min(W, H) * .35, W / 2, H * .5, Math.hypot(W, H) * .6); g.addColorStop(0, 'rgba(8,14,26,0)'); g.addColorStop(1, `rgba(8,14,26,${.38 * a})`); c.fillStyle = g; c.fillRect(0, 0, W, H); }
 }
@@ -3724,11 +3739,11 @@ function coverSteal(idxs) {               // 盜壘起跑時，負責補位的�
   }
 }
 function drawRain(c, W, H) {            // 雨量：毛毛雨＝細密雨絲＋薄霧；小雨＝明顯雨幕；大雨/暴雨＝密集粗雨
-  const r = rainK(); if (r < .03) return; const dpr = W / VW(), wind = (G.wx.spd || 0) * .6 + 2;
-  const n = Math.floor(30 + 560 * Math.pow(r, 1.15)), len = (9 + r * 24) * dpr;
+  const r = rainK(); if (r < .03) return; const dpr = W / VW(), wind = Math.min(G.wx.spd || 0, r < .8 ? 4 : 11) * .6 + 2;
+  const rv = r < .8 ? r * .72 : .58 + (r - .8) * 2.1, n = Math.floor(30 + 560 * Math.pow(Math.min(rv, 1), 1.25)), len = (9 + rv * 24) * dpr;
   c.fillStyle = `rgba(150,170,196,${(.035 + Math.min(r, .5) * .12).toFixed(3)})`; c.fillRect(0, 0, W, H);                // 薄霧：低雨量也看得出空氣濕濛
-  c.fillStyle = `rgba(12,24,44,${(r * .15).toFixed(3)})`; c.fillRect(0, 0, W, H);
-  c.strokeStyle = `rgba(205,228,255,${(.22 + r * .4).toFixed(2)})`; c.lineWidth = (.9 + r * 1.0) * dpr; c.beginPath();
+  c.fillStyle = `rgba(12,24,44,${(rv * .15).toFixed(3)})`; c.fillRect(0, 0, W, H);
+  c.strokeStyle = `rgba(205,228,255,${(.22 + rv * .4).toFixed(2)})`; c.lineWidth = (.9 + rv * 1.0) * dpr; c.beginPath();
   for (let i = 0; i < n; i++) { const x = Math.random() * (W + 80 * dpr), y = Math.random() * H; c.moveTo(x, y); c.lineTo(x - wind * 1.6 * dpr * (len / (30 * dpr)), y + len); } c.stroke();
 }
 function slipRunner(r, why) {            // 跑者在濕滑場地滑倒
