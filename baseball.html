@@ -870,7 +870,7 @@ const BASE_LEN = 20;                       // distance between bases
 const H = BASE_LEN / Math.SQRT2;
 const BASES = [ { x: 0, z: 0 }, { x: H, z: -H }, { x: 0, z: -2 * H }, { x: -H, z: -H } ];   // home,1B,2B,3B
 const MOUND = { x: 0, z: -15 };
-const ZW = 0.62, ZC = 1.35, ZH = 0.68;      // strike zone half width / centre y / half height
+const ZW = 0.55, ZC = 1.35, ZH = 0.72;      // strike zone half width / centre y / half height（寬:高≈3:4，與真實好球帶 43cm × 約 57cm 比例相近）
 const BALL_R = 0.16;
 const WALL_H = 3.6;
 const WALL_PTS = [[0, 80], [45, 71], [90, 44], [135, 32], [180, 30]];
@@ -1512,9 +1512,9 @@ const seamTex = canvasTex(256, 128, (g, w, h) => {      // 棒球縫線貼圖：
   for (const off of [h * .3, h * .7]) { g.beginPath(); for (let x = 0; x <= w; x += 4) { const y = off + Math.sin(x / w * Math.PI * 4) * h * .13; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
   g.lineWidth = 2; for (let x = 0; x < w; x += 10) { const y1 = h * .3 + Math.sin(x / w * Math.PI * 4) * h * .13, y2 = h * .7 + Math.sin(x / w * Math.PI * 4) * h * .13; g.beginPath(); g.moveTo(x, y1 - 6); g.lineTo(x + 3, y1 + 6); g.moveTo(x, y2 - 6); g.lineTo(x + 3, y2 + 6); g.stroke(); }
 });
-const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * 1.45, 14, 10), new THREE.MeshPhongMaterial({ color: 0xffffff, map: seamTex, shininess: 60 })); ballMesh.visible = false; scene.add(ballMesh);
+const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * .9, 14, 10), new THREE.MeshPhongMaterial({ color: 0xffffff, map: seamTex, shininess: 60 })); ballMesh.visible = false; scene.add(ballMesh);
 const ballShadow = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); ballShadow.rotation.x = -Math.PI / 2; ballShadow.position.y = .05; ballShadow.scale.set(1, 1, 1); ballShadow.visible = false; scene.add(ballShadow);
-const TRAIL_N = 18; const trail = []; for (let i = 0; i < TRAIL_N; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * (1.1 - i / TRAIL_N * .8), 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .0 })); m.visible = false; scene.add(m); trail.push(m); }
+const TRAIL_N = 18; const trail = []; for (let i = 0; i < TRAIL_N; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * (.8 - i / TRAIL_N * .55), 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .0 })); m.visible = false; scene.add(m); trail.push(m); }
 const trailPos = [];
 function setBall(p, vis, trailCol, tfx) {
   ballMesh.visible = vis; ballShadow.visible = vis; if (!vis) { trail.forEach(t => t.visible = false); return; }
@@ -4824,9 +4824,12 @@ function pointerToZone(cx, cy) {
   const o = _ray.ray.origin, d = _ray.ray.direction; if (Math.abs(d.z) < 1e-5) return null; const t = -o.z / d.z; if (t < 0) return null;
   return { x: o.x + d.x * t, y: o.y + d.y * t };
 }
+const AIM_MARGIN = .42;
 function updateAim() {
   if (!aim.has) return; const p = pointerToZone(aim.cx, aim.cy); if (!p) return;
-  aim.x = clamp(p.x, -1.75, 1.75); aim.y = clamp(p.y, ZC - 1.65, ZC + 1.65);
+  const mx = ZW + AIM_MARGIN, my = ZH + AIM_MARGIN;      // 球棒最多只能移到好球帶外一小段（壞球邊緣）：打者實際能揮到的範圍
+  aim.x = clamp(p.x, -mx, mx); aim.y = clamp(p.y, ZC - my, ZC + my);
+  if (p.x !== aim.x || p.y !== aim.y) { const q = w2s(aim.x, aim.y, 0), dp = ov.width / VW(); if (isFinite(q.x) && isFinite(q.y) && dp > 0) { aim.cx = q.x / dp; aim.cy = q.y / dp; } }      // 準心也一起拉回邊界，避免手指拖過頭後要拖很久才回得來
 }
 let POW_PREF = false;      // 強打開關：只由玩家手動切換，不會因換局／換打者而重置
 const powOn = () => !G.easy && !!(aim.shift || POW_PREF);
@@ -4834,7 +4837,7 @@ function syncPowUI() { const v = POW_PREF, b = $('btnPow'), b2 = $('btnPowPc'); 
 function setPow(v) { POW_PREF = !!v; aim.lock = POW_PREF; const b = $('btnPow'), b2 = $('btnPowPc'); if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } }
 function cursorR() {
   const b = curBatter(); const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() };
-  return batterR(b, fake, powOn() && !G.callBunt) * (G.callBunt ? 1.25 : 1);
+  return batterR(b, fake, powOn() && !G.callBunt) * (G.callBunt ? 1.25 : 1) * ((IS_TOUCH || MOB) ? 1.1 : 1);      // 手機／平板：與電腦版比例相近，只略放大一點
 }
 function drawRing(x, y, r, col, lw, dash) {
   const a = w2s(x, y, 0), b = w2s(x + r, y, 0), u2 = w2s(x, y + r, 0), rad = Math.abs(b.x - a.x), ry = Math.abs(u2.y - a.y);     // 圈是本壘板平面上的圓：投影成橢圓才與判定範圍完全一致
@@ -4901,8 +4904,11 @@ function practiceSwing() {
   b.rig.anim = { name: 'swing', t: 0, dur: .24, opt: {} }; flowSfx('swing', .8); after(.42, () => { if (E.bat === b && !(PT && PT.sw) && G.phase !== 'inplay') batterStance(); });
 }
 let _evT = 0;
-document.addEventListener('pointerdown', e => { _evT = e.timeStamp; }, true);
+let _evTouch = false;
+document.addEventListener('pointerdown', e => { _evT = e.timeStamp; _evTouch = e.pointerType !== 'mouse'; }, true);
+document.addEventListener('pointerup', e => { _evT = e.timeStamp; _evTouch = e.pointerType !== 'mouse'; }, true);      // 觸控是「放開」才揮棒：以放開瞬間的時間戳記為準
 document.addEventListener('keydown', e => { _evT = e.timeStamp; }, true);
+const TOUCH_LAT = .04;      // 觸控螢幕顯示／觸控延遲補償：畫面上看到的球比實際晚約 2~3 幀，出棒時間往後修正
 function inputNow() { const n = performance.now(); return (_evT > 0 && n - _evT >= 0 && n - _evT < 120) ? _evT : n; }      // 按下的真正時刻（比處理器跑到的時間更準）
 function humanAction() {
   if (G.mode !== 'play') return;
@@ -4910,7 +4916,7 @@ function humanAction() {
   if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { if (G.pm) pmStop(false); else if ((G.preT || 0) > .3) { updateAim(); pmStart(); } }
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
-    updateAim(); const pTc = PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
+    updateAim(); const pTc = PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY + (_evTouch ? TOUCH_LAT : 0); let R = cursorR(), cx = aim.x, cy = aim.y;
     if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n; cy = _pj.y + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
     startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
   }
@@ -4921,7 +4927,7 @@ function pmStart() {
   const p = curPitcher(), id = G.selPitch, spec = PITCHES[id], lv = pitchLv(p, id) || 4, brk = Math.hypot(spec.bx, spec.by) * lv / 7;
   let zw = clamp(.05 + (p.ctl - 40) * .0011 + lv * .006 - (p.fatigue || 0) * .0003 + (moodOf(p) - 55) * .0004, .045, .17);
   zw *= clamp(1.22 - brk * .35 - (spec.knuckle ? .15 : 0), .72, 1.2) * 1.2; if (G.easy) zw *= 1.4;      // 控球好、球種單純（直球）→ 綠區寬；變化球／疲勞／心情差 → 窄
-  const dur = clamp(.66 - brk * .15 - (p.fatigue || 0) * .0013, .42, .72), c = .78;      // 游標掃描速度加快
+  const dur = clamp(.66 - brk * .15 - (p.fatigue || 0) * .0013, .42, .72) * 1.55, c = .78;      // 準度條掃描速度放慢（比先前慢約 35%）
   G.pm = { id, x: aim.x, y: aim.y, t: 0, dur, c, zw };
   const pc = v => clamp(v * 100, 0, 100).toFixed(1);
   const st = [[0, '#d33'], [c - zw * 2, '#d33'], [c - zw * 2, '#f80'], [c - zw * 1.0, '#f80'], [c - zw * 1.0, '#ec3'], [c - zw * .20, '#ec3'], [c - zw * .20, '#3d6'], [c + zw * .20, '#3d6'], [c + zw * .20, '#ec3'], [c + zw * 1.0, '#ec3'], [c + zw * 1.0, '#f80'], [c + zw * 2, '#f80'], [c + zw * 2, '#d33'], [1, '#d33']];      // 綠＝完美、黃＝正常、橘＝稍微失控、紅＝失準
