@@ -1817,7 +1817,7 @@ function resolveSwing(pt, sw, b) {
   if (adt > Wd * 1.15 || d > R0 + BALL_R * .5) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };      // 球心落在擊球框（含球半徑）內且時機在窗口內＝一定碰得到
   const dn = clamp((d / R0 - .25) / .75, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 圈心附近＝甜蜜點，越往外越差
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (Wd * 1.15), 0, 1), 1.5));
-  Q = clamp(Q, 0, 1);
+  Q = clamp(Q + gauss() * 0.06 * (.6 + .4 * mv), 0, 1);      // 擊球品質隨機抖動：同樣的揮棒也會有「打得比預期好／差」的感覺
   const side = sideB;
   let chase = 0, far = false;                                               // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
   if (!sw.bunt) {
@@ -1864,8 +1864,8 @@ function resolveSwing(pt, sw, b) {
   ev *= 1 - .22 * clamp(Math.abs(v) - .6, 0, 1);                           // 打在球的最上/最下緣：能量損失
   if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .15 * (.6 + skill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
   ev *= 1 + clamp((w0.temp - 24) * .0009, -.017, .017);                      // 氣溫：天熱球彈性好、天冷偏悶
-  ev *= (1 + gauss() * .02 * mv) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
-  let ang = 7.5 + b.traj * 3.3 + v * 26 + clamp(Q - .7, 0, .3) * 12 * (.5 + b.pow * .006) + gauss() * (3 + 9 * (1 - Q)) * (.6 + .4 * mv);
+  ev *= (1 + gauss() * .045 * mv) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
+  let ang = 7.5 + b.traj * 3.3 + v * 26 + clamp(Q - .7, 0, .3) * 12 * (.5 + b.pow * .006) + gauss() * (4 + 9 * (1 - Q)) * (.6 + .4 * mv);
   if (sw.power) ang += 3.8 + Q * 2.3;                                      // 強打：揮棒上揚、擊球仰角較高（甜蜜點時更明顯）→ 容易飛得夠遠
   // 球種特性：沉球／指叉／曲球容易打出滾地球，直球上飄容易打成飛球
   const BRK = { SK: -4.5, TS: -2.2, SH: -2, CH: -2.4, FK: -5, CU: -3.2, SL: -1.4, SV: -2.2, ST: 1.6, CT: -.4 };
@@ -2080,10 +2080,11 @@ function planFielding(sim, cl, foul, res) {
     const fl = f.pl.fld || 55, spd = fspeed(f) * 1.0, lag = spd / (2 * (12 + fl * .05));
     const readErr = Math.abs(gauss()) * Math.max(.02 * windK(), .17 - fl * .0014 + windK() * .09) * (res && res.ang > 14 ? 1 + windK() * 1.1 : .35);     // 風大時高飛球更難判斷落點（風向風速仍在變化→守備差的更吃虧）     // 判斷落點的失誤（守備差、高飛球更明顯）
     let react = 0.50 - fl * .0012 + readErr * (res && res.ang >= 6 && res.ang < 24 ? 1 + hardK * .9 : 1) + lag + rainK() * .05 - (G.lv >= 3 && G.human !== 1 - G.half ? .035 : 0);
-    react += hardK * (.07 + (1 - clamp(fl / 85, 0, 1)) * .09) + clamp(gauss() * .04, -.08, .08);      // 強勁球看不清＋每次起跑好壞不同（好的起跑能多救一顆、差的起跑會慢半拍）
+    react += hardK * (.07 + (1 - clamp(fl / 85, 0, 1)) * .09) + clamp(gauss() * .06, -.12, .14) + (Math.random() < .07 ? .08 + Math.random() * .22 : 0);      // 起步好壞不一，偶爾判斷失誤慢半拍；強勁球看不清＋每次起跑好壞不同（好的起跑能多救一顆、差的起跑會慢半拍）
     const reach = 1.05 - hardK * .34;                                                                  // 球速越快，手套實際能構到的範圍越小
     if (res && res.bunt) { react += (f.pos === 'P' ? .06 : 0); if (res.sneak) react += (.06 + Math.abs(gauss()) * .06) * (aiExpectBunt() ? .5 : 1) * (1.15 - fl * .004); }   // 投手剛投完球重心未穩；奇襲短打讓全隊來不及反應
     let got = null, dive = null, sup = null;
+    const slack = Math.random() < .45 ? Math.random() * .22 : 0;      // 邊緣球：野手可能判斷／衝刺差一點點，球落在身前（不再是『算得到就一定接到』）
     const wT = sim.wallT || 1e9;
     for (let i = 0; i < S.length; i += 2) {
       const s = S[i]; if (sim.over && s.t > sim.over.t) break;
@@ -2100,7 +2101,7 @@ function planFielding(sim, cl, foul, res) {
       const need = react * clamp(ov1 / 1.4, 0, 1) + ov1 / sp + (leap ? .22 : 0) + (ov1 > 0 ? back : 0);      // 球在手套範圍內＝野手本來就站在那裡，不需要起步反應；範圍外才要判斷＋起跑＋跑到
       const airOk = s.t < firstT - .02 && s.t <= wT + .02;
       if (leap) { if (!dive && need <= s.t && airOk) dive = { f, t: s.t, x: sx, z: sz, air: true, dive: true, leap: true, y: s.y, react: react - lag }; continue; }
-      if (!got && need <= s.t) { got = { f, t: s.t, x: sx, z: sz, air: airOk, dive: false, y: s.y, react: react - lag }; break; }
+      if (!got && need + slack <= s.t) { got = { f, t: s.t, x: sx, z: sz, air: airOk, dive: false, y: s.y, react: react - lag }; break; }
       if (!dive) { const need2 = react * clamp(ov2 / 1.4, 0, 1) + ov2 / sp + (ov2 > 0 ? back : 0); if (need2 <= s.t && s.t > .35) dive = { f, t: s.t, x: sx, z: sz, air: airOk, dive: true, y: s.y, react: react - lag }; }
       if (!sup) { const need3 = react * clamp(ov3 / 1.4, 0, 1) + ov3 / sp + (ov3 > 0 ? back : 0); if (need3 <= s.t && s.t > .5 && s.y < 2.4) sup = { f, t: s.t, x: sx, z: sz, air: airOk, dive: true, y: s.y, react: react - lag, superTry: true }; }
     }
@@ -2457,7 +2458,7 @@ function steerChaser() {
     const res = PL.res || {}, fl = f.pl.fld || 55, ang = res.ang || 10, T = Math.max(.4, plan.t || 1), sk = clamp(1.28 - fl * .0095, .55, 1.15);
     const lin = ang >= 6 && ang < 22 && !res.bunt;
     let sd = plan.air ? (lin ? 2.4 : 1.1 + Math.min(T, 5) * .7) : (ang < 8 ? .5 : 1.4);
-    sd = Math.min(7, sd * sk * (1 + clamp(((res.ev || 25) - 30) / 30, 0, .4)));
+    sd = Math.min(8, sd * sk * 1.35 * (1 + clamp(((res.ev || 25) - 30) / 30, 0, .4)));
     const l = Math.hypot(plan.x, plan.z) || 1, rx = plan.x / l, rz = plan.z / l, ed = gauss() * sd, el = gauss() * sd * .35;
     st = plan._st = { ex: rx * ed - rz * el, ez: rz * ed + rx * el, T };
   }
@@ -4205,7 +4206,11 @@ function changePitcher(side, idx, forced, why) {
 function flowOnContact(pl) {
   if (CAMC.mode === 'bat') { CAMC.mode = 'batfollow'; after(.5, () => { if (CAMC.mode === 'batfollow') CAMC.mode = 'play'; }); } else CAMC.mode = 'play';
   if (pl.foul) { say(pl.plan.kind === 'catch' ? '打高了！界外高飛球，接得到嗎！' : SAY.foul()); toast('界外', '#fff', '#f5a'); return; }
-  if (pl.plan.kind === 'hr') { say(SAY.hr(curBatter()) + `（飛行 ${Math.round(pl.dist)} m）`); toast('全壘打！', '#fff27a', '#ff3a1a'); flowSfx('cheer', 1.6); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); return; }
+  if (pl.plan.kind === 'hr') {      // 全壘打：擊球當下只報「打出去了」，球快飛出牆時才慶祝（不讓人一擊球就知道結果）
+    say(`打出去了！${hitTypeWord(pl.kind)}！飛向${areaWord(pl.plan.x, pl.plan.z)}方向！`); const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
+    after(dly, () => { if (PL !== pl) return; say(SAY.hr(bat0) + `（飛行 ${Math.round(pl.dist)} m）`); toast('全壘打！', '#fff27a', '#ff3a1a'); flowSfx('cheer', 1.6); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); });
+    return;
+  }
   const last = pl.sim.S[pl.sim.S.length - 1], t = pl.plan;
   say(`打出去了！${hitTypeWord(pl.kind)}！飛向${areaWord(t.x, t.z)}方向！`);
 }
@@ -4641,7 +4646,7 @@ function showHitInfo(res, pl) {
   <div class="hrow"><svg viewBox="0 0 64 64" class="hb"><circle cx="32" cy="32" r="24" fill="#f4f4f4" stroke="#999" stroke-width="2"/><circle cx="${dot.x}" cy="${dot.y}" r="6" fill="${col}" stroke="#000" stroke-width="1.5"/></svg>
   <svg viewBox="0 0 64 64" class="hb"><line x1="4" y1="56" x2="62" y2="56" stroke="#7a7" stroke-width="2"/><line x1="8" y1="56" x2="${ax}" y2="${ay}" stroke="${col}" stroke-width="3" stroke-linecap="round"/><circle cx="${ax}" cy="${ay}" r="3.5" fill="#fff"/></svg>
   <div class="ha">仰角 ${Math.round(res.ang)}°<small>${Math.round(res.ev * 3.6)}km/h・${dirTxt}</small></div></div>
-  <div class="hs">${spinTxt}${luckTxt}${d}<span id="hitRes" class="hres"></span></div>`;
+  <div class="hs">${spinTxt}<span id="hitRes" class="hres"></span></div>`;
   el.classList.remove('hide'); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   const my = ++_hitT; el._my = my;
 }
