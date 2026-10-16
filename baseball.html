@@ -870,7 +870,7 @@ const BASE_LEN = 20;                       // distance between bases
 const H = BASE_LEN / Math.SQRT2;
 const BASES = [ { x: 0, z: 0 }, { x: H, z: -H }, { x: 0, z: -2 * H }, { x: -H, z: -H } ];   // home,1B,2B,3B
 const MOUND = { x: 0, z: -15 };
-const ZW = 0.75, ZC = 1.35, ZH = 0.8;      // strike zone half width / centre y / half height
+const ZW = 0.62, ZC = 1.35, ZH = 0.68;      // strike zone half width / centre y / half height
 const BALL_R = 0.16;
 const WALL_H = 3.6;
 const WALL_PTS = [[0, 80], [45, 71], [90, 44], [135, 32], [180, 30]];
@@ -884,7 +884,7 @@ function wallRadius(phi) {                // phi deg from centre field (0), eith
 }
 const DEFAULT_POS = {   // fielder default positions (x,z)
   P: { x: 0, z: -15 }, C: { x: 0, z: 4.0 }, '1B': { x: 12.2, z: -14.5 }, '2B': { x: 6.8, z: -23 },
-  SS: { x: -6.8, z: -23 }, '3B': { x: -12.2, z: -14.5 }, LF: { x: -32, z: -50 }, CF: { x: 0, z: -57 }, RF: { x: 32, z: -50 }
+  SS: { x: -6.8, z: -23 }, '3B': { x: -12.2, z: -14.5 }, LF: { x: -34, z: -54 }, CF: { x: 0, z: -61 }, RF: { x: 34, z: -54 }
 };
 const POS_LIST = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 const POS_JP = { P: '投', C: '捕', '1B': '一', '2B': '二', '3B': '三', SS: '遊', LF: '左', CF: '中', RF: '右' };
@@ -1512,7 +1512,7 @@ const seamTex = canvasTex(256, 128, (g, w, h) => {      // 棒球縫線貼圖：
   for (const off of [h * .3, h * .7]) { g.beginPath(); for (let x = 0; x <= w; x += 4) { const y = off + Math.sin(x / w * Math.PI * 4) * h * .13; x ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
   g.lineWidth = 2; for (let x = 0; x < w; x += 10) { const y1 = h * .3 + Math.sin(x / w * Math.PI * 4) * h * .13, y2 = h * .7 + Math.sin(x / w * Math.PI * 4) * h * .13; g.beginPath(); g.moveTo(x, y1 - 6); g.lineTo(x + 3, y1 + 6); g.moveTo(x, y2 - 6); g.lineTo(x + 3, y2 + 6); g.stroke(); }
 });
-const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * 1.7, 14, 10), new THREE.MeshPhongMaterial({ color: 0xffffff, map: seamTex, shininess: 60 })); ballMesh.visible = false; scene.add(ballMesh);
+const ballMesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * 1.45, 14, 10), new THREE.MeshPhongMaterial({ color: 0xffffff, map: seamTex, shininess: 60 })); ballMesh.visible = false; scene.add(ballMesh);
 const ballShadow = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); ballShadow.rotation.x = -Math.PI / 2; ballShadow.position.y = .05; ballShadow.scale.set(1, 1, 1); ballShadow.visible = false; scene.add(ballShadow);
 const TRAIL_N = 18; const trail = []; for (let i = 0; i < TRAIL_N; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * (1.1 - i / TRAIL_N * .8), 6, 4), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .0 })); m.visible = false; scene.add(m); trail.push(m); }
 const trailPos = [];
@@ -1691,6 +1691,7 @@ function ctlSigma(p, type, lv) {
   const fat = p.fatigue || 0;
   let c = p.ctl - fat * 0.45 - (G.on[0] || G.on[1] || G.on[2] ? 2 : 0) + (moodOf(p) - 55) * .14;
   let sg = clamp(0.72 - c * 0.0058, 0.08, 0.6) * (1 + (moodVol(p) - 1) * .8) * (1 + rainK() * .18) * (1 + windK() * (.05 + Math.max(0, (G.wx.gust || 0)) * .02));
+  sg *= .86;      // 好球帶縮小後，投球散佈也依比例縮小
   if (type) sg *= 1.22 - (lv || 4) * 0.035;
   if (G.lv >= 0 && LVL[G.lv] && !humanPitches()) sg *= LVL[G.lv].ctl || 1;      // 電腦投手：難度愈低控球愈不精準
   if (type === 'KN') sg *= 1.5;
@@ -1805,13 +1806,13 @@ function batterR(b, pt, power) {
   { const bh = b.hand === 'S' ? (pt.p.hand === 'R' ? 'L' : 'R') : b.hand; r *= bh !== pt.p.hand ? 1.045 : .955; }      // 左右對決：異手打者較佔優勢、同手較吃虧（左右開弓永遠站有利一側）
   r *= (1 + moodBonus(b) * 1.1) * (1 - rainBK() * .07);                                   // 心情加成（好→揮棒圈變大）
   if (typeof pt.acc === 'number') r *= 1 - (pt.acc - .6) * .1;                 // 失準的球好打（最多 +6%）、很準的球略難打（最多 -4%）
-  r = clamp(r, 0.2, 0.8);
-  if (power) r = Math.max(0.18, r * 0.9);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
+  r = clamp(r * .86, 0.17, 0.7);      // 好球帶縮小後，球棒整體（長度與粗細）依比例縮小
+  if (power) r = Math.max(0.155, r * 0.9);                                 // 強打：擊球圈縮小（更難對準甜蜜點）
   return r;
 }
 /* 球棒形擊球框：游標＝甜蜜點（球棒最粗的位置）；握把朝打者身體一側、球頭微微上揚。球落在棒上的位置（球頭／甜蜜點／握把）與上下偏移決定擊球結果 */
 const BAT_TILT = 16 * Math.PI / 180;
-const BAT_K = { normal: .29, power: .21, bunt: .29 };      // 球棒半寬（相對 R0）：一般打擊較細、強打更細、短打維持較寬
+const BAT_K = { normal: .26, power: .19, bunt: .26 };      // 球棒半寬（相對 R0）：一般打擊較細、強打更細、短打維持較寬
 function batZoneK(b, x, y) {      // 球棒移到打者的熱區略放大、冷區略縮小（每位球員的熱冷區不同）
   const c = zoneCell(x, y); if (c < 0 || !b || !b.zone) return 1; return clamp(1 + (b.zone[c] || 0) * .07, .86, 1.15);
 }
@@ -1854,7 +1855,7 @@ function resolveSwing(pt, sw, b) {
   const pj = sw.auto ? { x: bxp, y: byp } : (projPlane(bq.x, bq.y, bq.z), { x: _pj.x, y: _pj.y });      // 以畫面上看到的球位置判定擊球框
   const BG = batGeom(R0, sw.cx, sw.cy, sideB, (sw.bunt ? BAT_K.bunt : sw.power ? BAT_K.power : BAT_K.normal) * batZoneK(b, sw.cx, sw.cy)), bc = batContact(BG, pj.x + jx, pj.y + jy), d = bc.d;
   if (adt > Wd * 1.15 || d > bc.rr + BALL_R * .5) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };      // 球心落在球棒框（含球半徑）內且時機在窗口內＝一定碰得到
-  const un = bc.t / R0, wn = bc.w / bc.rr;                                  // 球在棒上的位置：un<0 球頭、0 甜蜜點、>0 握把；wn>0 球在棒上方（打到球下緣）
+  const rrRef = bc.rr * (.5 / Math.max(BG.r / R0, .01)), un = bc.t / R0, wn = bc.w / rrRef;      // 上下偏移用「標準棒寬」正規化：棒子變細不會讓邊緣擊球變得更極端（否則滿場滾地球／內野小飛球）                                  // 球在棒上的位置：un<0 球頭、0 甜蜜點、>0 握把；wn>0 球在棒上方（打到球下緣）
   const dn = clamp((Math.hypot(un < 0 ? -un * .9 : un * .5, Math.abs(wn) * .8) - .2) / .8, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 甜蜜點＝最佳，往球頭／握把／上下緣越來越差
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (Wd * 1.15), 0, 1), 1.5));
   Q = clamp(Q + gauss() * 0.06 * (.6 + .4 * mv), 0, 1);      // 擊球品質隨機抖動：同樣的揮棒也會有「打得比預期好／差」的感覺
@@ -1875,7 +1876,7 @@ function resolveSwing(pt, sw, b) {
     }
   }
   if (sw.bunt) return resolveBunt(pt, sw, b, dt, d, R0, Q);
-  const marginal = d > bc.rr * 0.92 || adt > Wd * 0.98 || chase > .7;
+  const marginal = d > rrRef * 0.92 || adt > Wd * 0.98 || chase > .7;
   // —— 擊球幾何 ——
   const s = clamp(dt / W, -1.2, 1.2);                                     // 絕對時機：<0 偏早 / >0 偏晚（決定拉打／推打）
   const sR = clamp(dtE / Wd, -1.2, 1.2);                                  // 相對該位置最佳時機的偏差（決定打在球棒哪個位置）
@@ -1895,7 +1896,7 @@ function resolveSwing(pt, sw, b) {
   const cz = bp > .62 ? 'handle' : bp > .32 ? 'near' : bp < -.58 ? 'end' : bp < -.30 ? 'tip' : 'sweet';
   // 初速：球棒速度(力量)×擊球效率(Q、甜蜜點)＋來球速度，再乘心情加成與投手壓制力
   const pw = b.pow * 0.005, w0 = G.wx || { temp: 26 };
-  let ev = 15 + 25 * Q * (0.44 + pw) * (sw.power ? 1.28 : 1) + (Q > .85 ? (sw.power ? 4.4 : 2.2) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
+  let ev = 15 + 25 * (.25 + .75 * Q) * (0.44 + pw) * (sw.power ? 1.14 : 1) + (Q > .85 ? (sw.power ? 3.4 : 2.2) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
   ev += (pt.kmh - 140) * .04 * Q; if (pt.id !== 'ST') ev *= 1 - Math.max(0, pt.lv - 3) * .006 * (1 - Q * .4);
   ev *= 1 + mb * .55 - dom * .03;
   ev *= clamp(1 - Math.max(0, Math.abs(bp) - .3) * .30 * (bp > 0 ? 1.1 + press * .35 : 1), .6, 1);    // 離開甜蜜點：握把端（被壓制）損失比球頭端更大
@@ -1905,7 +1906,7 @@ function resolveSwing(pt, sw, b) {
   ev *= 1 - .22 * clamp(Math.abs(v) - .6, 0, 1);                           // 打在球的最上/最下緣：能量損失
   if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .15 * (.6 + skill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
   const sweetP = sw.power ? clamp(1 - (Math.abs(bp) - .1) / .35, 0, 1) * clamp((Q - .5) / .4, 0, 1) : 0;      // 強打且球落在棒子甜蜜點：額外加成
-  if (sweetP > 0) { ev *= 1 + sweetP * .16 * (.75 + skill * .5); ev += sweetP * 2.4; }
+  if (sweetP > 0) { ev *= 1 + sweetP * .07 * (.75 + skill * .5); ev += sweetP * 1.0; }
   ev *= 1 + clamp((w0.temp - 24) * .0009, -.017, .017);                      // 氣溫：天熱球彈性好、天冷偏悶
   ev *= (1 + gauss() * .045 * mv) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
   let ang = 7.5 + b.traj * 3.3 + v * 26 + clamp(Q - .7, 0, .3) * 12 * (.5 + b.pow * .006) + gauss() * (4 + 9 * (1 - Q)) * (.6 + .4 * mv);
@@ -2124,7 +2125,9 @@ function planFielding(sim, cl, foul, res) {
     const readErr = Math.abs(gauss()) * Math.max(.02 * windK(), .17 - fl * .0014 + windK() * .09) * (res && res.ang > 14 ? 1 + windK() * 1.1 : .35);     // 風大時高飛球更難判斷落點（風向風速仍在變化→守備差的更吃虧）     // 判斷落點的失誤（守備差、高飛球更明顯）
     let react = (isOF ? .40 : .46) - fl * .0018 + readErr * (res && res.ang >= 6 && res.ang < 24 ? 1 + hardK * .9 : 1) + lag + rainK() * .05 - (G.lv >= 3 && G.human !== 1 - G.half ? .035 : 0);
     react += hardK * (.07 + (1 - clamp(fl / 85, 0, 1)) * .09) + clamp(gauss() * .06, -.12, .14) + (Math.random() < .045 + (1 - clamp(fl / 100, 0, 1)) * .04 ? .06 + Math.random() * .16 : 0);      // 起步好壞不一，偶爾判斷失誤慢半拍；強勁球看不清＋每次起跑好壞不同（好的起跑能多救一顆、差的起跑會慢半拍）
-    const reach = 1.05 - hardK * .34;                                                                  // 球速越快，手套實際能構到的範圍越小
+    const pNB = f.pos === 'P' && !(res && res.bunt);      // 投手投完球重心在前、站位又離打者近：強勁平飛球／直擊球很難處理，高飛球交給內野手與捕手
+    if (pNB) { react += .10 + hardK * .20; if (res && res.ang >= 42) continue; }
+    const reach = (pNB ? .85 : 1.05) - hardK * .34;                                                                  // 球速越快，手套實際能構到的範圍越小
     if (res && res.bunt) { react += (f.pos === 'P' ? .06 : 0); if (res.sneak) react += (.06 + Math.abs(gauss()) * .06) * (aiExpectBunt() ? .5 : 1) * (1.15 - fl * .004); }   // 投手剛投完球重心未穩；奇襲短打讓全隊來不及反應
     let got = null, dive = null, sup = null;
     const slack = Math.random() < .45 ? Math.random() * .22 : 0;      // 邊緣球：野手可能判斷／衝刺差一點點，球落在身前（不再是『算得到就一定接到』）
@@ -2140,7 +2143,7 @@ function planFielding(sim, cl, foul, res) {
       if (f.pos === 'C' && s.z < -2.5) continue;
       let d = dist2(f.x, f.z, sx, sz); if (f.pos === 'C' && res && res.bunt) d = Math.max(0, d - 2.2);          // 捕手蹲在本壘後方，短打球／小飛球近在眼前
       const back = res && res.ang >= 14 ? Math.max(0, Math.hypot(sx, sz) - Math.hypot(f.x, f.z)) * .012 : 0;      // 往後退著跑／轉身追球比較慢
-      const sp = (s.t < firstT - .02 && s.t <= wT + .02) ? spd * AIR_SPD : spd, ov1 = Math.max(0, d - reach), ov2 = Math.max(0, d - (2.3 - hardK * .45)), ov3 = Math.max(0, d - (3.0 - hardK * .6));
+      const sp = (s.t < firstT - .02 && s.t <= wT + .02) ? spd * AIR_SPD : spd, ov1 = Math.max(0, d - reach), ov2 = pNB ? 99 : Math.max(0, d - (2.3 - hardK * .45)), ov3 = pNB ? 99 : Math.max(0, d - (3.0 - hardK * .6));      // 投手不能飛身撲接／極限伸展
       const need = react * clamp(ov1 / 1.4, 0, 1) + ov1 / sp + (leap ? .22 : 0) + (ov1 > 0 ? back : 0);      // 球在手套範圍內＝野手本來就站在那裡，不需要起步反應；範圍外才要判斷＋起跑＋跑到
       const airOk = s.t < firstT - .02 && s.t <= wT + .02;
       if (leap) { if (!dive && need <= s.t && airOk) dive = { f, t: s.t, x: sx, z: sz, air: true, dive: true, leap: true, y: s.y, react: react - lag }; continue; }
@@ -2151,7 +2154,8 @@ function planFielding(sim, cl, foul, res) {
     if (got) cands.push(got); else if (dive) cands.push(dive); else if (sup) cands.push(sup);
   }
   if (cands.length) {
-    cands.sort((a, b) => (a.t + (a.dive ? .25 : 0)) - (b.t + (b.dive ? .25 : 0)));
+    const pPen = c => c.f.pos === 'P' && !(res && res.bunt) ? .14 : 0;      // 同樣趕得到時，優先讓內野手處理
+    cands.sort((a, b) => (a.t + (a.dive ? .25 : 0) + pPen(a)) - (b.t + (b.dive ? .25 : 0) + pPen(b)));
     let c = cands[0];
     if (c.dive) {
       const fl = c.f.pl.fld || 55;
@@ -4871,13 +4875,13 @@ function drawOverlay() {
   c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1 * dpr;
   for (let i = 1; i < 3; i++) { c.beginPath(); c.moveTo(tl.x + cw * i, tl.y); c.lineTo(tl.x + cw * i, bl.y); c.moveTo(tl.x, tl.y + ch * i); c.lineTo(tr.x, tl.y + ch * i); c.stroke(); }
   const o1 = w2s(-ZW - .7, ZC + ZH + .7, 0), o2 = w2s(ZW + .7, ZC - ZH - .7, 0);
-  if (trk) { const q = G.lastLoc, a = w2s(q.x, q.y, 0), al = clamp(1 - (q.t - 1.8) / 1.2, 0, 1); c.globalAlpha = al; c.beginPath(); c.arc(a.x, a.y, 7 * dpr, 0, TAU); c.fillStyle = q.strike ? '#ffd21a' : '#5f5'; c.fill(); c.lineWidth = 2 * dpr; c.strokeStyle = '#000'; c.stroke(); c.globalAlpha = 1; }
+  if (trk) { const q = G.lastLoc, a = w2s(q.x, q.y, 0), al = clamp(1 - (q.t - 1.8) / 1.2, 0, 1); c.globalAlpha = al; c.beginPath(); c.arc(a.x, a.y, 4.5 * dpr, 0, TAU); c.fillStyle = q.strike ? '#ffd21a' : '#5f5'; c.fill(); c.lineWidth = 1.5 * dpr; c.strokeStyle = '#000'; c.stroke(); c.globalAlpha = 1; }
   if (G.human < 0 || !aim.has) return;
   if (hp && G.phase === 'pre' && !G.intWalk) {
     const p = curPitcher(), spec = PITCHES[G.selPitch = G.pm ? G.pm.id : G.selPitch], lv = pitchLv(p, G.selPitch) || 4, sg = ctlSigma(p, G.selPitch, lv);
     const pax = G.pm ? G.pm.x : aim.x, pay = G.pm ? G.pm.y : aim.y;
-    const r = drawRing(pax, pay, sg * 1.1, spec.col, 3 * dpr);
-    c.beginPath(); c.arc(r.a.x, r.a.y, 3 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
+    const r = drawRing(pax, pay, sg * .9, spec.col, 2.5 * dpr);
+    c.beginPath(); c.arc(r.a.x, r.a.y, 2.2 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     const hs = p.hand === 'R' ? 1 : -1, br2 = Math.pow(lv / 7, .85) * brkVis(lv), e = w2s(pax + spec.bx * br2 * hs * .55, pay + spec.by * br2 * .55, 0);
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     c.font = `900 ${14 * dpr}px sans-serif`; c.fillStyle = '#fff'; c.textAlign = 'center'; c.fillText(spec.jp, r.a.x, r.a.y - r.rad - 8 * dpr);
