@@ -140,7 +140,20 @@ body.touch #acts{right:calc(1.4vw + clamp(96px,19vh,132px));max-width:52vw}
 body.touch #pitchPanel{top:22%;transform:none;display:grid;grid-template-columns:1fr 1fr;gap:5px;max-width:46vw}
 body.touch #pitchPanel .pbtn{min-width:0;padding:5px 8px;font-size:12px}
 body.touch #pitchPanel .pbtn span{display:none}
-#btnAct{width:clamp(84px,17vh,120px);height:clamp(84px,17vh,120px);border-radius:50%;border:4px solid #fff;background:radial-gradient(#ff9a3a,#e03a10);color:#fff;font-weight:900;font-size:clamp(18px,3.4vh,26px);box-shadow:0 4px 14px #000a;touch-action:manipulation}
+#btnAct{position:relative;width:clamp(84px,17vh,120px);height:clamp(84px,17vh,120px);border-radius:50%;border:4px solid #fff;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;color:#fff;font-weight:900;touch-action:manipulation;background:radial-gradient(circle at 34% 24%,#ffcf8a 0,#ff8030 36%,#d8340f 100%);box-shadow:0 5px 16px #000b,0 0 0 3px rgba(255,150,40,.5),inset 0 -9px 16px rgba(120,20,0,.55),inset 0 7px 11px rgba(255,255,255,.38);transition:background .2s,box-shadow .2s}
+#btnAct::before{content:'';position:absolute;inset:6%;border-radius:50%;border:2px dashed rgba(255,255,255,.5);pointer-events:none}
+#btnAct::after{content:'';position:absolute;left:14%;top:7%;width:46%;height:24%;border-radius:50%;background:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none;transform:rotate(-18deg)}
+#btnAct .ai{display:block;width:60%;height:60%;margin-top:-3%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.55));pointer-events:none;transition:transform .12s}
+#btnAct .ai svg{display:block;width:100%;height:100%;overflow:visible}
+#btnAct .al{position:relative;z-index:1;margin-top:-5%;font-size:clamp(11px,2.3vh,15px);letter-spacing:.16em;padding-left:.16em;line-height:1.1;text-shadow:0 2px 0 rgba(0,0,0,.5),0 0 6px rgba(0,0,0,.35);pointer-events:none}
+#btnAct[data-k=pitch]{background:radial-gradient(circle at 34% 24%,#9ad8ff 0,#3a92ff 38%,#123c98 100%);box-shadow:0 5px 16px #000b,0 0 0 3px rgba(90,170,255,.5),inset 0 -9px 16px rgba(5,25,90,.6),inset 0 7px 11px rgba(255,255,255,.4)}
+#btnAct[data-k=stop]{background:radial-gradient(circle at 34% 24%,#c8ffb0 0,#37d45a 38%,#0d742c 100%);box-shadow:0 5px 16px #000b,0 0 0 3px rgba(80,230,120,.55),inset 0 -9px 16px rgba(0,60,15,.6),inset 0 7px 11px rgba(255,255,255,.4);animation:actStop .55s ease-in-out infinite alternate}
+@keyframes actStop{from{transform:scale(1)}to{transform:scale(1.06)}}
+#btnAct.hit .ai{animation:actFlick .24s ease-out}
+#btnAct[data-k=swing].hit .ai{animation:batFlick .24s ease-out}
+@keyframes actFlick{0%{transform:scale(1)}40%{transform:scale(1.22) translateY(-6%)}100%{transform:scale(1)}}
+@keyframes batFlick{0%{transform:rotate(-34deg) scale(1)}55%{transform:rotate(22deg) scale(1.16)}100%{transform:rotate(0) scale(1)}}
+body.mob #btnAct .al{font-size:11px}
 #btnAct:active{transform:scale(.93)}
 #btnPow{padding:10px 14px;border-radius:12px;border:3px solid #fff;background:#142a46ee;color:#fff;font-weight:900;font-size:clamp(13px,2.6vh,17px);touch-action:manipulation}
 #btnPow.on{background:#ff6a3a}
@@ -295,7 +308,7 @@ body.mob #caption .tx{border-left-width:3px;padding:.15em .55em .15em .5em}
 body.mob #caption .tx{font-size:13px;line-height:1.2;max-height:2.4em;overflow:hidden}
 body.mob #caption .sm{display:none}
 body.mob #touchBtns{right:10px;bottom:calc(var(--cap) + 8px);gap:8px}
-body.mob #btnAct{width:80px;height:80px;font-size:19px;border-width:3px}
+body.mob #btnAct{width:80px;height:80px;border-width:3px}
 body.mob #btnPow{padding:6px 10px;font-size:12px;border-width:2px;border-radius:10px}
 body.mob #acts{left:8px;right:auto;bottom:calc(var(--cap) + 8px);max-width:none;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
 body.mob .abtn{padding:7px 11px;font-size:12px;min-height:34px;border-width:2px;border-radius:9px;white-space:nowrap}
@@ -335,7 +348,7 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
 @media (min-width:900px) and (min-height:600px){
  body.mob{--cap:48px}
  body.mob #caption .tx{font-size:17px}
- body.mob #btnAct{width:100px;height:100px;font-size:22px}
+ body.mob #btnAct{width:100px;height:100px}
  body.mob .abtn{font-size:14px;padding:9px 14px}
  body.mob .pbox .n{font-size:14px}
  body.mob #sb table{font-size:14px}
@@ -678,7 +691,17 @@ body.mob #pmeter .pm-t small,body.touch #pmeter .pm-t small{font-size:12px}
 #absPanel.abs-end,body.mob #absPanel.abs-end{background:rgba(70,8,8,.82)!important;border:2px solid #ff5a5a!important;animation:absEndPulse .55s ease-in-out infinite alternate}
 @keyframes absEndPulse{from{box-shadow:0 0 4px rgba(255,80,80,.4)}to{box-shadow:0 0 16px rgba(255,80,80,.95)}}
 #absPanel.abs-end #absRem{color:#ffd0d0;font-weight:900;font-size:13px!important}
-#absPanel.abs-end #absTitle{display:block!important;color:#ff9a9a;font-weight:900;font-size:12px;white-space:nowrap}
+/* ===== ABS 面板：整合兩隊剩餘次數 ===== */
+#absPanel,body.mob #absPanel{max-width:min(94vw,430px)!important}
+#absRem::before{content:'🦅 ';opacity:.95}
+#absCnt{display:flex;gap:5px;align-items:center;flex:none;font-size:10px;font-weight:900;line-height:1}
+#absCnt .ac{display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.07);color:#9fc6e4;white-space:nowrap}
+#absCnt .ac.me{background:rgba(68,204,255,.24);color:#e4f7ff;box-shadow:inset 0 0 0 1px rgba(120,220,255,.55)}
+#absCnt .ac i{font-style:normal;letter-spacing:.02em}
+#absCnt .ac b{font-weight:900;letter-spacing:-.5px;color:#5fd0ff}
+#absCnt .ac.me b{color:#8ff0ff}
+#absCnt .ac u{text-decoration:none;letter-spacing:-.5px;opacity:.28;margin-left:-4px}
+#absCnt .ac .ko{color:#ff7a7a;text-decoration:none;font-weight:900}
 </style>
 </head>
 <body>
@@ -747,10 +770,10 @@ body.mob #pmeter .pm-t small,body.touch #pmeter .pm-t small{font-size:12px}
   <div id="pmeter" class="hide"><div class="pm-t"><span id="pmName">投球準度</span><small id="pmHint">再按一次投出（對準綠區最準）</small></div><div class="pm-bar" id="pmBar"><i class="pm-c" id="pmCur"></i></div></div>
   <div id="throwPanel" class="hide"></div>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
-  <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct">揮棒</button></div>
+  <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
   <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
-  <div id="leftCol"><div id="windBox"></div><div id="absInfo"></div><div id="absPanel" class="hide"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰 C</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
+  <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰 C</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
   <div id="hawk" class="hide"></div>
  <div id="brawlBanner" class="hide">⚾ 觸身球！雙方球員衝出休息室！ ⚾</div>
@@ -3254,10 +3277,11 @@ function evInit() {
   updateAbsHud();
 }
 const sideName = s => G.teams[s].short;
-function updateAbsHud() {
-  const e = $('absInfo'); if (!e) return; if (!G.absOn) { e.style.display = 'none'; return; } e.style.display = 'block';
-  const f = s => G.coachOut[s] ? '<s style="opacity:.5">逐</s>' : '<b>' + G.abs[s] + '</b>';
-  e.innerHTML = '🦅 ABS　' + G.teams[0].short + ' ' + f(0) + '　' + G.teams[1].short + ' ' + f(1);
+function updateAbsHud() {      // 兩隊剩餘挑戰次數：整合在右上角 ABS 挑戰面板內（●＝剩餘、淡色＝已用、逐＝教練被驅逐）
+  const e = $('absCnt'); if (!e) return;
+  const pip = t => G.coachOut[t] ? '<s class="ko">逐</s>' : '<b>' + '●'.repeat(Math.max(0, G.abs[t])) + '</b><u>' + '●'.repeat(Math.max(0, 3 - G.abs[t])) + '</u>';
+  const chip = t => '<span class="ac' + (G.human === t ? ' me' : '') + '"><i>' + G.teams[t].short + '</i>' + pip(t) + '</span>';
+  e.innerHTML = G.absOn ? chip(0) + chip(1) : '';
 }
 /* ---------------- 主審判決（有誤判機率，越貼邊越容易誤判） ---------------- */
 function umpireCall(pt) {
@@ -3289,14 +3313,14 @@ function absFlow(pt, call, done) {
     G.phase = 'abs'; absEndMark(true, call);
     say(call.strike ? `主審判好球——<em>這是第三個好球！已經三好球了，打者將三振出局！</em>要不要提出 ABS 挑戰？<em>(C)</em>` : `主審判壞球——<em>這是第四個壞球！打者將直接保送上壘！</em>要不要提出 ABS 挑戰？<em>(C)</em>`);
     EV.abs = { t: 3.6, max: 3.6, team: hum, onGo: () => runChallenge(hum, call, finish), onSkip: () => finish(call.strike) };
-    $('absTitle').textContent = call.strike ? '🦅 三好球！' : '🦅 四壞球！'; $('absGo').textContent = '挑戰 C'; $('absPanel').classList.remove('hide'); $('absRem').textContent = call.strike ? '⚠ 三好球・三振出局' : '⚠ 第四壞球・保送'; $('absBarI').style.width = '100%'; return;
+    $('absTitle').textContent = call.strike ? '🦅 三好球！' : '🦅 四壞球！'; $('absGo').textContent = '挑戰 C'; $('absPanel').classList.remove('hide'); $('absRem').textContent = call.strike ? '⚠ 三好球・三振' : '⚠ 四壞球・保送'; $('absBarI').style.width = '100%'; return;
   }
   if (humanCan && !ending && !busy) { G.absPend = { pt, call, team: hum, b0: G.balls, s0: G.strikes }; done(kindOf(call.strike)); return; }   // 非決勝球：下一球投出前都能挑戰
   after(.05, () => finish(call.strike));
 }
 function absShowPend() {
   const d = G.absPend; if (!d || EV.abs) return;
-  $('absTitle').textContent = '🦅 挑戰上一球'; $('absGo').textContent = '挑戰 C'; $('absRem').textContent = `上一球判${d.call.strike ? '好球' : '壞球'}`; $('absBarI').style.width = '100%'; $('absPanel').classList.remove('hide');
+  $('absTitle').textContent = '🦅 挑戰上一球'; $('absGo').textContent = '挑戰 C'; $('absRem').textContent = `上一球：${d.call.strike ? '好球' : '壞球'}`; $('absBarI').style.width = '100%'; $('absPanel').classList.remove('hide');
 }
 function absClearPend() { G.absPend = null; if (!EV.abs) $('absPanel').classList.add('hide'); }
 function runPend() {
@@ -3369,7 +3393,7 @@ function maybeProtest(team, call, finish) {
   }
   hideHawk(); say(`要不要像總教練一樣衝出去抗議？(<em>R</em> 抗議 / 其他鍵略過)`);
   EV.abs = { t: 2.2, max: 2.2, team, protest: true, onGo: () => startProtestMash(team, call, finish), onSkip: () => finish(call.strike) };
-  const bt = $('absGo'); bt.textContent = '😡 抗議 [R]'; $('absTitle').textContent = '教練抗議'; $('absRem').textContent = '有被驅逐的風險'; $('absPanel').classList.remove('hide'); $('absBarI').style.width = '100%';
+  const bt = $('absGo'); bt.textContent = '😡 抗議 [R]'; $('absTitle').textContent = '教練抗議'; $('absRem').textContent = '抗議？可能被驅逐'; $('absPanel').classList.remove('hide'); $('absBarI').style.width = '100%';
 }
 function startProtestMash(team, call, finish) {
   argCoachIn(team);
@@ -3927,7 +3951,11 @@ function updateFlight(dt) {
   const pt = PT; if (!pt || pt.done) return;
   pt.t += dt;
   const tEnd = pt.hitBatter ? pt.T : pt.T + pt.tm;
-  if (!pt.cprep && pt.t > pt.T * .5 && E.F.C) { pt.cprep = true; const C = E.F.C; C.tx = clamp(pt.fx, -1.9, 1.9); C.tz = C.z; C.sp = 9; C.wait = 0; }
+  // 精確對時：這一步若跨過「揮棒接觸」或「球進手套」的那一刻，時間就停在該刻再畫球、再判定。
+  // 以前會多飛最多一個子步（≤1/60 秒，約一個球寬）才判定，畫面上的球位與判定／擊球起點會對不上。
+  if (pt.sw && !pt.sw.done && pt.t >= pt.sw.tc) pt.t = Math.max(pt.t - dt, pt.sw.tc);
+  else if ((!pt.sw || pt.waitCatch) && pt.t > tEnd) pt.t = tEnd;
+  if (!pt.cprep && pt.t > pt.T * .5 && E.F.C) { pt.cprep = true; const C = E.F.C; C.tx = catchX(pt); C.tz = C.z; C.sp = 9; C.wait = 0; }
   if (pt.t <= tEnd) { pitchPosEx(pt, pt.t, _pp); if (pt.dirt && !pt.bnc && pt.t >= pt.vb * pt.T) { pt.bnc = true; flowSfx('bounce'); spawnBurst(_pp.x, .06, _pp.z, .35, '#c9a06a'); } setBall(_pp, true, pt.spec.col, pt.tfx || TFX[pt.id]); pt.pos = _pp; pitchFx(pt); }   // 沒揮棒：球停在真正的進壘點，不再外插下滑
   if (pt.plan && pt.plan.swing && !pt.sw && pt.t >= pt.plan.tc - SWING_DELAY) startSwing(pt, { tc: pt.plan.tc, cx: pt.plan.cx, cy: pt.plan.cy, power: pt.plan.power, bunt: pt.plan.bunt });
   if (pt.waitCatch) { if (pt.t >= tEnd) { pt.waitCatch = false; pt.done = true; flowSfx('mitt'); catcherCatch(pt); pitchResult('swing'); } return; }
@@ -3982,6 +4010,9 @@ function takePitch(pt) {
   const call = umpireCall(pt); pt.call = call; catcherCatch(pt);
   absFlow(pt, call, k => pitchResult(k));
 }
+function catchX(pt) {      // 球實際飛進手套的世界座標 x（沿鏡頭視線）：捕手要站在這裡，畫面上才會接得正
+  const C = E.F.C, g = rayAtZ(pt.fx, pt.fy, (C ? C.z : 4) - .25, {}); return clamp(g.x, -1.9, 1.9);
+}
 function catcherCatch(pt, hbp) {
   const C = E.F.C, a0 = ballMesh.visible ? { x: ballMesh.position.x, y: ballMesh.position.y, z: ballMesh.position.z } : { x: pt.fx, y: pt.fy, z: 0 };
   const hasR = G.on.some(x => x), far = Math.abs(pt.fx) > ZW + 1.25 - rainK() * .5 || pt.fy < ZC - ZH - .95 + rainK() * .3;
@@ -3995,7 +4026,7 @@ function catcherCatch(pt, hbp) {
     C.rig.anim = { name: 'down', t: 0, dur: .6, opt: {} }; flowSfx('bounce');
     ballTween(a0, { x: pt.wildLand.x, y: .2, z: pt.wildLand.z }, .55 + pt.wildLand.z * .025, 1.2);
   } else {
-    C.x = clamp(pt.fx, -1.9, 1.9); C.tx = C.x; C.tz = C.z; C.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; flowSfx('mitt', .8);
+    C.x = catchX(pt); C.tx = C.x; C.tz = C.z; C.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; flowSfx('mitt', .8);
     const gl = rayAtZ(pt.fx, pt.fy, C.z - .25, {});                                            // 手套位置＝視線上與落點同一個畫面位置
     ballTween(a0, gl, E.runners.some(r => r.state === 'run') ? .09 : .06, 0);                  // 球停在手套裡，之後由捕手回傳投手
     spawnBurst(gl.x, gl.y, gl.z + .1, clamp((pt.kmh - 118) * .022, .22, .9), '#ffe9a0'); if (pt.kmh >= 148) CAMC.shake = Math.max(CAMC.shake || 0, .05 + (pt.kmh - 148) * .008);
@@ -4636,12 +4667,16 @@ function practiceSwing() {
   if (G.callBunt) { applyBatStance(); flowSfx('swing', .4); return; }
   b.rig.anim = { name: 'swing', t: 0, dur: .24, opt: {} }; flowSfx('swing', .8); after(.42, () => { if (E.bat === b && !(PT && PT.sw) && G.phase !== 'inplay') batterStance(); });
 }
+let _evT = 0;
+document.addEventListener('pointerdown', e => { _evT = e.timeStamp; }, true);
+document.addEventListener('keydown', e => { _evT = e.timeStamp; }, true);
+function inputNow() { const n = performance.now(); return (_evT > 0 && n - _evT >= 0 && n - _evT < 120) ? _evT : n; }      // 按下的真正時刻（比處理器跑到的時間更準）
 function humanAction() {
   if (G.mode !== 'play') return;
   if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { if (G.pm) pmStop(false); else { updateAim(); pmStart(); } }
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
-    updateAim(); const pTc = PT.t + clamp((performance.now() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
+    updateAim(); const pTc = PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY; let R = cursorR(), cx = aim.x, cy = aim.y;
     if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n; cy = _pj.y + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
     startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
   }
@@ -4708,16 +4743,34 @@ function recenterAim() {            // 換打者：準心回到好球帶正中�
   aim.cx = (v.x * .5 + .5) * w; aim.cy = (-v.y * .5 + .5) * h; aim.x = 0; aim.y = ZC; aim.has = true;
   aim.lm = { x: aim.mx || 0, y: aim.my || 0 };   // 滑鼠：移動超過 10px 才接手
 }
-$('btnAct').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); sndInit(); humanAction(); });
+$('btnAct').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); sndInit(); const b = $('btnAct'); b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 260); humanAction(); });
 $('btnPow').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); setPow(!POW_PREF); });
 let _tsKey = '';
+/* ---- 右下角主按鈕圖示：投球＝縫線棒球、揮棒＝球棒 ---- */
+const BALL_SVG = (() => {
+  const q = (t, a, b, c) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c; let tk = '', sm = '';
+  for (const m of [0, 1]) {
+    const X = v => m ? 64 - v : v; sm += `<path d="M${X(17)} 12 Q${X(31)} 32 ${X(17)} 52" fill="none" stroke="#d8262b" stroke-width="2.4" stroke-linecap="round"/>`;
+    for (const t of [.1, .24, .38, .5, .62, .76, .9]) {
+      const x = q(t, 17, 31, 17), y = q(t, 12, 32, 52), tx = 2 * (1 - t) * 14 + 2 * t * -14, ty = 2 * (1 - t) * 20 + 2 * t * 20, l = Math.hypot(tx, ty), nx = -ty / l * 3.6, ny = tx / l * 3.6;
+      tk += `<line x1="${X(x - nx).toFixed(1)}" y1="${(y - ny).toFixed(1)}" x2="${X(x + nx).toFixed(1)}" y2="${(y + ny).toFixed(1)}" stroke="#d8262b" stroke-width="1.7" stroke-linecap="round"/>`;
+    }
+  }
+  return `<svg viewBox="0 0 64 64"><defs><radialGradient id="gBall" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#eef0f5"/><stop offset="1" stop-color="#aab3c2"/></radialGradient></defs><path d="M4 22 H13 M2 32 H12 M5 42 H13" stroke="#fff" stroke-opacity=".55" stroke-width="2.4" stroke-linecap="round"/><circle cx="35" cy="32" r="25" fill="url(#gBall)" stroke="#26344c" stroke-width="2.2"/><g transform="translate(3 0)">${sm}${tk}</g></svg>`;
+})();
+const BAT_SVG = `<svg viewBox="0 0 64 64"><defs><linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe3a8"/><stop offset=".5" stop-color="#e2a652"/><stop offset="1" stop-color="#a4651d"/></linearGradient></defs><path d="M9 47 Q22 61 47 57 M14 53 Q28 63 52 61" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2.4" stroke-linecap="round"/><g transform="rotate(-40 32 32)"><path d="M11 29.8 L30 30.4 C37 29 41 26.8 45 26.4 L53.5 26.4 Q60 26.4 60 32 Q60 37.6 53.5 37.6 L45 37.6 C41 37.2 37 35 30 33.6 L11 34.2 Z" fill="url(#gWood)" stroke="#5a3510" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="8.6" cy="32" rx="3.4" ry="3.6" fill="#7a4a18" stroke="#4a2a08" stroke-width="1.3"/><rect x="11" y="29.9" width="14" height="4.2" fill="#2b2e38"/><path d="M14 29.9 V34.1 M18 29.9 V34.1 M22 29.9 V34.1" stroke="#8d93a6" stroke-width="1"/><path d="M46.5 26.8 V37.2 M50.5 26.6 V37.4" stroke="#8a5a22" stroke-width="1.3" opacity=".7"/><path d="M33 29.6 C39 28 43 26.8 53 27.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.5" stroke-linecap="round"/></g><path d="M50 8 L52 13 L57 14 L52 16 L50 21 L48 16 L43 14 L48 13 Z" fill="#fff6b0" stroke="#ffb020" stroke-width="1" stroke-linejoin="round"/></svg>`;
+let _actK = '';
+function setActBtn(k) {
+  if (k === _actK) return; _actK = k; const b = $('btnAct'); if (!b) return; b.dataset.k = k;
+  const ai = b.querySelector('.ai'), al = b.querySelector('.al'); if (ai) ai.innerHTML = k === 'swing' ? BAT_SVG : BALL_SVG; if (al) al.textContent = k === 'swing' ? '揮棒' : k === 'stop' ? '按停' : '投球';
+}
 function syncTouch() {
   if (!IS_TOUCH) return;
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0, ph = G.phase;
   const on = G.mode === 'play' && (hb || hp) && (ph === 'pre' || ph === 'windup' || ph === 'flight');
   const padOn = G.mode === 'play' && (hb || hp); $('movePad').classList.toggle('on', padOn && !(hb && G.easy));
   const key = [on, hb, hp, G.mode, G.easy, !!G.pm].join(); if (key === _tsKey) return; _tsKey = key;
-  $('touchBtns').classList.toggle('on', on); $('btnAct').textContent = hp ? (G.pm ? '按停！' : '投球') : '揮棒'; $('btnPow').style.display = hb && !G.easy ? '' : 'none';
+  $('touchBtns').classList.toggle('on', on); setActBtn(hp ? (G.pm ? 'stop' : 'pitch') : 'swing'); $('btnPow').style.display = hb && !G.easy ? '' : 'none';
   document.body.classList.toggle('playing', G.mode === 'play');
 }
 let keyShift = false;
