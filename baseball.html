@@ -849,52 +849,55 @@ const STADIUMS = ['洲際棒球場', '亞太主球場', '桃園棒球場', '新�
 const B = (n, p, h, a, o, s, hr, sb, k, bb, f, ar, est) => ({ n, p, h, a, o, s, hr, sb, k, bb, f, ar, est: est ? 1 : 0 });
 /* 投手：[姓名, 角色, 手, 球速, ERA, K%, BB%, ERA+, 局/場, 球種, est] */
 const P = (n, r, h, v, era, k, bb, ep, ipg, ps, est) => ({ n, r, h, v, era, k, bb, ep, ipg, ps, est: est ? 1 : 0 });
+/* 補充名單用簡化建構：BN＝板凳野手(AVG,HR,SB,守備,肩力)；PN＝投手(角色/手/球速/ERA/K%/BB%/球種/每場局數)；全部為估算值 */
+const BN = (n, p, h, a, hr, sb, f, ar) => B(n, p, h, a, +(a + .055).toFixed(3), +(a + .070 + hr * .006).toFixed(3), hr, sb, 15, 7, f, ar, 1);
+const PN = (n, r, h, v, era, k, bb, ps, ipg) => P(n, r, h, v, era, k, bb, Math.round(Math.max(60, Math.min(150, 360 / era))), ipg || (r === 'SP' ? 5.8 : 1.1), ps, 1);
 const CPBL = {
   CTB: {
     bat: [B('王威晨', '2B', 'R', .292, .349, .361, 1, 6, 8.6, 7.8, 70, 66), B('江坤宇', 'SS', 'R', .283, .363, .350, 2, 3, 10.0, 8.1, 76, 74), B('張仁瑋', '3B', 'R', .300, .340, .380, 4, 16, 10.4, 6.1, 68, 70),
       B('曾頌恩', '1B', 'R', .268, .330, .420, 6, 3, 15, 7, 62, 62, 1), B('陳俊秀', 'DH', 'R', .275, .335, .400, 5, 4, 14, 7, 55, 58, 1), B('黃韋盛', 'CF', 'L', .272, .338, .365, 2, 14, 13, 8, 74, 68, 1),
       B('許庭綸', 'LF', 'L', .266, .330, .372, 3, 9, 14, 8, 66, 62, 1), B('詹子賢', 'RF', 'R', .262, .322, .360, 3, 6, 15, 7, 66, 72, 1), B('岳政華', 'C', 'R', .246, .300, .338, 2, 1, 16, 6, 70, 74, 1)],
-    bench: [B('岳東華', '1B', 'R', .255, .315, .350, 2, 2, 15, 7, 62, 62, 1), B('林智平', 'SS', 'R', .250, .310, .330, 1, 4, 14, 7, 68, 66, 1), B('張祖恩', 'CF', 'R', .258, .320, .340, 1, 8, 15, 7, 66, 66, 1)],
-    sp: [P('羅戈', 'SP', 'R', 150, 3.33, 16.5, 5.9, 97, 6.2, ['SL', 'CH', 'CU']), P('勝騎士', 'SP', 'R', 148, 3.08, 20.2, 2.9, 105, 6.2, ['CT', 'CH', 'CU']), P('德保拉', 'SP', 'R', 147, 3.16, 17, 5, 100, 5.8, ['SL', 'CH', 'SK'], 1)],
-    rp: [P('鄭浩均', 'RP', 'R', 146, 3.89, 16, 7, 88, 3, ['SL', 'CH'], 1), P('呂彥青', 'RP', 'R', 148, 3.2, 21, 7, 105, 1.1, ['SL', 'FK'], 1), P('李振昌', 'CL', 'R', 150, 2.9, 22, 7, 115, 1, ['SL', 'FK'], 1)]
+    bench: [B('岳東華', '1B', 'R', .255, .315, .350, 2, 2, 15, 7, 62, 62, 1), B('林智平', 'SS', 'R', .250, .310, .330, 1, 4, 14, 7, 68, 66, 1), B('張祖恩', 'CF', 'R', .258, .320, .340, 1, 8, 15, 7, 66, 66, 1), BN('楊晉豪','C','R',.240,1,1,66,70), BN('郭阜林','3B','R',.245,2,3,66,66), BN('蔡琞傑','CF','L',.235,1,8,66,64)],
+    sp: [P('鄭浩均', 'SP', 'R', 148, 3.89, 16, 7, 92, 6.0, ['SL', 'CH', 'CU']), P('羅戈', 'SP', 'R', 150, 3.33, 16.5, 5.9, 97, 6.2, ['SL', 'CH', 'CU']), P('勝騎士', 'SP', 'R', 148, 3.08, 20.2, 2.9, 105, 6.2, ['CT', 'CH', 'CU']), P('德保拉', 'SP', 'R', 147, 3.16, 17, 5, 100, 5.8, ['SL', 'CH', 'SK'], 1), PN('吳哲源','SP','R',147,3.7,17,7,['SL','CH','CU'])],
+    rp: [P('鄭浩均', 'RP', 'R', 146, 3.89, 16, 7, 88, 3, ['SL', 'CH'], 1), P('呂彥青', 'RP', 'R', 148, 3.2, 21, 7, 105, 1.1, ['SL', 'FK'], 1), P('李振昌', 'CL', 'R', 150, 2.9, 22, 7, 115, 1, ['SL', 'FK'], 1), PN('魏碩成','RP','R',145,4.0,15,7,['SL','CH'],2.3), PN('黃恩賜','RP','R',146,3.7,18,8,['SL','CH']), PN('蔡齊哲','RP','R',145,3.5,19,7,['SL','FK']), PN('官大元','RP','L',144,3.4,17,8,['SL','CH']), PN('陳琥','RP','R',150,3.5,22,9,['SL','FK'])]
   },
   UNI: {
     bat: [B('陳傑憲', 'CF', 'L', .322, .403, .412, 5, 7, 9.8, 11.4, 78, 70), B('潘傑楷', '2B', 'L', .305, .396, .397, 3, 6, 14.6, 11.7, 72, 66), B('邱智呈', '3B', 'R', .257, .365, .341, 3, 9, 14.5, 13.5, 68, 68),
       B('蘇智傑', 'RF', 'L', .270, .340, .420, 8, 5, 16, 8, 66, 74, 1), B('陳聖平', '1B', 'R', .233, .286, .343, 6, 6, 12.3, 6.7, 62, 62), B('高宇杰', 'C', 'R', .255, .320, .350, 3, 2, 14, 7, 72, 76, 1),
       B('廖健富', 'SS', 'R', .250, .310, .330, 1, 8, 13, 7, 76, 72, 1), B('林培緯', 'LF', 'R', .262, .325, .370, 4, 8, 15, 7, 64, 66, 1), B('陳重羽', 'DH', 'L', .258, .330, .385, 5, 3, 16, 8, 52, 56, 1)],
-    bench: [B('吳俊偉', 'SS', 'R', .245, .305, .320, 1, 5, 14, 6, 70, 68, 1), B('林安可', 'LF', 'R', .270, .335, .430, 6, 4, 18, 8, 60, 66, 1), B('王正棠', 'C', 'R', .240, .295, .320, 1, 1, 17, 6, 66, 70, 1)],
-    sp: [P('布雷克', 'SP', 'R', 148, 1.61, 16.2, 2.8, 201, 6.6, ['CT', 'CU', 'CH']), P('獅帝芬', 'SP', 'R', 149, 2.71, 15.5, 8.7, 117, 5.9, ['SL', 'CH', 'CU']), P('喬登', 'SP', 'R', 150, 2.9, 19, 7, 110, 6, ['SL', 'CH', 'CU'], 1)],
-    rp: [P('江少慶', 'RP', 'R', 150, 3.3, 20, 8, 100, 1.2, ['FK', 'SL'], 1), P('髙塩將樹', 'RP', 'R', 147, 2.8, 21, 6, 115, 1, ['SL', 'CH'], 1), P('鍾允華', 'CL', 'R', 150, 2.2, 23, 6, 140, 1, ['SL', 'FK'], 1)]
+    bench: [B('吳俊偉', 'SS', 'R', .245, .305, .320, 1, 5, 14, 6, 70, 68, 1), B('王正棠', 'C', 'R', .240, .295, .320, 1, 1, 17, 6, 66, 70, 1), BN('林佳緯','LF','R',.255,3,6,64,64), BN('李丞齡','CF','L',.250,2,8,68,66), BN('陳鏞基','DH','R',.250,4,1,50,54)],
+    sp: [P('布雷克', 'SP', 'R', 148, 1.61, 16.2, 2.8, 201, 6.6, ['CT', 'CU', 'CH']), P('獅帝芬', 'SP', 'R', 149, 2.71, 15.5, 8.7, 117, 5.9, ['SL', 'CH', 'CU']), P('喬登', 'SP', 'R', 150, 2.9, 19, 7, 110, 6, ['SL', 'CH', 'CU'], 1), PN('邱浩鈞','SP','R',147,3.1,17,7,['SL','CH','CU']), PN('銳力獅','SP','R',149,3.3,18,6,['SL','CH','CU'])],
+    rp: [P('江少慶', 'RP', 'R', 150, 3.3, 20, 8, 100, 1.2, ['FK', 'SL'], 1), P('髙塩將樹', 'RP', 'R', 147, 2.8, 21, 6, 115, 1, ['SL', 'CH'], 1), P('鍾允華', 'CL', 'R', 150, 2.2, 23, 6, 140, 1, ['SL', 'FK'], 1), PN('陳韻文','RP','R',148,2.9,21,6,['SL','FK']), PN('鄭副豪','RP','R',146,3.8,17,8,['SL','CH']), PN('高偉強','RP','R',145,3.9,16,8,['SL','CH'],2.0)]
   },
   RAK: {
     bat: [B('陳晨威', 'RF', 'R', .304, .361, .416, 6, 23, 8.4, 8.1, 70, 68), B('林子偉', '2B', 'R', .275, .335, .370, 3, 20, 13, 7, 72, 66, 1), B('馬傑森', '3B', 'R', .275, .326, .349, 3, 2, 11, 4.9, 66, 68),
       B('威克', '1B', 'R', .270, .340, .450, 8, 2, 17, 8, 56, 62, 1), B('林泓育', 'DH', 'L', .268, .340, .400, 5, 2, 15, 9, 52, 56, 1), B('朱迦恩', 'C', 'R', .245, .305, .340, 2, 1, 15, 6, 70, 74, 1),
       B('蔣少宏', 'SS', 'R', .255, .312, .335, 1, 8, 13, 6, 76, 72, 1), B('王靖斌', 'CF', 'L', .262, .325, .350, 2, 12, 14, 7, 72, 66, 1), B('岳政樺', 'LF', 'R', .258, .322, .370, 4, 4, 16, 7, 62, 60, 1)],
-    bench: [B('陳睦衡', 'SS', 'R', .240, .300, .320, 1, 3, 15, 6, 68, 66, 1), B('張育成', '1B', 'R', .250, .310, .360, 3, 1, 17, 7, 58, 60, 1), B('梁家榮', 'C', 'R', .238, .295, .320, 1, 1, 17, 6, 66, 70, 1)],
-    sp: [P('威能帝', 'SP', 'R', 151, 2.9, 20, 5.5, 112, 6.4, ['SL', 'CH', 'CU'], 1), P('艾菩樂', 'SP', 'R', 148, 2.81, 17.4, 4.2, 115, 6.5, ['SL', 'CH', 'CU']), P('曾家輝', 'SP', 'L', 144, 2.69, 15.7, 6.8, 121, 5.5, ['SL', 'CH', 'SK'])],
-    rp: [P('蘇俊璋', 'RP', 'R', 147, 3.0, 19, 7, 105, 1.1, ['SL', 'FK'], 1), P('朱承洋', 'RP', 'R', 149, 3.1, 21, 8, 102, 1, ['SL', 'CH'], 1), P('陳冠宇', 'CL', 'L', 146, 2.9, 22, 7, 110, 1, ['SL', 'CH'], 1)]
+    bench: [B('陳睦衡', 'SS', 'R', .240, .300, .320, 1, 3, 15, 6, 68, 66, 1), B('張育成', '1B', 'R', .250, .310, .360, 3, 1, 17, 7, 58, 60, 1), B('梁家榮', 'C', 'R', .238, .295, .320, 1, 1, 17, 6, 66, 70, 1), BN('林立','CF','L',.250,2,8,68,64), BN('藍寅倫','2B','R',.248,1,5,68,64), BN('郭嚴文','3B','R',.242,2,2,64,66)],
+    sp: [P('威能帝', 'SP', 'R', 151, 2.9, 20, 5.5, 112, 6.4, ['SL', 'CH', 'CU'], 1), P('艾菩樂', 'SP', 'R', 148, 2.81, 17.4, 4.2, 115, 6.5, ['SL', 'CH', 'CU']), P('曾家輝', 'SP', 'L', 144, 2.69, 15.7, 6.8, 121, 5.5, ['SL', 'CH', 'SK']), PN('林子崴','SP','L',145,3.6,16,7,['SL','CH','SK']), PN('邱駿威','SP','R',146,3.9,15,7,['SL','CH'])],
+    rp: [P('蘇俊璋', 'RP', 'R', 147, 3.0, 19, 7, 105, 1.1, ['SL', 'FK'], 1), P('朱承洋', 'RP', 'R', 149, 3.1, 21, 8, 102, 1, ['SL', 'CH'], 1), P('陳冠宇', 'CL', 'L', 146, 2.9, 22, 7, 110, 1, ['SL', 'CH'], 1), PN('林煜清','RP','R',146,3.4,19,8,['SL','CH']), PN('陳 品','RP','L',144,3.6,18,8,['SL','CH'],2.0)]
   },
   FBK: {
     bat: [B('林澤彬', 'CF', 'L', .311, .371, .369, 0, 6, 8.2, 8.4, 72, 66), B('張育成', '1B', 'R', .285, .390, .470, 16, 9, 17.6, 11.6, 62, 66), B('范國宸', 'DH', 'R', .282, .344, .427, 13, 2, 16.5, 7.6, 52, 60),
       B('林哲瑄', 'RF', 'L', .270, .335, .380, 4, 4, 14, 7, 62, 70, 1), B('申皓瑋', '3B', 'R', .262, .322, .350, 3, 6, 14, 7, 66, 68, 1), B('陳彥廷', 'C', 'R', .245, .300, .335, 2, 1, 15, 6, 70, 74, 1),
       B('江國豪', 'SS', 'R', .258, .315, .335, 1, 10, 13, 6, 76, 72, 1), B('劉冠麟', '2B', 'R', .256, .318, .340, 2, 7, 14, 7, 70, 64, 1), B('王正棠', 'LF', 'R', .252, .312, .350, 3, 6, 15, 7, 62, 62, 1)],
-    bench: [B('張進德', 'DH', 'L', .265, .330, .400, 5, 1, 17, 8, 50, 56, 1), B('陳晨昱', 'SS', 'R', .240, .298, .320, 1, 4, 14, 6, 68, 66, 1), B('朱益生', 'C', 'R', .236, .292, .318, 1, 1, 17, 6, 66, 70, 1)],
-    sp: [P('李東洺', 'SP', 'R', 150, 2.54, 18, 6, 125, 6.3, ['SL', 'CH', 'CU'], 1), P('鈴木駿輔', 'SP', 'R', 150, 2.31, 20.5, 6.1, 141, 6.0, ['SL', 'FK', 'CU']), P('魔力藍', 'SP', 'R', 148, 3.04, 15.6, 5.8, 107, 5.8, ['CT', 'CH', 'CU'])],
-    rp: [P('張奕', 'RP', 'R', 147, 3.0, 20, 7, 105, 1.1, ['SL', 'CH'], 1), P('江家豪', 'RP', 'L', 146, 3.4, 18, 8, 95, 1, ['SL', 'CH'], 1), P('曾峻岳', 'CL', 'R', 151, 2.5, 24, 7, 125, 1, ['SL', 'FK'], 1)]
+    bench: [B('張進德', 'DH', 'L', .265, .330, .400, 5, 1, 17, 8, 50, 56, 1), B('陳晨昱', 'SS', 'R', .240, .298, .320, 1, 4, 14, 6, 68, 66, 1), B('朱益生', 'C', 'R', .236, .292, .318, 1, 1, 17, 6, 66, 70, 1), BN('林岳谷','SS','R',.242,1,5,70,66), BN('楊舒帆','2B','R',.240,1,4,66,62)],
+    sp: [P('李東洺', 'SP', 'R', 150, 2.54, 18, 6, 125, 6.3, ['SL', 'CH', 'CU'], 1), P('鈴木駿輔', 'SP', 'R', 150, 2.31, 20.5, 6.1, 141, 6.0, ['SL', 'FK', 'CU']), P('魔力藍', 'SP', 'R', 148, 3.04, 15.6, 5.8, 107, 5.8, ['CT', 'CH', 'CU']), PN('林維恩','SP','R',146,3.7,16,7,['SL','CH','CU'])],
+    rp: [P('張奕', 'RP', 'R', 147, 3.0, 20, 7, 105, 1.1, ['SL', 'CH'], 1), P('江家豪', 'RP', 'L', 146, 3.4, 18, 8, 95, 1, ['SL', 'CH'], 1), P('曾峻岳', 'CL', 'R', 151, 2.5, 24, 7, 125, 1, ['SL', 'FK'], 1), PN('胡智爲','RP','R',148,3.3,20,7,['SL','FK']), PN('陳仕朋','RP','R',146,3.6,18,8,['SL','CH']), PN('王躍霖','RP','R',147,3.5,19,8,['SL','CH'],2.0)]
   },
   WCD: {
     bat: [B('張政禹', 'SS', 'R', .284, .356, .339, 1, 33, 14.1, 9.4, 74, 70), B('郭天信', 'CF', 'L', .252, .310, .359, 9, 24, 9.6, 7.0, 74, 68), B('李凱威', '2B', 'R', .263, .338, .327, 3, 19, 10.2, 9.3, 70, 66),
       B('朱育賢', 'DH', 'R', .235, .302, .359, 13, 0, 20.2, 6.3, 50, 60), B('劉基鴻', '3B', 'R', .246, .301, .357, 8, 5, 14.2, 6.2, 66, 72), B('林承飛', 'RF', 'R', .262, .322, .370, 5, 6, 14, 7, 64, 70, 1),
       B('林琨笙', 'C', 'R', .252, .312, .340, 2, 2, 15, 7, 70, 76, 1), B('王政順', '1B', 'R', .255, .320, .380, 5, 2, 16, 8, 56, 60, 1), B('吳東融', 'LF', 'L', .258, .322, .350, 3, 9, 14, 7, 64, 64, 1)],
-    bench: [B('張祖綸', 'SS', 'R', .245, .305, .320, 1, 5, 14, 6, 70, 68, 1), B('陳培硯', 'LF', 'R', .250, .312, .340, 2, 4, 15, 7, 62, 62, 1), B('陳 玉', 'C', 'R', .236, .290, .318, 1, 1, 17, 6, 66, 70, 1)],
-    sp: [P('蔣銲', 'SP', 'R', 151, 1.49, 25.5, 8.1, 218, 6.4, ['SL', 'CU', 'CH']), P('梅賽鍶', 'SP', 'R', 149, 1.79, 15.3, 4.0, 181, 6.5, ['CT', 'CH', 'CU']), P('鋼龍', 'SP', 'R', 149, 2.31, 19.3, 6.9, 140, 6.1, ['SL', 'FK', 'CU']), P('魔神龍', 'SP', 'L', 146, 2.2, 21, 7, 150, 6, ['SL', 'CH', 'CU'], 1)],
-    rp: [P('郭郁政', 'RP', 'R', 147, 3.0, 18, 7, 105, 1.2, ['SL', 'CH'], 1), P('陳冠偉', 'RP', 'R', 148, 2.9, 20, 7, 108, 1, ['SL', 'FK'], 1), P('林凱威', 'CL', 'R', 150, 2.4, 24, 6, 130, 1, ['SL', 'FK'], 1)]
+    bench: [B('張祖綸', 'SS', 'R', .245, .305, .320, 1, 5, 14, 6, 70, 68, 1), B('陳培硯', 'LF', 'R', .250, .312, .340, 2, 4, 15, 7, 62, 62, 1), B('陳 玉', 'C', 'R', .236, .290, .318, 1, 1, 17, 6, 66, 70, 1), BN('陳子豪','RF','R',.262,5,5,64,68), BN('郭峻偉','2B','R',.245,1,6,68,64), BN('蔣智賢','CF','L',.248,2,9,68,64)],
+    sp: [P('蔣銲', 'SP', 'R', 151, 1.49, 25.5, 8.1, 218, 6.4, ['SL', 'CU', 'CH']), P('梅賽鍶', 'SP', 'R', 149, 1.79, 15.3, 4.0, 181, 6.5, ['CT', 'CH', 'CU']), P('鋼龍', 'SP', 'R', 149, 2.31, 19.3, 6.9, 140, 6.1, ['SL', 'FK', 'CU']), P('魔神龍', 'SP', 'L', 146, 2.2, 21, 7, 150, 6, ['SL', 'CH', 'CU'], 1), PN('黃暐傑','SP','R',146,4.2,16,8,['SL','CH','CU'])],
+    rp: [P('郭郁政', 'RP', 'R', 147, 3.0, 18, 7, 105, 1.2, ['SL', 'CH'], 1), P('陳冠偉', 'RP', 'R', 148, 2.9, 20, 7, 108, 1, ['SL', 'FK'], 1), P('林凱威', 'CL', 'R', 150, 2.4, 24, 6, 130, 1, ['SL', 'FK'], 1), PN('伍立辰','RP','R',146,3.6,18,8,['SL','CH'])]
   },
   TSG: {
     bat: [B('王博玄', 'CF', 'R', .307, .338, .357, 1, 22, 14.1, 3.9, 74, 68), B('曾子祐', 'SS', 'R', .278, .344, .346, 2, 6, 9.2, 8.6, 74, 72), B('吳念庭', '3B', 'R', .258, .348, .307, 0, 3, 9.8, 12.3, 70, 70),
       B('魔鷹', '1B', 'R', .294, .361, .517, 20, 2, 15.2, 8.2, 60, 62), B('王柏融', 'DH', 'L', .253, .304, .358, 7, 6, 20.7, 5.3, 54, 62), B('陳文杰', 'RF', 'R', .276, .331, .377, 3, 8, 11.0, 6.5, 66, 70),
       B('張肇元', 'C', 'R', .255, .320, .350, 3, 2, 14, 7, 72, 76, 1), B('戴培峰', '2B', 'R', .255, .315, .335, 1, 8, 13, 6, 70, 64, 1), B('高國麟', 'LF', 'L', .262, .325, .365, 3, 6, 14, 7, 62, 64, 1)],
-    bench: [B('陳家駒', 'SS', 'R', .240, .300, .320, 1, 4, 14, 6, 68, 66, 1), B('黃梓祥', 'CF', 'L', .248, .310, .330, 1, 7, 15, 7, 66, 64, 1), B('林子崴', 'C', 'R', .232, .290, .315, 1, 1, 18, 6, 64, 68, 1)],
+    bench: [B('陳家駒', 'SS', 'R', .240, .300, .320, 1, 4, 14, 6, 68, 66, 1), B('黃梓祥', 'CF', 'L', .248, .310, .330, 1, 7, 15, 7, 66, 64, 1), B('林子崴', 'C', 'R', .232, .290, .315, 1, 1, 18, 6, 64, 68, 1), BN('董子恩','2B','R',.245,1,4,68,62), BN('李宗賢','LF','L',.250,2,6,64,64)],
     sp: [P('黃子鵬', 'SP', 'R', 147, 2.20, 13.3, 3.4, 147, 6.3, ['SL', 'CH', 'CU']), P('艾速特', 'SP', 'R', 150, 2.63, 20.4, 7.4, 123, 5.9, ['SL', 'CH', 'CU']), P('坎南', 'SP', 'R', 148, 4.2, 16, 7, 95, 5.5, ['CT', 'CH'], 1), P('魔爾曼', 'SP', 'R', 148, 3.5, 17, 7, 100, 5.5, ['SL', 'CH'], 1)],
     rp: [P('陳柏清', 'RP', 'R', 147, 2.9, 20, 7, 108, 1.1, ['SL', 'CH'], 1), P('黃群', 'RP', 'R', 148, 3.1, 19, 8, 102, 1, ['SL', 'FK'], 1), P('林詩翔', 'CL', 'R', 150, 2.7, 23, 7, 120, 1, ['SL', 'FK'], 1)]
   }
@@ -906,15 +909,15 @@ function seededZone(name, con) {
   const z = []; for (let i = 0; i < 9; i++) { const g = (rr() + rr() + rr() - 1.5) * 1.5; z.push(clamp(Math.round(g + (con - 60) / 40), -2, 2)); } return z;
 }
 function mkBatter(r, slot, nat) {
-  const con = Math.round(clamp(56 + (r.a - .265) * 430 + (13 - r.k) * .9, 34, 97));
+  const con = Math.round(clamp(49 + (r.a - .265) * 400 + (13 - r.k) * .8, 32, 90));
   const iso = r.s - r.a;
-  const pow = Math.round(clamp(36 + iso * 240 + r.hr * .35, 30, 98));
-  const eye = Math.round(clamp(44 + r.bb * 3.0 - r.k * .5 + (r.o - r.a) * 40, 34, 95));
-  const spd = Math.round(clamp(44 + r.sb * 1.15 + (r.p === 'CF' || r.p === 'SS' ? 3 : 0), 35, 96));
+  const pow = Math.round(clamp(32 + iso * 225 + r.hr * .3, 30, 90));
+  const eye = Math.round(clamp(40 + r.bb * 2.8 - r.k * .5 + (r.o - r.a) * 38, 32, 88));
+  const spd = Math.round(clamp(42 + r.sb * 1.0 + (r.p === 'CF' || r.p === 'SS' ? 3 : 0), 35, 90));
   const traj = clamp(Math.round(1.5 + iso * 8 + (r.hr > 12 ? .5 : 0)), 1, 4);
   const pos = nat || r.p;
   return {
-    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: Math.round(clamp(r.f - 8, 35, 92)), arm: Math.round(clamp(r.ar - 5, 35, 92)), fld0: Math.round(clamp(r.f - 8, 35, 92)), arm0: Math.round(clamp(r.ar - 5, 35, 92)), traj, zone: seededZone(r.n, con),
+    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: Math.round(clamp(r.f - 10, 35, 88)), arm: Math.round(clamp(r.ar - 8, 35, 88)), fld0: Math.round(clamp(r.f - 10, 35, 88)), arm0: Math.round(clamp(r.ar - 8, 35, 88)), traj, zone: seededZone(r.n, con),
     st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: Math.round(clamp(75 - pow * .5 + spd * .25, 25, 92)), out: false, slot,
     mood: Math.round(clamp(52 + (r.a - .265) * 150 + (Math.random() - .5) * 18, 30, 80)), dur: Math.round(clamp(72 + Math.random() * 22, 55, 96)), agg: Math.round(clamp(40 + r.sb * 1.6, 25, 95)),
     line: `2027 .${String(Math.round(r.a * 1000)).padStart(3, '0')}/.${String(Math.round(r.o * 1000)).padStart(3, '0')}/.${String(Math.round(r.s * 1000)).padStart(3, '0')} ${r.hr}HR ${r.sb}SB${r.est ? '（估）' : ''}`
@@ -923,15 +926,15 @@ function mkBatter(r, slot, nat) {
 const PIT_LV = { SL: 0, CU: 0, FK: 0, CH: 0, CT: 0, SK: 0, SH: 0, TS: 0, SV: 0 };
 function mkPitcher(r, slot) {
   const sp = r.r === 'SP';
-  const lv = clamp(Math.round(2.3 + (r.k - 10) / 3.8), 2, 7);                         // 變化球基礎等級（依三振率）：一般投手約 3~5，只有頂級才到 6~7
-  const pitches = [{ id: 'ST', lv: clamp(Math.round(2.8 + (r.v - 140) / 4), 2, 7) }];
+  const lv = clamp(Math.round(2.1 + (r.k - 10) / 4.2), 2, 6);                         // 變化球基礎等級（依三振率）：一般投手約 3~5，只有頂級才到 6~7
+  const pitches = [{ id: 'ST', lv: clamp(Math.round(2.6 + (r.v - 140) / 4.2), 2, 6) }];
   r.ps.forEach((id, i) => pitches.push({ id, lv: clamp(lv - (i === 0 ? 0 : 1) - ((hashStr(r.n + id) >>> 3) % 3 === 2 ? 1 : 0), 2, 7) }));   // 第一變化球最熟，其餘較生疏
-  const ctl = Math.round(clamp(96 - r.bb * 4.0, 42, 94));
+  const ctl = Math.round(clamp(92 - r.bb * 3.6, 42, 88)), lr = !sp && r.r !== 'CL' && r.ipg >= 1.6;
   return {
-    kind: 'P', name: r.n, num: '', role: r.r, hand: r.h, kmh: r.v, ctl, sta: sp ? Math.round(clamp(60 + (r.ipg - 5.5) * 14, 55, 100)) : (r.r === 'CL' ? 32 : 42),
+    kind: 'P', name: r.n, num: '', role: r.r, hand: r.h, kmh: r.v, ctl, sta: sp ? Math.round(clamp(60 + (r.ipg - 5.5) * 14, 55, 100)) : (r.r === 'CL' ? 32 : lr ? 55 : 42),
     pitches, slot: Math.random(), tilt: 0, fatigue: 0, pc: 0, er: 0, outs: 0, hA: 0, bbA: 0, kA: 0, out: false, used: false, hbp: 0,
     mood: Math.round(clamp(58 + (r.ep - 100) * .12 + (Math.random() - .5) * 14, 36, 84)), dur: Math.round(clamp(70 + Math.random() * 24, 55, 96)),
-    dom: clamp((r.ep - 100) / 100, -.4, 1.2),
+    dom: clamp((r.ep - 100) / 140, -.35, .6), lr,
     line: `2027 ERA ${r.era.toFixed(2)} K%${r.k.toFixed(1)} BB%${r.bb.toFixed(1)}${r.est ? '（估）' : ''}`
   };
 }
@@ -973,7 +976,7 @@ function aiAutoEdit(def, cfg) {
   const f = p => form.get(p), lead = ch.sel.slice().sort((a, b) => (b.eye * .5 + b.spd * .6 + b.con * .5 + f(b)) - (a.eye * .5 + a.spd * .6 + a.con * .5 + f(a)))[0];
   const rest = ch.sel.filter(x => x !== lead).sort((a, b) => (b.con + b.pow * .8 + b.eye * .35 + f(b)) - (a.con + a.pow * .8 + a.eye * .35 + f(a))), t5 = rest.slice(0, 5);
   const order = [lead, t5[1], t5[0], t5[2], t5[3], t5[4]].concat(rest.slice(5));
-  return { teamId: def.id, order: order.map(p => p.name), pos: pm, spIdx: cfg && cfg.ace ? 0 : Math.floor(Math.random() * Math.min(3, D.sp.length)) };
+  return { teamId: def.id, order: order.map(p => p.name), pos: pm, spIdx: cfg && cfg.ace ? 0 : Math.floor(Math.random() * Math.min(4, D.sp.length)) };
 }
 function buildTeam(def, cfg, side) {
   cfg = cfg || {}; const D = CPBL[def.id];
@@ -990,13 +993,13 @@ function buildTeam(def, cfg, side) {
   if (cfg.side !== undefined && side !== undefined && cfg.side !== side) ed = aiAutoEdit(def, cfg);        // 非玩家操控的隊伍：交給電腦自動編成
   let lineupF = order, benchF = bench;
   if (ed) { const ap = applyLineupEdit(ed, raw, D.bench.map(r => mkBatter(r, undefined))); if (ap) { lineupF = ap.lineup; benchF = ap.bench; } }
-  const spList = D.sp, spIdx = ed && ed.spIdx !== undefined ? ed.spIdx % spList.length : cfg.spIdx !== undefined ? cfg.spIdx % spList.length : Math.floor(Math.random() * Math.min(3, spList.length));
+  const spList = D.sp, spIdx = ed && ed.spIdx !== undefined ? ed.spIdx % spList.length : cfg.spIdx !== undefined ? cfg.spIdx % spList.length : Math.floor(Math.random() * Math.min(4, spList.length));
   const sp = mkPitcher(spList[spIdx]);
   const others = spList.filter((_, i) => i !== spIdx).map(r => Object.assign({}, r, { r: 'RP', ipg: 3 }));
-  const rps = D.rp.slice(0, 2).map(r => mkPitcher(r));
-  const cl = mkPitcher(D.rp[2]); cl.role = 'CL';
-  const extra = others.map(r => { const p = mkPitcher(r); p.sta = 55; return p; });
-  let pit = cfg.pn === 1 ? [sp, rps[0], cl] : [sp, rps[0], rps[1], extra[0], extra[1], cl].filter(Boolean);
+  const mids = D.rp.filter(r => r.r !== 'CL').map(r => mkPitcher(r));
+  const clR = D.rp.find(r => r.r === 'CL') || D.rp[D.rp.length - 1], cl = mkPitcher(clR); cl.role = 'CL';
+  const extra = others.slice(0, 2).map(r => { const p = mkPitcher(Object.assign({}, r, { ipg: 3 })); p.sta = 55; p.lr = true; return p; });
+  let pit = cfg.pn === 1 ? [sp, mids[0], cl] : [sp].concat(mids, extra, [cl]).filter(Boolean);
   pit.forEach(p => { p.out = false; p.used = false; p.hbp = 0; });
   return { def, id: def.id, name: def.name, short: def.short, c1: def.c1, c2: def.c2, cap: def.cap, lineup: lineupF, bench: benchF, retired: [], pitchers: pit, cur: 0, bi: 0, order: 0, inj: [], hbpTension: 0, forfeit: false, dh: true, home: def.home };
 }
@@ -4562,7 +4565,7 @@ $('btnSub').onclick = () => {
   if (G.phase !== 'pre') { say('投球前才能換投'); return; }
   if (G.human < 0 || !humanPitches()) { say('只有自己守備（投球）時才能換投'); return; }
   const side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'p'; sub.innerHTML = '<h3>換投<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
-  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h<span>${p.role}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
+  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
   const c = document.createElement('div'); c.className = 'pbtn'; c.textContent = '關閉'; c.onclick = () => sub.classList.add('hide'); sub.appendChild(c);
 };
 /* ---------------- 代打／代跑 ---------------- */
