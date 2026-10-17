@@ -101,6 +101,9 @@ canvas#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 @keyframes tipIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 body.mob #timingTip{font-size:12px;margin-left:6px;padding:.12em .6em;border-width:1.5px}
 #caption .tx em{font-style:normal;color:#ff4a4a}
+#caption .cl{display:inline-block;font-size:.5em;font-weight:900;letter-spacing:.12em;padding:.12em .55em;margin-right:.6em;border-radius:5px;vertical-align:.18em;color:#fff;text-shadow:none;box-shadow:0 1px 3px #0008}
+#caption .cl.a{background:linear-gradient(#ff5a3a,#d4221a)}#caption .cl.b{background:linear-gradient(#3a8cff,#1654c8)}
+#caption .tx b{color:#ffe14a}
 #caption .sm{position:absolute;right:2vw;top:6px;font-size:11px;color:#9cf;letter-spacing:.25em;font-family:'Orbitron'}
 #toast{left:50%;top:38%;transform:translate(-50%,-50%) scale(1);font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';font-size:clamp(40px,9vw,120px);white-space:nowrap;-webkit-text-stroke:.1em #fff;paint-order:stroke fill;filter:drop-shadow(0 .05em 0 #0008);opacity:0;pointer-events:none}
 #toast.show{animation:pop 1.3s ease-out forwards}
@@ -408,6 +411,19 @@ body.mob #sb.open{position:absolute;right:0;top:0;z-index:32;max-width:calc(100v
 #audioVol{flex:1;min-width:0;height:30px;accent-color:#ffb02e;cursor:pointer;touch-action:none}
 #audioNum{font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;min-width:2.3em;text-align:right}
 #audioPanel .ap-s{font-size:10.5px;opacity:.7;margin-top:8px;line-height:1.4}
+#audioPanel{max-height:92vh;overflow-y:auto;width:min(92vw,370px)}
+#audioPanel .ap-t{font-size:12px;font-weight:900;letter-spacing:.12em;color:#9cf;margin:12px 0 6px}
+#audioTracks{display:flex;flex-direction:column;gap:6px}
+#audioTracks .trk{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:7px 9px;border-radius:10px;border:2px solid #fff3;background:#12243c;color:#fff;cursor:pointer;touch-action:manipulation}
+#audioTracks .trk .ti{font-size:22px;width:28px;text-align:center}
+#audioTracks .trk .tn{flex:1;min-width:0;display:flex;flex-direction:column}
+#audioTracks .trk .tn b{font-size:14px;font-weight:900}
+#audioTracks .trk .tn i{font-style:normal;font-size:10.5px;opacity:.7;margin-top:1px}
+#audioTracks .trk em{font-style:normal;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:99px;background:#345;color:#cde}
+#audioTracks .trk em.hot{background:#c4281f;color:#fff}#audioTracks .trk em.chill{background:#1f8f6a;color:#fff}#audioTracks .trk em.fun{background:#7a46d0;color:#fff}
+#audioTracks .trk.on{border-color:#ffd24a;background:linear-gradient(#3a2d10,#1d1a0c);box-shadow:0 0 0 1px #ffd24a66 inset}
+#audioTracks .trk.on .tn b::before{content:'▶ ';color:#ffd24a}
+#titleBgm{position:absolute;right:14px;top:12px;z-index:60;font-size:13px}
 .pillb{padding:8px 16px;border-radius:999px;border:2px solid #fff4;background:#0007;font-weight:900;cursor:pointer;font-size:14px;color:#fff;touch-action:manipulation}
 body.mob .pillb{padding:7px 12px;font-size:12px;border-width:1.5px}
 /* ---------- OUT 提示 ---------- */
@@ -658,13 +674,89 @@ body.mob #result .rbtns button{min-width:130px}
 
 /* ===== 主畫面選項（一般／生涯／離開） ===== */
 #title{cursor:default}
-#title .tmenu{position:absolute;bottom:11vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:clamp(8px,1.6vh,16px);width:min(78vw,340px);z-index:2}
-#title .tmb{min-height:clamp(46px,7vh,60px);border-radius:16px;border:2px solid rgba(255,255,255,.75);background:linear-gradient(#5fd98f,#1f9150);color:#fff;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-weight:900;font-size:clamp(17px,2.4vw,24px);letter-spacing:.3em;padding-left:.3em;text-shadow:0 2px 0 #0d5a2e;box-shadow:0 5px 0 #0f5a30,0 10px 22px rgba(0,0,0,.45);cursor:pointer;touch-action:manipulation}
-#title .tmb:nth-child(2){background:linear-gradient(#f7d572,#e29a1c);border-color:#fff;color:#33200a;text-shadow:none;box-shadow:0 5px 0 #8a5a0a,0 10px 22px rgba(0,0,0,.45)}
-#title .tmb.tmx{background:linear-gradient(#8a96a3,#4a5560);box-shadow:0 5px 0 #2a323a,0 10px 22px rgba(0,0,0,.45);text-shadow:0 2px 0 #222}
-#title .tmb:active{transform:translateY(4px);box-shadow:0 1px 0 #0003}
-#title .tmb:hover{filter:brightness(1.1)}
-body.mob #title .tmenu{bottom:6vh}
+#title .tmenu{position:absolute;bottom:11vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:clamp(8px,1.5vh,15px);width:min(80vw,360px);z-index:2}
+/* 按鈕：球場看板 + 棒球縫線 */
+#title .tmb{--a:#ffd24a;--bg1:#14703f;--bg2:#083522;--glow:rgba(255,210,74,.55);--rim:linear-gradient(180deg,#fff2b0,#d9961c 55%,#fff0a0);
+  position:relative;display:flex;align-items:center;gap:.9em;width:100%;min-height:clamp(44px,7.4vh,62px);padding:0 1.2em 0 .75em;
+  border:2px solid transparent;border-radius:16px;overflow:hidden;text-align:left;color:#fff;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(17px,2.3vw,23px);
+  background:linear-gradient(105deg,var(--bg1),var(--bg2)) padding-box,var(--rim) border-box;
+  box-shadow:0 5px 0 rgba(0,0,0,.6),0 12px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.28);
+  cursor:pointer;touch-action:manipulation;transition:transform .15s,box-shadow .15s,filter .15s}
+#title .tmb::before{content:'';position:absolute;inset:4px;border-radius:11px;border:1.5px dashed rgba(255,96,96,.55);pointer-events:none}
+#title .tmb::after{content:'';position:absolute;top:-10%;bottom:-10%;left:-45%;width:28%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);pointer-events:none;animation:tmIdle 5.2s ease-in-out infinite}
+#title .tmb:nth-child(1)::after{animation-delay:2.6s}#title .tmb:nth-child(2)::after{animation-delay:3.5s}#title .tmb:nth-child(3)::after{animation:none}
+#title .tmb .tt{flex:1;display:flex;flex-direction:column;align-items:center;margin-right:2.2em;min-width:0}
+#title .tmb b{font-weight:900;letter-spacing:.32em;margin-right:-.32em;text-shadow:0 2px 0 rgba(0,0,0,.55);white-space:nowrap}
+#title .tmb small{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.46em;letter-spacing:.38em;margin:.2em -.38em 0 0;color:var(--a);opacity:.92;text-shadow:0 1px 3px #000}
+#title .ico{flex:none;position:relative;display:grid;place-items:center;width:1.9em;height:1.9em;border-radius:50%;font-style:normal;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 -3px 5px rgba(0,0,0,.28)}
+#title .ball{background:radial-gradient(circle at 35% 28%,#fff,#ece7d8 58%,#b8ae96)}
+#title .ball::before,#title .ball::after{content:'';position:absolute;top:-12%;bottom:-12%;width:70%;border:2px dashed #d3202a;border-radius:50%}
+#title .ball::before{left:-48%}#title .ball::after{right:-48%}
+#title .star{background:radial-gradient(circle at 35% 28%,#fff4b8,#f2b92a 55%,#a86a08);color:#5a3300;font-size:1.05em;font-weight:900;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+#title .pwr{background:radial-gradient(circle at 35% 28%,#5b636f,#1d2128);color:#ffb0b0;font-size:1.02em;font-weight:900;line-height:1;border:2px solid rgba(220,228,238,.6)}
+#title .tm-n{--a:#9ff0c2}
+#title .tm-c{--bg1:#2150b0;--bg2:#0a1a48}
+#title .tm-c b{color:#ffeaa6}
+#title .tmx{--a:#ff9a9a;--bg1:#3a404a;--bg2:#15181e;--glow:rgba(255,120,120,.5);--rim:linear-gradient(180deg,#e2e8ef,#6b7480 55%,#cfd6de)}
+#title .tmx b{color:#e8edf3}
+#title .tmb:hover,#title .tmb:focus-visible{filter:brightness(1.13);transform:translateY(-2px);box-shadow:0 7px 0 rgba(0,0,0,.6),0 0 0 1px var(--a),0 0 26px var(--glow),0 14px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+#title .tmb:hover::after,#title .tmb:focus-visible::after{animation:tmSweep .75s ease-out}
+#title .tmb:hover .ball,#title .tmb:focus-visible .ball{animation:tmRoll .8s linear infinite}
+#title .tmb:hover .star,#title .tmb:focus-visible .star{animation:tmPop .7s ease-in-out infinite}
+#title .tmb:hover .pwr,#title .tmb:focus-visible .pwr{box-shadow:0 0 12px rgba(255,100,100,.8),inset 0 -3px 5px rgba(0,0,0,.28)}
+#title .tmb:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#title .tmb:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.6),0 4px 10px rgba(0,0,0,.5);filter:brightness(.97)}
+@keyframes tmIdle{0%,68%{left:-45%}100%{left:135%}}
+@keyframes tmSweep{0%{left:-45%}100%{left:135%}}
+@keyframes tmRoll{to{transform:rotate(360deg)}}
+@keyframes tmPop{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.12) rotate(14deg)}}
+/* 開場動畫：預備 → 擊中 → 登場 */
+#title .fxc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#title .flash{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 30%,#fff,#fff8dc 55%,#ffd070)}
+#title .flash.go{animation:tFlash .8s ease-out forwards}
+@keyframes tFlash{0%{opacity:.96}100%{opacity:0}}
+#title.shk{animation:tShake .5s linear}
+@keyframes tShake{0%{transform:translate(0,0)}12%{transform:translate(-9px,5px)}26%{transform:translate(8px,-6px)}40%{transform:translate(-6px,-4px)}56%{transform:translate(5px,4px)}74%{transform:translate(-3px,2px)}100%{transform:translate(0,0)}}
+#title .kicker,#title .en{position:relative;z-index:1}
+#title .logo::before{content:'';position:absolute;inset:-34% -14%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(255,128,32,.5),rgba(255,64,12,.16) 56%,transparent 76%);filter:blur(10px);animation:tHeat 2.6s ease-in-out infinite}
+@keyframes tHeat{0%,100%{opacity:.62;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+#title.armed .logo,#title.armed .kicker,#title.armed .en,#title.armed .tmb,#title.armed .made{visibility:hidden;animation:tFb 0s linear 4s forwards!important}
+@keyframes tFb{to{visibility:visible}}
+#title.hit .logo{animation:tSlam .95s cubic-bezier(.2,.8,.2,1) backwards}
+#title.hit .kicker{animation:tReveal .7s ease-out .45s backwards,kfade 4s ease-in-out infinite}
+#title.hit .en{animation:tReveal .7s ease-out .6s backwards}
+#title.hit .made{animation:tReveal .8s ease-out 1.15s backwards}
+#title.hit .tmb:nth-child(1){animation:tmInL .6s cubic-bezier(.2,1.4,.4,1) .8s backwards}
+#title.hit .tmb:nth-child(2){animation:tmInR .6s cubic-bezier(.2,1.4,.4,1) .95s backwards}
+#title.hit .tmb:nth-child(3){animation:tmInL .6s cubic-bezier(.2,1.4,.4,1) 1.1s backwards}
+@keyframes tSlam{0%{opacity:0;transform:scale(2.9)}45%{opacity:1;transform:scale(.93)}70%{transform:scale(1.035)}100%{transform:scale(1)}}
+@keyframes tReveal{from{clip-path:inset(0 50% 0 50%);transform:translateY(10px)}to{clip-path:inset(0 0 0 0);transform:none}}
+@keyframes tmInL{from{opacity:0;transform:translateX(-70px) skewX(-14deg)}to{opacity:1;transform:none}}
+@keyframes tmInR{from{opacity:0;transform:translateX(70px) skewX(14deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#title .tmb::after,#title .logo::before{animation:none}#title.hit *{animation:none!important}}
+body.mob #title .tmenu{bottom:5vh;width:min(74vw,310px);gap:7px}
+body.mob #title .tmb{min-height:42px;font-size:16px;border-radius:13px}
+body.mob #title .tmb::before{border-radius:8px}
+/* 離開遊戲：確認視窗與道別畫面 */
+#exitDlg{position:absolute;inset:0;z-index:75;display:flex;align-items:center;justify-content:center;background:rgba(2,8,16,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#exitDlg.hide{display:none}
+#exitDlg .xbox{position:relative;width:min(86vw,400px);padding:22px 20px 18px;border-radius:18px;text-align:center;color:#fff;border:2px solid transparent;background:linear-gradient(#142633,#08111a) padding-box,linear-gradient(180deg,#e2e8ef,#6b7480 55%,#cfd6de) border-box;box-shadow:0 18px 44px rgba(0,0,0,.7);animation:xIn .28s cubic-bezier(.2,1.4,.4,1)}
+#exitDlg .xbox::before{content:'';position:absolute;inset:5px;border-radius:13px;border:1.5px dashed rgba(255,96,96,.45);pointer-events:none}
+#exitDlg .xt{font-size:clamp(20px,3vw,25px);font-weight:900;color:#ffe27a;margin-bottom:8px}
+#exitDlg .xs{font-size:15px;line-height:1.7;opacity:.92;margin-bottom:16px}
+#exitDlg .xb{position:relative;display:flex;gap:10px}
+#exitDlg .xb button{flex:1;min-height:46px;border-radius:12px;font-family:inherit;font-weight:900;font-size:16px;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.55);background:linear-gradient(#4a5565,#2a323d);touch-action:manipulation}
+#exitDlg .xb #exitYes{background:linear-gradient(#ff7a7a,#c81818)}
+#exitDlg .xb button:active{transform:translateY(2px)}
+#exitDlg .xb button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@keyframes xIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+#bye{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,#10283a,#02060b 75%);color:#fff;animation:byeIn .6s ease-out}
+#bye.hide{display:none}
+#bye .bt{font-size:clamp(24px,5vw,40px);font-weight:900;letter-spacing:.2em;margin-right:-.2em;color:#ffe27a;text-shadow:0 3px 0 #6b3300}
+#bye .bs{font-size:clamp(14px,2.2vw,17px);line-height:1.8;opacity:.85;max-width:420px}
+#bye .bh{font-size:13px;line-height:1.7;opacity:.7;max-width:420px}
+#bye button{margin-top:6px;min-height:46px;padding:0 30px;border-radius:12px;border:2px solid rgba(255,255,255,.7);background:linear-gradient(#5fd98f,#1f9150);color:#fff;font-family:inherit;font-weight:900;font-size:16px;cursor:pointer}
+@keyframes byeIn{from{opacity:0}to{opacity:1}}
 #careerDlg{position:absolute;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
 #careerDlg.hide{display:none}
 #careerDlg .cbox{width:min(86vw,420px);padding:22px 20px;border-radius:18px;text-align:center;background:linear-gradient(#16313a,#0b1a22);border:1px solid rgba(255,255,255,.25);box-shadow:0 14px 40px rgba(0,0,0,.6);color:#fff}
@@ -752,21 +844,96 @@ body.mob #sb td.nm{min-width:2.6em}
 #btnPush:active{transform:scale(.92)}
 body.mob #btnPush{right:10px;bottom:calc(var(--cap) + 100px);padding:6px 12px;font-size:12px;border-width:2px}
 </style>
+<style id="gameBtnTheme">
+/* ===== 比賽按鈕：與主畫面同一套「球場看板＋棒球縫線」風格 ===== */
+#hud{--bs:clamp(78px,15vh,108px)}
+body.mob #hud{--bs:clamp(66px,20vh,76px)}
+@media (orientation:portrait){body.mob #hud{--bs:78px}}
+@media (min-width:900px) and (min-height:600px){body.mob #hud{--bs:96px}}
+/* 主按鈕：揮棒（琥珀火球）／投球（冰藍）／按停（草綠）——圓形棒球造型 */
+#hud #btnAct{--rim:linear-gradient(160deg,#fff2b0,#d9961c 50%,#ffe9a0);--c1:#ffcf86;--c2:#f0661c;--c3:#7a1a05;--gl:rgba(255,150,40,.6);
+  width:var(--bs);height:var(--bs);border:3px solid transparent;opacity:.96;
+  background:radial-gradient(circle at 34% 24%,var(--c1) 0,var(--c2) 46%,var(--c3) 100%) padding-box,var(--rim) border-box;
+  box-shadow:0 5px 0 rgba(0,0,0,.55),0 9px 20px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.2),inset 0 -8px 14px rgba(0,0,0,.35),inset 0 6px 10px rgba(255,255,255,.28);
+  -webkit-backdrop-filter:none;backdrop-filter:none;animation:actBreath 2.4s ease-in-out infinite}
+#hud #btnAct[data-k=pitch]{--rim:linear-gradient(160deg,#f2fbff,#6fa8e8 50%,#e6f4ff);--c1:#bfe4ff;--c2:#2f7ff0;--c3:#0a2a78;--gl:rgba(90,170,255,.6);
+  background:radial-gradient(circle at 34% 24%,var(--c1) 0,var(--c2) 46%,var(--c3) 100%) padding-box,var(--rim) border-box;
+  box-shadow:0 5px 0 rgba(0,0,0,.55),0 9px 20px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.2),inset 0 -8px 14px rgba(0,0,0,.35),inset 0 6px 10px rgba(255,255,255,.28)}
+#hud #btnAct[data-k=stop]{--rim:linear-gradient(160deg,#f6ffd8,#5fd36a 50%,#f1ffc8);--c1:#d4ffbf;--c2:#2fcf55;--c3:#0a5a22;--gl:rgba(80,230,120,.65);
+  background:radial-gradient(circle at 34% 24%,var(--c1) 0,var(--c2) 46%,var(--c3) 100%) padding-box,var(--rim) border-box;
+  box-shadow:0 5px 0 rgba(0,0,0,.55),0 9px 20px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.2),inset 0 -8px 14px rgba(0,0,0,.35),inset 0 6px 10px rgba(255,255,255,.28);
+  animation:actStop .55s ease-in-out infinite alternate,actBreath 1.1s ease-in-out infinite}
+#hud #btnAct::before{inset:7%;border:1.6px dashed rgba(255,255,255,.55)}
+#hud #btnAct::after{opacity:.55}
+#hud #btnAct .ai{width:56%;height:56%;margin-top:-4%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+#hud #btnAct .al{margin-top:-4%;font-size:clamp(10px,calc(var(--bs)*.17),17px);letter-spacing:.2em;padding-left:.2em;text-shadow:0 2px 0 rgba(0,0,0,.55),0 0 6px rgba(0,0,0,.4)}
+#hud #btnAct:active{transform:scale(.92);filter:brightness(.95)}
+@keyframes actBreath{0%,100%{filter:drop-shadow(0 0 3px var(--gl))}50%{filter:drop-shadow(0 0 13px var(--gl))}}
+/* 強打開關：膠囊 + 指示燈 */
+#hud #btnPow{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.55em;min-height:clamp(34px,5.6vh,42px);padding:0 1.15em;border:2px solid transparent;border-radius:999px;color:#fff;font-weight:900;font-size:clamp(12px,2.1vh,15px);letter-spacing:.08em;white-space:nowrap;
+  background:linear-gradient(rgba(22,50,80,.92),rgba(8,18,30,.94)) padding-box,linear-gradient(180deg,#e6ecf3,#6f7a88 55%,#cfd7e0) border-box;
+  box-shadow:0 3px 0 rgba(0,0,0,.55),0 7px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.16);-webkit-backdrop-filter:none;backdrop-filter:none;transition:transform .12s,filter .12s}
+#hud #btnPow::before{content:'';flex:none;width:.7em;height:.7em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8a94a2,#3a424d);box-shadow:inset 0 -1px 2px rgba(0,0,0,.5)}
+#hud #btnPow.on{background:linear-gradient(#ff9a52,#d8380f) padding-box,linear-gradient(180deg,#fff2b0,#d9961c 55%,#fff0a0) border-box;text-shadow:0 1px 0 rgba(90,20,0,.7);box-shadow:0 3px 0 rgba(0,0,0,.55),0 0 16px rgba(255,110,40,.7),inset 0 1px 0 rgba(255,255,255,.35)}
+#hud #btnPow.on::before{background:radial-gradient(circle at 35% 30%,#fff6c0,#ffcf3a);box-shadow:0 0 8px #ffd23a}
+#hud #btnPow:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+/* 動作鍵（短打／強打／盜壘／牽制／更多） */
+#hud #acts .abtn{--rim:linear-gradient(180deg,#eef2f7,#6f7a88 55%,#cfd7e0);position:relative;overflow:hidden;min-height:clamp(32px,5.4vh,40px);padding:0 1.1em;border:2px solid transparent;border-radius:12px;color:#fff;font-family:inherit;font-weight:900;font-size:clamp(12px,1.3vw,15px);letter-spacing:.06em;
+  background:linear-gradient(105deg,rgba(24,56,90,.92),rgba(8,18,30,.94)) padding-box,var(--rim) border-box;
+  box-shadow:0 3px 0 rgba(0,0,0,.55),0 7px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .12s,filter .12s}
+#hud #acts .abtn::before{content:'';position:absolute;inset:3px;border-radius:8px;border:1px dashed rgba(255,96,96,.42);pointer-events:none}
+#hud #acts #btnBunt{--rim:linear-gradient(180deg,#e8ffd4,#4fcf6a 55%,#d2f7b8)}
+#hud #acts #btnPowPc{--rim:linear-gradient(180deg,#ffe3a0,#e08a1a 55%,#ffd98a)}
+#hud #acts #btnSteal{--rim:linear-gradient(180deg,#fff2b0,#d9961c 55%,#fff0a0)}
+#hud #acts #btnPick{--rim:linear-gradient(180deg,#e6f4ff,#5f9be0 55%,#d6ebff)}
+#hud #acts .abtn.on{background:linear-gradient(#ffb067,#e0501a) padding-box,var(--rim) border-box;text-shadow:0 1px 0 rgba(90,20,0,.6);box-shadow:0 3px 0 rgba(0,0,0,.55),0 0 14px rgba(255,120,40,.6),inset 0 1px 0 rgba(255,255,255,.3)}
+#hud #acts.open #btnMore{background:linear-gradient(#ffb067,#e0501a) padding-box,var(--rim) border-box}
+#hud #acts .abtn .k{margin-left:.4em;padding:0 .42em;border-radius:5px;background:rgba(255,255,255,.15);font-family:'Orbitron',sans-serif;font-size:.72em;font-weight:700;opacity:.9}
+#hud #acts .abtn:disabled{filter:grayscale(.65)}
+#hud #acts .abtn:not(:disabled):hover{filter:brightness(1.12);transform:translateY(-1px)}
+#hud #acts .abtn:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.55)}
+#hud #acts #actMore{border:2px solid transparent;border-radius:14px;background:linear-gradient(rgba(10,22,36,.97),rgba(5,11,19,.97)) padding-box,linear-gradient(180deg,#e2e8ef,#6b7480 55%,#cfd6de) border-box;box-shadow:0 8px 22px rgba(0,0,0,.6)}
+#hud #acts #actMore .abtn{box-shadow:0 2px 0 rgba(0,0,0,.5)}
+body.touch #hud #acts .k{display:none}
+/* 投球球種鍵：球種顏色邊框＋左側色條 */
+#hud #pitchPanel .pbtn{--pc:#fff;position:relative;overflow:hidden;border:2px solid var(--pc);border-radius:12px;color:#fff;background:linear-gradient(105deg,rgba(24,56,90,.93),rgba(8,18,30,.95));
+  box-shadow:0 3px 0 rgba(0,0,0,.55),0 7px 14px rgba(0,0,0,.35),inset 5px 0 0 var(--pc);transition:transform .12s,filter .12s}
+#hud #pitchPanel .pbtn::before{content:'';position:absolute;inset:3px;border-radius:8px;border:1px dashed rgba(255,96,96,.32);pointer-events:none}
+#hud #pitchPanel .pbtn .pn{padding-left:.35em}
+#hud #pitchPanel .pbtn.sel{background:linear-gradient(105deg,#fff0a0,#ffa62a);color:#3a1a00;box-shadow:0 3px 0 rgba(0,0,0,.55),0 0 16px var(--pc),inset 5px 0 0 var(--pc)}
+#hud #pitchPanel .pbtn.sel span{opacity:1}
+#hud #pitchPanel .pbtn:active{transform:translateY(2px)}
+/* 裝置比例 */
+body.mob #hud #acts .abtn{min-height:34px;padding:0 .95em;font-size:12px;border-radius:10px;letter-spacing:.03em}
+body.mob #hud #btnPow{min-height:34px;font-size:12px;padding:0 1em}
+body.mob #hud #pitchPanel .pbtn{border-radius:10px;padding:6px 10px;font-size:12px}
+@media (min-width:900px) and (min-height:600px){
+  body.mob #hud #acts .abtn{min-height:42px;font-size:14px;padding:0 1.1em}
+  body.mob #hud #btnPow{min-height:42px;font-size:14px}
+  body.mob #hud #pitchPanel .pbtn{font-size:14px;padding:8px 12px}
+}
+@media (prefers-reduced-motion:reduce){#hud #btnAct,#hud #btnAct[data-k=stop]{animation:none}}
+</style>
 </head>
 <body>
 <div id="wrap">
 <canvas id="gl"></canvas>
 <canvas id="ov"></canvas>
 
-<div id="title">
+<div id="title" class="armed">
+  <canvas id="titleFx" class="fxc"></canvas><div id="titleFlash" class="flash"></div>
+  <button type="button" class="pillb" id="titleBgm">🎵 音樂</button>
   <div class="kicker">Cam.Su</div>
   <div class="logo"><span class="l1">中職</span><span class="l2">野球</span><span class="l1 yr">2027</span><i class="tw" style="left:-.1em;top:.05em;animation-delay:.2s">✦</i><i class="tw" style="left:44%;top:-.12em;animation-delay:1.1s;font-size:.2em">✦</i><i class="tw" style="right:-.12em;top:.55em;animation-delay:1.9s">✦</i><i class="tw" style="left:20%;bottom:-.05em;animation-delay:2.4s;font-size:.18em">✦</i><i class="tw" style="right:30%;top:.1em;animation-delay:.7s;font-size:.16em">✦</i></div>
   <div class="en">CPBL 2027 SEASON</div>
-  <div class="tmenu"><button type="button" id="tmNormal" class="tmb">⚾ 一般模式</button><button type="button" id="tmCareer" class="tmb">🌟 生涯模式</button><button type="button" id="tmExit" class="tmb tmx">⏻ 離開遊戲</button></div>
+  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span></button><button type="button" id="tmExit" class="tmb tmx"><i class="ico pwr">⏻</i><span class="tt"><b>離開遊戲</b><small>EXIT</small></span></button></div>
   <div class="made"><small>— MADE IN CAM.SU</small>Made in Cam.Su</div>
 </div>
 
 <div id="careerDlg" class="hide"><div class="cbox"><div class="ct">🌟 生涯模式</div><div class="cs">非常抱歉，目前Su.正在開發中，請耐心等候...</div><button type="button" id="careerOk">我知道了</button></div></div>
+
+<div id="exitDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="exitT"><div class="xbox"><div class="xt" id="exitT">離開遊戲？</div><div class="xs">將結束遊戲並關閉這個視窗。</div><div class="xb"><button type="button" id="exitNo">取消</button><button type="button" id="exitYes">離開遊戲</button></div></div></div>
+<div id="bye" class="hide"><div class="bt">感謝遊玩</div><div class="bs">中職野球 2027，下次球場見！</div><div class="bh hide" id="byeHint">瀏覽器不允許網頁自行關閉視窗。請直接關閉這個分頁，或用手機的 Home 鍵／上滑手勢回到桌面。</div><button type="button" id="byeBack" class="hide">回到遊戲</button></div>
 
 <div id="menu" class="hide">
   <h2><span class="ic">⚾</span><span class="tx">比賽設定</span></h2>
@@ -839,7 +1006,9 @@ body.mob #btnPush{right:10px;bottom:calc(var(--cap) + 100px);padding:6px 12px;fo
   <div class="ap-h"><span>🎵 背景音設定</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
   <button id="audioMute" type="button" class="ap-sw on">🔊 背景音樂　開</button>
   <div class="ap-r"><span class="ap-ic">🔈</span><input id="audioVol" type="range" min="0" max="100" step="1" value="60" aria-label="音量"><span class="ap-ic">🔊</span><span id="audioNum">60</span></div>
-  <div class="ap-s">♪ 球場午後 · 輕鬆爵士（擊球與環境音效不受影響）</div>
+  <div class="ap-t">選擇背景音樂</div>
+  <div id="audioTracks"></div>
+  <div class="ap-s" id="audioNow">（擊球與環境音效不受影響）</div>
 </div>
 </div>
 <script>
@@ -1667,6 +1836,7 @@ function rebuildField() {
 function fspeed(f) { const pl = f.pl, of = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF'; return 3.7 + (pl.fld || 55) * 0.026 + ((pl.spd || 55) - 55) * (of ? .02 : .012) + (of ? .85 + (f.pos === 'CF' ? .25 : 0) : 0) + (f.pos === 'P' ? -.5 : 0); }      // 外野手腳程較快（中外野最快），並看個人跑速
 function armSpeed(pl) { return 22 + (pl.arm || 60) * 0.16; }
 function setupBatter() {
+  BATV.ok = false;      // 換打者：球棒尺寸直接對齊新打者，不做緩動
   const pl = curBatter(), ph = curPitcher(), st = teamStyle(G.half);
   if (E.bat) disposeRig(E.bat.rig);
   let h = pl.hand; if (h === 'S') h = ph.hand === 'R' ? 'L' : 'R';
@@ -1812,29 +1982,65 @@ function batterR(b, pt, power) {
 }
 /* 球棒形擊球框：游標＝甜蜜點（球棒最粗的位置）；握把朝打者身體一側、球頭微微上揚。球落在棒上的位置（球頭／甜蜜點／握把）與上下偏移決定擊球結果 */
 const BAT_TILT = 16 * Math.PI / 180;
-const BAT_K = { normal: .26, power: .19, bunt: .26 };      // 球棒半寬（相對 R0）：一般打擊較細、強打更細、短打維持較寬
-function batZoneK(b, x, y) {      // 球棒移到打者的熱區略放大、冷區略縮小（每位球員的熱冷區不同）
-  const c = zoneCell(x, y); if (c < 0 || !b || !b.zone) return 1; return clamp(1 + (b.zone[c] || 0) * .07, .86, 1.15);
+const BAT_K = { normal: .26, power: .22, bunt: .29 };      // 球棒半寬（相對 R0）：一般＝標準、強打略細但不再像鉛筆、短打＝短而寬的「接球面」
+const BAT_SHAPE = { normal: [-.6, 1.5], power: [-.6, 1.5], bunt: [-.5, 1.2] };      // 球頭端／握把端位置（相對 R0）：短打棒身略短而寬（棒身 1.7R0，但 R0 本身放大 1.25 倍，實際長度與一般棒相近），一般與強打 2.1R0
+function batMinK(R, k, ax, ay) {      // 依「畫面上實際大小」保底球棒粗細：小螢幕（手機）上棒子不會細成一條線，電腦與平板維持原比例；最多加粗 35%
+  try {
+    const a = w2s(ax, ay, 0), b = w2s(ax + 1, ay, 0), dp = ov.width / VW();
+    if (!isFinite(a.x) || !isFinite(b.x) || !(dp > 0)) return k;
+    const ppu = Math.abs(b.x - a.x) / dp, tablet = Math.min(VW(), VH()) >= 600, need = MOB ? (tablet ? 8 : 7) : 8;      // ppu：好球帶處每 1 公尺等於幾 CSS px；need：棒頭半寬至少幾 px
+    return clamp(need / (R * ppu), k, k * 1.35);
+  } catch (e) { return k; }
 }
-function batGeom(R0, cx, cy, side, k) {
-  const hd = -side, c = Math.cos(BAT_TILT), s = Math.sin(BAT_TILT);
-  return { cx, cy, ux: hd * c, uy: -s, nx: hd * s, ny: c, r: R0 * (k || BAT_K.normal), tb: -R0 * .6, th: R0 * 1.5, R0 };      // t：沿棒身（正＝握把）；w：垂直棒身（正＝球在棒上方）
+function batZoneK(b, x, y) {      // 球棒移到打者的熱區略放大、冷區略縮小（每位球員的熱冷區不同）
+  // 修正：原本是「格子跳變」＋「出好球帶瞬間回 1」，游標跨格線時球棒會突然變大變小。改成連續插值（格心之間雙線性內插、帶外平滑回歸 1）
+  if (!b || !b.zone) return 1;
+  const gx = clamp((x + ZW) / (2 * ZW) * 3 - .5, 0, 2), gy = clamp((ZC + ZH - y) / (2 * ZH) * 3 - .5, 0, 2);
+  const x0 = Math.min(1, Math.floor(gx)), y0 = Math.min(1, Math.floor(gy)), fx = gx - x0, fy = gy - y0, Z = (cx, cy) => b.zone[cy * 3 + cx] || 0;
+  const zv = Z(x0, y0) * (1 - fx) * (1 - fy) + Z(x0 + 1, y0) * fx * (1 - fy) + Z(x0, y0 + 1) * (1 - fx) * fy + Z(x0 + 1, y0 + 1) * fx * fy;
+  const out = Math.max(0, zoneSDF(x, y) + ZPAD), fade = clamp(1 - out / .35, 0, 1);      // 離開好球帶 0.35 內逐漸淡出熱冷區效果
+  return clamp(1 + zv * .07 * fade, .86, 1.15);
+}
+/* 球棒顯示／判定尺寸的緩動：目標尺寸（球種球速、強打開關、熱冷區）改變時不再瞬間跳變，畫面看到的大小就是揮棒判定使用的大小 */
+const BATV = { R: 0, k: 0, ok: false, t: 0 };
+function batTarget(b, ax, ay) {
+  const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() }, bunt = !!G.callBunt, pw = powOn() && !bunt;
+  const R = batterR(b, fake, pw) * (bunt ? 1.25 : 1) * ((IS_TOUCH || MOB) ? 1.1 : 1);
+  const k = batMinK(R, (bunt ? BAT_K.bunt : pw ? BAT_K.power : BAT_K.normal) * batZoneK(b, ax, ay), ax, ay);
+  return { R, k };
+}
+function batEase(b, ax, ay, force) {
+  const tg = batTarget(b, ax, ay), now = performance.now(), dt = clamp((now - BATV.t) / 1000, 0, .1); BATV.t = now;
+  if (!BATV.ok || force || BATV.b !== b) { BATV.R = tg.R; BATV.k = tg.k; BATV.ok = true; BATV.b = b; return BATV; }
+  const a = 1 - Math.exp(-dt * 14);      // 約 0.1 秒內追上目標
+  BATV.R += (tg.R - BATV.R) * a; BATV.k += (tg.k - BATV.k) * a; return BATV;
+}
+function batGeom(R0, cx, cy, side, k, mode) {
+  const hd = -side, c = Math.cos(BAT_TILT), s = Math.sin(BAT_TILT), sh = BAT_SHAPE[mode] || BAT_SHAPE.normal;
+  return { cx, cy, ux: hd * c, uy: -s, nx: hd * s, ny: c, r: R0 * (k || BAT_K.normal), tb: R0 * sh[0], th: R0 * sh[1], R0 };      // t：沿棒身（正＝握把）；w：垂直棒身（正＝球在棒上方）
 }
 function batContact(g, px, py) {
   const dx = px - g.cx, dy = py - g.cy, t = dx * g.ux + dy * g.uy, w = dx * g.nx + dy * g.ny, tc = clamp(t, g.tb, g.th);
   return { t, w, d: Math.hypot(t - tc, w), rr: g.r * (1 - .4 * clamp(tc / g.th, 0, 1)) };      // rr：該段棒身的半寬（球頭粗、握把細）
 }
-function drawBat(ax, ay, R0, col, lw, k) {
-  const g = batGeom(R0, ax, ay, E.bat ? E.bat.side : 1, k), c = octx, N = 10, rr = t => g.r * (1 - .4 * clamp(t / g.th, 0, 1)), rh = rr(g.th);
+function drawBat(ax, ay, R0, col, lw, k, mode) {
+  const g = batGeom(R0, ax, ay, E.bat ? E.bat.side : 1, k, mode), c = octx, N = 10, rr = t => g.r * (1 - .4 * clamp(t / g.th, 0, 1)), rh = rr(g.th), pw = mode === 'power';
   const P = (t, w) => w2s(g.cx + g.ux * t + g.nx * w, g.cy + g.uy * t + g.ny * w, 0);
   c.beginPath(); let q = P(g.tb, g.r); c.moveTo(q.x, q.y);
   for (let i = 0; i <= N; i++) { const t = g.tb + (g.th - g.tb) * i / N; q = P(t, rr(t)); c.lineTo(q.x, q.y); }
   for (let i = 1; i < N; i++) { const a = Math.PI / 2 - Math.PI * i / N; q = P(g.th + rh * Math.cos(a), rh * Math.sin(a)); c.lineTo(q.x, q.y); }      // 握把端圓頭
   for (let i = N; i >= 0; i--) { const t = g.tb + (g.th - g.tb) * i / N; q = P(t, -rr(t)); c.lineTo(q.x, q.y); }
   for (let i = 1; i < N; i++) { const a = -Math.PI / 2 - Math.PI * i / N; q = P(g.tb + g.r * Math.cos(a), g.r * Math.sin(a)); c.lineTo(q.x, q.y); }      // 球頭端圓頭
-  c.closePath(); c.globalAlpha = .26; c.fillStyle = col; c.fill(); c.globalAlpha = 1; c.strokeStyle = col; c.lineWidth = lw; c.stroke();
+  c.closePath(); c.globalAlpha = .26; c.fillStyle = col; c.fill(); c.globalAlpha = 1;
+  { const p0 = P(g.tb, 0), p1 = P(g.th, 0), gr = c.createLinearGradient(p0.x, p0.y, p1.x, p1.y);      // 球頭端較亮、握把端漸暗，立體感
+    gr.addColorStop(0, 'rgba(255,255,255,.34)'); gr.addColorStop(.5, 'rgba(255,255,255,.1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fill(); }
+  c.lineJoin = 'round'; if (pw) { c.shadowColor = col; c.shadowBlur = lw * 3.2; }      // 強打：棒身發出火光
+  c.strokeStyle = col; c.lineWidth = lw; c.stroke(); c.shadowBlur = 0; c.shadowColor = 'transparent'; c.lineJoin = 'miter';
   const s0 = -R0 * .3, s1 = R0 * .3, a = P(s0, g.r * .7), b = P(s1, g.r * .7), d = P(s1, -g.r * .7), e = P(s0, -g.r * .7);      // 甜蜜點帶：球打在這一段最扎實
   c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(d.x, d.y); c.lineTo(e.x, e.y); c.closePath(); c.globalAlpha = .38; c.fillStyle = '#fff'; c.fill(); c.globalAlpha = 1;
+  c.strokeStyle = col; c.lineWidth = Math.max(1, lw * .4); c.globalAlpha = .5;      // 握把止滑帶
+  for (let i = 0; i < 3; i++) { const t = g.th * (.5 + .17 * i), p1 = P(t, rr(t) * .85), p2 = P(t, -rr(t) * .85); c.beginPath(); c.moveTo(p1.x, p1.y); c.lineTo(p2.x, p2.y); c.stroke(); }
+  c.globalAlpha = 1;
   const m = P(0, 0), h1 = P(g.th, 0); c.beginPath(); c.arc(m.x, m.y, 2.6 * (lw / 3), 0, TAU); c.fillStyle = col; c.fill();
   c.beginPath(); c.arc(h1.x, h1.y, 4 * (lw / 3), 0, TAU); c.fillStyle = col; c.globalAlpha = .8; c.fill(); c.globalAlpha = 1;      // 握把端記號
   return { a: m, rad: Math.abs(P(0, g.r).y - m.y) };
@@ -1853,7 +2059,7 @@ function resolveSwing(pt, sw, b) {
   const jx = gauss() * .012 * Math.max(0, mv - .7), jy = gauss() * .012 * Math.max(0, mv - .7);
   const bq = swingBallPos(pt, sw), bxp = bq.x, byp = bq.y;
   const pj = sw.auto ? { x: bxp, y: byp } : (projPlane(bq.x, bq.y, bq.z), { x: _pj.x, y: _pj.y });      // 以畫面上看到的球位置判定擊球框
-  const BG = batGeom(R0, sw.cx, sw.cy, sideB, (sw.bunt ? BAT_K.bunt : sw.power ? BAT_K.power : BAT_K.normal) * batZoneK(b, sw.cx, sw.cy)), bc = batContact(BG, pj.x + jx, pj.y + jy), d = bc.d;
+  const BG = batGeom(R0, sw.cx, sw.cy, sideB, sw.k || (sw.bunt ? BAT_K.bunt : sw.power ? BAT_K.power : BAT_K.normal) * batZoneK(b, sw.cx, sw.cy), sw.bunt ? 'bunt' : sw.power ? 'power' : 'normal'), bc = batContact(BG, pj.x + jx, pj.y + jy), d = bc.d;
   if (adt > Wd * 1.15 || d > bc.rr + BALL_R * .5) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };      // 球心落在球棒框（含球半徑）內且時機在窗口內＝一定碰得到
   const rrRef = bc.rr * (.5 / Math.max(BG.r / R0, .01)), un = bc.t / R0, wn = bc.w / rrRef;      // 上下偏移用「標準棒寬」正規化：棒子變細不會讓邊緣擊球變得更極端（否則滿場滾地球／內野小飛球）                                  // 球在棒上的位置：un<0 球頭、0 甜蜜點、>0 握把；wn>0 球在棒上方（打到球下緣）
   const dn = clamp((Math.hypot(un < 0 ? -un * .9 : un * .5, Math.abs(wn) * .8) - .2) / .8, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 甜蜜點＝最佳，往球頭／握把／上下緣越來越差
@@ -1921,11 +2127,18 @@ function resolveSwing(pt, sw, b) {
   ang = clamp(ang, -26, 78);
   let th = side * s * 40 - side * inside * (inside > 0 ? 8 : 6.5) + (pj.x - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);   // 內角偏拉、外角偏推
   if (marginal) { th += (Math.random() < .5 ? -1 : 1) * (22 + Math.random() * 40); ev *= 0.7; }
+  let broken = false, tip = false;
+  if (!sw.bunt) {
+    // 斷棒：球打在握把端被壓制、或擦到棒子邊緣，棒子可能斷裂 → 球軟弱、仰角高、落點難測（常是飄過內野的小飛球）
+    if (((bp > .5 && Q < .6 && Math.random() < .10 + press * .06) || (Q < .3 && bp > .3 && Math.random() < .06)) && !marginal) { broken = true; ev *= .55 + Math.random() * .15; ang = clamp(ang + 9 + Math.random() * 11, -26, 78); th += gauss() * 9; }
+    // 擦棒：只擦到球的邊緣，球往後方高高飛起（界外高飛球／捕手後方的小飛球）
+    else if (marginal && Math.random() < .18) { tip = true; th = side * (150 + Math.random() * 25); ang = 38 + Math.random() * 24; ev = 9 + Math.random() * 5; }
+  }
   // 旋轉：打球下緣→後旋（飄得遠）；打上緣→前旋（急墜）。握把壓制減少後旋、外角打球頭增加前旋
   const spinB = clamp(1 + v * .95 + (ang - 18) * .012 - Math.max(0, bp - .4) * .5 - outK * Math.max(0, -bp - .3) * .6 + gauss() * .12 * mv, -.8, 2.1);
   const spinS = clamp(bp * .22 * side + gauss() * .12 * mv, -.55, .55);
   const luck = gauss() * (.9 + .5 * mv) * (1 + windK() * .3 + Math.max(0, rainBK() - .8) * .35);              // 不可控因素：陣風、擊中縫線、地面彈跳…（風大時更不穩定）
-  return { kind: 'hit', ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, sR, v, hz, bp, cz, inside, press, spinB, spinS, luck, W: Wd, mv, px: bxp, py: byp, pz: bq.z };
+  return { kind: 'hit', broken, tip, ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, sR, v, hz, bp, cz, inside, press, spinB, spinS, luck, W: Wd, mv, px: bxp, py: byp, pz: bq.z };
 }
 function resolveBunt(pt, sw, b, dt, d, R0, Q) {
   // 短打：結果由「球在棒上的接觸點(內外/上下)」「接觸時機(深度)」「球種球速與好壞球位置」「打者短打技術・心情・雨天」共同決定。
@@ -1965,12 +2178,22 @@ const LIFT = .028, SIDEF = .028;
 function ballEnv(res) {            // 風、氣溫、旋轉、運氣 → 物理環境
   const w = G.wx || { spd: 0, dir: 0, temp: 26 }, gust = res ? clamp(res.luck, -2.4, 2.4) * .95 : 0;     // 擊球當下的陣風
   const rr = rainK(), wm = 1 + clamp(rr - .55, 0, .25) * .5 + clamp(rr - .8, 0, .2) * 1.5, ws = w.spd * clamp(.3 + Math.pow(Math.min(w.spd, 11) / 11, 2) * .7, .3, 1), gk = .5 + .5 * clamp(w.spd / 9, 0, 1), wx = ws * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5 * gk, wz = -ws * wm * Math.cos(w.dir * Math.PI / 180) - gust * gk;      // 微風～中風對球的影響大幅減弱，狂風暴雨（約 8 m/s 以上）才明顯
-  return { wx, wz, back: res ? res.spinB * (1 - rainBK() * .08) : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .09), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
+  return { wx, wz, back: res ? res.spinB * (1 - rainBK() * .08) : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, seed: (Math.random() * 4294967296) >>> 0, rough: clamp((.72 + Math.random() * .6) * (1 + rainBK() * .5) * (1 + Math.abs(res ? res.luck : 0) * .1), .6, 2.1), swirl: 1 + windK() * 1.6 + rainBK() * .5, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .09), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
 }
+function mkRng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }      // 每一球一個種子：同一球的模擬結果固定，但每球不同
 function simulateBall(p0, v0, maxT, env) {
   env = env || { wx: 0, wz: 0, back: 1, side: 0, hop: 0, drag: 1, roll: 1, rest: 1 };
   const S = [], dt = 1 / 60; let x = p0.x, y = p0.y, z = p0.z, vx = v0.x, vy = v0.y, vz = v0.z, t = 0, bk = env.back, sd = env.side;
   let first = null, hr = false, wallHit = false, bounces = 0, stopped = false, over = null, wallT = 0, wallY = 0; const BN = [];
+  /* ---- 不可控因素（以種子隨機，每球不同）---- */
+  const rng = mkRng(env.seed || 20260), RN = (a, b) => a + (b - a) * rng(), RG = () => { let u = 0, v = 0; while (!u) u = rng(); while (!v) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); };
+  const rough = env.rough || 1, swl = env.swirl || 1;
+  const sw1 = { a: RN(.15, .9) * swl, b: RN(.15, .9) * swl, f1: RN(.7, 1.9), f2: RN(.6, 1.6), p1: RN(0, TAU), p2: RN(0, TAU) };      // 高空亂流：飛行中風向風速微幅擺盪
+  const fp = { p1: RN(0, TAU), p2: RN(0, TAU), p3: RN(0, TAU) };                                                                    // 草皮軟硬／長短不一的「地面狀況場」
+  const hugOn = rng() < .66, kickOn = rng() < .28;                                                                                   // 貼線球／滾出界外
+  const bad = [], bagDone = {}; let hug = false, hugDist = 0, kicked = false, rollD = 0, nextBump = RN(2.5, 6), chop = false, bagHit = false, moundHit = false, wallTop = false, bumps = 0;
+  const rot = a => { const c = Math.cos(a), s2 = Math.sin(a), nvx = vx * c - vz * s2, nvz = vx * s2 + vz * c; vx = nvx; vz = nvz; };
+  const grassF = (gx, gz) => 1 + (.22 * Math.sin(gx * .55 + fp.p1) * Math.cos(gz * .47 + fp.p2) + .12 * Math.sin(gx * 1.3 + gz * .9 + fp.p3)) * clamp(rough, .7, 1.8);
   S.push({ t: 0, x, y, z, g: false });
   while (t < (maxT || 11)) {
     if (y > BALL_R * 1.3) {
@@ -1980,17 +2203,53 @@ function simulateBall(p0, v0, maxT, env) {
       vy += LIFT * bk * sh * dt; vx += (-vz / sh) * SIDEF * sd * sh * dt; vz += (vx / sh) * SIDEF * sd * sh * dt;     // 馬格努斯力：後旋→升力、橫旋→側彎
       const wf = .15 + clamp(y / 20, 0, 1) * .15; vx += env.wx * wf * dt; vz += env.wz * wf * dt;                          // 風的推力（順風飄得更遠、逆風被壓回）
       bk *= 1 - .05 * dt; sd *= 1 - .05 * dt;
+      if (y > 2.2) { const hk = clamp((y - 2.2) / 8, 0, 1); vx += sw1.a * Math.sin(sw1.f1 * t + sw1.p1) * hk * dt; vz += sw1.b * Math.sin(sw1.f2 * t + sw1.p2) * hk * dt; }      // 高空亂流
     } else { vy -= GRAV * dt; }
     let nx = x + vx * dt, ny = y + vy * dt, nz = z + vz * dt; let onG = false;
     if (ny <= BALL_R) {
       ny = BALL_R;
       if (!first) first = { x: nx, z: nz, t: t + dt };
       if (vy < -1.6) {
-        BN.push({ t: t + dt, v: -vy, x: nx, z: nz });
-        vy = -vy * 0.5 * (env.rest || 1) * (bounces === 0 ? 1 + clamp(env.hop, -1.5, 1.5) * .16 : 1); vx *= 0.94; vz *= 0.94;
-        if (bounces === 0 && Math.abs(env.hop) > .7) { const a = env.hop * .13, c = Math.cos(a), s2 = Math.sin(a), nvx = vx * c - vz * s2, nvz = vx * s2 + vz * c; vx = nvx; vz = nvz; }   // 不規則彈跳
-        bounces++;
-      } else { vy = 0; const s2 = Math.hypot(vx, vz); const dec = (1.8 + s2 * 0.06) * (Math.hypot(nx, nz) < 27 ? 1.12 : .9) * (env.roll || 1) * dt; const ns = Math.max(0, s2 - dec); if (s2 > 1e-4) { vx *= ns / s2; vz *= ns / s2; } onG = true; if (ns < 0.15) { stopped = true; vx = vz = 0; } }
+        const vin = -vy, sp0 = Math.hypot(vx, vz), inf = Math.hypot(nx, nz) < 27, be = { t: t + dt, v: vin, x: nx, z: nz }; BN.push(be);
+        let rest = .5 * (env.rest || 1) * (inf ? 1.04 : .96) * (bounces === 0 ? 1 + clamp(env.hop, -1.5, 1.5) * .16 : 1), hk = clamp(.94 - (bk - 1) * .05, .85, 1.02);      // 旋轉：前旋→落地後加速滑行；後旋→落地煞住、減速
+        vx *= hk; vz *= hk;
+        if (bounces === 0 && Math.abs(env.hop) > .7) rot(env.hop * .13);                                                              // 原有：不規則彈跳
+        // 巴爾的摩高彈：打在本壘板前方、向下砸的強勁球，彈得又高又慢
+        if (bounces === 0 && Math.hypot(nx, nz) < 9 && vin > 5 && rng() < .30 + clamp((vin - 5) * .04, 0, .25)) { rest *= RN(2.0, 2.7); vx *= .8; vz *= .8; chop = true; bad.push({ t: t + dt, x: nx, z: nz, type: 'chop', sev: .5 }); be.bad = 'chop'; }
+        // 每一次落地都可能踩到小石子、草皮坑洞或縫線：彈得特別高、特別低（死球）或往旁邊歪
+        else if (bounces < 4 && sp0 > 3) {
+          const pb = clamp(.05 * rough * (inf ? 1.25 : 1) * (bounces === 0 ? 1 : .6) + (Math.abs(env.hop) > .7 ? .08 : 0), 0, .4);
+          if (rng() < pb) {
+            const sev = RN(.4, 1), r0 = rng(); let type;
+            if (r0 < .34) { rest *= 1 + sev * 1.1; type = 'pop'; }
+            else if (r0 < .60) { rest *= 1 - sev * .65; vx *= 1 - sev * .2; vz *= 1 - sev * .2; type = 'die'; }
+            else { rot((rng() < .5 ? -1 : 1) * RN(.14, .5) * sev); vx *= .93; vz *= .93; rest *= RN(.8, 1.2); type = 'side'; }
+            be.bad = type; bad.push({ t: t + dt, x: nx, z: nz, type, sev });
+          }
+        }
+        vy = vin * rest; vx *= 1; bounces++;
+      } else { vy = 0; const s2 = Math.hypot(vx, vz); const dec = (1.8 + s2 * 0.06) * (Math.hypot(nx, nz) < 27 ? 1.12 : .9) * (env.roll || 1) * grassF(nx, nz) * dt; const ns = Math.max(0, s2 - dec); if (s2 > 1e-4) { vx *= ns / s2; vz *= ns / s2; } onG = true; if (ns < 0.15) { stopped = true; vx = vz = 0; }
+        if (!stopped) {
+          const sNow = Math.hypot(vx, vz); rollD += sNow * dt;
+          // 不規則滾地：滾動途中壓到小凸起，球忽然歪一下、彈一下
+          if (rollD > nextBump) { rollD = 0; nextBump = RN(3, 8); if (sNow > 2.8 && rng() < .06 * rough) { rot(RG() * .09 * rough); const hp = RN(1.8, 3.4) * clamp(sNow / 10, .6, 1.3); vy = hp; vx *= .94; vz *= .94; onG = false; bumps++; bad.push({ t: t + dt, x: nx, z: nz, type: 'bump', sev: clamp(hp / 3.4, .3, 1) }); } }
+          // 壘包：球剛好滾過／彈到壘包，會被彈歪、彈高
+          if (sNow > 2.5) for (let bi = 1; bi <= 3; bi++) { const bb = BASES[bi]; if (!bagDone[bi] && Math.hypot(nx - bb.x, nz - bb.z) < .30) { bagDone[bi] = true; if (rng() < .55) { rot(RN(-.7, .7)); vy = RN(1.8, 3.6) * clamp(sNow / 10, .6, 1.2); vx *= .86; vz *= .86; onG = false; bagHit = true; bad.push({ t: t + dt, x: nx, z: nz, type: 'bag', sev: .85 }); } } }
+          // 投手丘：斜坡讓球減速、略歪
+          if (!moundHit && sNow > 2 && Math.hypot(nx - MOUND.x, nz - MOUND.z) < 2.4) { moundHit = true; if (rng() < .55) { rot(RG() * .10); vx *= .9; vz *= .9; if (rng() < .4) { vy = RN(1.6, 2.6); onG = false; } bad.push({ t: t + dt, x: nx, z: nz, type: 'mound', sev: .5 }); } }
+          // 貼線球：球沿著一／三壘界線滾，一路貼在線內（甚至從線上被拉回界內）；少數會在到壘包前自己滾出界外
+          if (onG) {
+            const sg = nx >= 0 ? 1 : -1, ddl = (-nz - Math.abs(nx)) / Math.SQRT2, rd = Math.hypot(nx, nz), ux = sg / Math.SQRT2, uz = -1 / Math.SQRT2, qx = -sg / Math.SQRT2, qz = -1 / Math.SQRT2;
+            const vt = vx * ux + vz * uz, vp = vx * qx + vz * qz, spd = Math.hypot(vx, vz);
+            if (rd > 3.5 && rd < 60 && vt > 1.5) {
+              if (!hug && !kicked && hugOn && ddl > -.28 && ddl < .75 && Math.abs(vp) < Math.max(.9, spd * .09)) hug = true;
+              else if (!hug && !kicked && kickOn && rd < 19 && ddl > 0 && ddl < .5 && Math.abs(vp) < Math.max(.9, spd * .09)) kicked = true;
+              if (hug) { const tgt = clamp((.14 - ddl) * 5, -.5, .6), np = vp + (tgt - vp) * Math.min(1, 9 * dt); vx = vt * ux + np * qx; vz = vt * uz + np * qz; hugDist += spd * dt; }
+              else if (kicked && ddl > -.6) { const np = vp + (-1.1 - vp) * Math.min(1, 6 * dt); vx = vt * ux + np * qx; vz = vt * uz + np * qz; }
+            }
+          }
+        }
+      }
     }
     // fence
     const rad = Math.hypot(nx, nz), phi = Math.atan2(nx, -nz) * 180 / Math.PI, wr = wallRadius(phi);
@@ -1998,7 +2257,12 @@ function simulateBall(p0, v0, maxT, env) {
       if (ny > WALL_H + .1) { if (!over) over = { x: nx, z: nz, t: t + dt, phi, y: ny }; }
       else { // bounce back
         const nxn = nx / rad, nzn = nz / rad; const vn = vx * nxn + vz * nzn;
-        if (vn > 0) { vx -= 1.4 * vn * nxn; vz -= 1.4 * vn * nzn; vx *= .85; vz *= .85; }
+        if (vn > 0) {
+          vx -= 1.4 * vn * nxn; vz -= 1.4 * vn * nzn; vx *= .85; vz *= .85;
+          const aphi = Math.abs(phi), corner = [45, 90, 135].some(c => Math.abs(aphi - c) < 3.5);                                     // 牆面轉角處反彈方向更難預測
+          rot(RG() * .20 * (corner ? 2.4 : 1)); const k = RN(.82, 1.12); vx *= k; vz *= k; if (!wallHit && vy > -3) vy += RN(-.6, 1.6);   // 打牆反彈：角度與力道每次不同
+          if (!wallHit && ny > WALL_H - .45 && ny <= WALL_H + .1 && rng() < .35) { vy = Math.abs(vy) * .4 + RN(2, 5); vx *= .55; vz *= .55; wallTop = true; bad.push({ t: t + dt, x: nx, z: nz, type: 'topwall', sev: .8 }); }      // 擦到牆頭：球往上彈、軟軟落回場內
+        }
         nx = nxn * (wr - .05); nz = nzn * (wr - .05); if (!wallHit) { wallT = t + dt; wallY = ny; } wallHit = true;
       }
     }
@@ -2007,7 +2271,7 @@ function simulateBall(p0, v0, maxT, env) {
     S.push({ t, x, y, z, g: onG || y <= BALL_R + .001 });
     if (stopped) { for (let i = 0; i < 6; i++) S.push({ t: t + (i + 1) * dt, x, y, z, g: true }); break; }
   }
-  return { S, first, over, wallHit, wallT, wallY, bn: BN, tEnd: S[S.length - 1].t };
+  return { S, first, over, wallHit, wallT, wallY, bn: BN, tEnd: S[S.length - 1].t, bad, chop, bagHit, moundHit, wallTop, bumps, hug: hugDist > 6, hugDist, kicked };
 }
 function sampleAt(S, t, out) {
   if (t <= 0) { out.x = S[0].x; out.y = S[0].y; out.z = S[0].z; return out; }
@@ -2085,6 +2349,8 @@ function launchBall(res, pt) {
   G.phase = 'inplay';
   setBall(sim.S[0], true, '#fff');
   maybeInjureOnBall(res, plan);
+  { const sm = sim, pl0 = PL; const note = res.broken ? ['斷棒！', '#fff', '#c84'] : res.tip ? ['擦棒高飛', '#fff', '#68a'] : (sm.hug && cl.fair) ? ['貼線球！', '#fff', '#2a8'] : sm.chop ? ['高彈跳球', '#fff', '#a5f'] : sm.bagHit ? ['碰到壘包！', '#fff', '#a5f'] : sm.bumps ? ['不規則滾地球', '#fff', '#a5f'] : sm.wallTop ? ['擦牆頭！', '#fff', '#e83'] : null;
+    if (note) after(.7, () => { if (PL === pl0) toast(note[0], note[1], note[2]); }); }
   if (PL.foul) {
     recallRunners();
     if (plan.kind === 'catch') { /* foul fly caught */ assignRoles(plan); } else { PL.t = 0; for (const f of Object.values(E.F)) { if (plan.f === f) { f.tx = plan.x; f.tz = plan.z; f.sp = fspeed(f) * 1.2; f.wait = plan.react || .3; } } }
@@ -2475,12 +2741,19 @@ function onFielded(f) {
   // fielded on the ground / one-hop
   flowSfx('mitt');
   const fe = clamp(0.030 - (f.pl.fld || 55) * .00027, .003, .03) * (PL.kind === 'gb' ? 1.15 : 1) * (plan.dive ? 1.3 : 1) * (1 + clamp(-(PL.luck || 0) * .25, -.4, .8)) * (1 + rainK() * 1.6);
-  const bh = PL.kind === 'gb' && !plan.dive && Math.abs(PL.luck || 0) > 1.3 - rainK() * .4 && Math.random() < .4;      // 不規則彈跳（怪彈跳）
+  let bh = PL.kind === 'gb' && !plan.dive && Math.abs(PL.luck || 0) > 1.3 - rainK() * .4 && Math.random() < .4;      // 不規則彈跳（怪彈跳）
+  let bhHow = 'hop';
+  if (!bh && PL.sim && PL.sim.bad && PL.sim.bad.length && !plan.dive) {      // 球在接球前一刻剛好踩到坑洞／小石子／壘包：手套前突然變向、變高、變低
+    let m = 0; for (const e of PL.sim.bad) { if (e.type === 'chop') continue; const dtb = PL.t - e.t; if (dtb > -.05 && dtb < .5 && dist2(f.x, f.z, e.x, e.z) < 5.5) m = Math.max(m, e.sev * (e.type === 'bump' ? .55 : 1)); }
+    if (m > 0 && Math.random() < m * clamp(.78 - (f.pl.fld || 55) * .004, .3, .75)) bh = true;
+  }
+  if (!bh && f.pos === 'P' && PL.kind === 'gb' && PL.res && PL.res.ev > 36 && Math.random() < .12) { bh = true; bhHow = 'deflect'; }      // 投手被強襲球打到手套／身體彈開
   if ((Math.random() < fe || bh) && !PL.cleanField) {
     if (bh) PL.badHop = true; else { PL.err = true; G.errs[1 - G.half]++; if (G.errPl) G.errPl[f.pl.name] = (G.errPl[f.pl.name] || 0) + 1; }
-    PL.state = 'loose'; f.hasBall = false; const a = Math.random() * TAU;
-    PL.loose = { x: f.x + Math.cos(a) * 4.5, z: f.z + Math.sin(a) * 4.5, t: 0 }; PL.looseF = f; f.tx = PL.loose.x; f.tz = PL.loose.z; f.sp = fspeed(f); f.rig.anim = { name: 'down', t: 0, dur: .7, opt: {} };
-    flowOnError(f, bh ? 'hop' : 'field'); return;
+    PL.state = 'loose'; f.hasBall = false; let a = Math.random() * TAU, dd = 4.5;
+    if (bh && PL.sim) { const i0 = Math.min(PL.sim.S.length - 4, Math.max(0, Math.floor(PL.t * 60))), p1 = PL.sim.S[i0], p2 = PL.sim.S[i0 + 3]; if (p1 && p2 && Math.hypot(p2.x - p1.x, p2.z - p1.z) > .02) { a = Math.atan2(p2.z - p1.z, p2.x - p1.x) + gauss() * (bhHow === 'deflect' ? .9 : .5); dd = 3.5 + Math.random() * 5; } }      // 彈開的球順著原本方向竄出去
+    PL.loose = { x: f.x + Math.cos(a) * dd, z: f.z + Math.sin(a) * dd, t: 0 }; PL.looseF = f; f.tx = PL.loose.x; f.tz = PL.loose.z; f.sp = fspeed(f); f.rig.anim = { name: 'down', t: 0, dur: .7, opt: {} };
+    flowOnError(f, bh ? bhHow : 'field'); return;
   }
   if (plan.failDive) { }
   flowOnField(f, PL);
@@ -3240,9 +3513,9 @@ function hitSfx(res) {                                       // 擊球聲：木�
   if (sweet && !gb && ev > 34 && SND.crowdGain) flowSfx('cheer', clamp((ev - 30) / 26, .35, .9));
 }
 /* ---------------- 背景音樂（WebAudio 即時合成：輕鬆爵士／球場午後） ---------------- */
-const BGM = { vol: 60, mute: false, ctx: null, bus: null, inst: null, lead: null, drum: null, noise: null, timer: 0, step: 0, t0: 0 };
-try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; } catch (e) { }
-const BGM_BPM = 100, BGM_BEAT = 60 / BGM_BPM, BGM_SWING = .6, BGM_LOOP = 128;
+const BGM = { vol: 60, mute: false, ctx: null, bus: null, ch: null, inst: null, lead: null, drum: null, gtr: null, noise: null, timer: 0, step: 0, t0: 0, track: 1, beat: .6, swing: .6, irc: {} };
+try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; const tk = localStorage.getItem('cpbl_bgm_track'); if (tk !== null && !isNaN(+tk) && +tk >= 0 && +tk < 5) BGM.track = +tk | 0; } catch (e) { }
+const BGM_LOOP = 128;
 const BGM_CH = {
   Cmaj7: { r: 48, v: [55, 59, 62, 64] }, Am7: { r: 45, v: [55, 57, 60, 64] }, Dm7: { r: 50, v: [53, 57, 60, 62] }, G7: { r: 43, v: [53, 55, 59, 62] },
   Em7: { r: 52, v: [55, 59, 62, 67] }, A7: { r: 45, v: [55, 59, 61, 64] }, Fmaj7: { r: 53, v: [57, 60, 64, 67] }
@@ -3266,35 +3539,51 @@ const BGM_SONG = [   // c: 和弦（1個＝整小節、2個＝各半小節）  m
   { c: ['Cmaj7'], m: [[0, 76, 3], [3, 72, 1], [4, 67, 4]] }
 ];
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
-const bgmStepTime = i => Math.floor(i / 2) * BGM_BEAT + (i % 2 ? BGM_BEAT * BGM_SWING : 0);
+const bgmStepTime = i => Math.floor(i / 2) * BGM.beat + (i % 2 ? BGM.beat * BGM.swing : 0);
 const bgmGainVal = () => BGM.mute ? 0 : Math.pow(BGM.vol / 100, 1.5) * 1.5;
 function bgmApplyVol(first) {
   if (!BGM.bus) return; const t = BGM.ctx.currentTime;
   BGM.bus.gain.cancelScheduledValues(t); BGM.bus.gain.setTargetAtTime(bgmGainVal(), t + (first ? .3 : 0), first ? 1.2 : .06);
 }
+function bgmPulseWave(C, duty) { const n = 40, re = new Float32Array(n), im = new Float32Array(n); for (let k = 1; k < n; k++) { re[k] = 2 / (k * Math.PI) * Math.sin(k * Math.PI * duty); im[k] = 2 / (k * Math.PI) * (1 - Math.cos(k * Math.PI * duty)); } return C.createPeriodicWave(re, im); }
+function bgmDistCurve(k) { const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = Math.tanh(x * k); } return c; }
+function bgmChain(o) {      // 每首曲子各自一組音效鏈（殘響／延遲／失真吉他／鼓），切歌時舊的快速淡出
+  const C = BGM.ctx, out = C.createGain(); out.gain.value = 0; out.connect(BGM.bus);
+  const inst = C.createGain(); inst.connect(out);
+  let ir = BGM.irc[o.rev]; if (!ir) { const len = Math.floor(C.sampleRate * o.rev); ir = C.createBuffer(2, len, C.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); } BGM.irc[o.rev] = ir; }
+  const conv = C.createConvolver(); conv.buffer = ir; const wet = C.createGain(); wet.gain.value = o.revWet; inst.connect(conv); conv.connect(wet); wet.connect(out);
+  const lead = C.createGain(); lead.connect(inst);
+  const dl = C.createDelay(1.5); dl.delayTime.value = Math.min(1.4, BGM.beat * o.dly); const fb = C.createGain(); fb.gain.value = o.fb;
+  const dlp = C.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2600; const dw = C.createGain(); dw.gain.value = o.dw;
+  lead.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dw); dw.connect(inst);
+  const drum = C.createGain(); drum.gain.value = o.drum; drum.connect(out);
+  const gtr = C.createGain(), sh = C.createWaveShaper(); sh.curve = BGM.dist; sh.oversample = '2x'; const glp = C.createBiquadFilter(); glp.type = 'lowpass'; glp.frequency.value = 4200; const gg = C.createGain(); gg.gain.value = .55;
+  gtr.connect(sh); sh.connect(glp); glp.connect(gg); gg.connect(inst);      // 失真吉他匯流排
+  return { out, inst, lead, drum, gtr };
+}
+function bgmSelect(i) {
+  i = clamp(i | 0, 0, BGM_TRACKS.length - 1); BGM.track = i; const C = BGM.ctx; if (!C || !BGM.bus) return;
+  const T = BGM_TRACKS[i], now = C.currentTime, old = BGM.ch;
+  if (old) { old.out.gain.cancelScheduledValues(now); old.out.gain.setTargetAtTime(0, now, .04); setTimeout(() => { try { old.out.disconnect(); } catch (e) { } }, 2600); }
+  BGM.beat = 60 / T.bpm; BGM.swing = T.swing; const ch = bgmChain(T.mix); BGM.ch = ch; BGM.inst = ch.inst; BGM.lead = ch.lead; BGM.drum = ch.drum; BGM.gtr = ch.gtr;
+  ch.out.gain.setValueAtTime(0, now); ch.out.gain.setTargetAtTime(T.trim, now + (old ? .2 : .05), .07);
+  BGM.step = 0; BGM.t0 = now + (old ? .22 : .25);
+}
 function bgmInit(C) {
   if (BGM.bus) return; BGM.ctx = C;
-  const bus = C.createGain(); bus.gain.value = 0; const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000; bus.connect(lp); lp.connect(C.destination);
-  const inst = C.createGain(); inst.connect(bus);
-  const len = Math.floor(C.sampleRate * 2.2), ir = C.createBuffer(2, len, C.sampleRate);
-  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
-  const conv = C.createConvolver(); conv.buffer = ir; const wet = C.createGain(); wet.gain.value = .22; inst.connect(conv); conv.connect(wet); wet.connect(bus);
-  const lead = C.createGain(); lead.connect(inst);
-  const dl = C.createDelay(1.5); dl.delayTime.value = BGM_BEAT * .75; const fb = C.createGain(); fb.gain.value = .28;
-  const dlp = C.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2600; const dw = C.createGain(); dw.gain.value = .3;
-  lead.connect(dl); dl.connect(dlp); dlp.connect(fb); fb.connect(dl); dlp.connect(dw); dw.connect(inst);
-  const drum = C.createGain(); drum.gain.value = .8; drum.connect(bus);
+  const bus = C.createGain(); bus.gain.value = 0; const comp = C.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .005; comp.release.value = .2;
+  const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 8500; bus.connect(comp); comp.connect(lp); lp.connect(C.destination);
   const nb = C.createBuffer(1, C.sampleRate, C.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-  BGM.bus = bus; BGM.inst = inst; BGM.lead = lead; BGM.drum = drum; BGM.noise = nb;
-  BGM.step = 0; BGM.t0 = C.currentTime + .25; bgmApplyVol(true);
+  BGM.bus = bus; BGM.noise = nb; BGM.dist = bgmDistCurve(38); BGM.pulse25 = bgmPulseWave(C, .25); BGM.pulse125 = bgmPulseWave(C, .125);
+  bgmSelect(BGM.track); bgmApplyVol(true);
   BGM.timer = setInterval(bgmTick, 100);
 }
 function bgmTick() {
-  const C = BGM.ctx; if (!C || C.state !== 'running') return;
+  const C = BGM.ctx; if (!C || C.state !== 'running' || !BGM.ch) return; const T = BGM_TRACKS[BGM.track];
   const horizon = C.currentTime + 1.0; let guard = 0;
   while (guard++ < 64) {
     const t = BGM.t0 + bgmStepTime(BGM.step); if (t > horizon) break;
-    if (t >= C.currentTime - .02 && !BGM.mute && BGM.vol > 0) { try { bgmPlayStep(BGM.step, t); } catch (e) { } }
+    if (t >= C.currentTime - .02 && !BGM.mute && BGM.vol > 0) { try { T.play(BGM.step, t); } catch (e) { } }
     BGM.step++;
   }
 }
@@ -3364,10 +3653,161 @@ function bgmPlayStep(n, t) {
     if (bar % 8 === 7 && st === 7) bgmNoise(t, 'bandpass', 2200, .8, .08, .09);
   }
 }
+/* ---- 新增樂器 ---- */
+function bgmGuitar(ms, t, d, v) {      // 失真吉他和弦（動力和弦／悶音切音）
+  const C = BGM.ctx, g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .2, t + .006); g.gain.setTargetAtTime(v * .11, t + .02, Math.max(.04, d * .45)); g.gain.setTargetAtTime(0, t + d, .035); g.connect(BGM.gtr);
+  ms.forEach(m => [-7, 7].forEach(dt => { const o = C.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(g); o.start(t); o.stop(t + d + .25); }));
+}
+function bgmLeadG(m, t, d, v) {      // 主音吉他（過載＋顫音）
+  const C = BGM.ctx, f = mtof(m), g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .2, t + .012); g.gain.setTargetAtTime(v * .15, t + .05, .3); g.gain.setTargetAtTime(0, t + d, .05); g.connect(BGM.gtr);
+  const o = C.createOscillator(), o2 = C.createOscillator(), g2 = C.createGain(); o.type = 'sawtooth'; o2.type = 'square'; o.frequency.value = f; o2.frequency.value = f; o2.detune.value = 5; g2.gain.value = .5; o.connect(g); o2.connect(g2); g2.connect(g);
+  const l = C.createOscillator(), lg = C.createGain(); l.frequency.value = 5.6; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(14, t + Math.min(.35, d)); l.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
+  const e = t + d + .3; o.start(t); o2.start(t); l.start(t); o.stop(e); o2.stop(e); l.stop(e);
+}
+function bgmSynBass(m, t, d, v, type, cut) {
+  const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(), lp = C.createBiquadFilter(); o.type = type || 'sawtooth'; o.frequency.value = mtof(m); lp.type = 'lowpass'; lp.frequency.setValueAtTime((cut || 600) * 2.2, t); lp.frequency.exponentialRampToValueAtTime(cut || 600, t + .12);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .22, t + .008); g.gain.setTargetAtTime(0, t + d, .03); o.connect(lp); lp.connect(g); g.connect(BGM.inst); o.start(t); o.stop(t + d + .2);
+}
+function bgmBrass(ms, t, d, v) {      // 銅管（小號／長號）：亮度隨音頭展開，帶一點顫音
+  const C = BGM.ctx;
+  ms.forEach(m => {
+    const o = C.createOscillator(), o2 = C.createOscillator(), g = C.createGain(), lp = C.createBiquadFilter(); o.type = 'sawtooth'; o2.type = 'sawtooth'; o.frequency.value = mtof(m); o2.frequency.value = mtof(m); o2.detune.value = 9;
+    lp.type = 'lowpass'; lp.Q.value = 1.2; lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2800, t + .07); lp.frequency.setTargetAtTime(1600, t + .09, .2);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .085, t + .025); g.gain.setTargetAtTime(v * .06, t + .06, .15); g.gain.setTargetAtTime(0, t + d, .045);
+    const l = C.createOscillator(), lg = C.createGain(); l.frequency.value = 5.2; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(10, t + .25); l.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
+    o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(BGM.lead); const e = t + d + .35; o.start(t); o2.start(t); l.start(t); o.stop(e); o2.stop(e); l.stop(e);
+  });
+}
+function bgmPluck(m, t, d, v) {      // 烏克麗麗彈撥
+  const C = BGM.ctx, f = mtof(m), g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(4200, t); lp.frequency.exponentialRampToValueAtTime(900, t + .25);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .11, t + .004); g.gain.setTargetAtTime(0, t + .005, Math.min(.22, d * .5));
+  [['triangle', 1, 1], ['sine', 2, .35]].forEach(([ty, k, a]) => { const o = C.createOscillator(), og = C.createGain(); o.type = ty; o.frequency.value = f * k; og.gain.value = a; o.connect(og); og.connect(lp); o.start(t); o.stop(t + .7); });
+  lp.connect(g); g.connect(BGM.inst);
+}
+function bgmMarimba(m, t, d, v) {
+  const C = BGM.ctx, f = mtof(m), g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .16, t + .003); g.gain.setTargetAtTime(0, t + .004, Math.min(.2, .07 + d * .12));
+  [[1, 1], [4, .28], [10, .06]].forEach(([k, a]) => { const o = C.createOscillator(), og = C.createGain(); o.type = 'sine'; o.frequency.value = f * k; og.gain.value = a; o.connect(og); og.connect(g); o.start(t); o.stop(t + .7); });
+  g.connect(BGM.lead);
+}
+function bgmPulse(m, t, d, v, duty, dest) {      // 8-bit 方波／脈衝波
+  const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(); if (duty >= .5) o.type = 'square'; else o.setPeriodicWave(duty < .2 ? BGM.pulse125 : BGM.pulse25); o.frequency.value = mtof(m);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .1, t + .004); g.gain.setTargetAtTime(v * .07, t + .02, .1); g.gain.setTargetAtTime(0, t + d, .015); o.connect(g); g.connect(dest || BGM.lead); o.start(t); o.stop(t + d + .12);
+}
+function bgmSnare(t, v) {
+  bgmNoise(t, 'bandpass', 2400, .8, .17, v * .55); bgmNoise(t, 'highpass', 5000, .7, .08, v * .25);
+  const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(130, t + .08); g.gain.setValueAtTime(v * .3, t); g.gain.exponentialRampToValueAtTime(.001, t + .11); o.connect(g); g.connect(BGM.drum); o.start(t); o.stop(t + .13);
+}
+function bgmHat(t, v, open) { bgmNoise(t, 'highpass', 8000, .7, open ? .22 : .045, v * (open ? .12 : .1)); }
+function bgmCrash(t, v) { bgmNoise(t, 'highpass', 4500, .6, 1.3, v * .2); }
+function bgmTom(t, f, v) { const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .55, t + .16); g.gain.setValueAtTime(v * .5, t); g.gain.exponentialRampToValueAtTime(.001, t + .24); o.connect(g); g.connect(BGM.drum); o.start(t); o.stop(t + .27); }
+function bgmClap(t, v) { [0, .011, .024].forEach((o, i) => bgmNoise(t + o, 'bandpass', 1500, .9, i === 2 ? .11 : .03, v * .22)); }
+function bgmBlock(t, f, v) { const C = BGM.ctx, o = C.createOscillator(), g = C.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(v * .25, t); g.gain.exponentialRampToValueAtTime(.001, t + .06); o.connect(g); g.connect(BGM.drum); o.start(t); o.stop(t + .08); }
+
+/* ---- 曲目 2：熱血決戰（A 小調・156 BPM・失真吉他搖滾） ---- */
+const ROCK_R = [45, 41, 48, 43, 45, 41, 43, 45, 41, 43, 45, 40, 41, 43, 40, 40];
+const ROCK_MEL = [
+  [[0, 76, 2], [2, 76, 1], [3, 74, 1], [4, 72, 2], [6, 74, 2]], [[0, 72, 2], [2, 69, 2], [4, 72, 2], [6, 77, 2]], [[0, 76, 2], [2, 76, 1], [3, 79, 1], [4, 76, 2], [6, 72, 2]], [[0, 74, 3], [3, 71, 1], [4, 74, 2], [6, 79, 2]],
+  [[0, 81, 2], [2, 79, 1], [3, 76, 1], [4, 72, 2], [6, 76, 2]], [[0, 77, 2], [2, 76, 1], [3, 72, 1], [4, 69, 2], [6, 72, 2]], [[0, 74, 2], [2, 76, 1], [3, 74, 1], [4, 71, 2], [6, 74, 2]], [[0, 69, 4], [4, 72, 1], [5, 74, 1], [6, 76, 2]],
+  [[0, 81, 2], [2, 81, 1], [3, 79, 1], [4, 77, 2], [6, 76, 2]], [[0, 79, 2], [2, 79, 1], [3, 77, 1], [4, 76, 2], [6, 74, 2]], [[0, 76, 2], [2, 81, 2], [4, 79, 2], [6, 76, 2]], [[0, 76, 2], [2, 79, 2], [4, 83, 3], [7, 81, 1]],
+  [[0, 81, 2], [2, 81, 1], [3, 79, 1], [4, 77, 2], [6, 79, 2]], [[0, 83, 2], [2, 81, 1], [3, 79, 1], [4, 74, 2], [6, 79, 2]], [[0, 80, 2], [2, 83, 2], [4, 81, 2], [6, 80, 2]], [[0, 76, 4], [4, 80, 2], [6, 83, 2]]
+];
+function rockPlay(n, t) {
+  const s = n % 128, bar = s >> 3, st = s & 7, loop = Math.floor(n / 128), dur = k => bgmStepTime(n + k) - bgmStepTime(n);
+  const R = ROCK_R[bar], pw = [R + 12, R + 19, R + 24], chorus = bar >= 8, intro = loop === 0 && bar < 2, fill = (bar & 3) === 3;
+  if (intro) { if (st === 0) bgmGuitar(pw, t, dur(8), .7); }
+  else if (chorus) { if (st === 0 || st === 4) bgmGuitar(pw, t, dur(3.6), 1); else if (st === 2 || st === 6) bgmGuitar(pw, t, dur(1.5), .7); }
+  else bgmGuitar(pw.slice(0, 2), t, dur(.75), st === 0 || st === 4 ? 1 : .68);      // 悶音切音（palm mute）
+  bgmSynBass(st === 3 || st === 7 ? R + 12 : R, t, dur(.9), st === 0 ? 1 : .75, 'sawtooth', 520);
+  if (!intro) ROCK_MEL[bar].forEach(x => { if (x[0] === st) bgmLeadG(x[1], t, dur(x[2]) * .96, 1); });
+  bgmHat(t, st % 2 ? .5 : .85, chorus && st === 7);
+  if (st === 0 || st === 3 || st === 4 || (chorus && st === 5)) bgmKick(t, .62);
+  if ((st === 2 || st === 6) && !(fill && st === 6)) bgmSnare(t, 1);
+  if (fill && st >= 5) { if (st === 5) bgmTom(t, 210, .9); else if (st === 6) { bgmSnare(t, .9); bgmTom(t, 160, .9); } else { bgmSnare(t, 1); bgmTom(t, 110, 1); } }
+  if (st === 0 && (bar & 3) === 0 && !(loop === 0 && bar === 0)) bgmCrash(t, 1);
+}
+
+/* ---- 曲目 3：應援號角（C 大調・140 BPM・銅管進行曲＋拍手） ---- */
+const BR_R = [48, 41, 43, 48, 45, 41, 43, 43, 41, 43, 40, 45, 41, 43, 48, 48];
+const BR_T = [[60, 64, 67], [60, 65, 69], [59, 62, 67], [60, 64, 67], [60, 64, 69], [60, 65, 69], [59, 62, 67], [59, 62, 67], [60, 65, 69], [59, 62, 67], [59, 64, 67], [60, 64, 69], [60, 65, 69], [59, 62, 67], [60, 64, 67], [60, 64, 67]];
+const BR_MEL = [
+  [[0, 67, 1], [1, 72, 1], [2, 76, 2], [4, 79, 1], [5, 79, 1], [6, 76, 2]], [[0, 77, 1], [1, 77, 1], [2, 72, 2], [4, 69, 1], [5, 72, 1], [6, 77, 2]], [[0, 74, 1], [1, 74, 1], [2, 79, 2], [4, 77, 1], [5, 74, 1], [6, 71, 2]], [[0, 72, 2], [2, 76, 1], [3, 79, 1], [4, 84, 4]],
+  [[0, 81, 2], [2, 76, 1], [3, 81, 1], [4, 79, 2], [6, 76, 2]], [[0, 77, 2], [2, 72, 1], [3, 77, 1], [4, 81, 2], [6, 77, 2]], [[0, 79, 1], [1, 79, 1], [2, 74, 2], [4, 71, 1], [5, 74, 1], [6, 79, 2]], [[0, 79, 4], [4, 83, 1], [5, 81, 1], [6, 79, 1], [7, 77, 1]],
+  [[0, 81, 1], [1, 81, 1], [2, 81, 2], [4, 77, 2], [6, 81, 2]], [[0, 83, 1], [1, 83, 1], [2, 83, 2], [4, 79, 2], [6, 83, 2]], [[0, 79, 2], [2, 83, 2], [4, 86, 2], [6, 83, 2]], [[0, 81, 2], [2, 84, 2], [4, 81, 2], [6, 76, 2]],
+  [[0, 77, 1], [1, 81, 1], [2, 84, 2], [4, 81, 1], [5, 77, 1], [6, 81, 2]], [[0, 79, 1], [1, 83, 1], [2, 86, 2], [4, 83, 1], [5, 79, 1], [6, 83, 2]], [[0, 84, 2], [2, 79, 1], [3, 84, 1], [4, 88, 4]], [[0, 84, 1], [1, 79, 1], [2, 84, 1], [3, 79, 1], [4, 84, 4]]
+];
+function brassPlay(n, t) {
+  const s = n % 128, bar = s >> 3, st = s & 7, loop = Math.floor(n / 128), dur = k => bgmStepTime(n + k) - bgmStepTime(n);
+  const R = BR_R[bar], tri = BR_T[bar], intro = loop === 0 && bar < 2, chorus = bar >= 8;
+  if (st === 0 || st === 4) bgmSynBass(R, t, dur(1.5), 1, 'sawtooth', 420); else if (st === 2 || st === 6) bgmSynBass(R + 7, t, dur(1.2), .7, 'sawtooth', 420);      // 低音號：oom-pah
+  if (!intro && (st === 3 || st === 7)) bgmBrass(tri, t, dur(.8), chorus ? .5 : .38);                                                                                // 小號／長號切分和弦
+  if (!intro) BR_MEL[bar].forEach(x => { if (x[0] === st) bgmBrass([x[1]], t, dur(x[2]) * .95, 1); });
+  if (st % 2 === 0) bgmKick(t, .55);
+  if (st === 2 || st === 6) { bgmSnare(t, .8); bgmClap(t, .7); } else if (st % 2) bgmSnare(t, .2);                                                                 // 小鼓行進＋拍手
+  if ((bar & 1) && (st === 5 || st === 7)) bgmClap(t, .5);
+  if (st === 0 && (bar & 3) === 0) bgmCrash(t, .8);
+  if (bar === 15 && st >= 4) bgmTom(t, 200 - (st - 4) * 22, .8);
+}
+
+/* ---- 曲目 4：夏日海風（C 大調・116 BPM・烏克麗麗＋木琴） ---- */
+const SUM_R = [48, 43, 45, 41, 48, 43, 41, 43, 48, 43, 45, 41, 50, 43, 48, 48];
+const SUM_V = { 48: [64, 67, 72], 43: [62, 67, 71], 45: [64, 69, 72], 41: [65, 69, 72], 50: [62, 65, 69] };
+const SUM_MEL = [
+  [[0, 79, 1], [1, 76, 1], [2, 79, 1], [3, 84, 2], [5, 83, 1], [6, 79, 2]], [[0, 74, 1], [1, 79, 1], [2, 83, 2], [4, 81, 1], [5, 79, 1], [6, 74, 2]], [[0, 76, 1], [1, 81, 1], [2, 84, 2], [4, 81, 1], [5, 76, 1], [6, 72, 2]], [[0, 77, 1], [1, 81, 1], [2, 84, 1], [3, 81, 1], [4, 77, 2], [6, 72, 2]],
+  [[0, 76, 1], [1, 79, 1], [2, 84, 2], [4, 88, 1], [5, 84, 1], [6, 79, 2]], [[0, 83, 1], [1, 79, 1], [2, 74, 2], [4, 79, 1], [5, 83, 1], [6, 86, 2]], [[0, 84, 1], [1, 81, 1], [2, 77, 2], [4, 81, 1], [5, 84, 1], [6, 89, 2]], [[0, 83, 2], [2, 79, 1], [3, 74, 1], [4, 79, 4]],
+  [[0, 84, 1], [1, 79, 1], [2, 76, 1], [3, 79, 2], [5, 84, 1], [6, 88, 2]], [[0, 86, 1], [1, 83, 1], [2, 79, 2], [4, 83, 1], [5, 86, 1], [6, 83, 2]], [[0, 84, 2], [2, 81, 1], [3, 84, 1], [4, 88, 2], [6, 84, 2]], [[0, 81, 1], [1, 84, 1], [2, 89, 2], [4, 84, 1], [5, 81, 1], [6, 77, 2]],
+  [[0, 81, 1], [1, 77, 1], [2, 74, 2], [4, 77, 1], [5, 81, 1], [6, 86, 2]], [[0, 83, 1], [1, 79, 1], [2, 74, 1], [3, 79, 1], [4, 83, 2], [6, 86, 2]], [[0, 84, 2], [2, 79, 1], [3, 76, 1], [4, 79, 1], [5, 84, 1], [6, 88, 2]], [[0, 84, 3], [3, 79, 1], [4, 76, 2], [6, 72, 2]]
+];
+function sunPlay(n, t) {
+  const s = n % 128, bar = s >> 3, st = s & 7, loop = Math.floor(n / 128), dur = k => bgmStepTime(n + k) - bgmStepTime(n);
+  const R = SUM_R[bar], V = SUM_V[R], intro = loop === 0 && bar < 2;
+  if ([0, 2, 3, 5, 6, 7].includes(st)) V.forEach((m, i) => bgmPluck(m, t + i * .011, dur(1.2), st === 0 ? 1 : (st === 3 || st === 7 ? .6 : .75)));      // 烏克麗麗刷弦
+  if (!intro) {
+    if (st === 0) bgmSynBass(R, t, dur(2.4), .9, 'triangle', 700); else if (st === 3) bgmSynBass(R + 7, t, dur(1), .7, 'triangle', 700); else if (st === 4) bgmSynBass(R + 12, t, dur(1.6), .8, 'triangle', 700); else if (st === 7) bgmSynBass(R + 7, t, dur(.8), .6, 'triangle', 700);
+    if (st === 0 || st === 4) bgmKick(t, .5);
+    if (st === 2 || st === 6) bgmClap(t, .55);
+    bgmNoise(t, 'highpass', 6500, .7, .05, st % 2 ? .06 : .09);
+    if ((bar & 3) === 3 && st >= 5) bgmBlock(t, [900, 1100, 1400][st - 5], .9);
+    SUM_MEL[bar].forEach(x => { if (x[0] === st) bgmMarimba(x[1], t, dur(x[2]), 1); });
+  }
+}
+
+/* ---- 曲目 5：街機全壘打（E 小調・144 BPM・8-bit 電玩） ---- */
+const CH_R = [40, 36, 43, 38, 40, 36, 38, 38, 36, 38, 40, 40, 36, 38, 47, 47];
+const CH_A = [[64, 67, 71, 76], [60, 64, 67, 72], [62, 67, 71, 74], [62, 66, 69, 74], [64, 67, 71, 76], [60, 64, 67, 72], [62, 66, 69, 74], [62, 66, 69, 74], [60, 64, 67, 72], [62, 66, 69, 74], [64, 67, 71, 76], [64, 67, 71, 76], [60, 64, 67, 72], [62, 66, 69, 74], [63, 66, 69, 71], [63, 66, 69, 71]];
+const CH_MEL = [
+  [[0, 76, 2], [2, 79, 1], [3, 83, 1], [4, 81, 2], [6, 79, 2]], [[0, 79, 2], [2, 76, 1], [3, 79, 1], [4, 84, 2], [6, 79, 2]], [[0, 83, 2], [2, 79, 1], [3, 74, 1], [4, 79, 2], [6, 83, 2]], [[0, 81, 2], [2, 78, 1], [3, 81, 1], [4, 86, 2], [6, 81, 2]],
+  [[0, 88, 1], [1, 83, 1], [2, 79, 1], [3, 83, 1], [4, 88, 2], [6, 86, 2]], [[0, 84, 1], [1, 79, 1], [2, 76, 1], [3, 79, 1], [4, 84, 2], [6, 83, 2]], [[0, 81, 1], [1, 78, 1], [2, 74, 1], [3, 78, 1], [4, 81, 2], [6, 86, 2]], [[0, 86, 3], [3, 85, 1], [4, 86, 2], [6, 81, 2]],
+  [[0, 84, 2], [2, 88, 2], [4, 91, 2], [6, 88, 2]], [[0, 86, 2], [2, 90, 2], [4, 86, 2], [6, 81, 2]], [[0, 88, 2], [2, 83, 2], [4, 79, 2], [6, 83, 2]], [[0, 88, 4], [4, 86, 1], [5, 83, 1], [6, 79, 2]],
+  [[0, 84, 1], [1, 88, 1], [2, 91, 2], [4, 88, 1], [5, 84, 1], [6, 79, 2]], [[0, 86, 1], [1, 90, 1], [2, 93, 2], [4, 90, 1], [5, 86, 1], [6, 81, 2]], [[0, 87, 2], [2, 90, 2], [4, 87, 2], [6, 83, 2]], [[0, 87, 1], [1, 90, 1], [2, 93, 1], [3, 90, 1], [4, 87, 2], [6, 90, 2]]
+];
+function chipPlay(n, t) {
+  const s = n % 128, bar = s >> 3, st = s & 7, loop = Math.floor(n / 128), dur = k => bgmStepTime(n + k) - bgmStepTime(n);
+  const R = CH_R[bar], A = CH_A[bar], intro = loop === 0 && bar < 2;
+  bgmSynBass(st & 1 ? R + 12 : R, t, dur(.9), .85, 'triangle', 1000);
+  bgmPulse(A[[0, 1, 2, 3, 2, 1, 2, 3][st]] + (bar >= 8 ? 12 : 0), t, dur(.85), .5, .125);      // 琶音
+  if (!intro) CH_MEL[bar].forEach(x => { if (x[0] === st) bgmPulse(x[1], t, dur(x[2]) * .92, 1, .25); });
+  if (st === 0 || st === 4 || ((bar & 3) === 3 && st === 6)) bgmKick(t, .5);
+  if ((st === 2 || st === 6) && bar !== 15) bgmNoise(t, 'bandpass', 3800, .8, .09, .3);
+  if (bar === 15 && st >= 4) bgmNoise(t, 'bandpass', 3800, .8, .07, .3);
+  bgmNoise(t, 'highpass', 9500, .7, .03, st & 1 ? .05 : .08);
+}
+
+const BGM_TRACKS = [
+  { id: 'jazz', icon: '🎷', name: '午後球場', sub: '輕鬆爵士・電鋼琴與刷鼓', tag: '休閒', bpm: 100, swing: .6, trim: 1, mix: { rev: 2.2, revWet: .22, dly: .75, fb: .28, dw: .3, drum: .8 }, play: bgmPlayStep },
+  { id: 'rock', icon: '🔥', name: '熱血決戰', sub: '激昂搖滾・失真吉他與重鼓', tag: '熱血', bpm: 156, swing: .5, trim: .8, mix: { rev: 1.2, revWet: .12, dly: .75, fb: .22, dw: .16, drum: 1 }, play: rockPlay },
+  { id: 'brass', icon: '📯', name: '應援號角', sub: '銅管進行曲・拍手與小鼓', tag: '熱血', bpm: 140, swing: .5, trim: .9, mix: { rev: 1.8, revWet: .2, dly: .5, fb: .2, dw: .15, drum: .95 }, play: brassPlay },
+  { id: 'sun', icon: '🌴', name: '夏日海風', sub: '輕快烏克麗麗・彈跳木琴', tag: '輕鬆', bpm: 116, swing: .56, trim: 1.05, mix: { rev: .9, revWet: .14, dly: .75, fb: .25, dw: .22, drum: .7 }, play: sunPlay },
+  { id: 'chip', icon: '🕹', name: '街機全壘打', sub: '8-bit 電玩・復古亢奮', tag: '趣味', bpm: 144, swing: .5, trim: .62, mix: { rev: .5, revWet: .06, dly: .75, fb: .3, dw: .2, drum: .7 }, play: chipPlay }
+];
 document.addEventListener('visibilitychange', () => { const c = SND.ctx; if (!c) return; if (document.hidden) c.suspend(); else c.resume(); });
 /* ---------------- HUD helpers ---------------- */
 let capTimer = null;
-function say(html, ms) { const e = $('capTx'); e.innerHTML = html; clearTimeout(capTimer); if (ms) capTimer = setTimeout(() => { if (e.innerHTML === html) e.innerHTML = ''; }, ms); G.lastSay = html; }
+let colorTok = 0;
+function setCap(html) { const e = $('capTx'); if (e) e.innerHTML = html; G.lastSay = html; }
+function colorSay(html, delay) {      // 球評補充：主播講完後隔一下才接話；如果期間已有新的播報就不再插話
+  const my = colorTok; after(delay == null ? 1.7 : delay, () => { if (colorTok === my && !G.over && G.mode === 'play') { clearTimeout(capTimer); setCap(html); } });
+}
+function say(html, ms) { colorTok++; const e = $('capTx'); e.innerHTML = html; clearTimeout(capTimer); if (ms) capTimer = setTimeout(() => { if (e.innerHTML === html) e.innerHTML = ''; }, ms); G.lastSay = html; }
 let tipTimer = null, tipTimer2 = null;
 function timingTip(text, c1, c2) {      // 過早／過晚提示：顯示在底部狀態列，停留約 3 秒
   const t = $('timingTip'); if (!t) return; clearTimeout(tipTimer); clearTimeout(tipTimer2);
@@ -3426,7 +3866,7 @@ function buildPitchPanel() {
   const pp = $('pitchPanel'); if (!humanPitches() || !(G.phase === 'pre')) { pp.classList.add('hide'); return; }
   const p = curPitcher(); pp.classList.remove('hide'); pp.innerHTML = '';
   p.pitches.forEach((q, i) => {
-    const b = document.createElement('div'); b.className = 'pbtn' + (G.selPitch === q.id ? ' sel' : ''); b.innerHTML = '<b class="pn"><i class="k">' + (i + 1) + '. </i><em class="lg">' + PITCHES[q.id].jp + '</em><em class="sh">' + PITCHES[q.id].short + '</em></b><span>Lv' + q.lv + '</span>'; b.style.borderColor = PITCHES[q.id].col;
+    const b = document.createElement('div'); b.className = 'pbtn' + (G.selPitch === q.id ? ' sel' : ''); b.innerHTML = '<b class="pn"><i class="k">' + (i + 1) + '. </i><em class="lg">' + PITCHES[q.id].jp + '</em><em class="sh">' + PITCHES[q.id].short + '</em></b><span>Lv' + q.lv + '</span>'; b.style.borderColor = PITCHES[q.id].col; b.style.setProperty('--pc', PITCHES[q.id].col);
     b.onpointerdown = e => { e.stopPropagation(); if (G.pm) return; G.selPitch = q.id; buildPitchPanel(); }; pp.appendChild(b);
   });
 }
@@ -3462,6 +3902,176 @@ const SAY = {
   steal: (r, ok) => ok ? `${r.pl.name}，盜壘成功！` : `${r.pl.name}，盜壘失敗！出局！`,
   hr: b => pick([`進去了～～！${b.name}，全壘打！！`, `很大！很大！進去了！是全壘打！！`, `${b.name}，完美的全壘打！看台都在震動！`]),
   scored: (n) => `跑回本壘得分！${n}`,
+};
+
+
+/* =====================================================================
+   轉播間：主播（play-by-play）＋球評（color）— 依局數、比數、出局、壘上、球數、打者與投手狀態播報
+   ===================================================================== */
+const CAST = { recent: [] };
+const tagA = '<span class="cl a">主播</span>', tagB = '<span class="cl b">球評</span>';
+const castA = t => tagA + t, castB = t => tagB + t;
+function pickNR(arr) {      // 避免連續講到一樣的話
+  const pool = arr.filter(x => !CAST.recent.includes(x)); const v = pick(pool.length ? pool : arr); CAST.recent.push(v); if (CAST.recent.length > 14) CAST.recent.shift(); return v;
+}
+function cx() {      // 目前場面
+  const h = G.half, on = G.on.map(x => !!x), n = on.filter(Boolean).length, diff = G.score[h] - G.score[1 - h];
+  const bt = battingTeam(), ft = fieldingTeam(), p = curPitcher(), b = curBatter();
+  return { inn: G.inning, bot: !!h, outs: G.outs, balls: G.balls, strikes: G.strikes, on, n, risp: on[1] || on[2], loaded: on[0] && on[1] && on[2], diff, bt, ft, p, b,
+    late: G.inning >= 7, last: G.inning >= (G.innings || 9), close: Math.abs(diff) <= 1, tied: diff === 0, full: G.balls === 3 && G.strikes === 2, hot: moodOf(b) >= 66, cold: moodOf(b) <= 38, tired: (p.fatigue || 0) > 60 };
+}
+const innTxt = c => `${c.inn}局${c.bot ? '下' : '上'}`;
+const diffTxt = c => c.diff === 0 ? '雙方戰成平手' : c.diff > 0 ? `${c.bt.short}目前領先${c.diff}分` : `${c.bt.short}目前落後${-c.diff}分`;
+const runnerTxt = c => c.loaded ? '滿壘' : c.n === 0 ? '壘上無人' : c.on[1] && c.on[2] ? '二、三壘有人' : c.on[0] && c.on[2] ? '一、三壘有人' : c.on[0] && c.on[1] ? '一、二壘有人' : c.on[2] ? '三壘有人' : c.on[1] ? '二壘有人' : '一壘有人';
+const outsTxt = c => ['無人出局', '一人出局', '兩人出局'][c.outs] || '';
+function pitchFlavor(pt, swing) {      // 依球種／球速的形容（球出手後才講，不會洩漏下一球）
+  if (!pt) return '';
+  const k = Math.round(pt.kmh || 0), id = pt.id, nm = PITCHES[id] ? PITCHES[id].jp : '';
+  const m = { ST: pick(['火球直球', '直球尾勁十足', '速球威力十足']), SL: pick(['滑球橫向大位移', '滑球末端急切', '滑球從外角劃進來']), CU: pick(['曲球高高拋起再落下', '大弧度曲球', '曲球讓打者重心全亂']), FK: pick(['指叉球最後突然掉下去', '指叉球墜得很深']), CH: pick(['變速球抓到打者時機', '變速球慢慢飄進來']), CT: pick(['卡特球往內角鑽', '卡特球在最後一刻切進來']), SK: '伸卡球往下沉', TS: '二縫線直球帶著位移', SH: '內曲球大幅度往內切', SV: '螺旋球詭異變向', KN: '蝴蝶球飄忽不定' }[id] || nm;
+  return `${k}公里${m}`;
+}
+const SAYX = {
+  pitchStart(p, n) {      // 球出手前：只談場面，不透露球種
+    const c = cx(), L = [];
+    L.push(`第${n}球…${p.name}看了看捕手暗號`, `${p.name}站上投手丘，${c.strikes}好${c.balls}壞，準備投球`, `來，${p.name}點頭，投球動作開始…`);
+    if (c.full) L.push(`${c.outs === 2 ? '兩出局，' : ''}滿count！這一球決定這個打席！`, `三壞兩好！全場都站起來了，${p.name}能不能守住？`);
+    else if (c.strikes === 2) L.push(`兩好球在身，${p.name}準備做結，${c.b.name}要小心了`, `已經兩好球，${c.b.name}得縮短揮棒了`);
+    else if (c.balls === 3) L.push(`三壞球了！${p.name}不能再投壞球了`, `壞球已經累積到三顆，${p.name}必須要投進去`);
+    if (c.loaded) L.push(`滿壘！${outsTxt(c)}，${p.name}壓力很大`, `壘上都是人，${p.name}深呼吸一口氣…`);
+    else if (c.risp && c.late) L.push(`${runnerTxt(c)}，${c.b.name}站在關鍵位置`);
+    if (c.last && c.close) L.push(`${innTxt(c)}，比數相當接近，每一球都是關鍵！`);
+    return castA(pickNR(L));
+  },
+  strikeLook(pt) { const c = cx(), f = pitchFlavor(pt), L = [`看著${f}從邊角進來，好球！`, `${f}，${c.b.name}沒有出棒，好球！`, '主審右手一舉——好球！', `${c.strikes}好${c.balls}壞，這球抓得很準！`]; if (c.strikes === 2) L.push(`${c.strikes}好球了！${c.p.name}佔了上風`); return castA(pickNR(L)); },
+  strikeSwing(pt) { const c = cx(), f = pitchFlavor(pt, true), L = [`揮空！${f}！`, `${c.b.name}揮棒落空，${f}`, `咻！棒子從球下面過去了，${c.strikes}好球`, `${c.b.name}被${pt ? PITCHES[pt.id].short : '球'}騙到了！`]; return castA(pickNR(L)); },
+  ball(pt) { const c = cx(), L = [`壞球，${c.balls}壞${c.strikes}好`, `${c.b.name}忍住沒揮，壞球`, `偏高了一點，壞球`, `${pt ? PITCHES[pt.id].short : '這球'}沒有控制好，壞球`]; if (c.balls === 3) L.push(`三壞了！${c.p.name}開始有點緊繃`); if (c.balls === 3 && c.strikes === 2) L.push('滿count，球場氣氛瞬間凝結！'); return castA(pickNR(L)); },
+  foul(high) { const c = cx(), L = high ? ['打高了！界外高飛球，接得到嗎！', '整個往後飛，界外高飛球！'] : [`界外球！${c.b.name}頑強地死纏爛打`, '界外！只差一點點就是安打', '貼著邊線飛出去，界外！']; if (c.strikes === 2 && !high) L.push('兩好球後被救回一球，打者活下來了！'); return castA(pickNR(L)); },
+  k(b, sw, pt) {
+    const c = cx(), f = pitchFlavor(pt), end = c.outs + 1 >= 3, L = sw ? [`三振！！${b.name}揮空！${f}`, `${c.p.name}送出三振！${b.name}完全抓不到時機`, `揮空三振！${f}，漂亮！`] : [`看三振！${b.name}站著不動！${f}`, `好球！三振出局！${b.name}傻在原地`, `${c.p.name}用${f}凍結了${b.name}！`];
+    if (c.risp && !end) L.push(`${runnerTxt(c)}，${c.p.name}用三振化解危機！`); if (end && c.n) L.push(`三振終結這一局！壘上的${c.n}個跑者全部留壘！`);
+    return castA(pickNR(L));
+  },
+  bb(b) { const c = cx(), L = [`四壞球保送！${b.name}忍住了，上一壘`, `第四個壞球，${b.name}選到保送`]; if (c.loaded) L.push(`滿壘還押出分數！${c.p.name}被迫送回一分！`); if (c.p.fatigue > 60) L.push(`${c.p.name}控球越來越不穩，教練團可能要有動作了`); return castA(pickNR(L)); },
+  hbp(b) { return castA(pickNR([`打到了！觸身球！${b.name}痛得皺眉頭，上一壘`, `球擦過${b.name}的身體，觸身球！`])); },
+  contact(pl) {
+    const r = pl.res || {}, Q = r.Q || .5, c = cx(), area = areaWord(pl.plan.x, pl.plan.z), kind = hitTypeWord(pl.kind), L = [];
+    if (Q > .85) L.push(`「叩！」清脆的打擊聲！${kind}直奔${area}！`, `完美擊中！${kind}飛向${area}！`);
+    else if (Q > .6) L.push(`打出去了！${kind}，飛向${area}方向！`, `${c.b.name}打得很紮實，${kind}往${area}去！`);
+    else if (Q < .3) L.push(`勉強碰到，${kind}軟弱地飄向${area}…`, `打得不太好，${kind}往${area}…`);
+    else L.push(`擊出${kind}！方向${area}！`);
+    if (pl.sim && pl.sim.hug) L.push(`球沿著邊線滾！會不會界內？${area}方向！`);
+    if (r.broken) L.unshift(`斷棒！${c.b.name}的球棒被打斷了，${kind}飄向${area}！`);
+    return castA(pickNR(L));
+  },
+  hr(b, pl) {
+    const c = cx(), n = G.on.filter(Boolean).length + 1, d = c.diff + n, bef = c.diff, L = [];
+    const kind = n === 4 ? '滿貫全壘打' : n === 3 ? '三分砲' : n === 2 ? '兩分砲' : '陽春全壘打';
+    L.push(`${b.name}！！${kind}！！`, `進去了～～！${b.name}的${kind}！！`, `很大！很大！出去了！${kind}！！`);
+    if (n === 4) L.unshift(`滿壘全壘打！！大——滿——貫！！${b.name}一棒定江山！！`);
+    if (bef < 0 && d > 0) L.unshift(`逆轉！！${b.name}的${kind}，一棒翻轉比賽！！`);
+    else if (bef < 0 && d === 0) L.unshift(`追平比分！${b.name}的${kind}！！`);
+    else if (bef === 0) L.unshift(`${b.name}轟出${kind}，打破僵局！！`);
+    if (c.bot && c.last && bef <= 0 && d > 0) L.unshift(`再見全壘打！！${b.name}為比賽畫下句點！！`);
+    return castA(pickNR(L));
+  },
+  hit(b, n, pl) {
+    const c = cx(), area = areaWord(pl.plan.x, pl.plan.z), nm = HIT_NAME[n], st = b.st, L = [];
+    if (n === 1) L.push(`${area}方向，${nm}！`, `漂亮！${b.name}把球敲進${area}，安打！`, `落地了！${nm}，${b.name}上一壘！`);
+    if (n === 2) L.push(`${area}！球一路滾向外野，二壘安打！`, `長打！${b.name}一路衝上二壘！`);
+    if (n === 3) L.push(`${area}！球越滾越遠，${b.name}拼命衝向三壘，三壘安打！`, `三壘打！${b.name}腳程全開，一路跑到三壘！`);
+    if (c.risp && c.outs < 2 && n >= 1) L.push(`得點圈有人的時候，${b.name}交出了安打！`);
+    if (st.h >= 2) L.push(`${b.name}今天第${st.h}支安打了，手感正熱！`);
+    if (c.late && c.close) L.push(`這支${nm}在關鍵時刻打出來，意義重大！`);
+    return castA(pickNR(L));
+  },
+  catchOut(f, pl) {
+    const c = cx(), deep = pl.dist > 75, L = [`${POS_FULL[f.pos]}${f.pl.name}穩穩接住！出局！`, `${POS_FULL[f.pos]}把球收進手套，一人出局！`];
+    if (pl.kind === 'fb' && deep) L.push(`這球飛得很深！但${POS_FULL[f.pos]}退到牆邊接住了！`);
+    if (pl.kind === 'pu') L.push('內野小飛球，沒有任何問題，接殺！');
+    if (pl.kind === 'ld') L.push(`平飛球！${POS_FULL[f.pos]}剛好站在球的路徑上，接殺！`);
+    if (pl.foul) L.unshift(`${POS_FULL[f.pos]}在界外把球接下來了！界外接殺！`);
+    if (c.outs + 1 >= 3) L.push('這球接住，三出局，攻守交換！');
+    return castA(pickNR(L));
+  },
+  out(nm, how, forceOut) {
+    const c = cx(), L = forceOut ? [`出局！${nm}，在一壘被封殺`, `${nm}差了一步，一壘出局！`, `傳到一壘，${nm}出局！`] : [`${nm}，出局！`, `${nm}被刺殺！`];
+    if (c.outs + 1 >= 3) L.push('三出局，結束這半局！'); return castA(pickNR(L));
+  },
+  score(r) {
+    const h = G.half, a = G.score[h], o = G.score[1 - h], d = a - o, bef = d - 1, L = [`跑回本壘得分！${battingTeam().short}，${a}比${o}`];
+    if (bef < 0 && d === 0) L.unshift(`追平比分！！${battingTeam().short}${a}比${o}平手！！`);
+    else if (bef < 0 && d > 0) L.unshift(`逆轉！！${battingTeam().short}反超比數，${a}比${o}！！`);
+    else if (bef === 0) L.unshift(`${battingTeam().short}先馳得點！${a}比${o}超前！`);
+    else if (d >= 4) L.push(`${battingTeam().short}繼續擴大領先，${a}比${o}`);
+    return castA(pickNR(L));
+  },
+  halfStart() {
+    const c = cx(), L = [`${innTxt(c)}，${c.bt.name}進攻。投手丘上是${c.p.name}`, `${c.inn}局${c.bot ? '下半' : '上半'}開始！${c.bt.short}上場打擊，${c.p.name}鎮守投手丘`];
+    if (c.last && c.bot && c.diff < 0) L.unshift(`${c.inn}局下半！${c.bt.short}最後一次進攻機會，${diffTxt(c)}！`);
+    else if (c.last) L.unshift(`最後一局！${c.bt.short}進攻，${diffTxt(c)}！`);
+    else if (c.late && c.close) L.unshift(`${innTxt(c)}，比賽進入後半段，${diffTxt(c)}，一分都不能放！`);
+    return castA(pickNR(L));
+  },
+  batter(b, idx) {
+    const c = cx(), st = b.st, L = [`第${idx}棒，${b.name}。目前${st.ab}打數${st.h}安打`, `接下來是第${idx}棒${b.name}`];
+    if (c.loaded) L.unshift(`滿壘！${outsTxt(c)}，第${idx}棒${b.name}走上打擊區！`);
+    else if (c.risp && c.outs < 2) L.unshift(`${runnerTxt(c)}，${outsTxt(c)}，${b.name}是進攻的機會！`);
+    else if (c.n && c.outs === 2) L.push(`兩出局${runnerTxt(c)}，${b.name}要把握機會`);
+    if (st.h >= 2) L.push(`${b.name}今天已經${st.h}支安打，感覺非常好！`);
+    if (c.hot) L.push(`${b.name}手感很熱，投手要小心`); if (c.cold) L.push(`${b.name}最近狀況不太好，今天要靠這個打席扳回一城`);
+    return castA(pickNR(L));
+  },
+  inningEnd() {
+    const c = cx(), L = [`三出局，攻守交換。${G.score[0]}比${G.score[1]}`]; if (c.n) L.unshift(`三出局！壘上${c.n}個跑者全數留壘，${c.bt.short}無功而返！`);
+    if (c.last && c.bot && G.score[1] < G.score[0]) L.push('比賽即將結束…'); return castA(pickNR(L));
+  }
+};
+/* 球評：多半在主播講完後補一句分析（每句有條件、不會亂講） */
+const COLOR = {
+  pitch(pt, kind) {      // kind: strikeLook/strikeSwing/ball/foul
+    const c = cx(), L = [];
+    if (kind === 'strikeSwing' && pt && ['SL', 'CU', 'FK', 'SH', 'SV', 'SK', 'CH'].includes(pt.id)) L.push('這種變化球，打者要用眼睛追，球路一轉彎就很難跟上了', '配球很漂亮，前面先用直球建立印象，再用變化球誘導揮棒');
+    if (kind === 'strikeSwing' && pt && pt.kmh >= 150) L.push('球速一旦超過150，打者的反應時間只剩零點幾秒，很難抓時機');
+    if (kind === 'strikeLook') L.push('這顆球剛好壓在邊角，很難要求打者出棒', '看起來打者在等好球，這球選得有點可惜');
+    if (kind === 'ball') L.push(c.balls === 3 ? '球數對投手越來越不利了，下一球一定要進好球帶' : '打者選球很有耐心，沒有被誘惑', c.tired ? `${c.p.name}體力開始下降，控球已經有點飄` : '投手要穩住節奏，別被打者影響');
+    if (kind === 'foul') L.push('這種界外球代表打者的時機已經很接近了，下一球就是機會', c.strikes === 2 ? '兩好球後還能夠把球救成界外，這位打者很有韌性' : '打者在調整揮棒角度');
+    if (c.risp && c.late) L.push('得點圈有人的後半段，每一球都可能是勝負關鍵');
+    return L.length ? castB(pickNR(L)) : '';
+  },
+  k(b, pt, sw) {
+    const c = cx(), L = ['這個三振解決得非常漂亮，配球邏輯很清楚', `${c.p.name}今天的球威很好，變化球和直球搭配得很好`];
+    if (!sw) L.push(`${b.name}這球站著不動很可惜，好球帶邊角還是要出棒保護`);
+    if (c.risp) L.push('有人在得點圈還能把三振拿下，這就是王牌的氣勢');
+    return castB(pickNR(L));
+  },
+  bb(b) { const c = cx(); return castB(pickNR([c.tired ? `${c.p.name}體力已經下降，教練團該考慮換投手了` : '投手好像有點被打者的選球逼進角落了', '滿壘下被迫保送，投手心態很重要，要趕快調整', `${b.name}選球能力很好，把投手的節奏打亂了`])); },
+  hit(b, n, pl) {
+    const r = pl.res || {}, c = cx(), L = [];
+    if ((r.Q || 0) > .85) L.push(`這顆球打在甜蜜點，${b.name}完全抓準時機，沒有給投手任何機會`);
+    if ((r.inside || 0) > .35) L.push(`內角球還能打成安打，${b.name}的手腕處理得非常好`); else if ((r.inside || 0) < -.35) L.push('外角球推向反方向，這種打法很聰明');
+    if (pl.badHop) L.push('這顆球彈起來的角度很怪，野手真的很倒楣');
+    if (n >= 2) L.push(`${b.name}腳程很快，守備方只能眼睜睜看著他多推進一個壘包`);
+    if (c.risp) L.push('有跑者在得點圈，這支安打可能會讓比賽出現關鍵變化');
+    L.push('球飛行的軌跡很漂亮，守備員來不及反應', `${b.name}的選球與擊球時機都掌握得非常好`);
+    return castB(pickNR(L));
+  },
+  hr(b, pl) { return castB(pickNR([`${Math.round(pl.dist)}公尺！這種飛行距離，根本不需要擔心有沒有出界`, '這球被打得非常漂亮，投手的球偏高了一點，被抓到了', `${b.name}的爆發力在球場上很少見，這一擊改變了整場比賽`, '甜蜜點打得很紮實，球飛出去的聲音都不一樣'])); },
+  out(kind, f, pl) {
+    const c = cx(), L = [];
+    if (kind === 'fly') L.push('外野手的判斷很準，一開始的起步很快，路線也很漂亮', '這種高飛球守備要先站位置，再等球落下，很標準的處理');
+    if (kind === 'gb') L.push('內野手的腳步移動很到位，傳球也很穩', '雙殺的機會就在這種滾地球上，內野防守要保持專注');
+    if (pl && pl.great) L.push('這是一個非常精彩的守備，絕對是今天的亮點');
+    return L.length ? castB(pickNR(L)) : '';
+  },
+  score(r) { const h = G.half, a = G.score[h], o = G.score[1 - h], d = a - o; return castB(pickNR(d === 0 ? ['比賽重新回到同一個起跑線，接下來的每一球都很關鍵', '這分追得很重要，對士氣是很大的鼓舞'] : d > 0 ? ['這分攻下來，把比賽的主導權抓在手上了', `${battingTeam().short}的打線在關鍵時刻接力得很完整`] : ['雖然還落後，但這分讓大家看到了反攻的機會', '要持續保持壓力，投手已經開始緊張了'])); },
+  inning() {
+    const c = cx(), L = [];
+    if (c.last && c.close) L.push('最後一局，每一個決策都會影響結果，教練席壓力非常大');
+    if (c.late && c.diff >= 3) L.push('這個比數，領先的球隊只要穩住守備就能把勝利守住');
+    if (c.p.fatigue > 60) L.push(`${c.p.name}已經投了不少球，體力是一個要注意的地方`);
+    L.push('投手狀況不錯，接下來關鍵是控球要穩');
+    return castB(pickNR(L));
+  }
 };
 
 
@@ -4003,7 +4613,7 @@ function startHalf() {
   rebuildField(); resetFormation(true); setBall({ x: 0, y: 0, z: 0 }, false);
   updateScoreboard(); updateLamps(); updatePlayerBoxes(); $('pitchPanel').classList.add('hide'); updateActs();
   setCamBat(true);
-  say(`${G.inning}局${G.half ? '下半' : '上半'}，${battingTeam().name}進攻。投手丘上是${curPitcher().name}` + (G.inning === 1 && G.half === 0 && G.wx ? `（${G.wx.venue}・${skyLabel().join(' ')}・${G.wx.temp}°C）` : ''));
+  say(SAYX.halfStart() + (G.inning === 1 && G.half === 0 && G.wx ? `（${G.wx.venue}・${skyLabel().join(' ')}・${G.wx.temp}°C）` : '')); colorSay(COLOR.inning(), 2.2);
   toast(`${G.inning}局${G.half ? '下' : '上'}`, '#bff', '#39f'); flowSfx('whistle');
   after(2.4, () => processInjuries(nextBatter));
 }
@@ -4039,7 +4649,7 @@ function nextBatter() {
   setCamBat(); const b = curBatter(); recenterAim(); try { syncPowUI(); } catch (e) { }
   updatePlayerBoxes(); updateLamps(); updateScoreboard();
   G.phase = 'change'; G.preT = 0; G.pitchDelay = .6 + Math.random() * .5;
-  say(G.intWalk ? `第${G.bi[G.half] + 1}棒，${b.name}。這裡可能要故意四壞…！` : `第${G.bi[G.half] + 1}棒，${b.name}。目前${b.st.ab}打數${b.st.h}安打`);
+  say(G.intWalk ? castA(`第${G.bi[G.half] + 1}棒，${b.name}。這裡可能要故意四壞…！`) : SAYX.batter(b, G.bi[G.half] + 1));
   introBatter(b); const tok = G.introTok = (G.introTok || 0) + 1;
   const go = () => { if (tok !== G.introTok || G.over || G.forfeit >= 0) return; if (introBusy()) { after(.12, go); return; } prePitch(true); };
   after(.2, go);
@@ -4122,7 +4732,7 @@ function doPitch(sel) {
   if (G.runnerGo.length) { const go = G.runnerGo.slice(); let latest = 0; for (const i of go) { const r = G.on[i]; if (!r) continue; const jt = clamp(wind * (.3 + gauss() * .09 - ((r.pl.agg || 50) - 50) * .0012), wind * .12, wind * .55); latest = Math.max(latest, jt); after(set + jt, () => startSteal([i])); }       // 起跑時機因人而異：看準投手動作的好跳／慢跳
     after(set + wind * .3 + .08, () => coverSteal(go)); }
   absClearPend();
-  say(SAY.pitchStart(p, G.seq.length + 1, sel.id));
+  say(SAYX.pitchStart(p, G.seq.length + 1));
   after(set + wind, () => releasePitch(pt));
 }
 const _hp = new V3();
@@ -4175,8 +4785,8 @@ function updateFlight(dt) {
 }
 function autoBuntContact(pt) {              // 球進入球棒可觸及的範圍（本壘前方～壘板上方），且落在棒子圈內 → 立刻短打
   if (pt.pulled || !G.callBunt) return false; const bp = pt.pos || _pp; if (!bp || bp.z < -1.0 || bp.z > .25) return false;                       // 球棒觸及深度：本壘板前方約 1 公尺內
-  const R = cursorR(), bg = batGeom(R, aim.x, aim.y, E.bat.side, BAT_K.bunt * batZoneK(curBatter(), aim.x, aim.y)), bcn = batContact(bg, bp.x, bp.y); if (bcn.d > bcn.rr + .03) return false;
-  const bz = bp.z; pt.sw = { tc: pt.t, cx: aim.x, cy: aim.y, power: false, bunt: true, auto: true, bx: bp.x, by: bp.y, bz, R, done: true };
+  const R = cursorR(), bk0 = cursorK(), bg = batGeom(R, aim.x, aim.y, E.bat.side, bk0, 'bunt'), bcn = batContact(bg, bp.x, bp.y); if (bcn.d > bcn.rr + .03) return false;
+  const bz = bp.z; pt.sw = { tc: pt.t, cx: aim.x, cy: aim.y, power: false, bunt: true, auto: true, bx: bp.x, by: bp.y, bz, R, k: bk0, done: true };
   E.bat.rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } };
   handleSwing(pt); return true;
 }
@@ -4259,12 +4869,12 @@ function pitchResult(kind) {
   const b = curBatter(); G.phase = 'result'; let end = null; { const pp = curPitcher(); if (kind === 'strikeLook') { adjustMood(pp, .8); adjustMood(b, -.5); } else if (kind === 'swing') { adjustMood(pp, 1); adjustMood(b, -1); } else if (kind === 'ball') { adjustMood(pp, -.5); adjustMood(b, .3); } }
   if (kind === 'strikeLook' || kind === 'swing') {
     G.strikes++; const sw = kind === 'swing';
-    if (G.strikes >= 3) { end = 'K'; G.kSwing = sw; flowSfx('strike'); say(SAY.k(b, sw)); toast(sw ? '揮空三振！' : '看三振！', '#fff27a', '#ff5a1a'); E.ump.anim = { name: 'ump', t: 0, dur: .4, opt: {} }; b.st.k++; G.outs++; curPitcher().outs++; showOut('三振'); }
-    else { flowSfx('strike'); say(sw ? SAY.strikeSwing() : SAY.strikeLook()); toast(sw ? '揮空' : '好球', '#fff27a', '#ff7a1a'); }
+    if (G.strikes >= 3) { end = 'K'; G.kSwing = sw; flowSfx('strike'); say(SAYX.k(b, sw, PT)); colorSay(COLOR.k(b, PT, sw), 1.9); toast(sw ? '揮空三振！' : '看三振！', '#fff27a', '#ff5a1a'); E.ump.anim = { name: 'ump', t: 0, dur: .4, opt: {} }; b.st.k++; G.outs++; curPitcher().outs++; showOut('三振'); }
+    else { flowSfx('strike'); say(sw ? SAYX.strikeSwing(PT) : SAYX.strikeLook(PT)); if (Math.random() < .4) { const cm = COLOR.pitch(PT, sw ? 'strikeSwing' : 'strikeLook'); if (cm) colorSay(cm, 1.8); } toast(sw ? '揮空' : '好球', '#fff27a', '#ff7a1a'); }
   } else if (kind === 'ball') {
-    G.balls++; if (G.balls >= 4) { end = G.intWalk ? 'IBB' : 'BB'; say(G.intWalk ? '故意四壞保送' : SAY.bb(b)); toast(G.intWalk ? '故意四壞' : '四壞保送', '#9fff9f', '#2a9a3a'); }
-    else { flowSfx('ball'); say(SAY.ball()); toast('壞球', '#aaffaa', '#2a9a3a'); }
-  } else if (kind === 'hbp') { end = 'HBP'; say(SAY.hbp(b)); toast('觸身球', '#ffd0a0', '#ff5a1a'); flowSfx('mitt'); }
+    G.balls++; if (G.balls >= 4) { end = G.intWalk ? 'IBB' : 'BB'; say(G.intWalk ? castA('故意四壞保送') : SAYX.bb(b)); if (!G.intWalk) colorSay(COLOR.bb(b), 1.9); toast(G.intWalk ? '故意四壞' : '四壞保送', '#9fff9f', '#2a9a3a'); }
+    else { flowSfx('ball'); say(SAYX.ball(PT)); if (Math.random() < .4) { const cm = COLOR.pitch(PT, 'ball'); if (cm) colorSay(cm, 1.8); } toast('壞球', '#aaffaa', '#2a9a3a'); }
+  } else if (kind === 'hbp') { end = 'HBP'; say(SAYX.hbp(b)); toast('觸身球', '#ffd0a0', '#ff5a1a'); flowSfx('mitt'); }
   updateLamps(); updateScoreboard();
   if (G.outs >= 3) { G.pending = null; after(1.0, endHalf); return; }
   const stealing = E.runners.some(r => r.state === 'run');
@@ -4308,7 +4918,7 @@ function finishAB(kind, already) {
 }
 function endHalf() {
   if (G.over || G.phase === 'endhalf') return; G.phase = 'endhalf'; G.outFlag = false; clearPlay(); tweens.length = 0; setBall({ x: 0, y: 0, z: 0 }, false);
-  toast('三上三下 攻守交換', '#fff', '#39f'); flowSfx('whistle'); say(`三出局，攻守交換。${G.score[0]}比${G.score[1]}`);
+  toast('三上三下 攻守交換', '#fff', '#39f'); flowSfx('whistle'); say(SAYX.inningEnd());
   for (const r of E.runners) r.rig.root.visible = false;
   const lastIn = G.inning >= G.innings;
   if (G.half === 0) { if (lastIn && G.score[1] > G.score[0]) { after(1.6, endGame); return; } G.half = 1; }
@@ -4329,19 +4939,20 @@ function changePitcher(side, idx, forced, why) {
 /* ---------------- hooks called by the play engine ---------------- */
 function flowOnContact(pl) {
   if (CAMC.mode === 'bat') { CAMC.mode = 'batfollow'; after(.5, () => { if (CAMC.mode === 'batfollow') CAMC.mode = 'play'; }); } else CAMC.mode = 'play';
-  if (pl.foul) { say(pl.plan.kind === 'catch' ? '打高了！界外高飛球，接得到嗎！' : SAY.foul()); toast('界外', '#fff', '#f5a'); return; }
+  if (pl.foul) { say(SAYX.foul(pl.plan.kind === 'catch')); if (Math.random() < .4) { const cm = COLOR.pitch(PT, 'foul'); if (cm) colorSay(cm, 1.8); } toast('界外', '#fff', '#f5a'); return; }
   if (pl.plan.kind === 'hr') {      // 全壘打：擊球當下只報「打出去了」，球快飛出牆時才慶祝（不讓人一擊球就知道結果）
-    say(`打出去了！${hitTypeWord(pl.kind)}！飛向${areaWord(pl.plan.x, pl.plan.z)}方向！`); const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
-    after(dly, () => { if (PL !== pl) return; say(SAY.hr(bat0) + `（飛行 ${Math.round(pl.dist)} m）`); toast('全壘打！', '#fff27a', '#ff3a1a'); flowSfx('cheer', 2.6); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); });
+    say(SAYX.contact(pl)); const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
+    after(dly, () => { if (PL !== pl) return; say(SAYX.hr(bat0, pl) + `（飛行 ${Math.round(pl.dist)} m）`); colorSay(COLOR.hr(bat0, pl), 2.6); toast('全壘打！', '#fff27a', '#ff3a1a'); flowSfx('cheer', 2.6); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); });
     return;
   }
   const last = pl.sim.S[pl.sim.S.length - 1], t = pl.plan;
-  say(`打出去了！${hitTypeWord(pl.kind)}！飛向${areaWord(t.x, t.z)}方向！`);
+  say(SAYX.contact(pl));
 }
-function flowOnCatch(f, pl) { maybeInjureFielder(f); flowSfx('mitt', .8); if (!pl.great) { say(`${POS_FULL[f.pos]}，${pl.foul ? '界外高飛球' : ''}接殺！出局！`); } if (pl.foulOut) showOut('界外接殺'); flowSfx('out'); setHitResult(`${POS_FULL[f.pos]}${pl.great ? '精彩' : ''}${pl.foul ? '接殺界外球' : '接殺'}`); }
+function flowOnCatch(f, pl) { maybeInjureFielder(f); flowSfx('mitt', .8); if (!pl.great) { say(SAYX.catchOut(f, pl)); const cm = COLOR.out('fly', f, pl); if (cm && Math.random() < .6) colorSay(cm, 1.9); } if (pl.foulOut) showOut('界外接殺'); flowSfx('out'); setHitResult(`${POS_FULL[f.pos]}${pl.great ? '精彩' : ''}${pl.foul ? '接殺界外球' : '接殺'}`); }
 function flowOnField(f, pl) { flowSfx('mitt', .6); maybeInjureFielder(f); if (pl.kind !== 'steal') say(`${POS_FULL[f.pos]}處理球…`); }
 function flowOnThrow(th) { flowSfx('throw'); if (th.b >= 0 && PL && PL.kind !== 'wp') { /* throw */ } }
-function flowOnError(f, how) { if (how === 'wp') return; if (how === 'hop') { say(`<em>不規則彈跳！</em>球彈起來擦過${POS_FULL[f.pos]}的手套！`); toast('怪彈跳', '#fff', '#a5f'); return; } say(`失誤！${POS_FULL[f.pos]}，${how === 'throw' ? '傳球暴傳' : '漏接・手滑'}！`); toast('失誤', '#fff', '#a5f'); }
+function flowOnError(f, how) { if (how === 'wp') return; if (how === 'hop') { say(`<em>不規則彈跳！</em>球彈起來擦過${POS_FULL[f.pos]}的手套！`); toast('怪彈跳', '#fff', '#a5f'); return; }
+  if (how === 'deflect') { say(`<em>強襲球！</em>球打到${POS_FULL[f.pos]}的手套彈開，滾向一旁！`); toast('強襲彈開', '#fff', '#a5f'); return; } say(`失誤！${POS_FULL[f.pos]}，${how === 'throw' ? '傳球暴傳' : '漏接・手滑'}！`); toast('失誤', '#fff', '#a5f'); }
 function showOut(reason) {   // 出局提示：大字 OUT ＋ 出局數；並標記本打席有人出局（換下一棒前多等一下）
   const e = $('outBanner'), now = performance.now(); G.outFlag = true;
   if (showOut.n === G.outs && now - (showOut.lt || 0) < 400) return; showOut.n = G.outs; showOut.lt = now;
@@ -4355,8 +4966,8 @@ function flowOnOut(r, how, wasForce) {
   if (how === 'pick') { }
   else if (r.ret) { say(`${nm}回壘不及，被傳殺出局！`); }
   else if (r.stealer) { say(SAY.steal(r, false)); }
-  else if (r.bat && how !== 'fly') { const f = PL && PL.thr && PL.thr.from; say(`出局！${nm}，在一壘被封殺`); }
-  else if (how !== 'fly') { say(`${nm}，出局！`); }
+  else if (r.bat && how !== 'fly') { const f = PL && PL.thr && PL.thr.from; say(SAYX.out(nm, how, true)); { const cm = COLOR.out('gb', null, PL); if (cm && Math.random() < .55) colorSay(cm, 1.9); } }
+  else if (how !== 'fly') { say(SAYX.out(nm, how, false)); }
   if (G.outs >= 3) {
     G.dead = true;
     for (const rr of E.runners) if (rr.state === 'run') { rr.state = 'on'; rr.rig.run = 0; }
@@ -4368,7 +4979,7 @@ function flowOnOut(r, how, wasForce) {
 function flowOnRun(r) {
   if (G.outs >= 3 && !G.runsPlay.length) { }
   curPitcher().er++; adjustMood(curPitcher(), -3); adjustMood(r.pl, 4); flowSfx('cheer', .8); crowdCheer(.6); if (r.tag) setTimeout(() => toast('高飛犧牲打！', '#fff27a', '#ff7a1a'), 60);
-  const sc = G.score; say(`跑回本壘！${battingTeam().short}，第${sc[G.half]}分！ ${sc[0]}比${sc[1]}`); toast('得分！', '#fff27a', '#ff7a1a'); updateScoreboard();
+  say(SAYX.score(r)); colorSay(COLOR.score(r), 1.9); toast('得分！', '#fff27a', '#ff7a1a'); updateScoreboard();
   if (PL && PL.br) { curBatter().st.rbi++; }
   if (G.half === 1 && G.inning >= G.innings && G.score[1] > G.score[0] && !G.walkoff) { G.walkoff = true; say('再見安打！！比賽就此結束！！'); toast('再見！', '#fff27a', '#ff3a1a'); }
 }
@@ -4398,7 +5009,7 @@ function flowOnPlayEnd(pl) {
   if (!pl.foul) { const kn = { HR: '全壘打', H4: '場內全壘打', H1: '一壘安打', H2: '二壘安打', H3: '三壘安打', E: '失誤上壘', FC: '野手選擇', out: '出局' }[kind] || ''; setHitResult(`<b>${areaWord(pl.plan.x, pl.plan.z)}・${kn}</b>${pl.great ? '（精彩守備）' : ''}${pl.badHop ? '（怪彈跳）' : ''}`); }
   const sac = pl.bunt && kind === 'out' && pl.runsMade + (E.runners.filter(r => r.state === 'on' && !r.bat).length) >= 0 && G.on.some(x => x);
   if (kind === 'HR' || kind === 'H4') { st.ab++; st.h++; st.hr++; G.hits[half]++; if (kind === 'HR') { for (const r of G.on) if (r && r.state === 'on') { r.state = 'home'; r.rig.run = 0; scoreRunner(r); } G.on = [null, null, null]; for (const r of E.runners) if (r.state === 'on' || r.state === 'run') { r.state = 'home'; r.rig.root.visible = false; } } }
-  else if (kind[0] === 'H') { st.ab++; st.h++; G.hits[half]++; const n = +kind[1]; say(`${areaWord(pl.plan.x, pl.plan.z)}方向，${HIT_NAME[n]}！`); toast(['', '安打！', '二壘安打！', '三壘安打！'][n], '#fff27a', '#ff7a1a'); flowSfx('cheer', [0, 1.2, 1.7, 2.2][n]); crowdCheer([0, .8, 1.2, 1.6][n]); }
+  else if (kind[0] === 'H') { st.ab++; st.h++; G.hits[half]++; const n = +kind[1]; say(SAYX.hit(curBatter(), n, pl)); colorSay(COLOR.hit(curBatter(), n, pl), 1.9); toast(['', '安打！', '二壘安打！', '三壘安打！'][n], '#fff27a', '#ff7a1a'); flowSfx('cheer', [0, 1.2, 1.7, 2.2][n]); crowdCheer([0, .8, 1.2, 1.6][n]); }
   else if (kind === 'E') { st.ab++; say('因失誤上壘！'); }
   else if (kind === 'FC') { st.ab++; say('野手選擇，打者跑者安全上壘'); }
   else { if (pl.sacFly && pl.caught && !pl.foul) { say('高飛犧牲打！跑者利用外野長飛球推進／回來得分'); } else if (!(sac && pl.bunt)) st.ab++; }
@@ -4765,12 +5376,14 @@ function showHitInfo(res, pl) {
   const th = res.th, dirTxt = Math.abs(th) < 6 ? '中間' : (th < 0 ? '左' : '右') + Math.round(Math.abs(th)) + '°';
   const spinTxt = Math.abs(res.spinB || 0) < .25 ? '' : (res.spinB > 0 ? '後旋' : '前旋'), lk = res.luck || 0, luckTxt = Math.abs(lk) < .6 ? '' : lk > 0 ? ' 🍀' : ' ☁';
   const d = pl && pl.land ? `・約${Math.round(pl.land.d)}m` : '';
+  const sm = pl && pl.sim, tg = []; if (res.broken) tg.push('斷棒'); if (res.tip) tg.push('擦棒高飛'); if (sm) { if (sm.hug) tg.push('貼線滾地'); if (sm.kicked) tg.push('滾出界外'); if (sm.chop) tg.push('高彈跳'); if (sm.bumps) tg.push('不規則滾地'); if (sm.bagHit) tg.push('碰到壘包'); if (sm.wallTop) tg.push('擦牆頭'); else if (sm.bad.some(e => e.type === 'pop' || e.type === 'die' || e.type === 'side')) tg.push('怪彈跳'); }
+  const tagTxt = tg.length ? ' <b style="color:#ffd35a">' + tg.join('・') + '</b>' : '';
   el.innerHTML = `<div class="hq" style="color:${col}">${qtxt}<small> ${loc}</small></div>
   <svg viewBox="0 0 200 26" class="hbar"><path d="M8 11 H62 L110 6 Q190 3 196 13 Q190 23 110 20 L62 15 H8 Z" fill="#c89a5a" stroke="#fff" stroke-width="1.5"/><rect x="104" y="4" width="44" height="18" rx="7" fill="#5f5" opacity=".4"/><circle cx="${sxx}" cy="13" r="5.5" fill="#fff" stroke="${col}" stroke-width="3"/></svg>
   <div class="hrow"><svg viewBox="0 0 64 64" class="hb"><circle cx="32" cy="32" r="24" fill="#f4f4f4" stroke="#999" stroke-width="2"/><circle cx="${dot.x}" cy="${dot.y}" r="6" fill="${col}" stroke="#000" stroke-width="1.5"/></svg>
   <svg viewBox="0 0 64 64" class="hb"><line x1="4" y1="56" x2="62" y2="56" stroke="#7a7" stroke-width="2"/><line x1="8" y1="56" x2="${ax}" y2="${ay}" stroke="${col}" stroke-width="3" stroke-linecap="round"/><circle cx="${ax}" cy="${ay}" r="3.5" fill="#fff"/></svg>
   <div class="ha">仰角 ${Math.round(res.ang)}°<small>${Math.round(res.ev * 3.6)}km/h・${dirTxt}</small></div></div>
-  <div class="hs">${spinTxt}<span id="hitRes" class="hres"></span></div>`;
+  "<div class="hs">${spinTxt}${tagTxt}<span id="hitRes" class="hres"></span></div>`;
   el.classList.remove('hide'); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   const my = ++_hitT; el._my = my;
 }
@@ -4836,9 +5449,10 @@ const powOn = () => !G.easy && !!(aim.shift || POW_PREF);
 function syncPowUI() { const v = POW_PREF, b = $('btnPow'), b2 = $('btnPowPc'); aim.lock = v; if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } }
 function setPow(v) { POW_PREF = !!v; aim.lock = POW_PREF; const b = $('btnPow'), b2 = $('btnPowPc'); if (b) { b.classList.toggle('on', v); b.textContent = '強打 ' + (v ? 'ON' : 'OFF'); } if (b2) { b2.classList.toggle('on', v); b2.innerHTML = '強打 ' + (v ? 'ON' : 'OFF') + '<i class="k"> S</i>'; } }
 function cursorR() {
-  const b = curBatter(); const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() };
-  return batterR(b, fake, powOn() && !G.callBunt) * (G.callBunt ? 1.25 : 1) * ((IS_TOUCH || MOB) ? 1.1 : 1);      // 手機／平板：與電腦版比例相近，只略放大一點
+  const b = curBatter(); if (BATV.ok && BATV.b === b) return BATV.R;      // 與畫面上顯示的緩動尺寸一致
+  return batTarget(b, aim.x, aim.y).R;      // 手機／平板：與電腦版比例相近，只略放大一點
 }
+function cursorK() { const b = curBatter(); return (BATV.ok && BATV.b === b) ? BATV.k : batTarget(b, aim.x, aim.y).k; }
 function drawRing(x, y, r, col, lw, dash) {
   const a = w2s(x, y, 0), b = w2s(x + r, y, 0), u2 = w2s(x, y + r, 0), rad = Math.abs(b.x - a.x), ry = Math.abs(u2.y - a.y);     // 圈是本壘板平面上的圓：投影成橢圓才與判定範圍完全一致
   octx.beginPath(); octx.ellipse(a.x, a.y, rad, ry, 0, 0, TAU); octx.strokeStyle = col; octx.lineWidth = lw; if (dash) octx.setLineDash(dash); octx.stroke(); octx.setLineDash([]); return { a, rad };
@@ -4889,11 +5503,14 @@ function drawOverlay() {
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     c.font = `900 ${14 * dpr}px sans-serif`; c.fillStyle = '#fff'; c.textAlign = 'center'; c.fillText(spec.jp, r.a.x, r.a.y - r.rad - 8 * dpr);
   } else if (hb && !G.easy && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) {
-    const R = cursorR(); const swung = PT && PT.sw; const ax = swung ? PT.sw.cx : aim.x, ay = swung ? PT.sw.cy : aim.y;      // 揮棒後圈圈固定在實際判定的位置
+    const swung = PT && PT.sw; const ax = swung ? PT.sw.cx : aim.x, ay = swung ? PT.sw.cy : aim.y;      // 揮棒後圈圈固定在實際判定的位置
+    if (!swung) batEase(b, ax, ay);      // 每幀緩動一次
+    const R = swung ? (PT.sw.R || cursorR()) : cursorR(), KK = swung ? (PT.sw.k || cursorK()) : cursorK();      // 揮棒後直接用當下鎖定的尺寸，不再重算（避免揮完球棒變大變小）
     const col = swung ? 'rgba(255,255,255,.4)' : (powOn() ? '#ff6a3a' : G.callBunt ? '#7aff9a' : '#ffe14a');
                        // 外圈：能碰到球的範圍（打不好）
-    const r = drawBat(ax, ay, R, col, 3 * dpr, (G.callBunt ? BAT_K.bunt : (swung ? PT.sw.power : powOn()) ? BAT_K.power : BAT_K.normal) * batZoneK(b, ax, ay));                                                                        // 球棒形擊球框：白帶＝甜蜜點，圓點＝握把端
-    c.font = `900 ${13 * dpr}px sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.fillText(G.callBunt ? '短打' : powOn() ? '強打' : '擊球', r.a.x, r.a.y + r.rad + 18 * dpr);
+    const bm = swung ? (PT.sw.bunt ? 'bunt' : PT.sw.power ? 'power' : 'normal') : (G.callBunt ? 'bunt' : powOn() ? 'power' : 'normal');
+    const r = drawBat(ax, ay, R, col, (MOB ? 2.2 : 3) * dpr, KK, bm);                                                                        // 球棒形擊球框：白帶＝甜蜜點，圓點＝握把端
+    c.font = `900 ${(MOB ? 11 : 13) * dpr}px sans-serif`; c.fillStyle = col; c.textAlign = 'center'; c.fillText(G.callBunt ? '短打' : powOn() ? '強打' : '擊球', r.a.x, r.a.y + r.rad + 18 * dpr);
   }
 }
 /* ---------------- input ---------------- */
@@ -4918,7 +5535,8 @@ function humanAction() {
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
     updateAim(); const pTc = PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts + SWING_DELAY + (_evTouch ? TOUCH_LAT : 0); let R = cursorR(), cx = aim.x, cy = aim.y;
     if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n; cy = _pj.y + gauss() * n; R = batterR(eb, PT, false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
-    startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R });
+    const kLock = G.easy ? undefined : cursorK();      // 揮棒瞬間鎖定畫面上看到的球棒粗細
+    startSwing(PT, { tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R, k: kLock });
   }
 }
 /* ---------------- 投球準度條（類 MLB MVP 2005）：第一下鎖定落點並啟動，第二下按停；愈靠近綠區愈準 ---------------- */
@@ -5264,24 +5882,40 @@ document.addEventListener('pointerdown', e => { for (const [id, sel] of [['sb', 
 
 /* ---------------- 背景音設定面板（「更多」→「背景音設定」開啟） ---------------- */
 (function () {
-  const panel = $('audioPanel'), mute = $('audioMute'), vol = $('audioVol'), num = $('audioNum');
-  const save = () => { try { localStorage.setItem('cpbl_bgm_vol', BGM.vol); localStorage.setItem('cpbl_bgm_mute', BGM.mute ? '1' : '0'); } catch (e) { } };
-  const sync = () => { const off = BGM.mute || BGM.vol === 0; mute.textContent = off ? '🔇 背景音樂　關' : '🔊 背景音樂　開'; mute.classList.toggle('on', !off); vol.value = BGM.vol; num.textContent = BGM.vol; };
+  const panel = $('audioPanel'), mute = $('audioMute'), vol = $('audioVol'), num = $('audioNum'), list = $('audioTracks'), now = $('audioNow');
+  const save = () => { try { localStorage.setItem('cpbl_bgm_vol', BGM.vol); localStorage.setItem('cpbl_bgm_mute', BGM.mute ? '1' : '0'); localStorage.setItem('cpbl_bgm_track', BGM.track); } catch (e) { } };
+  const tagCls = { '熱血': 'hot', '休閒': 'chill', '輕鬆': 'chill', '趣味': 'fun' };
+  BGM_TRACKS.forEach((T, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'trk'; b.dataset.i = i;
+    b.innerHTML = `<span class="ti">${T.icon}</span><span class="tn"><b>${T.name}</b><i>${T.sub}</i></span><em class="${tagCls[T.tag] || ''}">${T.tag}</em>`;
+    b.addEventListener('click', () => { sndInit(); if (BGM.mute || BGM.vol === 0) { BGM.mute = false; if (BGM.vol === 0) BGM.vol = 50; bgmApplyVol(); } bgmSelect(i); save(); sync(); b.blur(); });
+    list.appendChild(b);
+  });
+  const sync = () => {
+    const off = BGM.mute || BGM.vol === 0; mute.textContent = off ? '🔇 背景音樂　關' : '🔊 背景音樂　開'; mute.classList.toggle('on', !off); vol.value = BGM.vol; num.textContent = BGM.vol;
+    [...list.children].forEach((b, i) => b.classList.toggle('on', i === BGM.track)); const T = BGM_TRACKS[BGM.track]; now.textContent = `♪ 目前播放：${T.name}（${T.sub}）・擊球與環境音效不受影響`;
+  };
   const open = () => { sndInit(); sync(); panel.classList.remove('hide'); };
   const close = () => { panel.classList.add('hide'); if (document.activeElement) document.activeElement.blur(); };
   $('btnBgm').addEventListener('click', e => { e.stopPropagation(); open(); });
   $('menuBgm').addEventListener('click', e => { e.stopPropagation(); open(); });
+  $('titleBgm').addEventListener('click', e => { e.stopPropagation(); open(); });
+  $('titleBgm').addEventListener('pointerdown', e => e.stopPropagation());
   $('audioClose').addEventListener('click', close);
   panel.addEventListener('pointerdown', e => e.stopPropagation());
   document.addEventListener('pointerdown', e => {            // 面板開著時，點外面＝關閉（並吃掉這次點擊，避免誤觸揮棒）
     if (panel.classList.contains('hide')) return;
-    if (e.target.closest('#audioPanel,#btnBgm,#menuBgm')) return;
+    if (e.target.closest('#audioPanel,#btnBgm,#menuBgm,#titleBgm')) return;
     close(); e.stopPropagation(); e.preventDefault();
   }, true);
   mute.addEventListener('click', () => { sndInit(); if (BGM.mute || BGM.vol === 0) { BGM.mute = false; if (BGM.vol === 0) BGM.vol = 50; } else BGM.mute = true; bgmApplyVol(); save(); sync(); mute.blur(); });
   vol.addEventListener('input', () => { sndInit(); BGM.vol = +vol.value; if (BGM.vol > 0) BGM.mute = false; bgmApplyVol(); save(); sync(); });
   vol.addEventListener('change', () => vol.blur());
   sync();
+  /* 主畫面（標題）就有音樂：載入時先建立音訊；瀏覽器要求「使用者操作後」才能出聲，所以第一次點擊／觸控／按鍵立刻啟動 */
+  try { sndInit(); } catch (e) { }
+  const wake = () => { try { if (!SND.ctx) sndInit(); else if (SND.ctx.state !== 'running') SND.ctx.resume(); } catch (e) { } };
+  ['pointerdown', 'pointerup', 'keydown', 'touchstart', 'touchend', 'click'].forEach(ev => window.addEventListener(ev, wake, { capture: true, passive: true }));
 })();
 /* ---------------- main loop ---------------- */
 G.ts = 1; let lastT = performance.now(); let lastFocus = new V3(0, 0, -20);
@@ -5358,12 +5992,150 @@ $('tmNormal').onclick = () => { toGame(); };
 $('tmCareer').onclick = () => { sndInit(); $('careerDlg').classList.remove('hide'); };
 $('careerOk').onclick = () => $('careerDlg').classList.add('hide');
 $('menuBack').onclick = () => { if (G.mode !== 'menu') return; G.mode = 'title'; $('menu').classList.add('hide'); $('title').classList.remove('hide'); CAMC.mode = 'title'; };
+/* ---------------- 離開遊戲 ----------------
+   網頁無法強制關閉整個瀏覽器或回到桌面，這是瀏覽器的安全限制。
+   依序嘗試：App 外殼橋接 → 結束全螢幕 → window.close()（已安裝的 PWA／腳本開啟的視窗有效），
+   都不行時停在道別畫面並提示使用者手動離開，而不是留下空白頁。 */
+const XD = $('exitDlg'), BYE = $('bye');
+function openExitDlg() { XD.classList.remove('hide'); setTimeout(() => { try { $('exitNo').focus(); } catch (e) { } }, 30); }
+function closeExitDlg() { XD.classList.add('hide'); try { $('tmExit').focus(); } catch (e) { } }
 function exitGame() {
-  try { window.close(); } catch (e) { }
-  setTimeout(() => { try { if (!window.closed) { window.open('', '_self'); window.close(); } } catch (e) { } }, 150);
-  setTimeout(() => { try { location.replace('about:blank'); } catch (e) { } }, 450);     // 瀏覽器不允許腳本關閉分頁時，退而求其次導向空白頁
+  XD.classList.add('hide');
+  try { if (SND.ctx && SND.ctx.state === 'running') SND.ctx.suspend(); } catch (e) { }
+  try { const ex = document.exitFullscreen || document.webkitExitFullscreen; if ((document.fullscreenElement || document.webkitFullscreenElement) && ex) ex.call(document); } catch (e) { }
+  BYE.classList.remove('hide'); $('byeHint').classList.add('hide'); $('byeBack').classList.add('hide');
+  // 原生外殼（Capacitor／Cordova／Android WebView／iOS WKWebView）
+  try { const C = window.Capacitor; if (C && C.Plugins && C.Plugins.App && C.Plugins.App.exitApp) { C.Plugins.App.exitApp(); return; } } catch (e) { }
+  try { if (navigator.app && navigator.app.exitApp) { navigator.app.exitApp(); return; } } catch (e) { }
+  try { if (window.Android && window.Android.exitApp) { window.Android.exitApp(); return; } } catch (e) { }
+  try { if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.exitApp) { window.webkit.messageHandlers.exitApp.postMessage('exit'); return; } } catch (e) { }
+  setTimeout(() => { try { window.close(); } catch (e) { } }, 450);
+  setTimeout(() => { try { if (!window.closed) { window.open('', '_self'); window.close(); } } catch (e) { } }, 800);
+  setTimeout(() => { $('byeHint').classList.remove('hide'); $('byeBack').classList.remove('hide'); }, 1300);   // 視窗仍在 → 關不掉，改請使用者手動離開
 }
-$('tmExit').onclick = exitGame;
+$('byeBack').onclick = () => { BYE.classList.add('hide'); try { if (SND.ctx && SND.ctx.state === 'suspended') SND.ctx.resume(); } catch (e) { } };
+$('tmExit').onclick = openExitDlg;
+$('exitNo').onclick = closeExitDlg;
+$('exitYes').onclick = exitGame;
+document.addEventListener('keydown', e => {
+  if (!XD.classList.contains('hide')) { if (e.key === 'Escape') { closeExitDlg(); e.preventDefault(); } return; }
+  if (G.mode !== 'title' || $('title').classList.contains('hide') || !$('careerDlg').classList.contains('hide')) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const b = [...document.querySelectorAll('#title .tmb')], i = b.indexOf(document.activeElement);
+    b[(i + (e.key === 'ArrowDown' ? 1 : -1) + b.length) % b.length].focus(); e.preventDefault();
+  }
+});
+
+/* ---------------- 主畫面開場特效：火球擊中標題 → 衝擊波 → 火花餘燼與場燈 ---------------- */
+(function () {
+  const T = $('title'), cv = $('titleFx'), g = cv.getContext('2d'), fl = $('titleFlash'), HIT = .85;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let W = 0, H = 0, dpr = 1, t0 = 0, last = 0, raf = 0, hitDone = false, IX = 0, IY = 0, SX = 0, SY = 0, nextStar = 0;
+  let sparks = [], embers = [], rings = [], stars = [], trail = [], lines = [];
+  const R = (a, b) => a + Math.random() * (b - a);
+  function fit() { dpr = Math.min(window.devicePixelRatio || 1, document.body.classList.contains('mob') ? 1.5 : 2); W = T.clientWidth; H = T.clientHeight; cv.width = Math.max(1, W * dpr); cv.height = Math.max(1, H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function measure() { const r = T.querySelector('.logo').getBoundingClientRect(), tr = T.getBoundingClientRect(); IX = r.left - tr.left + r.width / 2; IY = r.top - tr.top + r.height / 2; SX = IX + W * .38; SY = IY - H * .34; }
+  const mkEmber = init => ({ x: R(0, W), y: init ? R(H * .25, H) : H + 10, vx: R(-12, 12), vy: -R(25, 85), ph: R(0, 6.3), s: R(1, 3.2), age: init ? R(0, 3) : 0, life: R(3.5, 7), h: R(18, 42) });
+  function hit() {
+    hitDone = true; T.classList.remove('armed'); T.classList.add('hit');
+    fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+    T.classList.remove('shk'); void T.offsetWidth; T.classList.add('shk'); setTimeout(() => T.classList.remove('shk'), 520);
+    for (let i = 0; i < 110; i++) { const a = R(0, 6.283), v = R(180, 980); sparks.push({ x: IX, y: IY, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: R(.5, 1.2), age: 0, s: R(1.5, 4), h: R(28, 54) }); }
+    rings.push({ age: 0, life: .75, max: Math.max(W, H) * .55, w: 9 }, { age: -.08, life: .95, max: Math.max(W, H) * .85, w: 4 });
+    for (let i = 0, n = Math.min(70, Math.round(W * H / 16000)); i < n; i++) embers.push(mkEmber(true));
+    lines.length = 0; trail.length = 0; nextStar = 0;
+    try { if (SND.ctx && SND.on && SND.ctx.state === 'running') { noiseBurst(.4, 220, .6, .9, 'lowpass'); tone(95, .32, .7, 'sine', .45); } } catch (e) { }
+  }
+  function beam(ox, ang, a) {
+    const L = Math.hypot(W, H) * 1.1; g.save(); g.translate(ox, -8); g.rotate(ang);
+    const gr = g.createLinearGradient(0, 0, 0, L); gr.addColorStop(0, 'rgba(255,240,200,' + a + ')'); gr.addColorStop(1, 'rgba(255,240,200,0)');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.lineTo(-L * .11, L); g.lineTo(L * .11, L); g.closePath(); g.fill(); g.restore();
+  }
+  function ball(x, y, r, t) {
+    const gr = g.createRadialGradient(x, y, r * .5, x, y, r * 2.4); gr.addColorStop(0, 'rgba(255,170,60,.55)'); gr.addColorStop(1, 'rgba(255,90,20,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 2.4, 0, 6.283); g.fill();
+    g.save(); g.translate(x, y); g.rotate(t * 16);
+    const b = g.createRadialGradient(-r * .3, -r * .35, r * .1, 0, 0, r); b.addColorStop(0, '#fff'); b.addColorStop(.6, '#ece7d8'); b.addColorStop(1, '#b8ae96');
+    g.beginPath(); g.arc(0, 0, r, 0, 6.283); g.fillStyle = b; g.fill(); g.clip();
+    g.strokeStyle = '#d3202a'; g.lineWidth = Math.max(1, r * .09); g.setLineDash([r * .18, r * .13]);
+    g.beginPath(); g.arc(-r * 1.28, 0, r * 1.05, -1, 1); g.stroke(); g.beginPath(); g.arc(r * 1.28, 0, r * 1.05, Math.PI - 1, Math.PI + 1); g.stroke(); g.restore();
+  }
+  function loop(now) {
+    if (T.classList.contains('hide')) { raf = 0; return; }
+    raf = requestAnimationFrame(loop);
+    if (!t0) { t0 = now; last = now; }
+    const t = (now - t0) / 1000, dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!hitDone && t >= HIT) hit();
+    g.clearRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
+    const dark = hitDone ? Math.max(0, .55 * (1 - (t - HIT) / .9)) : .55;
+    if (dark > 0) { g.fillStyle = 'rgba(0,0,10,' + dark + ')'; g.fillRect(0, 0, W, H); }
+    g.globalCompositeOperation = 'lighter';
+    if (hitDone) {                                    // 場燈光束
+      const k = Math.min(1, (t - HIT) / 1.2), w = Math.sin(t * .6);
+      beam(0, -(.38 + .12 * w), .09 * k); beam(W, .38 + .12 * Math.sin(t * .6 + 1.2), .09 * k);
+    }
+    if (!hitDone) {                                   // 集中線 + 火球逼近
+      const p = Math.min(1, t / HIT), m = Math.max(W, H);
+      g.lineCap = 'round';
+      for (const l of lines) { const r1 = l.d0 + p * p * m * .55, r2 = r1 + l.len * p; g.strokeStyle = 'rgba(255,236,190,' + (.42 * p) + ')'; g.lineWidth = l.w; g.beginPath(); g.moveTo(IX + Math.cos(l.a) * r1, IY + Math.sin(l.a) * r1); g.lineTo(IX + Math.cos(l.a) * r2, IY + Math.sin(l.a) * r2); g.stroke(); }
+      const e = p * p, bx = SX + (IX - SX) * e, by = SY + (IY - SY) * e, br = 3 + (Math.min(W, H) * .1 - 3) * p * p * p;
+      for (let i = 0; i < 4; i++) trail.push({ x: bx + R(-br, br) * .5, y: by + R(-br, br) * .5, vx: (SX - IX) * R(.05, .22) + R(-30, 30), vy: (SY - IY) * R(.05, .22) + R(-30, 30), age: 0, life: R(.3, .6), s: br * R(.5, 1.1) + 2, h: R(18, 48) });
+      g._ball = [bx, by, br, t];
+    } else g._ball = null;
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const q = trail[i]; q.age += dt; if (q.age > q.life) { trail.splice(i, 1); continue; }
+      q.x += q.vx * dt; q.y += q.vy * dt; const u = 1 - q.age / q.life;
+      g.fillStyle = 'hsla(' + q.h + ',100%,58%,' + (.5 * u) + ')'; g.beginPath(); g.arc(q.x, q.y, q.s * u, 0, 6.283); g.fill();
+    }
+    for (let i = embers.length - 1; i >= 0; i--) {   // 餘燼
+      const q = embers[i]; q.age += dt; q.x += (q.vx + Math.sin(q.age * 1.6 + q.ph) * 14) * dt; q.y += q.vy * dt;
+      if (q.age > q.life || q.y < -10) { embers[i] = mkEmber(false); continue; }
+      const a = Math.sin(Math.PI * q.age / q.life) * .85;
+      g.fillStyle = 'hsla(' + q.h + ',100%,60%,' + a + ')'; g.beginPath(); g.arc(q.x, q.y, q.s, 0, 6.283); g.fill();
+    }
+    for (let i = rings.length - 1; i >= 0; i--) {    // 衝擊波
+      const q = rings[i]; q.age += dt; if (q.age < 0) continue; if (q.age > q.life) { rings.splice(i, 1); continue; }
+      const u = q.age / q.life, r = q.max * (1 - Math.pow(1 - u, 3));
+      g.strokeStyle = 'rgba(255,214,120,' + (.85 * (1 - u)) + ')'; g.lineWidth = q.w * (1 - u) + .5; g.beginPath(); g.arc(IX, IY, r, 0, 6.283); g.stroke();
+    }
+    for (let i = sparks.length - 1; i >= 0; i--) {   // 火花
+      const q = sparks[i]; q.age += dt; if (q.age > q.life) { sparks.splice(i, 1); continue; }
+      q.vy += 640 * dt; q.vx *= 1 - 1.4 * dt; q.x += q.vx * dt; q.y += q.vy * dt; const u = 1 - q.age / q.life;
+      g.strokeStyle = 'hsla(' + q.h + ',100%,62%,' + u + ')'; g.lineWidth = q.s * u + .4; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q.x - q.vx * .03, q.y - q.vy * .03); g.stroke();
+    }
+    if (hitDone && t - HIT > .5 && t > nextStar) {   // 看台相機閃光
+      nextStar = t + R(.22, .65); stars.push({ x: R(W * .04, W * .96), y: R(H * .5, H * .96), age: 0, life: R(.16, .28), s: R(12, 30) });
+    }
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const q = stars[i]; q.age += dt; if (q.age > q.life) { stars.splice(i, 1); continue; }
+      const u = 1 - q.age / q.life, s = q.s * (.6 + .6 * u);
+      const gr = g.createRadialGradient(q.x, q.y, 0, q.x, q.y, s); gr.addColorStop(0, 'rgba(255,255,255,' + u + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(q.x, q.y, s, 0, 6.283); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,' + (.8 * u) + ')'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(q.x - s * 1.5, q.y); g.lineTo(q.x + s * 1.5, q.y); g.moveTo(q.x, q.y - s * 1.5); g.lineTo(q.x, q.y + s * 1.5); g.stroke();
+    }
+    g.globalCompositeOperation = 'source-over';
+    if (g._ball) ball(g._ball[0], g._ball[1], g._ball[2], g._ball[3]);
+  }
+  function start() {
+    cancelAnimationFrame(raf); raf = 0;
+    sparks = []; embers = []; rings = []; stars = []; trail = []; lines = []; hitDone = false; t0 = 0;
+    T.classList.remove('hit', 'shk'); T.classList.add('armed');
+    fit(); measure(); g.clearRect(0, 0, W, H);
+    if (reduce) { hitDone = true; T.classList.remove('armed'); return; }
+    const m = Math.min(W, H);
+    for (let i = 0; i < 64; i++) lines.push({ a: R(0, 6.283), d0: R(.08, .2) * m, len: R(.15, .5) * Math.max(W, H), w: R(.6, 2) });
+    raf = requestAnimationFrame(loop);
+  }
+  let wasHidden = T.classList.contains('hide');
+  new MutationObserver(() => {
+    const h = T.classList.contains('hide');
+    if (wasHidden && !h) start(); else if (h && raf) { cancelAnimationFrame(raf); raf = 0; }
+    wasHidden = h;
+  }).observe(T, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', () => { if (T.classList.contains('hide')) return; fit(); measure(); });
+  window.__titleIntro = start;
+})();
 boot();
+if (window.__titleIntro && !$('title').classList.contains('hide')) window.__titleIntro();
 
 </script></body></html>
