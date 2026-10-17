@@ -437,6 +437,22 @@ body.touch #btnPowPc,body.mob #btnPowPc{display:none!important}
 #quitDlg .qb #quitYes{background:linear-gradient(#ff7a7a,#c81818)}
 #intro{position:absolute;left:0;right:0;top:27%;z-index:27;pointer-events:none;overflow:hidden}
 #intro .in-card{--tc:#2a5adf;display:block;width:fit-content;max-width:min(92vw,720px);box-sizing:border-box;margin-left:0;padding:10px 26px 10px 16px;border-left:8px solid var(--tc);border-radius:0 12px 12px 0;background:rgba(6,16,32,.78);animation:introIn 2.1s cubic-bezier(.2,.8,.2,1) forwards;text-shadow:0 2px 4px #000}
+body.venuing #hud>*:not(#venueIntro){visibility:hidden!important}
+body.venuing #ov{visibility:hidden!important}
+#venueIntro{position:absolute;inset:0;z-index:40;pointer-events:auto;cursor:pointer;overflow:hidden}
+#venueIntro .vi-bar{position:absolute;left:0;right:0;height:9vh;background:#000;animation:viBar .8s ease-out both}
+#venueIntro .vi-top{top:0}#venueIntro .vi-bot{bottom:0;--d:1}
+#venueIntro .vi-card{--tc:#2a5adf;position:absolute;left:0;bottom:14%;width:fit-content;max-width:min(94vw,780px);box-sizing:border-box;padding:12px 30px 12px 18px;border-left:10px solid var(--tc);border-radius:0 14px 14px 0;background:rgba(6,16,32,.84);color:#fff;text-shadow:0 1px 3px #000a;animation:viIn .9s .25s cubic-bezier(.2,.8,.2,1) both}
+#venueIntro .vi-tag{font-weight:900;font-size:clamp(11px,1.5vw,15px);letter-spacing:.3em;color:#ffe14a}
+#venueIntro .vi-name{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(28px,5.6vw,58px);line-height:1.15}
+#venueIntro .vi-loc{font-size:clamp(12px,1.7vw,17px);opacity:.92;margin-top:2px}
+#venueIntro .vi-home{margin-top:7px;padding-top:6px;border-top:1px solid #fff3;font-weight:800;font-size:clamp(14px,2.1vw,22px);color:#bfe}
+#venueIntro .vi-home b{color:var(--tc);filter:brightness(1.7)}
+#venueIntro .vi-wx{margin-top:4px;font-size:clamp(12px,1.6vw,16px);opacity:.9}
+#venueIntro .vi-skip{position:absolute;right:14px;bottom:calc(9vh + 8px);font-size:12px;opacity:.7;color:#fff;text-shadow:0 1px 3px #000}
+@keyframes viIn{from{transform:translateX(-105%);opacity:0}to{transform:none;opacity:1}}
+@keyframes viBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+#venueIntro .vi-top{transform-origin:top}#venueIntro .vi-bot{transform-origin:bottom}
 #intro .in-tag{font-weight:900;font-size:clamp(11px,1.5vw,15px);letter-spacing:.25em;color:#ffe14a}
 #intro .in-name{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(26px,5vw,52px);line-height:1.15;color:#fff}
 #intro .in-name i{font-style:normal;color:var(--tc);filter:brightness(1.6);margin-right:.35em;font-size:.7em}
@@ -1022,6 +1038,7 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
   <div id="spd">150<small>km/h</small></div>
   <div id="toast">STRIKE</div>
   <div id="intro" class="hide"></div>
+  <div id="venueIntro" class="hide"></div>
   <div id="quitDlg" class="hide"><div class="qbox"><div class="qt">返回主選單？</div><div class="qs">遊戲進度將會消失，目前這場比賽會直接中斷並回到遊戲首頁。<br>確定要返回主選單嗎？</div><div class="qb"><button id="quitNo">取消</button><button id="quitYes">確認返回</button></div></div></div>
   <div id="hrBanner" class="hide"><div class="hb-t">全壘打</div><div class="hb-s"></div></div>
   <div id="outBanner" class="hide"><div class="ob-t">OUT</div><div class="ob-s"></div></div>
@@ -1153,6 +1170,8 @@ const PARKS = {
   '花蓮縣立棒球場': { cf: 79, gap: 74.5, ln: 70, h: 3.5, dt: -2, wind: 1.4, rain: 1.5, wc: 0x23607a, note: '東岸多風多雨，氣溫較涼' },
   '台東縣立棒球場': { cf: 77.5, gap: 73, ln: 69.5, h: 3.4, dt: 2, wind: 1.5, rain: 1.1, wc: 0x2a7a6a, note: '海風強勁，天氣炎熱' }
 };
+/* 自動選場時的全聯盟加權（2026 年例行賽各球場使用場次） */
+const PARK_W = [['台北大巨蛋', 58], ['桃園棒球場', 52], ['新莊棒球場', 50], ['亞太主球場', 48], ['洲際棒球場', 47], ['澄清湖棒球場', 45], ['天母棒球場', 40], ['嘉義市立棒球場', 10], ['台東縣立棒球場', 6], ['斗六棒球場', 2], ['花蓮縣立棒球場', 2]];
 /* 部分主場賽事會移師外地球場（機率依 2026 年賽程場次概估） */
 const SAT_PARKS = {
   TSG: [['嘉義市立棒球場', .10], ['台東縣立棒球場', .07], ['斗六棒球場', .03], ['花蓮縣立棒球場', .03]],
@@ -1852,7 +1871,13 @@ function camSnap() { CAMC.pos.copy(CAMC.tpos); CAMC.look.copy(CAMC.tlook); CAMC.
 function setCamBat(snap) { CAMC.mode = 'bat'; CAMC.tpos.set(0, 4.6, 9.4); CAMC.tlook.set(0, 1.45, -9); CAMC.tfov = 42 * (VP.fk || 1); CAMC.k = 4; if (snap) camSnap(); }
 function setCamPlayTarget(f) { CAMC.mode = 'play'; }
 function updateCamera(dt, focus) {
-  if (CAMC.mode === 'title') {
+  if (VENUE.on && CAMC.mode !== 'venue') { VENUE.on = false; VENUE.done = null; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); }
+  if (CAMC.mode === 'venue' && VENUE.on) {
+    VENUE.t += dt; const u = clamp(VENUE.t / VENUE.orbit, 0, 1), e = u * .6 + (u * u * (3 - 2 * u)) * .4, a = e * Math.PI * 2 * .96, sw = Math.sin(u * Math.PI);
+    const R = 54 - 5 * sw, H = 31 - 9 * sw;
+    CAMC.tpos.set(Math.sin(a) * R, H, -30 + Math.cos(a) * R); CAMC.tlook.set(Math.sin(a + 1.2) * 4, 2, -30 + Math.cos(a + 1.2) * 4); CAMC.tfov = 60 * (VP.fk || 1); CAMC.k = 6;
+    if (VENUE.t >= VENUE.dur) venueEnd();
+  } else if (CAMC.mode === 'title') {
     CAMC.orbit += dt * .08; const a = CAMC.orbit, r = 62;
     CAMC.tpos.set(Math.sin(a) * 12, 23, 47 + Math.cos(a) * 3); CAMC.tlook.set(Math.sin(a * 1.3) * 6, 0, -27); CAMC.tfov = 58 * (VP.fk || 1); CAMC.k = 1.2;
   } else if (CAMC.mode === 'play' && focus) {
@@ -4824,7 +4849,7 @@ function newGame(cfg) {
   G.teams = [buildTeam(TEAMS[cfg.away], cfg, 0), buildTeam(TEAMS[cfg.home], cfg, 1)]; if (cfg.ace) { G.teams.forEach(t => { }); }
   G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.easy = !!cfg.easy; G.innings = cfg.inn;
   G.score = [0, 0]; G.line = [[], []]; G.hits = [0, 0]; G.errs = [0, 0]; G.inning = 1; G.half = 0; G.bi = [0, 0]; G.pmodel = {}; G.batHist = {};
-  G.over = false; G.walkoff = false; G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; G.homeIdx = cfg.homeFirst ? 0 : 1; initWeather(G.teams[G.homeIdx], cfg.park); hideHitInfo(0);
+  G.over = false; G.walkoff = false; G.venueDone = false; VENUE.on = false; VENUE.done = null; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; G.homeIdx = cfg.homeFirst ? 0 : 1; initWeather(G.teams[G.homeIdx], cfg.park); hideHitInfo(0);
   $('hud').classList.remove('hide'); $('menu').classList.add('hide'); $('title').classList.add('hide'); $('result').classList.add('hide'); $('sub').classList.add('hide');
   startHalf();
 }
@@ -4836,10 +4861,35 @@ function startHalf() {
   rebuildField(); resetFormation(true); setBall({ x: 0, y: 0, z: 0 }, false);
   updateScoreboard(); updateLamps(); updatePlayerBoxes(); $('pitchPanel').classList.add('hide'); updateActs();
   setCamBat(true);
-  say(SAYX.halfStart() + (G.inning === 1 && G.half === 0 && G.wx ? `（${G.wx.venue}・${skyLabel().join(' ')}・${G.wx.temp}°C）` : '')); colorSay(COLOR.inning(), 2.2);
-  toast(`${G.inning}局${G.half ? '下' : '上'}`, '#bff', '#39f'); flowSfx('whistle');
-  after(2.4, () => processInjuries(nextBatter));
+  const begin = () => {
+    say(SAYX.halfStart() + (G.inning === 1 && G.half === 0 && G.wx ? `（${G.wx.venue}・${skyLabel().join(' ')}・${G.wx.temp}°C）` : '')); colorSay(COLOR.inning(), 2.2);
+    toast(`${G.inning}局${G.half ? '下' : '上'}`, '#bff', '#39f'); flowSfx('whistle');
+    after(2.4, () => processInjuries(nextBatter));
+  };
+  if (G.inning === 1 && G.half === 0 && !G.venueDone && G.mode === 'play' && G.wx) { G.venueDone = true; venueIntro(begin); } else begin();
 }
+/* ---------------- 開賽前球場介紹：顯示球場／主隊資訊，鏡頭環繞球場一圈後才正式開打（點擊或按空白鍵可略過） ---------------- */
+const PARK_LOC = { '洲際棒球場': '台中市', '亞太主球場': '台南市', '桃園棒球場': '桃園市', '新莊棒球場': '新北市', '天母棒球場': '台北市', '澄清湖棒球場': '高雄市', '台北大巨蛋': '台北市', '嘉義市立棒球場': '嘉義市', '斗六棒球場': '雲林縣', '花蓮縣立棒球場': '花蓮縣', '台東縣立棒球場': '台東縣' };
+const VENUE = { on: false, t: 0, dur: 8.6, orbit: 7.2, done: null };
+function venueIntro(done) {
+  const home = G.teams[G.homeIdx], away = G.teams[1 - G.homeIdx], name = G.wx.venue, PK = PARKS[name] || {}, owner = TEAMS.find(t => t.home === name);
+  const ownerTx = name === '台北大巨蛋' ? '聯盟共用球場' : owner ? `${owner.name} 主場球場` : '中職例行賽球場';
+  const moved = owner ? owner.id !== home.id : name === '台北大巨蛋' ? false : home.home !== name;
+  const homeTx = `🏠 主隊：<b>${home.name}</b>${moved && name !== '台北大巨蛋' ? '（本場於此球場出賽）' : name === '台北大巨蛋' ? '（本場於大巨蛋出賽）' : ''}　✈ 客隊：${away.name}`;
+  const wx = G.wx.dome ? '室內球場・無風無雨' : G.wx.off ? '天氣系統關閉' : `${skyLabel().join(' ')}・${G.wx.temp}°C`;
+  const el = $('venueIntro');
+  el.style.setProperty('--tc', home.c1 || '#2a5adf');
+  el.innerHTML = `<div class="vi-bar vi-top"></div><div class="vi-bar vi-bot"></div><div class="vi-card" style="--tc:${home.c1 || '#2a5adf'}"><div class="vi-tag">🏟 STADIUM ・ 比賽球場</div><div class="vi-name">${name}</div><div class="vi-loc">📍 ${PARK_LOC[name] || ''}　${ownerTx}${PK.note ? '　・　' + PK.note : ''}</div><div class="vi-home">${homeTx}</div><div class="vi-wx">${wx}</div></div><div class="vi-skip">點擊或按空白鍵略過 ▸</div>`;
+  document.body.classList.add('venuing'); el.classList.remove('hide'); VENUE.on = true; VENUE.t = 0; VENUE.done = done; G.phase = 'change';
+  CAMC.mode = 'venue'; CAMC.tpos.set(0, 31, 24); CAMC.tlook.set(0, 1, -30); CAMC.tfov = 60 * (VP.fk || 1); camSnap(); flowSfx('whistle', .5); crowdCheer(.6);
+}
+function venueEnd() {
+  if (!VENUE.on) return; VENUE.on = false; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); const d = VENUE.done; VENUE.done = null;
+  if (G.mode === 'play') setCamBat();
+  if (d) d();
+}
+$('venueIntro').addEventListener('click', e => { e.stopPropagation(); venueEnd(); });
+document.addEventListener('keydown', e => { if (VENUE.on && (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape')) { e.preventDefault(); e.stopImmediatePropagation(); venueEnd(); } }, true);
 function cleanupRunners() {
   E.runners = E.runners.filter(r => { if (r.state === 'out' || r.state === 'home') { scene.remove(r.rig.root); return false; } return true; });
 }
@@ -5391,8 +5441,8 @@ function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['�
 function initWeather(homeTeam, parkSel) {
   const on = G.wxOn !== false; let st = parkSel && PARKS[parkSel] ? parkSel : null;      // 玩家指定球場；未指定則依主場／移師場地／大巨蛋機率決定
   if (!st) {
-    if (Math.random() < .16) st = '台北大巨蛋';
-    else { st = (homeTeam && homeTeam.home) || pick(STADIUMS.slice(0, 6)); const sat = homeTeam && SAT_PARKS[homeTeam.id]; if (sat) { let r = Math.random(); for (const [n, p] of sat) { if ((r -= p) < 0) { st = n; break; } } } }
+    if (Math.random() < .5) st = weighted(PARK_W.map(x => x[0]), PARK_W.map(x => x[1]));      // 一半機率：全聯盟球場依 2026 年使用場次加權隨機（不一定是主隊主場）
+    else { st = (homeTeam && homeTeam.home) || pick(STADIUMS.slice(0, 6)); const sat = homeTeam && SAT_PARKS[homeTeam.id]; if (sat) { let r = Math.random(); for (const [n, p] of sat) { if ((r -= p) < 0) { st = n; break; } } } }      // 另一半：主隊主場（偶爾移師外地）
   }
   const PK = PARKS[st] || PARKS['洲際棒球場'], dome = !!PK.dome; applyPark(st);
   G.rain = 0; G.rainT = 0; G.wxClock = 0; G.wxLv = 0; G.wxScen = 'calm'; G.windBase = 0; G.windBoost = 0;
