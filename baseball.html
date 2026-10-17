@@ -1071,7 +1071,7 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
   <button id="btnPush" class="hide">推進 <small>F</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（擠壓／打跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -3960,12 +3960,14 @@ function startSteal(idxs, pre0) {
 function stealIntent(r) {
   if (!r || r.state !== 'on') return false; const i = G.on.indexOf(r); if (i < 0) return false;
   if (G.runnerGo && G.runnerGo.includes(i)) return true;
-  if (humanBats() && G.stealReq) { for (const k of [1, 0]) if (G.on[k] && !G.on[k + 1]) return G.on[k] === r; }
+  if (humanBats() && G.stealReq) { for (const k of (G.stealSel === 0 ? [0, 1] : [1, 0])) if (G.on[k] && !G.on[k + 1]) return G.on[k] === r; }
   return false;
 }
 function effLead(r) {                       // 目前想站的離壘距離：基本離壘 × 警戒心縮減；有意盜壘則再拉遠
   const base = r.leadMax || 2.2, w = r.wary || 0, it = stealIntent(r);
-  return Math.min(4.2, Math.max(.9, base * (1 - w * .3)) * (it ? 1.22 : 1) + (it ? .4 : 0));
+  const v = Math.min(4.2, Math.max(.9, base * (1 - w * .3)) * (it ? 1.22 : 1) + (it ? .4 : 0));
+  if (G.leadMode && humanBats() && G.human >= 0) return Math.min(4.8, Math.max(.5, v * (G.leadMode > 0 ? 1.3 : .65)));      // 玩家進攻：大幅離壘／保守離壘
+  return v;
 }
 function pickAbility(i) {                   // 牽制能力：投手控球／疲勞、接牽制的壘包手守備、左投牽制一壘
   const pp = curPitcher(), tgt = i === 0 ? E.F['1B'] : i === 1 ? E.F.SS : E.F['3B'];
@@ -4574,8 +4576,9 @@ function canSteal() { return !!((G.on[0] && !G.on[1]) || (G.on[1] && !G.on[2]));
 function updateActs() {
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
   $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; if (!canSteal()) G.stealReq = false; $('btnSteal').disabled = !canSteal(); $('btnSteal').style.opacity = canSteal() ? '' : '.4'; syncPowUI(); $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
-  { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb) || (sb0.dataset.k === 'd' && !hp) || (sb0.dataset.k === 't' && !hp))) sb0.classList.add('hide'); }
+  { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb) || (sb0.dataset.k === 'd' && !hp) || (sb0.dataset.k === 't' && !hp) || (sb0.dataset.k === 'o' && !hb))) sb0.classList.add('hide'); }
   { const bd = $('btnDef'); if (bd) bd.style.display = hp ? '' : 'none'; const bt2 = $('btnTac'); if (bt2) bt2.style.display = hp ? '' : 'none'; }
+  { const bo = $('btnOff'); if (bo) { bo.style.display = hb ? '' : 'none'; bo.classList.toggle('on', hb && !!(G.offCall || G.leadMode || G.stealReq)); } }
   { const bmo = $('btnMore'); if (bmo) bmo.style.display = ''; }
   $('btnBunt').classList.toggle('on', !!G.callBunt && hb); $('btnSteal').classList.toggle('on', !!G.stealReq);
 }
@@ -5348,7 +5351,7 @@ function newGame(cfg) {
 }
 function startHalf() {
   aim.need = true;
-  G.outs = 0; G.balls = 0; G.strikes = 0; G.on = [null, null, null]; clearPlay(); tweens.length = 0; TIMERS = []; G.phase = 'change'; G.shift = null; G.tac = {}; G.pending = null; G.dead = false; G.runsPlay = [];
+  G.outs = 0; G.balls = 0; G.strikes = 0; G.on = [null, null, null]; clearPlay(); tweens.length = 0; TIMERS = []; G.phase = 'change'; G.shift = null; G.tac = {}; G.leadMode = 0; G.offCall = null; G.stealSel = null; G.pending = null; G.dead = false; G.runsPlay = [];
   aiManagePitcher(1 - G.half); aiCoachFielders();
   const ft = fieldingTeam(); G.selPitch = 'ST';
   rebuildField(); resetFormation(true); setBall({ x: 0, y: 0, z: 0 }, false);
@@ -5407,7 +5410,7 @@ function nextBatter() {
   if (G.over || G.forfeit >= 0) return;
   cleanupRunners(); if (!aiCoachBatter()) aiPinch();
   if (E.bat && E.bat.pl !== curBatter()) setupBatter(); else if (!E.bat) setupBatter();
-  G.balls = 0; G.strikes = 0; G.seq = []; G.lastPitch = null; G.pickCount = 0; G.callBunt = false; G.sneak = false; G.hitAndRun = false; G.runnerGo = []; G.stealReq = false; G.pending = null;
+  G.balls = 0; G.strikes = 0; G.seq = []; G.lastPitch = null; G.pickCount = 0; G.callBunt = false; G.sneak = false; G.hitAndRun = false; G.runnerGo = []; G.stealReq = false; G.offCall = null; G.stealSel = null; G.pending = null;
   G.intWalk = false; G.intWalk = aiIntentionalWalk();
   for (const pos of POS_LIST) { E.F[pos].rig.ready = pos !== 'C'; }
   computeShift(); resetFormation(false);
@@ -5435,7 +5438,7 @@ function prePitch(first) {
 }
 let _buntTs = 0;
 function cancelBunt(quiet) {              // 取消觸擊：一律把狀態、棒子姿勢、已投出球的處理都收乾淨
-  const had = G.callBunt; G.callBunt = false; G.sneak = false;
+  const had = G.callBunt; G.callBunt = false; G.sneak = false; if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; G.squeeze = null; }
   if (PT && !PT.sw && !PT.done && G.phase === 'flight') { PT.pulled = true; if (had && !quiet) toast('收棒', '#cfe', '#07a'); }      // 球還沒過本壘前＝收棒（不嘗試觸擊）
   const b = E.bat;
   if (b && b.rig && humanBats() && G.human >= 0 && !(PT && PT.sw) && !(b.rig.anim && b.rig.anim.name === 'swing') && G.phase !== 'inplay' && G.phase !== 'result') batterStance();
@@ -5496,7 +5499,11 @@ function doPitch(sel) {
   const set = humanPitches() && !G.intWalk ? .1 + Math.random() * .3 : (() => { let st = Math.random() < .22 ? .9 + Math.random() * .9 : .3 + Math.random() * .8; st *= .8 + (p._tp || 1) * .3; if (anyRun) st *= alertQ ? .6 : Math.random() < .35 ? 1.5 : .8; return clamp(st, .22, alertQ ? .8 : 1.9); })();   // 出手前先站定、看捕手暗號，偶爾停更久
   if (set > .12) { const P = E.F.P; faceRig(P.rig, 0, 4); P.rig.anim = { name: 'stretch', t: 0, dur: set + .05, opt: { hand: p.hand === 'R' ? 1 : -1 } }; }       // 出手前雙手併胸站定
   after(set, () => { if (PT === pt) E.F.P.rig.anim = { name: 'pitch', t: 0, dur: wind / .62, opt: { hand: p.hand === 'R' ? 1 : -1, hold: false } }; });
-  if (humanBats() && G.stealReq) { const idx = []; [1, 0].forEach(i => { if (G.on[i] && !G.on[i + 1]) idx.push(i); }); if (idx.length) G.runnerGo = idx.slice(0, 1); }
+  if (humanBats() && G.human >= 0) {      // 玩家進攻戰術：擠壓短打／打跑（與電腦使用同一套起跑與守備反應）
+    if (G.offCall === 'suicide' || G.offCall === 'safety') { if (G.callBunt && G.on[2] && G.on[2].state === 'on' && G.outs < 2) { G.squeeze = G.offCall; if (G.offCall === 'suicide') { G.runnerGo = [2]; G.stealReq = false; } } else G.squeeze = null; }
+    G.hitAndRun = G.offCall === 'hitrun' && !!G.stealReq;
+  }
+  if (humanBats() && G.stealReq) { const idx = []; (G.stealSel === 0 ? [0, 1] : [1, 0]).forEach(i => { if (G.on[i] && !G.on[i + 1]) idx.push(i); }); if (idx.length) G.runnerGo = idx.slice(0, 1); }
   G.stealWatch = th0.t; G.lastPitchout = !!sel.pitchout;
   if (G.squeeze === 'suicide') { say(castA('<em>三壘跑者起跑！自殺式擠壓短打！</em>')); toast('擠壓短打！', '#ffe9a0', '#c60'); }
   if (G.runnerGo.length) { const go = G.runnerGo.slice(); let latest = 0; for (const i of go) { const r = G.on[i]; if (!r) continue; const pre0 = .05, jf = clamp(.8 + gauss() * .11 - ((r.pl.agg || 50) - 50) * .0014 - ((r.pl.spd || 50) - 50) * .0012, .5, 1.07), jt = Math.max(0, wind * jf - pre0); latest = Math.max(latest, jt); after(set + jt, () => startSteal([i], pre0)); }       // 起跑時機因人而異：看準投手動作的好跳／慢跳
@@ -6831,6 +6838,11 @@ function syncTouch() {
 let keyShift = false;
 window.addEventListener('keydown', e => {
   if (QUIT_OPEN) { if (e.key === 'Escape') closeQuitDlg(); e.preventDefault(); return; }
+  if (uiHold()) {      // 面板／選單開著：遊戲暫停，不接受比賽按鍵（Esc 可關閉）
+    if (e.key === 'Escape') { _hSub.classList.add('hide'); _hActs.classList.remove('open'); if (!_hAud.classList.contains('hide')) { const c = $('audioClose'); if (c) c.click(); } e.preventDefault(); }
+    else if (!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test((e.target && e.target.tagName) || '')) e.preventDefault();
+    return;
+  }
   if (G.mode === 'title') { if (!$('careerDlg').classList.contains('hide') && (e.key === 'Escape' || e.key === 'Enter')) { $('careerDlg').classList.add('hide'); e.preventDefault(); } return; }
   if (e.key === 'Shift') { keyShift = true; aim.shift = true; }
   if (G.mode !== 'play') return;
@@ -6845,7 +6857,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Space') { humanAction(); e.preventDefault(); }
   else if (/^[1-8]$/.test(e.key) && humanPitches() && G.phase === 'pre' && !G.pm) { const p = curPitcher().pitches[+e.key - 1]; if (p) { G.selPitch = p.id; buildPitchPanel(); } }
   else if (e.key === 'b' || e.key === 'B') { if (humanBats()) { toggleBunt(); updateActs(); applyBatStance(); } }
-  else if (e.key === 'q' || e.key === 'Q') { if (humanBats()) { if (!canSteal()) { G.stealReq = false; updateActs(); say('壘上沒有可以盜壘的跑者'); return; } G.stealReq = !G.stealReq; updateActs(); say(G.stealReq ? '盜壘指示！下一球起跑' : '取消指示'); } }
+  else if (e.key === 'q' || e.key === 'Q') { if (humanBats()) { if (!canSteal()) { G.stealReq = false; updateActs(); say('壘上沒有可以盜壘的跑者'); return; } if (G.offCall === 'hitrun') G.offCall = null; G.stealReq = !G.stealReq; updateActs(); say(G.stealReq ? '盜壘指示！下一球起跑' : '取消指示'); } }
   else if (e.key === 'e' || e.key === 'E') { humanPickoff(); }
   else if (e.key === 'r' || e.key === 'R') { humanRosin(); }
   else if (e.key === 'f' || e.key === 'F') { doPush(); }
@@ -6900,7 +6912,7 @@ function humanPickoff(sel) {
 $('absGo').onclick = () => EV.abs ? absResolveInput(true) : runPend(); $('absSkip').onclick = () => EV.abs ? absResolveInput(false) : absClearPend();
 $('btnPowPc').onclick = () => setPow(!POW_PREF);
 $('btnBunt').onclick = () => { toggleBunt(); updateActs(); applyBatStance(); };
-$('btnSteal').onclick = () => { if (!canSteal()) { G.stealReq = false; updateActs(); return; } G.stealReq = !G.stealReq; updateActs(); };
+$('btnSteal').onclick = () => { if (!canSteal()) { G.stealReq = false; updateActs(); return; } if (G.offCall === 'hitrun') G.offCall = null; G.stealReq = !G.stealReq; updateActs(); };
 $('btnPick').onclick = () => humanPickoff();
 { const br1 = $('btnRosin'); if (br1) br1.onclick = humanRosin; const rt = $('rosinTag'); if (rt) { rt.onpointerdown = e => { e.stopPropagation(); }; rt.onclick = e => { e.stopPropagation(); humanRosin(); }; } }
 $('btnMound').onclick = () => { if (humanPitches()) moundVisit(G.human); };
@@ -6909,6 +6921,9 @@ $('btnMound').onclick = () => { if (humanPitches()) moundVisit(G.human); };
 let QUIT_OPEN = false;
 function openQuitDlg() { if (G.mode !== 'play') return; QUIT_OPEN = true; $('quitDlg').classList.remove('hide'); }
 function closeQuitDlg() { QUIT_OPEN = false; $('quitDlg').classList.add('hide'); }
+/* 比賽中開著「更多」選單／戰術／守備／換投／代打／音樂設定面板時，遊戲暫停（關閉後才繼續），避免邊設定邊偷跑 */
+const _hSub = $('sub'), _hAud = $('audioPanel'), _hActs = $('acts');
+function uiHold() { return G.mode === 'play' && (!_hSub.classList.contains('hide') || !_hAud.classList.contains('hide') || _hActs.classList.contains('open')); }
 function quitToMenu() {
   closeQuitDlg();
   TIMERS = []; tweens.length = 0; INTRO.q.length = 0; INTRO.busy = false; INTRO.gen = (INTRO.gen || 0) + 1; HS = 0;
@@ -7096,15 +7111,51 @@ function openTacPanel() {
   const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>'; sub.innerHTML = '<h3>🧭 戰術' + close + '</h3>';
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
   const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); sub.classList.add('hide'); }; sub.appendChild(d); };
+  mk(`${!(G.tac && (G.tac.inf || G.tac.of)) ? '✔ ' : ''}不使用任何戰術<span>取消內野、外野站位戰術，回到完全沒有使用戰術的預設站位</span>`, () => { G.tac = {}; computeShift(); resetFormation(false); say('戰術：不使用任何戰術，回到預設站位'); toast('預設站位', '#cfe', '#07a'); }, !(G.tac && (G.tac.inf || G.tac.of)));
   head('投手');
   mk(`敬遠　<span>強制讓目前打者直接保送上壘${G.on[0] && G.on[1] && G.on[2] ? '（滿壘會押回一分！）' : ''}</span>`, humanIBB, G.intWalk);
   head('內野站位（再按一次＝解除）');
   for (const k in TAC_INF) mk(`${G.tac && G.tac.inf === k ? '✔ ' : ''}${TAC_INF[k].name}<span>${TAC_INF[k].desc}</span>`, () => setTac('inf', k), G.tac && G.tac.inf === k);
   head('外野站位（再按一次＝解除）');
   for (const k in TAC_OF) mk(`${G.tac && G.tac.of === k ? '✔ ' : ''}${TAC_OF[k].name}<span>${TAC_OF[k].desc}</span>`, () => setTac('of', k), G.tac && G.tac.of === k);
-  head('其他'); mk('恢復標準站位', () => { G.tac = {}; computeShift(); resetFormation(false); say('戰術：恢復標準站位'); });
   mk('關閉', () => { });
 }
+/* ---------------- 比賽中：進攻戰術（擠壓短打／打跑／盜壘選人／離壘距離） ---------------- */
+function openOffPanel() {
+  const sub = $('sub'); sub.classList.remove('hide'); sub.dataset.k = 'o';
+  const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>'; sub.innerHTML = '<h3>🏃 進攻戰術' + close + '</h3>';
+  const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
+  const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } sub.classList.add('hide'); }; sub.appendChild(d); };
+  const stopBunt = () => { if (G.callBunt) { cancelBunt(true); applyBatStance(); } };
+  const none = !(G.offCall || G.leadMode || G.stealReq || G.callBunt);
+  mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、盜壘、擠壓、打跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
+  if (G.on[2] && G.on[2].state === 'on' && G.outs < 2) {
+    head('擠壓短打（三壘有人、未滿兩出局；再按一次＝取消）');
+    mk(`${G.offCall === 'safety' ? '✔ ' : ''}安全式擠壓<span>打者短打，三壘跑者看球再決定要不要衝回本壘</span>`, () => { if (G.offCall === 'safety') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.offCall = 'safety'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>安全式擠壓短打</em>'); toast('安全式擠壓', '#ffe9a0', '#c60'); }, G.offCall === 'safety');
+    mk(`${G.offCall === 'suicide' ? '✔ ' : ''}自殺式擠壓<span>投手一出手三壘跑者就起跑，打者一定要把球短打在地上</span>`, () => { if (G.offCall === 'suicide') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.offCall = 'suicide'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>自殺式擠壓短打</em>！下一球三壘跑者起跑'); toast('自殺式擠壓', '#ffe9a0', '#c60'); }, G.offCall === 'suicide');
+  }
+  const runs = []; if (G.on[1] && !G.on[2]) runs.push([1, '二壘跑者', '三壘']); if (G.on[0] && !G.on[1]) runs.push([0, '一壘跑者', '二壘']);
+  if (runs.length) {
+    head('盜壘（再按一次＝取消）');
+    runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall !== 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
+      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，下一球起跑`); }, on); });
+    head('打跑戰術（跑者起跑、打者務必揮棒；再按一次＝取消）');
+    runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall === 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
+      mk(`${on ? '✔ ' : ''}${nm}打跑（跑${to}）<span>${r.pl.name}起跑，打者要揮棒配合</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.offCall = null; return; } stopBunt(); G.stealSel = i; G.stealReq = true; G.offCall = 'hitrun'; say(`進攻戰術：<em>打跑</em>！${nm}起跑，打者務必揮棒`); toast('打跑戰術', '#ffe9a0', '#c60'); }, on); });
+  }
+  if (G.on.some(r => r && r.state === 'on')) {
+    head('壘上跑者離壘距離');
+    mk(`${G.leadMode > 0 ? '✔ ' : ''}大幅離壘<span>離壘更遠、更容易推進，但也更容易被牽制、被電腦看穿</span>`, () => { G.leadMode = G.leadMode > 0 ? 0 : 1; say(G.leadMode ? '跑者：<em>大幅離壘</em>' : '跑者：標準離壘'); }, G.leadMode > 0);
+    mk(`${!G.leadMode ? '✔ ' : ''}標準離壘<span>預設，依跑者腳程與企圖心自動決定</span>`, () => { G.leadMode = 0; say('跑者：標準離壘'); }, !G.leadMode);
+    mk(`${G.leadMode < 0 ? '✔ ' : ''}保守離壘<span>靠近壘包、不易被牽制，但推進較吃虧</span>`, () => { G.leadMode = G.leadMode < 0 ? 0 : -1; say(G.leadMode ? '跑者：<em>保守離壘</em>' : '跑者：標準離壘'); }, G.leadMode < 0);
+  }
+  mk('關閉', () => { });
+}
+$('btnOff').onclick = () => {
+  const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 'o') { sub.classList.add('hide'); return; }
+  if (G.human < 0 || !humanBats() || G.phase !== 'pre') { say('自己進攻、投球前才能下達進攻戰術'); return; }
+  openOffPanel();
+};
 $('btnTac').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 't') { sub.classList.add('hide'); return; }
   if (G.human < 0 || !humanPitches() || G.phase !== 'pre') { say('自己守備、投球前才能下達戰術'); return; }
@@ -7157,7 +7208,11 @@ $('actMore').addEventListener('click', () => setTimeout(() => $('acts').classLis
 $('sb').addEventListener('click', () => { if (MOB) { $('sb').classList.toggle('open'); layoutTop(); } });
 let _piT = 0;
 $('pinfo').addEventListener('click', () => { if (!MOB) return; const el = $('pinfo'); el.classList.toggle('open'); clearTimeout(_piT); if (el.classList.contains('open')) _piT = setTimeout(() => el.classList.remove('open'), 7000); });
-document.addEventListener('pointerdown', e => { for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) { if (!MOB && id !== 'acts') continue; if (!e.target.closest(sel)) $(id).classList.remove('open'); } }, true);
+document.addEventListener('pointerdown', e => {
+  const wasOpen = G.mode === 'play' && ($('acts').classList.contains('open') || !$('sub').classList.contains('hide'));
+  for (const [id, sel] of [['sb', '#sb'], ['pinfo', '#pinfo'], ['acts', '#acts']]) { if (!MOB && id !== 'acts') continue; if (!e.target.closest(sel)) $(id).classList.remove('open'); }
+  if (wasOpen && !e.target.closest('#acts,#sub,#audioPanel,#quitDlg,#absPanel,#sb,#pinfo,#topbar,#result,#menu,.abtn,.pbtn')) { e.stopPropagation(); e.preventDefault(); }      // 選單／面板開著時，點場上只是關選單，不會順便揮棒或投球
+}, true);
 
 /* ---------------- 背景音設定面板（「更多」→「背景音設定」開啟） ---------------- */
 (function () {
@@ -7219,7 +7274,7 @@ function checkInv() {
 }
 let HS = 0; function hitStop(t) { HS = Math.max(HS, t); }
 function step(dt) {
-  if (QUIT_OPEN) return;
+  if (QUIT_OPEN || uiHold()) return;
   if (G.mode === 'play' && E.bat && E.bat.rig && E.bat.rig.anim && E.bat.rig.anim.name === 'bunt' && !G.callBunt && !(PT && PT.sw) && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) batterStance();      // 觸擊取消後不再卡在觸擊姿勢
   if (HS > 0) { HS -= dt; updateBursts(dt); sqStep(dt * .5); return; }
   sqStep(dt);
