@@ -924,6 +924,25 @@ body.mob #hud #pitchPanel .pbtn{border-radius:10px;padding:6px 10px;font-size:12
 #absPanel.abs-pop .absBtns .abtn,body.mob #absPanel.abs-pop .absBtns .abtn{flex:1;padding:10px 14px!important;font-size:15px!important;min-height:40px!important;border-width:2px!important;background:rgba(18,56,95,.9)!important}
 @keyframes absPopIn{from{opacity:0;transform:translate(-50%,-44%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 .hk-d{font-size:12px;margin-top:4px;color:#bfe6ff;line-height:1.5}.hk-d b{color:#ffd21a}
+
+/* ===== 全壘打大字特效（幾分全壘打一次顯示） ===== */
+#hrBanner{left:50%;top:40%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:29;white-space:nowrap}
+#hrBanner .hb-t{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(48px,11vw,140px);line-height:1.05;color:#fff27a;-webkit-text-stroke:.09em #c4160a;paint-order:stroke fill;letter-spacing:.05em;text-shadow:0 .06em 0 #6a0000,0 0 34px #ff8a1ccc,0 0 70px #ff3a1a88}
+#hrBanner .hb-s{margin-top:8px;font-weight:900;font-size:clamp(15px,2.8vw,30px);color:#fff;text-shadow:0 2px 8px #000;letter-spacing:.14em}
+#hrBanner.gs .hb-t{font-size:clamp(40px,9.6vw,120px);color:#ffe14a;-webkit-text-stroke:.09em #7a0aa8;text-shadow:0 .06em 0 #3a0050,0 0 34px #ffd21acc,0 0 80px #c64aff99}
+#hrBanner.show{animation:hrPop 3.4s ease-out forwards}
+@keyframes hrPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-6deg)}8%{opacity:1;transform:translate(-50%,-50%) scale(1.25) rotate(2deg)}14%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}}
+body.mob #hrBanner{top:34%}body.mob #hrBanner .hb-t{font-size:clamp(34px,10vw,70px)}
+
+/* ===== ABS 提示：精簡、半透明、上移 ===== */
+#absPanel.abs-pop,body.mob #absPanel.abs-pop{top:15%!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;gap:4px 8px!important;padding:5px 10px!important;min-width:0!important;max-width:min(86vw,360px)!important;background:rgba(6,24,42,.5)!important;border:1.5px solid rgba(68,204,255,.6)!important;border-radius:999px!important;box-shadow:0 2px 10px rgba(0,0,0,.3)!important;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#absPanel.abs-pop.abs-end{background:rgba(70,8,8,.55)!important;border-color:rgba(255,90,90,.8)!important}
+#absPanel.abs-pop #absTitle{display:none!important}
+#absPanel.abs-pop #absCnt{display:none!important}
+#absPanel.abs-pop #absRem,body.mob #absPanel.abs-pop #absRem{flex:0 1 auto;font-size:12px!important;white-space:nowrap;text-align:left}
+#absPanel.abs-pop .bar,body.mob #absPanel.abs-pop .bar{order:3;flex-basis:100%;height:3px;margin:0!important}
+#absPanel.abs-pop .absBtns,body.mob #absPanel.abs-pop .absBtns{width:auto;gap:5px}
+#absPanel.abs-pop .absBtns .abtn,body.mob #absPanel.abs-pop .absBtns .abtn{flex:none;padding:3px 12px!important;font-size:12px!important;min-height:26px!important;border-width:1px!important;border-radius:999px!important;background:rgba(18,56,95,.65)!important}
 </style>
 </head>
 <body>
@@ -992,6 +1011,7 @@ body.mob #hud #pitchPanel .pbtn{border-radius:10px;padding:6px 10px;font-size:12
   <div id="toast">STRIKE</div>
   <div id="intro" class="hide"></div>
   <div id="quitDlg" class="hide"><div class="qbox"><div class="qt">返回主選單？</div><div class="qs">遊戲進度將會消失，目前這場比賽會直接中斷並回到遊戲首頁。<br>確定要返回主選單嗎？</div><div class="qb"><button id="quitNo">取消</button><button id="quitYes">確認返回</button></div></div></div>
+  <div id="hrBanner" class="hide"><div class="hb-t">全壘打</div><div class="hb-s"></div></div>
   <div id="outBanner" class="hide"><div class="ob-t">OUT</div><div class="ob-s"></div></div>
   <div id="pitchPanel" class="hide"></div>
   <div id="pmeter" class="hide"><div class="pm-t"><span id="pmName">投球準度</span><small id="pmHint">再按一次投出（對準綠區最準）</small></div><div class="pm-bar" id="pmBar"><i class="pm-c" id="pmCur"></i></div></div>
@@ -1776,6 +1796,8 @@ function updateCamera(dt, focus) {
     const d = Math.hypot(focus.x, focus.z);
     CAMC.tlook.set(focus.x * .9, Math.max(0, focus.y * .3), focus.z * .95 - 3);
     CAMC.tpos.set(focus.x * .3, 17 + d * .26, Math.max(-12, focus.z * .3) + 26 + d * .12); CAMC.tfov = 50 * (VP.fk || 1); CAMC.k = 2.6;
+  } else if (CAMC.mode === 'hrtrot' && focus) {
+    CAMC.tlook.set(focus.x, 1.1, focus.z); CAMC.tpos.set(focus.x * .4, 11 + Math.hypot(focus.x, focus.z) * .12, focus.z + 19); CAMC.tfov = 50 * (VP.fk || 1); CAMC.k = 2.4;
   } else if (CAMC.mode === 'close' && focus) {
     CAMC.tlook.set(focus.x, 1, focus.z); CAMC.tpos.set(focus.x + (focus.x >= 0 ? 8 : -8), 7, focus.z + 12); CAMC.tfov = 46 * (VP.fk || 1); CAMC.k = 3.4;
   }
@@ -2562,7 +2584,7 @@ function runnerArrive(r) {
   r.from = r.to;
   if (r.from >= 1 && r.from <= 3 && !r.slipped) maybeSlip(r, r.stealer ? 1.6 : 1);
   if (r.from >= 1 && r.from <= 3) { if (r.stealer) maybeInjureRunner(r, 'slide'); else if (r.bat && r.from === 3) maybeInjureRunner(r, 'sprint'); else if (PL && PL.state === 'thrown') maybeInjureRunner(r, 'slide'); }
-  if (r.from >= 4) { r.state = 'home'; const hrBat = r.bat && PL && PL.plan && PL.plan.kind === 'hr'; r.rig.anim = hrBat ? { name: 'cel' + (1 + Math.floor(Math.random() * 7)), t: 0, dur: 2.2 + Math.random() * .9, opt: {} } : { name: 'cheer', t: 0, dur: 1, opt: {} }; r.rig.run = 0; scoreRunner(r); return; }
+  if (r.from >= 4) { r.state = 'home'; const hrBat = r.bat && PL && PL.plan && PL.plan.kind === 'hr'; r.rig.anim = hrBat ? { name: 'cel' + (1 + Math.floor(Math.random() * 7)), t: 0, dur: 2.2 + Math.random() * .9, opt: {} } : { name: 'cheer', t: 0, dur: 1, opt: {} }; r.rig.run = 0; if (hrBat) { r.fadeT = -(r.rig.anim.dur + .4); flowSfx('cheer', 2); crowdCheer(1.6); } scoreRunner(r); return; }
   if (r.goal > r.from && baseFree(r.from + 1, r)) { r.to = r.from + 1; r.s = 0; r.dir = 1; r.sliding = false; }
   else if (G.on[r.from - 1] && G.on[r.from - 1] !== r) { r.state = 'on'; r.s = 0; r.to = r.from + 1; putOut(r, 'tag'); }
   else { r.state = 'on'; r.s = 0; r.lead = 0; r.to = r.from + 1; G.on[r.from - 1] = r; r.goal = r.from; if (r.bat) r.bat = false; r.rig.anim = { name: 'slide', t: 0, dur: .01, opt: { hold: false } }; r.rig.anim = null; }
@@ -2982,13 +3004,13 @@ function checkPlayEnd() {
   if (G.outs >= 3 && PL.state !== 'flight') { if (!PL.ending) { PL.ending = true; after(.8, () => endPlay()); } return; }
   const moving = E.runners.some(r => r.state === 'run');
   if ((PL.state === 'held' || PL.state === 'hrdone') && !moving && !PL.selfTag && !PL.tagChase && PL.tAge > .3) {
-    if (!PL.ending) { PL.ending = true; after(PL.state === 'hrdone' ? .9 : .35, () => endPlay()); }
+    if (!PL.ending) { PL.ending = true; after(PL.state === 'hrdone' ? 2.8 : .35, () => endPlay()); }
   }
-  if (PL.tAge > 40 && !PL.ending) { PL.ending = true; endPlay(); }
+  if (PL.tAge > (PL.plan && PL.plan.kind === 'hr' ? 70 : 40) && !PL.ending) { PL.ending = true; endPlay(); }
 }
 function endPlay() {
   if (!PL || PL.done) return;
-  if (PL.foul && !PL.foulOut && E.runners.some(r => r.state === 'run' && !r.bat) && (PL.endWait = (PL.endWait || 0) + 1) < 60) { after(.2, endPlay); return; } PL.done = true; const pl = PL;
+  if (PL.foul && !PL.foulOut && E.runners.some(r => r.state === 'run' && !r.bat) && (PL.endWait = (PL.endWait || 0) + 1) < 60) { after(.2, endPlay); return; } if (PL.plan && PL.plan.kind === 'hr' && E.runners.some(r => r.state === 'run') && (PL.hrWait = (PL.hrWait || 0) + 1) < 200) { after(.2, endPlay); return; } PL.done = true; const pl = PL;
   // settle runners
   if (pl.plan && pl.plan.kind === 'hr') { for (const r of E.runners) if (r.state === 'run') { r.state = 'home'; r.rig.run = 0; r.rig.root.visible = false; scoreRunner(r); } }   // 全壘打：還沒跑完的跑者直接得分，不留在壘上
   else for (const r of E.runners) { if (r.state === 'run') { r.state = 'on'; if (r.dir > 0) { r.from = r.s > .5 ? r.to : r.from; } r.s = 0; r.to = r.from + 1; r.lead = 0; if (r.from >= 1 && r.from <= 3) G.on[r.from - 1] = r; } }
@@ -3439,8 +3461,9 @@ function sndInit() {
   try {
     const C = new (window.AudioContext || window.webkitAudioContext)(); SND.ctx = C; SND.master = C.createGain(); SND.master.gain.value = .8; SND.master.connect(C.destination);
     const len = C.sampleRate * 2, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * .97 + (Math.random() * 2 - 1) * .03; d[i] = l * 6; }
-    const src = C.createBufferSource(); src.buffer = buf; src.loop = true; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = .5; const g = C.createGain(); g.gain.value = .12;
+    const src = C.createBufferSource(); src.buffer = buf; src.loop = true; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = .5; const g = C.createGain(); g.gain.value = .2;
     src.connect(f); f.connect(g); g.connect(SND.master); src.start(); SND.crowdGain = g; SND.crowdF = f;
+    { const s2 = C.createBufferSource(); s2.buffer = buf; s2.loop = true; s2.playbackRate.value = .93; const f2 = C.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1000; f2.Q.value = .35; const g2 = C.createGain(); g2.gain.value = .0; s2.connect(f2); f2.connect(g2); g2.connect(SND.master); s2.start(); SND.amb = g2; SND.ambF = f2; setInterval(crowdAmbTick, 1300); }      // 第二層「球場人聲」：隨機起伏、零星拍手／鼓聲／口哨
     try { bgmInit(C); } catch (e2) { console.warn('bgm', e2); }
   } catch (e) { SND.ctx = null; }
 }
@@ -3465,7 +3488,7 @@ function flowSfx(n, v) {
     case 'strike': tone(880, .09, .25, 'square'); setTimeout(() => tone(1180, .1, .22, 'square'), 90); break;
     case 'ball': tone(520, .12, .22, 'square'); break;
     case 'out': tone(300, .2, .3, 'sawtooth', .6); break;
-    case 'cheer': if (v >= .8) crowdRoar(v); if (SND.crowdGain) { const t = SND.ctx.currentTime; SND.crowdGain.gain.cancelScheduledValues(t); SND.crowdGain.gain.setValueAtTime(SND.crowdGain.gain.value, t); SND.crowdGain.gain.linearRampToValueAtTime(Math.min(1.3, .6 * v), t + .25); SND.crowdGain.gain.linearRampToValueAtTime(.12, t + 4.2 * v); SND.crowdF.frequency.setValueAtTime(1100, t); SND.crowdF.frequency.linearRampToValueAtTime(700, t + 3.2 * v); } break;
+    case 'cheer': if (v >= .8) crowdRoar(v); if (SND.crowdGain) { const t = SND.ctx.currentTime; SND.crowdGain.gain.cancelScheduledValues(t); SND.crowdGain.gain.setValueAtTime(SND.crowdGain.gain.value, t); SND.crowdGain.gain.linearRampToValueAtTime(Math.min(2.4, .95 * v), t + .25); SND.crowdGain.gain.linearRampToValueAtTime(.2, t + 5.5 * v); SND.crowdF.frequency.setValueAtTime(1100, t); SND.crowdF.frequency.linearRampToValueAtTime(700, t + 3.2 * v); } break;
     case 'boom': noiseBurst(.45, 160, 1.1, .75 * v, 'lowpass'); tone(62, .35, .55 * v, 'sine', .6); break;
     case 'crackle': for (let i = 0; i < 7; i++) setTimeout(() => noiseBurst(.03, 3800, 1, .22 * v, 'highpass'), i * 55 + Math.random() * 40); break;
     case 'jingle': [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, .25, .3, 'triangle'), i * 120)); break;
@@ -3473,6 +3496,8 @@ function flowSfx(n, v) {
     case 'pick': noiseBurst(.07, 700, 1, .5); break;
     case 'throw': sweepNoise(.22, 2000, 700, 1.1, .22, 'bandpass'); break;
     case 'wall': noiseBurst(.12, 1100, 1, .5, 'bandpass'); tone(170, .2, .55, 'triangle', .55); break;
+    case 'hitfan': hitFanfare(v); break;
+    case 'hrfan': hrFanfare(v); break;
     case 'outcall': tone(988, .1, .22, 'triangle'); setTimeout(() => tone(740, .26, .22, 'triangle'), 110); break;
   }
 }
@@ -3482,12 +3507,51 @@ function crowdRoar(v) {                                      // 觀眾歡呼：�
   for (let i = 0; i < n; i++) { l = l * .9 + (Math.random() * 2 - 1) * .1; d[i] = l * 3; }
   const s = C.createBufferSource(); s.buffer = b; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = .7; const t = C.currentTime;
   f.frequency.setValueAtTime(600, t); f.frequency.linearRampToValueAtTime(1300, t + .5); f.frequency.linearRampToValueAtTime(800, t + dur);
-  const g = C.createGain(), pk = Math.min(.9, .22 * v + .1);
+  const g = C.createGain(), pk = Math.min(1.5, .4 * v + .15);
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(pk, t + .35); g.gain.linearRampToValueAtTime(pk * .8, t + dur * .5); g.gain.exponentialRampToValueAtTime(.001, t + dur);
   s.connect(f); f.connect(g); g.connect(SND.master); s.start(t);
-  const nc = Math.min(34, Math.round(9 * v));
-  for (let i = 0; i < nc; i++) setTimeout(() => noiseBurst(.05, 2400 + Math.random() * 1200, .8, .14 + .08 * Math.min(v, 2), 'highpass'), 200 + i * (dur * 700 / nc) + Math.random() * 60);
+  const nc = Math.min(64, Math.round(17 * v));
+  { const s2 = C.createBufferSource(); s2.buffer = b; s2.playbackRate.value = 1.12; const f2 = C.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.value = 1.6; f2.frequency.setValueAtTime(1000, t); f2.frequency.linearRampToValueAtTime(1800, t + .6); f2.frequency.linearRampToValueAtTime(1200, t + dur); const g2 = C.createGain(); g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(pk * .55, t + .4); g2.gain.exponentialRampToValueAtTime(.001, t + dur); s2.connect(f2); f2.connect(g2); g2.connect(SND.master); s2.start(t); }      // 高亢的「哇～」人聲層
+  for (let i = 0; i < nc; i++) setTimeout(() => noiseBurst(.05, 2400 + Math.random() * 1200, .8, .22 + .1 * Math.min(v, 2), 'highpass'), 200 + i * (dur * 700 / nc) + Math.random() * 60);
   if (v >= 1.3) { setTimeout(() => tone(1700 + Math.random() * 300, .3, .07, 'sine', 1.25), 300); setTimeout(() => tone(1500 + Math.random() * 300, .35, .06, 'sine', 1.3), 700); }
+}
+function hornSeq(notes, vol) {      // 號角：[MIDI, 開始秒, 長度]；柔和銅管音色，給安打／全壘打的應援短句
+  const C = SND.ctx; if (!C || !SND.on) return; const t0 = C.currentTime + .02; vol = vol || 1;
+  notes.forEach(([m, st, d]) => {
+    const t = t0 + st, f = mtof(m), g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = .8;
+    lp.frequency.setValueAtTime(600, t); lp.frequency.linearRampToValueAtTime(2300, t + .06); lp.frequency.setTargetAtTime(1400, t + .09, .2);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.2 * vol, t + .02); g.gain.setTargetAtTime(.14 * vol, t + .05, .12); g.gain.setTargetAtTime(0, t + d, .05);
+    [0, 7].forEach(dt => { const o = C.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = dt; o.connect(lp); o.start(t); o.stop(t + d + .35); });
+    lp.connect(g); g.connect(SND.master);
+  });
+}
+function cheerDrums(n, gap, v) {      // 應援大鼓＋拍手：咚咚恰
+  v = v || 1; for (let i = 0; i < n; i++) setTimeout(() => { if (!SND.ctx || !SND.on) return; if (i % 3 === 2) noiseBurst(.07, 1500, .9, .38 * v, 'bandpass'); else { tone(95, .22, .42 * v, 'sine', .5); noiseBurst(.05, 300, 1, .22 * v, 'lowpass'); } }, i * gap);
+}
+const CHARGE = [[67, 0, .14], [72, .16, .14], [76, .32, .14], [79, .48, .22], [76, .74, .16], [79, .92, .7]];      // 衝鋒號
+function hitFanfare(n) {      // 安打：號角短句＋拍手；長打更熱鬧
+  if (!SND.ctx || !SND.on) return;
+  if (n === 1) { hornSeq([[72, 0, .12], [76, .15, .12], [79, .3, .4]], .6); cheerDrums(6, 130, .7); }
+  else if (n === 2) { hornSeq(CHARGE, .75); cheerDrums(10, 120, .85); }
+  else { hornSeq(CHARGE, .9); setTimeout(() => hornSeq([[72, 0, .18], [76, .2, .18], [79, .4, .18], [84, .6, .9], [79, .6, .9]], .9), 1250); cheerDrums(16, 110, 1); }
+}
+function hrFanfare(n) {      // 全壘打：衝鋒號＋勝利和弦＋鈸＋密集大鼓＋多波歡呼
+  if (!SND.ctx || !SND.on) return;
+  hornSeq(CHARGE, 1); cheerDrums(14, 105, 1.1);
+  setTimeout(() => { hornSeq([[72, 0, .2], [76, .22, .2], [79, .44, .2], [84, .66, 1.5], [79, .66, 1.5], [76, .66, 1.5]], 1); noiseBurst(1.4, 5000, .6, .5, 'highpass'); crowdRoar(2.4); }, 1500);
+  setTimeout(() => cheerDrums(12, 120, 1), 2300);
+  setTimeout(() => crowdRoar(2.2), 3300); setTimeout(() => crowdRoar(1.8), 5200);
+  if (n >= 3) setTimeout(() => { hornSeq(CHARGE, 1); crowdRoar(2.4); }, 4200);
+}
+function crowdAmbTick() {      // 球場環境人聲：音量隨機起伏，偶爾拍手、應援鼓、口哨、小聲歡呼
+  const C = SND.ctx; if (!C || !SND.on || !SND.amb || C.state !== 'running') return;
+  const play = typeof G !== 'undefined' && G.mode === 'play', t = C.currentTime;
+  SND.amb.gain.setTargetAtTime(play ? .17 + Math.random() * .17 + (crowdCheer.v || 0) * .1 : .035, t, .5); SND.ambF.frequency.setTargetAtTime(800 + Math.random() * 500, t, .6);
+  if (!play) return; const r = Math.random();
+  if (r < .32) { const n = 3 + Math.floor(Math.random() * 5); for (let i = 0; i < n; i++) setTimeout(() => noiseBurst(.05, 2200 + Math.random() * 1400, .8, .14 + Math.random() * .08, 'highpass'), i * (110 + Math.random() * 70)); }
+  else if (r < .44) cheerDrums(4 + Math.floor(Math.random() * 3), 150, .5);
+  else if (r < .52) tone(1800 + Math.random() * 400, .35, .05, 'sine', 1.2);
+  else if (r < .58) crowdRoar(.55);
 }
 function sweepNoise(dur, f0, f1, q, gain, type) {            // 破空／揮動類：頻率掃過的噪音
   const C = SND.ctx; if (!C) return; const n = Math.floor(C.sampleRate * dur), b = C.createBuffer(1, n, C.sampleRate), d = b.getChannelData(0);
@@ -3525,8 +3589,9 @@ function hitSfx(res) {                                       // 擊球聲：木�
   if (sweet && !gb && ev > 34 && SND.crowdGain) flowSfx('cheer', clamp((ev - 30) / 26, .35, .9));
 }
 /* ---------------- 背景音樂（WebAudio 即時合成：輕鬆爵士／球場午後） ---------------- */
-const BGM = { vol: 60, mute: false, ctx: null, bus: null, ch: null, inst: null, lead: null, drum: null, gtr: null, noise: null, timer: 0, step: 0, t0: 0, track: 1, beat: .6, swing: .6, irc: {} };
+const BGM = { vol: 50, mute: false, ctx: null, bus: null, ch: null, inst: null, lead: null, drum: null, gtr: null, noise: null, timer: 0, step: 0, t0: 0, track: 2, beat: .6, swing: .6, irc: {} };
 try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; const tk = localStorage.getItem('cpbl_bgm_track'); if (tk !== null && !isNaN(+tk) && +tk >= 0 && +tk < 5) BGM.track = +tk | 0; } catch (e) { }
+try { if (localStorage.getItem('cpbl_bgm_v2') !== '1') { BGM.track = 2; BGM.vol = Math.min(BGM.vol, 50); localStorage.setItem('cpbl_bgm_v2', '1'); localStorage.setItem('cpbl_bgm_track', '2'); localStorage.setItem('cpbl_bgm_vol', String(BGM.vol)); } } catch (e) { }      // 一次性：預設改為「應援號角」、音量不超過 50
 const BGM_LOOP = 128;
 const BGM_CH = {
   Cmaj7: { r: 48, v: [55, 59, 62, 64] }, Am7: { r: 45, v: [55, 57, 60, 64] }, Dm7: { r: 50, v: [53, 57, 60, 62] }, G7: { r: 43, v: [53, 55, 59, 62] },
@@ -3683,9 +3748,9 @@ function bgmSynBass(m, t, d, v, type, cut) {
 function bgmBrass(ms, t, d, v) {      // 銅管（小號／長號）：亮度隨音頭展開，帶一點顫音
   const C = BGM.ctx;
   ms.forEach(m => {
-    const o = C.createOscillator(), o2 = C.createOscillator(), g = C.createGain(), lp = C.createBiquadFilter(); o.type = 'sawtooth'; o2.type = 'sawtooth'; o.frequency.value = mtof(m); o2.frequency.value = mtof(m); o2.detune.value = 9;
-    lp.type = 'lowpass'; lp.Q.value = 1.2; lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2800, t + .07); lp.frequency.setTargetAtTime(1600, t + .09, .2);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .085, t + .025); g.gain.setTargetAtTime(v * .06, t + .06, .15); g.gain.setTargetAtTime(0, t + d, .045);
+    const o = C.createOscillator(), o2 = C.createOscillator(), g = C.createGain(), lp = C.createBiquadFilter(); o.type = 'sawtooth'; o2.type = 'sawtooth'; o.frequency.value = mtof(m); o2.frequency.value = mtof(m); o2.detune.value = 6;
+    lp.type = 'lowpass'; lp.Q.value = .8; lp.frequency.setValueAtTime(450, t); lp.frequency.linearRampToValueAtTime(2000, t + .08); lp.frequency.setTargetAtTime(1250, t + .1, .2);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .07, t + .03); g.gain.setTargetAtTime(v * .05, t + .07, .15); g.gain.setTargetAtTime(0, t + d, .045);
     const l = C.createOscillator(), lg = C.createGain(); l.frequency.value = 5.2; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(10, t + .25); l.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
     o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(BGM.lead); const e = t + d + .35; o.start(t); o2.start(t); l.start(t); o.stop(e); o2.stop(e); l.stop(e);
   });
@@ -3753,9 +3818,10 @@ function brassPlay(n, t) {
   if (st === 0 || st === 4) bgmSynBass(R, t, dur(1.5), 1, 'sawtooth', 420); else if (st === 2 || st === 6) bgmSynBass(R + 7, t, dur(1.2), .7, 'sawtooth', 420);      // 低音號：oom-pah
   if (!intro && (st === 3 || st === 7)) bgmBrass(tri, t, dur(.8), chorus ? .5 : .38);                                                                                // 小號／長號切分和弦
   if (!intro) BR_MEL[bar].forEach(x => { if (x[0] === st) bgmBrass([x[1]], t, dur(x[2]) * .95, 1); });
-  if (st % 2 === 0) bgmKick(t, .55);
-  if (st === 2 || st === 6) { bgmSnare(t, .8); bgmClap(t, .7); } else if (st % 2) bgmSnare(t, .2);                                                                 // 小鼓行進＋拍手
-  if ((bar & 1) && (st === 5 || st === 7)) bgmClap(t, .5);
+  if (st === 0 || st === 4) bgmKick(t, .5); else if (st === 2 || st === 6) bgmKick(t, .24);      // 大鼓：咚—咚，不再每拍猛敲
+  if (st === 2 || st === 6) { bgmSnare(t, .42); bgmClap(t, .55); } else if (st % 2) bgmSnare(t, .09);                                                                 // 小鼓行進＋拍手
+  if ((bar & 1) && (st === 5 || st === 7)) bgmClap(t, .4);
+  if (bar >= 8 && st === 3) bgmClap(t, .35);      // 副歌多一點觀眾拍手
   if (st === 0 && (bar & 3) === 0) bgmCrash(t, .8);
   if (bar === 15 && st >= 4) bgmTom(t, 200 - (st - 4) * 22, .8);
 }
@@ -3807,7 +3873,7 @@ function chipPlay(n, t) {
 const BGM_TRACKS = [
   { id: 'jazz', icon: '🎷', name: '午後球場', sub: '輕鬆爵士・電鋼琴與刷鼓', tag: '休閒', bpm: 100, swing: .6, trim: 1, mix: { rev: 2.2, revWet: .22, dly: .75, fb: .28, dw: .3, drum: .8 }, play: bgmPlayStep },
   { id: 'rock', icon: '🔥', name: '熱血決戰', sub: '激昂搖滾・失真吉他與重鼓', tag: '熱血', bpm: 156, swing: .5, trim: .8, mix: { rev: 1.2, revWet: .12, dly: .75, fb: .22, dw: .16, drum: 1 }, play: rockPlay },
-  { id: 'brass', icon: '📯', name: '應援號角', sub: '銅管進行曲・拍手與小鼓', tag: '熱血', bpm: 140, swing: .5, trim: .9, mix: { rev: 1.8, revWet: .2, dly: .5, fb: .2, dw: .15, drum: .95 }, play: brassPlay },
+  { id: 'brass', icon: '📯', name: '應援號角', sub: '銅管進行曲・拍手與小鼓', tag: '熱血', bpm: 128, swing: .5, trim: .72, mix: { rev: 1.8, revWet: .2, dly: .5, fb: .2, dw: .15, drum: .95 }, play: brassPlay },
   { id: 'sun', icon: '🌴', name: '夏日海風', sub: '輕快烏克麗麗・彈跳木琴', tag: '輕鬆', bpm: 116, swing: .56, trim: 1.05, mix: { rev: .9, revWet: .14, dly: .75, fb: .25, dw: .22, drum: .7 }, play: sunPlay },
   { id: 'chip', icon: '🕹', name: '街機全壘打', sub: '8-bit 電玩・復古亢奮', tag: '趣味', bpm: 144, swing: .5, trim: .62, mix: { rev: .5, revWet: .06, dly: .75, fb: .3, dw: .2, drum: .7 }, play: chipPlay }
 ];
@@ -4958,8 +5024,8 @@ function flowOnContact(pl) {
   if (CAMC.mode === 'bat') { CAMC.mode = 'batfollow'; after(.5, () => { if (CAMC.mode === 'batfollow') CAMC.mode = 'play'; }); } else CAMC.mode = 'play';
   if (pl.foul) { say(SAYX.foul(pl.plan.kind === 'catch')); if (Math.random() < .4) { const cm = COLOR.pitch(PT, 'foul'); if (cm) colorSay(cm, 1.8); } toast('界外', '#fff', '#f5a'); return; }
   if (pl.plan.kind === 'hr') {      // 全壘打：擊球當下只報「打出去了」，球快飛出牆時才慶祝（不讓人一擊球就知道結果）
-    say(SAYX.contact(pl)); const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
-    after(dly, () => { if (PL !== pl) return; say(SAYX.hr(bat0, pl) + `（飛行 ${Math.round(pl.dist)} m）`); colorSay(COLOR.hr(bat0, pl), 2.6); toast('全壘打！', '#fff27a', '#ff3a1a'); flowSfx('cheer', 2.6); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); });
+    say(SAYX.contact(pl)); pl.hrN = hrRunCount(); const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
+    after(dly, () => { if (PL !== pl) return; say(SAYX.hr(bat0, pl) + `（飛行 ${Math.round(pl.dist)} m）`); colorSay(COLOR.hr(bat0, pl), 2.6); showHrBanner(pl.hrN || 1, bat0, pl); flowSfx('cheer', 2.6); flowSfx('hrfan', pl.hrN || 1); hrTrotStart(pl); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(9 + (pl.dist - 80) * .08, 9, 12), clamp((pl.dist - 70) / 30, .6, 1.4)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); });
     return;
   }
   const last = pl.sim.S[pl.sim.S.length - 1], t = pl.plan;
@@ -4993,10 +5059,26 @@ function flowOnOut(r, how, wasForce) {
   if (PL && PL.kind === 'steal' && !r.stealer) { }
   updateScoreboard();
 }
+function hrRunCount() { const st = new Set(); G.on.forEach(r => r && st.add(r)); E.runners.forEach(r => { if (!r.bat && (r.state === 'on' || r.state === 'run')) st.add(r); }); return st.size + 1; }
+function showHrBanner(n, b, pl) {      // 一次顯示：全壘打／兩分／三分／滿貫（再見時加「再見」）
+  const e = $('hrBanner'); if (!e) return;
+  const walk = G.half === 1 && G.inning >= G.innings && G.score[1] <= G.score[0] && G.score[1] + n > G.score[0];
+  const base = n >= 4 ? '滿貫全壘打' : n === 3 ? '三分全壘打' : n === 2 ? '兩分全壘打' : '全壘打';
+  e.querySelector('.hb-t').textContent = (walk ? '再見' : '') + base; e.querySelector('.hb-s').textContent = `${b.name}・飛行 ${Math.round(pl.dist)} m` + (n > 1 ? `・一棒轟回 ${n} 分` : '');
+  e.classList.toggle('gs', n >= 4); e.classList.remove('hide', 'show'); void e.offsetWidth; e.classList.add('show'); clearTimeout(showHrBanner.t); showHrBanner.t = setTimeout(() => e.classList.add('hide'), 3500);
+}
+const _hrF = new V3();
+function hrFocus() { const r = E.runners.find(x => x.bat && x.state === 'run') || E.runners.find(x => x.trot && x.state === 'run'); const p = r ? r.rig.root.position : baseSpot(4); _hrF.set(p.x, 0, p.z); return _hrF; }
+function hrTrotStart(pl) {      // 全壘打確認：跑者加速跑回本壘（約 6～8 秒），鏡頭跟著打者，回到本壘後慶祝
+  pl.hrTrot = true;
+  for (const r of E.runners) if (r.state === 'run' || r.state === 'on') { if (!r.trot) { r.trot = true; r.spd = (r.spd || 7) * 1.7; } if (r.pre > 0) r.pre = 0; }
+  CAMC.mode = 'hrtrot';
+}
 function flowOnRun(r) {
   if (G.outs >= 3 && !G.runsPlay.length) { }
-  curPitcher().er++; adjustMood(curPitcher(), -3); adjustMood(r.pl, 4); flowSfx('cheer', .8); crowdCheer(.6); if (r.tag) setTimeout(() => toast('高飛犧牲打！', '#fff27a', '#ff7a1a'), 60);
-  say(SAYX.score(r)); colorSay(COLOR.score(r), 1.9); toast('得分！', '#fff27a', '#ff7a1a'); updateScoreboard();
+  const hrp = PL && PL.plan && PL.plan.kind === 'hr';      // 全壘打：不逐人跳「得分！」，由全壘打大字一次交代
+  curPitcher().er++; adjustMood(curPitcher(), -3); adjustMood(r.pl, 4); crowdCheer(.6); if (!hrp) { flowSfx('cheer', .8); if (r.tag) setTimeout(() => toast('高飛犧牲打！', '#fff27a', '#ff7a1a'), 60); }
+  if (!hrp) { say(SAYX.score(r)); colorSay(COLOR.score(r), 1.9); toast('得分！', '#fff27a', '#ff7a1a'); } updateScoreboard();
   if (PL && PL.br) { curBatter().st.rbi++; }
   if (G.half === 1 && G.inning >= G.innings && G.score[1] > G.score[0] && !G.walkoff) { G.walkoff = true; say('再見安打！！比賽就此結束！！'); toast('再見！', '#fff27a', '#ff3a1a'); }
 }
@@ -5026,7 +5108,7 @@ function flowOnPlayEnd(pl) {
   if (!pl.foul) { const kn = { HR: '全壘打', H4: '場內全壘打', H1: '一壘安打', H2: '二壘安打', H3: '三壘安打', E: '失誤上壘', FC: '野手選擇', out: '出局' }[kind] || ''; setHitResult(`<b>${areaWord(pl.plan.x, pl.plan.z)}・${kn}</b>${pl.great ? '（精彩守備）' : ''}${pl.badHop ? '（怪彈跳）' : ''}`); }
   const sac = pl.bunt && kind === 'out' && pl.runsMade + (E.runners.filter(r => r.state === 'on' && !r.bat).length) >= 0 && G.on.some(x => x);
   if (kind === 'HR' || kind === 'H4') { st.ab++; st.h++; st.hr++; G.hits[half]++; if (kind === 'HR') { for (const r of G.on) if (r && r.state === 'on') { r.state = 'home'; r.rig.run = 0; scoreRunner(r); } G.on = [null, null, null]; for (const r of E.runners) if (r.state === 'on' || r.state === 'run') { r.state = 'home'; r.rig.root.visible = false; } } }
-  else if (kind[0] === 'H') { st.ab++; st.h++; G.hits[half]++; const n = +kind[1]; say(SAYX.hit(curBatter(), n, pl)); colorSay(COLOR.hit(curBatter(), n, pl), 1.9); toast(['', '安打！', '二壘安打！', '三壘安打！'][n], '#fff27a', '#ff7a1a'); flowSfx('cheer', [0, 1.2, 1.7, 2.2][n]); crowdCheer([0, .8, 1.2, 1.6][n]); }
+  else if (kind[0] === 'H') { st.ab++; st.h++; G.hits[half]++; const n = +kind[1]; say(SAYX.hit(curBatter(), n, pl)); colorSay(COLOR.hit(curBatter(), n, pl), 1.9); toast(['', '安打！', '二壘安打！', '三壘安打！'][n], '#fff27a', '#ff7a1a'); flowSfx('cheer', [0, 1.5, 2.1, 2.7][n]); flowSfx('hitfan', n); crowdCheer([0, .9, 1.4, 1.9][n]); }
   else if (kind === 'E') { st.ab++; say('因失誤上壘！'); }
   else if (kind === 'FC') { st.ab++; say('野手選擇，打者跑者安全上壘'); }
   else { if (pl.sacFly && pl.caught && !pl.foul) { say('高飛犧牲打！跑者利用外野長飛球推進／回來得分'); } else if (!(sac && pl.bunt)) st.ab++; }
@@ -5972,6 +6054,7 @@ function frame(now) {
   let focus = null;
   if (CAMC.mode === 'play') { if (ballMesh.visible) { lastFocus.copy(ballMesh.position); } focus = lastFocus; }
   else if (CAMC.mode === 'batfollow' && ballMesh.visible) { lastFocus.copy(ballMesh.position); }
+  else if (CAMC.mode === 'hrtrot') { focus = hrFocus(); }
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
   if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
   updateCamera(real, focus); camera.updateMatrixWorld(true);
