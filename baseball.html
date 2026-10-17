@@ -913,6 +913,17 @@ body.mob #hud #pitchPanel .pbtn{border-radius:10px;padding:6px 10px;font-size:12
   body.mob #hud #pitchPanel .pbtn{font-size:14px;padding:8px 12px}
 }
 @media (prefers-reduced-motion:reduce){#hud #btnAct,#hud #btnAct[data-k=stop]{animation:none}}
+
+/* ===== ABS 挑戰／教練抗議：置中大提示（不再縮在右上角） ===== */
+#absPanel.abs-pop,body.mob #absPanel.abs-pop{position:fixed!important;left:50%!important;right:auto!important;top:30%!important;bottom:auto!important;transform:translate(-50%,-50%)!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;padding:12px 18px!important;max-width:min(88vw,340px)!important;min-width:min(76vw,240px)!important;background:rgba(6,24,42,.95)!important;border:3px solid #4cf!important;border-radius:16px!important;box-shadow:0 6px 24px #000c!important;z-index:45;animation:absPopIn .22s ease-out}
+#absPanel.abs-pop.abs-end{background:rgba(70,8,8,.95)!important;border-color:#ff5a5a!important}
+#absPanel.abs-pop #absTitle{display:block!important;font-size:clamp(15px,2.4vh,19px)}
+#absPanel.abs-pop #absRem,body.mob #absPanel.abs-pop #absRem{font-size:13px!important;white-space:normal;text-align:center;opacity:1!important}
+#absPanel.abs-pop .bar,body.mob #absPanel.abs-pop .bar{display:block!important;flex-basis:auto;width:100%;height:5px;margin:0!important}
+#absPanel.abs-pop .absBtns,body.mob #absPanel.abs-pop .absBtns{width:100%;gap:8px}
+#absPanel.abs-pop .absBtns .abtn,body.mob #absPanel.abs-pop .absBtns .abtn{flex:1;padding:10px 14px!important;font-size:15px!important;min-height:40px!important;border-width:2px!important;background:rgba(18,56,95,.9)!important}
+@keyframes absPopIn{from{opacity:0;transform:translate(-50%,-44%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.hk-d{font-size:12px;margin-top:4px;color:#bfe6ff;line-height:1.5}.hk-d b{color:#ffd21a}
 </style>
 </head>
 <body>
@@ -990,7 +1001,7 @@ body.mob #hud #pitchPanel .pbtn{border-radius:10px;padding:6px 10px;font-size:12
   <div id="touchBtns"><button id="btnPow">強打 OFF</button><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
   <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 背景音設定</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
-  <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
+  <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
   <div id="hawk" class="hide"></div>
  <div id="brawlBanner" class="hide">⚾ 觸身球！雙方球員衝出休息室！ ⚾</div>
@@ -1041,6 +1052,7 @@ const BASES = [ { x: 0, z: 0 }, { x: H, z: -H }, { x: 0, z: -2 * H }, { x: -H, z
 const MOUND = { x: 0, z: -15 };
 const ZW = 0.55, ZC = 1.35, ZH = 0.72;      // strike zone half width / centre y / half height（寬:高≈3:4，與真實好球帶 43cm × 約 57cm 比例相近）
 const BALL_R = 0.16;
+const ZCM = 43 / (2 * ZW);      // 1 單位 ≈ 幾公分（好球帶寬 43cm 對應 2×ZW）
 const WALL_H = 3.6;
 const WALL_PTS = [[0, 80], [45, 71], [90, 44], [135, 32], [180, 30]];
 function wallRadius(phi) {                // phi deg from centre field (0), either sign
@@ -4124,27 +4136,28 @@ function absFlow(pt, call, done) {
     G.phase = 'abs'; absEndMark(true, call);
     say(call.strike ? `主審判好球——<em>這是第三個好球！已經三好球了，打者將三振出局！</em>要不要提出 ABS 挑戰？<em>(C)</em>` : `主審判壞球——<em>這是第四個壞球！打者將直接保送上壘！</em>要不要提出 ABS 挑戰？<em>(C)</em>`);
     EV.abs = { t: 3.6, max: 3.6, team: hum, onGo: () => runChallenge(hum, call, finish), onSkip: () => finish(call.strike) };
-    $('absTitle').textContent = call.strike ? '🦅 三好球！' : '🦅 四壞球！'; $('absGo').textContent = '挑戰'; $('absPanel').classList.remove('hide'); $('absRem').textContent = call.strike ? '三好球' : '四壞球'; $('absBarI').style.width = '100%'; return;
+    $('absTitle').textContent = call.strike ? '🦅 三好球！' : '🦅 四壞球！'; $('absGo').textContent = '挑戰 [C]'; $('absPanel').classList.remove('hide'); $('absRem').textContent = (call.strike ? '三好球・將三振' : '四壞球・將保送') + `　剩 ${G.abs[hum]} 次`; $('absBarI').style.width = '100%'; return;
   }
   if (humanCan && !ending && !busy) { G.absPend = { pt, call, team: hum, b0: G.balls, s0: G.strikes }; done(kindOf(call.strike)); return; }   // 非決勝球：下一球投出前都能挑戰
   after(.05, () => finish(call.strike));
 }
 function absShowPend() {
   const d = G.absPend; if (!d || EV.abs) return;
-  $('absTitle').textContent = '🦅 挑戰上一球'; $('absGo').textContent = '挑戰'; $('absRem').textContent = `上球${d.call.strike ? '好球' : '壞球'}`; $('absBarI').style.width = '100%'; $('absPanel').classList.remove('hide');
+  $('absTitle').textContent = '🦅 對上一球有異議？'; $('absGo').textContent = '挑戰 [C]'; $('absRem').textContent = `主審判上一球：${d.call.strike ? '好球' : '壞球'}　剩 ${G.abs[d.team]} 次挑戰`; $('absBarI').style.width = '100%'; $('absPanel').classList.remove('hide');
 }
+function coachBack() { if (E.argC && E.argC.st !== 'out') argCoachOut(false); }
 function absClearPend() { G.absPend = null; if (!EV.abs) $('absPanel').classList.add('hide'); }
 function runPend() {
   const d = G.absPend; if (!d || G.phase !== 'pre' || G.over || EV.abs) return;
-  G.absPend = null; $('absPanel').classList.add('hide'); G.phase = 'abs'; G.absStat[d.team].ch++; flowSfx('whistle'); toast('ABS 挑戰！', '#aef', '#07c');
+  G.absPend = null; $('absPanel').classList.add('hide'); G.phase = 'abs'; argCoachIn(d.team); G.absStat[d.team].ch++; flowSfx('whistle'); toast('ABS 挑戰！', '#aef', '#07c');
   showHawk(d.call, () => {
     if (d.call.strike !== d.call.truth) {
       G.absStat[d.team].ok++; updateAbsHud(); toast('改判！', '#9fffb0', '#0a8'); flowSfx('cheer', 1); G.log.push('ABS改判');
       say(`<em>ABS 確認上一球誤判！</em>改判為${d.call.truth ? '好球' : '壞球'}，${sideName(d.team)}挑戰成功，次數保留！`);
-      after(.75, () => { hideHawk(); G.balls = d.b0; G.strikes = d.s0; G.phase = 'result'; pitchResult(d.call.truth ? 'strikeLook' : 'ball'); });
+      after(.75, () => { hideHawk(); coachBack(); G.balls = d.b0; G.strikes = d.s0; G.phase = 'result'; pitchResult(d.call.truth ? 'strikeLook' : 'ball'); });
     } else {
       G.abs[d.team]--; updateAbsHud(); toast('維持原判', '#ffe08a', '#c60'); flowSfx('out'); say(`ABS 確認原判正確。${sideName(d.team)}剩 ${G.abs[d.team]} 次挑戰`);
-      after(.9, () => { hideHawk(); G.phase = 'pre'; G.preT = 0; });
+      after(.9, () => maybeProtest(d.team, d.call, st => { if (st !== d.call.strike) { G.balls = d.b0; G.strikes = d.s0; G.phase = 'result'; pitchResult(st ? 'strikeLook' : 'ball'); } else { G.phase = 'pre'; G.preT = 0; } }));
     }
   });
 }
@@ -4161,7 +4174,7 @@ function aiWantsChallenge(team, call, ending) {
   return Math.random() < clamp(base * lev * budget * (L.learn > 0 ? 1 : .6), 0, .92);
 }
 function runChallenge(team, call, finish) {
-  G.absStat[team].ch++; flowSfx('whistle'); toast('ABS 挑戰！', '#aef', '#07c');
+  argCoachIn(team); G.absStat[team].ch++; flowSfx('whistle'); toast('ABS 挑戰！', '#aef', '#07c');
   showHawk(call, () => {
     const overturn = call.strike !== call.truth;
     if (overturn) {
@@ -4169,7 +4182,7 @@ function runChallenge(team, call, finish) {
       toast('改判！', '#9fffb0', '#0a8'); flowSfx('cheer', 1);
       say(`<em>ABS 鷹眼確認：原判誤判！</em>改判為${call.truth ? '好球' : '壞球'}，${sideName(team)}挑戰成功，次數保留！`);
       G.log.push('ABS改判');
-      after(.75, () => { hideHawk(); finish(call.truth); });
+      after(.75, () => { hideHawk(); coachBack(); finish(call.truth); });
     } else {
       G.abs[team]--; updateAbsHud(); toast('維持原判', '#ffe08a', '#c60'); flowSfx('out');
       say(`ABS 確認原判正確，維持${call.strike ? '好球' : '壞球'}。${sideName(team)}剩 ${G.abs[team]} 次挑戰`);
@@ -4180,17 +4193,20 @@ function runChallenge(team, call, finish) {
 /* ---------------- 鷹眼回放畫面 ---------------- */
 function showHawk(call, cb) {
   const h = $('hawk'); h.classList.remove('hide');
-  const W = 190, Hh = 230, sc = 78, cx = W / 2, zy = 108, zw = ZW * sc, zh = ZH * sc;
+  const W = 190, Hh = 230, sc = 78, cx = W / 2, zy = 108, zw = ZW * sc, zh = ZH * sc, br = ZPAD * sc;      // 球畫成「判定用的半徑」：球緣碰到黃框＝好球，畫面與判定一致
   const px = cx + call.px * sc, py = zy - (call.py - ZC) * sc;
-  const gap = Math.abs(call.sdf) * 100;
+  const cm = Math.abs(call.sdf) * ZCM, dx = Math.abs(call.px) - ZW, dy = Math.abs(call.py - ZC) - ZH;
+  const dir = dx >= dy ? (call.px > 0 ? '右側' : '左側') : (call.py > ZC ? '上方' : '下方');
+  const edge = call.truth ? (cm < .05 ? '球緣剛好壓在好球帶邊緣' : `球緣在好球帶內 <b>${cm.toFixed(1)} cm</b>`) : `球緣在好球帶外 <b>${cm.toFixed(1)} cm</b>（${dir}）`;
+  const was = `主審原判：${call.strike ? '好球' : '壞球'}${call.strike !== call.truth ? ' → <b>誤判</b>' : '（正確）'}`;
   h.innerHTML = `<div class="hk-t">🦅 ABS 鷹眼回放</div><div class="hk-box" style="width:${W}px;height:${Hh}px"><div class="hk-z" style="left:${cx - zw}px;top:${zy - zh}px;width:${zw * 2}px;height:${zh * 2}px"></div>
     <div class="hk-g" style="left:${cx - zw}px;top:${zy - zh}px;width:${zw * 2}px;height:${zh * 2}px"></div>
-    <div class="hk-b" id="hkB" style="left:${cx - 7}px;top:-20px"></div><div class="hk-l" id="hkL" style="left:${clamp(px, 48, W - 48)}px;top:${py + 12}px;opacity:0">${call.truth ? '帶內 ' : '帶外 '}${gap.toFixed(1)} cm</div></div>
-    <div class="hk-r" id="hkR"></div>`;
+    <div class="hk-b" id="hkB" style="width:${br * 2}px;height:${br * 2}px;left:${cx - br}px;top:-30px"></div><div class="hk-l" id="hkL" style="left:${clamp(px, 48, W - 48)}px;top:${py + br + 4}px;opacity:0">${call.truth ? '帶內 ' : '帶外 '}${cm.toFixed(1)} cm</div></div>
+    <div class="hk-r" id="hkR"></div><div class="hk-d" id="hkD" style="opacity:0">${edge}<br>${was}</div>`;
   const b = $('hkB'); b.style.transition = 'left .9s cubic-bezier(.4,0,.6,1),top .9s cubic-bezier(.3,0,.7,1)';
-  setTimeout(() => { b.style.left = (px - 7) + 'px'; b.style.top = (py - 7) + 'px'; }, 30);
-  setTimeout(() => { $('hkL').style.opacity = 1; const r = $('hkR'); r.textContent = call.truth ? '好球 STRIKE' : '壞球 BALL'; r.style.color = call.truth ? '#ffd21a' : '#6f6'; }, 1000);
-  EV.hawk = after(1.35, cb);
+  setTimeout(() => { b.style.left = (px - br) + 'px'; b.style.top = (py - br) + 'px'; }, 30);
+  setTimeout(() => { $('hkL').style.opacity = 1; $('hkD').style.opacity = 1; const r = $('hkR'); r.textContent = call.truth ? '好球 STRIKE' : '壞球 BALL'; r.style.color = call.truth ? '#ffd21a' : '#6f6'; }, 1000);
+  EV.hawk = after(1.6, cb);
 }
 function hideHawk() { $('hawk').classList.add('hide'); }
 /* ---------------- 教練抗議（ABS 確認原判後） ---------------- */
@@ -4200,11 +4216,11 @@ function maybeProtest(team, call, finish) {
   if (ai) {
     const p = clamp(.02 + close * .10 + (G.coachOut[1 - team] ? 0 : 0), 0, .2) * (lateGame() ? 1.3 : 1);
     if (Math.random() < p && G.evt > 0) { say(`${sideName(team)}總教練不服氣，衝出來向主審抗議！`); argCoachIn(team); after(.5, () => runProtest(team, call, finish, .25 + Math.random() * .6)); return; }
-    hideHawk(); finish(call.strike); return;
+    hideHawk(); coachBack(); finish(call.strike); return;
   }
-  hideHawk(); say(`要不要像總教練一樣衝出去抗議？(<em>R</em> 抗議 / 其他鍵略過)`);
-  EV.abs = { t: 2.2, max: 2.2, team, protest: true, onGo: () => startProtestMash(team, call, finish), onSkip: () => finish(call.strike) };
-  const bt = $('absGo'); bt.textContent = '😡 抗議 [R]'; $('absTitle').textContent = '教練抗議'; $('absRem').textContent = '抗議？'; $('absPanel').classList.remove('hide'); $('absBarI').style.width = '100%';
+  hideHawk(); say(`ABS 維持原判——要不要請總教練出面向主審抗議？(<em>R</em> 抗議 / 其他鍵略過)　<em>別太激動，吵過頭會被驅逐</em>`);
+  EV.abs = { t: 4.5, max: 4.5, team, protest: true, onGo: () => startProtestMash(team, call, finish), onSkip: () => { coachBack(); finish(call.strike); } };
+  const bt = $('absGo'); bt.textContent = '😡 抗議 [R]'; $('absTitle').textContent = '👨‍🏫 教練出面抗議？'; $('absRem').textContent = '維持原判，要不要抗議？'; $('absPanel').classList.remove('hide'); $('absBarI').style.width = '100%';
 }
 function startProtestMash(team, call, finish) {
   argCoachIn(team);
@@ -4228,11 +4244,11 @@ function runProtest(team, call, finish, power) {
 }
 function runProtest0(team, call, finish, power) {
   const close = clamp(1 - Math.abs(call.sdf) * 3.2, 0, 1);
-  const ejP = clamp(.02 + Math.pow(power, 2.4) * .72 * (1 - close * .35), 0, .85), ovP = clamp((.04 + power * .26) * (.55 + close * .45), 0, .28);      // 抗議越激烈：改判機率上升；但過火（power 接近滿檔）驅逐機率會陡升
+  const ejP = clamp(.004 + Math.pow(power, 3.4) * .26 * (1 - close * .5), 0, .3), ovP = clamp((.10 + power * .38) * (.6 + close * .4), 0, .5);      // 驅逐：只有「吵到快滿檔」才有明顯風險（上限 30%）；改判機率拉高      // 抗議越激烈：改判機率上升；但過火（power 接近滿檔）驅逐機率會陡升
   const r = Math.random();
   if (r < ejP) {
     G.coachOut[team] = true; argCoachOut(true); updateAbsHud(); toast('驅逐出場！', '#fff', '#e22'); flowSfx('out'); flashScreen(.3);
-    say(`<em>${sideName(team)}總教練${power > .7 ? '抗議太過激烈，' : ''}被主審驅逐出場！</em>本場比賽不能再使用 ABS 挑戰了！`); G.log.push('教練驅逐');
+    say(`<em>${sideName(team)}總教練${power > .8 ? '抗議太過激烈，' : ''}被主審驅逐出場！</em>本場比賽不能再使用 ABS 挑戰了！`); G.log.push('教練驅逐');
     after(1.6, () => { hideHawk(); finish(call.strike); });
   } else if (r < ejP + ovP) {
     argCoachOut(false); toast('抗議成功！改判！', '#9fffb0', '#0a8'); flowSfx('cheer', 1.2); crowdCheer(1); say(power > .5 ? '<em>主審被這番激烈的抗議說服了…</em>居然改判了！' : '主審被說服了…居然改判了！'); G.log.push('抗議改判'); after(1.2, () => { hideHawk(); finish(!call.strike); });
@@ -4501,7 +4517,7 @@ function updateBrawl(dt) {
   const B = EV.brawl; if (!B) return; B.t += dt;
   if (B.kind !== 'protest' && B.st === 'mash' && !B.humanSide) B.mash += dt * (B.cpuRate || (B.cpuRate = 4 + Math.random() * 11));      // 電腦對電腦：自動累積激烈程度
   if (B.kind === 'protest') {
-    const pct = clamp(B.mash / 24, 0, 1); $('mashBar').style.width = pct * 100 + '%'; $('mashTx').textContent = pct < .3 ? '連點 / 連按空白鍵 來向主審抗議！' : pct < .72 ? '🔥 氣勢夠了！再激動一點，主審可能會改判！' : '⚠ 太激烈了！小心被驅逐出場！';
+    const pct = clamp(B.mash / 24, 0, 1); $('mashBar').style.width = pct * 100 + '%'; $('mashTx').textContent = pct < .3 ? '連點 / 連按空白鍵 來向主審抗議！' : pct < .8 ? '🔥 氣勢夠了！再激動一點，主審可能會改判！' : '⚠ 快過火了！再吵下去有被驅逐的風險！';
     if (B.t >= B.dur) { EV.brawl = null; $('mashUi').classList.add('hide'); const p = pct; runProtest(B.team, B.call, B.finish, .15 + p * .85); }
     return;
   }
@@ -4572,6 +4588,7 @@ function finishBrawl(pct) {
   });
 }
 function updateEvents(dt) {
+  if (!EV.abs && G.absPend && G.phase === 'pre') { const tot = G.pitchDelay + 3.6; $('absBarI').style.width = (humanPitches() ? 100 : clamp((tot - G.preT) / tot * 100, 0, 100)) + '%'; }
   if (EV.abs) { EV.abs.t -= dt; $('absBarI').style.width = clamp(EV.abs.t / EV.abs.max * 100, 0, 100) + '%'; if (EV.abs.t <= 0) { const bt = $('absGo'); absResolveInput(false); bt.textContent = '挑戰'; $('absTitle').textContent = '🦅 ABS 挑戰'; } }
   if (G.lastLoc) G.lastLoc.t += dt;
   updateBrawl(dt); updateArgCoach(dt); updateRage(dt); updateMedic(dt);
@@ -4691,7 +4708,7 @@ function practiceSwing() {                  // 打者趁投手準備時偶爾試
 function updatePre(dt) {
   G.preT += dt; if (G.preSwAt > 0 && G.preT >= G.preSwAt) { G.preSwAt = -1; if (!(humanBats() && G.human >= 0)) practiceSwing(); }      // 玩家打擊時不自動試揮，只有玩家自己按鍵才會揮棒
   if ((!humanPitches() || G.intWalk) && !G.cpuBusy) { G.prepT -= dt; if (G.prepT <= 0) { const d = prepAction(); G.prepT = d + .2 + Math.random() * .5; } }      // 等待期間（含玩家考慮 ABS 時），投手持續做準備動作
-  if (G.preT > G.pitchDelay + (G.absPend ? 1.8 : 0) && (!humanPitches() || G.intWalk) && !G.cpuBusy && (Math.hypot(E.F.P.x - DEFAULT_POS.P.x, E.F.P.z - DEFAULT_POS.P.z) < .4 || G.preT > G.pitchDelay + 2.5) && (G.preT > G.pitchDelay + 1.2 || !(E.F.P.rig.anim && E.F.P.rig.anim.name !== 'stretch' && E.F.P.rig.anim.t < E.F.P.rig.anim.dur * .9))) cpuDeliver();     // 投手回到投手丘才開始投
+  if (G.preT > G.pitchDelay + (G.absPend ? 3.6 : 0) && (!humanPitches() || G.intWalk) && !G.cpuBusy && (Math.hypot(E.F.P.x - DEFAULT_POS.P.x, E.F.P.z - DEFAULT_POS.P.z) < .4 || G.preT > G.pitchDelay + 2.5) && (G.preT > G.pitchDelay + 1.2 || !(E.F.P.rig.anim && E.F.P.rig.anim.name !== 'stretch' && E.F.P.rig.anim.t < E.F.P.rig.anim.dur * .9))) cpuDeliver();     // 投手回到投手丘才開始投
 }
 function cpuDeliver() {
   if (aiMoundThink()) return;
@@ -4741,7 +4758,7 @@ function pitcherHandPos(out) {              // 投球手（握球的手）目前
   rig.root.updateMatrixWorld(true); return arm.localToWorld(out.set(0, -.58, .1));
 }
 function releasePitch(pt) {
-  if (PT !== pt) return; G.phase = 'flight'; pt.t = 0; const p = pt.p;
+  if (PT !== pt) return; G.phase = 'flight'; if (G.absPend) absClearPend(); pt.t = 0; const p = pt.p;
   { pitcherHandPos(_hp); if (isFinite(_hp.x + _hp.y + _hp.z)) pt.start.set(clamp(_hp.x, -1.6, 1.6), clamp(_hp.y, 1.1, 2.7), clamp(_hp.z, MOUND.z - .3, MOUND.z + 2.4)); }      // 球從實際出手點飛出
   p.pc++; for (const r of G.on) if (r && r.wary) r.wary *= .9; p.fatigue = clamp((p.pc + (p.pkLoad || 0) - p.sta * .9) * 2.0, 0, 100);      // 牽制累積的體力負擔也算進疲勞；跑者的警戒心隨投球逐漸消退
     moodTick(p); moodTick(curBatter()); weatherPitch(); if (pt.wildPitch && rainK() > .15) say('雨天球濕，投手手滑了！'); maybeInjurePitcher(p);
