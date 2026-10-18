@@ -2914,7 +2914,7 @@ function planFielding(sim, cl, foul, res) {
     let react = (isOF ? .40 : .46) - fl * .0018 + readErr * (res && res.ang >= 6 && res.ang < 24 ? 1 + hardK * .9 : 1) + lag + rainK() * .05 - (G.lv >= 3 && G.human !== 1 - G.half ? .035 : 0);
     react += hardK * (.07 + (1 - clamp(fl / 85, 0, 1)) * .09) + clamp(gauss() * .06, -.12, .14) + (Math.random() < .045 + (1 - clamp(fl / 100, 0, 1)) * .04 ? .06 + Math.random() * .16 : 0);      // 起步好壞不一，偶爾判斷失誤慢半拍；強勁球看不清＋每次起跑好壞不同（好的起跑能多救一顆、差的起跑會慢半拍）
     const pNB = f.pos === 'P' && !(res && res.bunt);      // 投手投完球重心在前、站位又離打者近：強勁平飛球／直擊球很難處理，高飛球交給內野手與捕手
-    if (pNB) { react += .10 + hardK * .20; if (res && res.ang >= 42) continue; }
+    if (pNB) { react += .04 + hardK * .20; if (res && res.ang >= 42) continue; }
     const ult = !!f.pl.ultra, reach = ult ? 2.6 : (pNB ? .85 : 1.05) - hardK * .34;      // 傳說球員：手套範圍超大、不受強勁球影響                                                                  // 球速越快，手套實際能構到的範圍越小
     if (res && res.bunt) { react += (f.pos === 'P' ? .06 : 0); if (res.sneak) react += (.06 + Math.abs(gauss()) * .06) * (aiExpectBunt() ? .5 : 1) * (1.15 - fl * .004); }   // 投手剛投完球重心未穩；奇襲短打讓全隊來不及反應
     let got = null, dive = null, sup = null;
@@ -2943,7 +2943,7 @@ function planFielding(sim, cl, foul, res) {
     if (got) cands.push(got); else if (dive) cands.push(dive); else if (sup) cands.push(sup);
   }
   if (cands.length) {
-    const pPen = c => c.f.pos === 'P' && !(res && res.bunt) ? .14 : 0;      // 同樣趕得到時，優先讓內野手處理
+    const pPen = c => c.f.pos === 'P' && !(res && res.bunt) && dist2(c.x, c.z, c.f.x, c.f.z) > 4.5 ? .14 : 0;      // 同樣趕得到時，優先讓內野手處理
     cands.sort((a, b) => (a.t + (a.dive ? .25 : 0) + pPen(a)) - (b.t + (b.dive ? .25 : 0) + pPen(b)));
     let c = cands[0];
     if (c.dive) {
@@ -7340,8 +7340,8 @@ function drawOverlay() {
   for (let i = 1; i < 3; i++) { c.beginPath(); c.moveTo(tl.x + cw * i, tl.y); c.lineTo(tl.x + cw * i, bl.y); c.moveTo(tl.x, tl.y + ch * i); c.lineTo(tr.x, tl.y + ch * i); c.stroke(); }
   const o1 = w2s(-ZW - .7, ZC + ZH + .7, 0), o2 = w2s(ZW + .7, ZC - ZH - .7, 0);
   if (trk) { const q = G.lastLoc, a = w2s(q.x, q.y, 0), al = clamp(1 - (q.t - 1.8) / 1.2, 0, 1); c.globalAlpha = al; c.beginPath(); c.arc(a.x, a.y, 4.5 * dpr, 0, TAU); c.fillStyle = q.strike ? '#ffd21a' : '#5f5'; c.fill(); c.lineWidth = 1.5 * dpr; c.strokeStyle = '#000'; c.stroke(); c.globalAlpha = 1; }
-  if (HINT.on && HINT.pt && HINT.pt === PT && hb && G.phase === 'flight' && !PT.sw && !PT.done) {      // 投球落點提示：半透明點＋淡淡脈動外圈
-    const a = w2s(HINT.x, HINT.y, 0), rad = Math.max(5 * dpr, Math.abs(w2s(HINT.x, HINT.y + BALL_R * 1.25, 0).y - a.y)), now = performance.now(), fi = clamp((now - HINT.t) / 140, 0, 1), pu = .5 + .5 * Math.sin(now / 130);
+  if (HINT.on && HINT.pt && HINT.pt === PT && hb && G.phase === 'flight' && !PT.sw && !PT.done && performance.now() - HINT.t < 380) {      // 只在出手瞬間閃一下（約 0.38 秒）就消失      // 投球落點提示：半透明點＋淡淡脈動外圈
+    const a = w2s(HINT.x, HINT.y, 0), rad = Math.max(5 * dpr, Math.abs(w2s(HINT.x, HINT.y + BALL_R * 1.25, 0).y - a.y)), now = performance.now(), fi = Math.floor((now - HINT.t) / 95) % 2 ? .35 : 1, pu = 0;
     c.save(); c.globalAlpha = fi;
     c.beginPath(); c.arc(a.x, a.y, rad * (1.5 + .25 * pu), 0, TAU); c.strokeStyle = 'rgba(120,235,255,' + (.35 - .15 * pu) + ')'; c.lineWidth = 1.6 * dpr; c.stroke();
     c.beginPath(); c.arc(a.x, a.y, rad, 0, TAU); c.fillStyle = 'rgba(90,220,255,.30)'; c.fill(); c.lineWidth = 1.8 * dpr; c.strokeStyle = 'rgba(255,255,255,.6)'; c.stroke();
