@@ -1784,9 +1784,9 @@ function visForBase(key) {      // 外觀只影響視覺，不影響任何能力
   }
   // ---- 髮型：本土球員有光頭、辮子頭、包包頭等；外籍球員偏前衛 ----
   const hair = wpick(r, fg
-    ? (jp ? [['buzz', 12], ['short', 20], ['mid', 16], ['long', 8], ['bun', 8], ['braid', 6], ['curly', 7], ['pony', 6], ['mullet', 6], ['bob', 5], ['mohawk', 3], ['topknot', 4]]
-          : [['dreads', 14], ['afro', 9], ['braid', 6], ['cornrow', 8], ['twist', 7], ['mohawk', 6], ['mullet', 6], ['bob', 4], ['topknot', 5], ['short', 9], ['mid', 6], ['long', 7], ['curly', 6], ['bun', 6], ['bald', 8], ['buzz', 8]])
-    : [['bald', 7], ['buzz', 12], ['short', 20], ['mid', 14], ['long', 6], ['pony', 5], ['curly', 6], ['braid', 6], ['bun', 4], ['dreads', 3], ['afro', 2], ['mullet', 4], ['bob', 4], ['cornrow', 2], ['twist', 2], ['mohawk', 2], ['topknot', 3], ['short', 6]]);
+    ? (jp ? [['buzz', 12], ['short', 20], ['mid', 16], ['long', 8], ['bun', 8], ['braid', 6], ['curly', 7], ['pony', 6], ['mullet', 6], ['bob', 5], ['mohawk', 3], ['topknot', 4], ['flip', 6], ['wavy', 4], ['undercut', 6]]
+          : [['dreads', 14], ['afro', 9], ['braid', 6], ['cornrow', 8], ['twist', 7], ['mohawk', 6], ['mullet', 6], ['bob', 4], ['topknot', 5], ['short', 9], ['mid', 6], ['long', 7], ['curly', 6], ['bun', 6], ['bald', 8], ['buzz', 8], ['flip', 5], ['wavy', 5], ['undercut', 5]])
+    : [['bald', 7], ['buzz', 12], ['short', 20], ['mid', 14], ['long', 6], ['pony', 5], ['curly', 6], ['braid', 6], ['bun', 4], ['dreads', 3], ['afro', 2], ['mullet', 4], ['bob', 4], ['cornrow', 2], ['twist', 2], ['mohawk', 2], ['topknot', 3], ['short', 6], ['flip', 7], ['wavy', 5], ['undercut', 7]]);
   const natural = pk(HAIR_COLS), hairCol = fg ? (r() < (jp ? .5 : .62) ? pk(HAIR_FUN) : r() < .06 ? pk(HAIR_GRAY) : natural) : (r() < .06 ? '#d8b868' : r() < .16 ? pk(HAIR_DYED) : r() < .05 ? pk(HAIR_GRAY) : natural);
   const tipCol = fg ? (r() < .65 ? pk(HAIR_FUN) : hairCol) : (hair === 'braid' ? (r() < .5 ? '#c0392b' : hairCol) : r() < .08 ? pk(HAIR_DYED) : hairCol);
   const br = r(), beard = fg ? (br < .20 ? 0 : br < .38 ? 1 : br < .60 ? 2 : br < .78 ? 3 : 4) : (br < .06 ? 1 : br < .10 ? 2 : br < .14 ? 3 : br < .18 ? 4 : 0);
@@ -1824,6 +1824,9 @@ function addHairEars(head, vis) {
     }
     const q = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 8), hm); q.scale.set(1.5, .7, 1.1); q.position.set(.05, .5, .1); head.add(q);   // 頂部瀏海蓬度
   }
+  else if (T === 'flip') { band(.12, .535, PI * .8, PI * 1.4); for (let i = 0; i < 9; i++) { const a = (i / 8 - .5) * 3.0, t = new THREE.Mesh(new THREE.SphereGeometry(.075, 6, 5), hm); t.scale.set(1, 1.3, 1.6); t.position.set(Math.sin(a) * .54, -.02 - (i % 2) * .04, -Math.cos(a) * .54); head.add(t); } }      // 帽簷下往外翻的髮尾
+  else if (T === 'wavy') { band(.18, .538, PI * .75, PI * 1.5); for (let r2 = 0; r2 < 2; r2++) for (let i = 0; i < 8; i++) { const a = (i / 7 - .5) * 3.2, t = new THREE.Mesh(new THREE.SphereGeometry(.095, 7, 5), hm); t.position.set(Math.sin(a) * (.53 + r2 * .03), -.06 - r2 * .13, -Math.cos(a) * (.53 + r2 * .03)); head.add(t); } }      // 波浪捲髮
+  else if (T === 'undercut') { band(.06, .53, PI * .8, PI * 1.4); const tp = new THREE.Mesh(new THREE.BoxGeometry(.5, .16, .14), hm); tp.position.set(0, .12, -.48); tp.rotation.x = .2; head.add(tp); }      // 兩側剃短、後腦留長
   else if (T === 'mid') band(.18, .538, PI * .75, PI * 1.5);
   else if (T === 'long') { band(.24, .54, PI * .75, PI * 1.5); const b = new THREE.Mesh(new THREE.BoxGeometry(.7, .5, .14), hm); b.position.set(0, -.3, -.4); b.rotation.x = .12; head.add(b); }
   else if (T === 'pony') { band(.12, .535, PI * .8, PI * 1.4); const ball = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), hm); ball.position.set(0, .0, -.57); head.add(ball); const tail = new THREE.Mesh(new THREE.CylinderGeometry(.08, .03, .42, 8), hm); tail.position.set(0, -.2, -.62); tail.rotation.x = -.15; head.add(tail); }
@@ -1886,6 +1889,43 @@ function pitSig(p) {      // 每位投手固定一種「招牌預備動作」（
   if (p._sig) return p._sig; const r = mkRng(hashStr('sig:' + (p.name || 'p')) ^ 0x9e3779b1), R = (a, b) => a + (b - a) * r();
   p._sig = { kind: SIG_KINDS[Math.floor(r() * SIG_KINDS.length)], amp: R(.75, 1.25), d: R(.85, 1.2), n: 2 + Math.floor(r() * 2) }; return p._sig;
 }
+const NUMTEX = {};
+function numTex(n, fg, ol) { const k = n + fg + ol; return NUMTEX[k] || (NUMTEX[k] = canvasTex(64, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.font = '900 44px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 7; g.strokeStyle = ol; g.strokeText(String(n), 32, 35); g.fillStyle = fg; g.fillText(String(n), 32, 35); })); }
+function lumOf(c) { try { const h = String(c).replace('#', ''), v = h.length === 3 ? h.split('').map(x => parseInt(x + x, 16)) : [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); const l = (v[0] * .3 + v[1] * .59 + v[2] * .11) / 255; return isNaN(l) ? .5 : l; } catch (e) { return .5; } }
+const SHO_GEO = new THREE.SphereGeometry(.118, 10, 8), SLV_GEO = new THREE.CylinderGeometry(.098, .09, .27, 8), SOCK_GEO = new THREE.CylinderGeometry(.127, .117, .27, 10), RING_GEO = new THREE.CylinderGeometry(.13, .13, .03, 10),
+  STRIPE_GEO = new THREE.BoxGeometry(.026, .5, .07), SOLE_GEO = new THREE.BoxGeometry(.255, .035, .4), PEL_GEO = new THREE.CylinderGeometry(.285, .27, .2, 14), COLLAR_GEO = new THREE.TorusGeometry(.2, .036, 6, 16), FLAP_GEO = new THREE.BoxGeometry(.09, .22, .3),
+  BUCKLE_GEO = new THREE.BoxGeometry(.1, .07, .03), WRIST_GEO = new THREE.CylinderGeometry(.104, .1, .06, 8), LOGO_GEO = new THREE.CircleGeometry(.09, 14), NUM_GEO = new THREE.PlaneGeometry(.36, .36), WEB_GEO = new THREE.BoxGeometry(.2, .05, .12);
+function addGear(rig, o, vis, jc, pc, sk, vkey, suit) {      // 球衣領口與背號、長袖內衣、球襪、褲側線、鞋底、腰帶扣、帽徽、護腕、打擊手套、耳罩…
+  const sc = mat(o.cap || o.jersey), wh = mat('#f4f4f4'), hR = mkRng(hashStr('gear:' + vkey) ^ 0x51ed270b), body = rig.body, zf = .29 * vis.w * vis.d;
+  for (const a of [rig.armL, rig.armR]) a.add(new THREE.Mesh(SHO_GEO, jc));      // 圓肩：手臂與軀幹接合更自然
+  { const pel = new THREE.Mesh(PEL_GEO, pc); pel.position.y = .5; pel.scale.set(vis.w, 1, vis.w * vis.d); body.add(pel); }      // 骨盆：腿與上身永遠連在一起
+  if (suit) return;
+  for (const a of [rig.armL, rig.armR]) { const sl = new THREE.Mesh(SLV_GEO, sc); sl.position.y = -.37; a.add(sl); }      // 長袖內衣袖口
+  for (const l of [rig.legL, rig.legR]) {
+    const sock = new THREE.Mesh(SOCK_GEO, sc); sock.position.y = -.41; l.add(sock); const ring = new THREE.Mesh(RING_GEO, wh); ring.position.y = -.31; l.add(ring);      // 球襪＋白色環
+    const st = new THREE.Mesh(STRIPE_GEO, sc); st.position.set((l === rig.legL ? -1 : 1) * .126, -.2, 0); l.add(st);      // 褲側線
+    const sole = new THREE.Mesh(SOLE_GEO, wh); sole.position.set(0, -.625, .06); l.add(sole);      // 白色鞋底
+  }
+  { const bk = new THREE.Mesh(BUCKLE_GEO, mat('#d9b44a')); bk.position.set(0, .6, zf + .01); body.add(bk); }
+  { const cl = new THREE.Mesh(COLLAR_GEO, sc); cl.rotation.x = Math.PI / 2; cl.position.y = 1.165; cl.scale.set(vis.w, vis.w * vis.d, 1); body.add(cl); const pk = new THREE.Mesh(new THREE.BoxGeometry(.035, .5, .02), wh); pk.position.set(0, .92, zf + .004); body.add(pk); }      // 領口＋前排扣
+  { const lg = new THREE.Mesh(LOGO_GEO, wh); lg.position.set(0, .2, .522); rig.head.add(lg); }      // 帽徽
+  if (!o.catcher && !o.ump && o.pl && o.pl.num != null && o.pl.num !== '') { const dark = lumOf(o.jersey) > .62, pl = new THREE.Mesh(NUM_GEO, new THREE.MeshLambertMaterial({ map: numTex(o.pl.num, dark ? (o.cap || '#222') : '#ffffff', dark ? '#ffffff' : '#111111'), transparent: true })); pl.position.set(0, .9, -(zf + .008)); pl.rotation.y = Math.PI; pl.scale.set(vis.w, 1, 1); body.add(pl); }      // 背號
+  if (hR() < .55) { const wr = new THREE.Mesh(WRIST_GEO, hR() < .5 ? wh : mat('#1b1b20')); wr.position.y = -.5; (hR() < .5 ? rig.armL : rig.armR).add(wr); }      // 護腕
+  if (o.helmet) { const fl = new THREE.Mesh(FLAP_GEO, rig.head.children.find(c => c.material && c.material.shininess) ? rig.head.children.find(c => c.material && c.material.shininess).material : jc); fl.position.set(.535, -.03, .02); rig.head.add(fl); }      // 打擊頭盔耳罩
+  if (o.bat) for (const a of [rig.armL, rig.armR]) { const hd = a.children.find(c => c.geometry === GEO.hand); if (hd) hd.material = mat(hR() < .6 ? '#1b1b20' : (o.cap || '#1b1b20')); }      // 打擊手套
+}
+function addCatcherGear(rig, vis, col) {      // 捕手護具：面罩、護胸、護膝護脛
+  const dk = mat('#23262e'), cm = mat(col || '#2a3a6a'), B = (w, h, d, m, x, y, z, par) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); par.add(b); return b; };
+  B(.68 * vis.w, .6, .3, cm, 0, .9, .17, rig.body); B(.08, .56, .03, dk, 0, .9, -.3, rig.body).rotation.z = .55; B(.08, .56, .03, dk, 0, .9, -.3, rig.body).rotation.z = -.55;
+  for (const l of [rig.legL, rig.legR]) { B(.23, .4, .14, cm, 0, -.33, .13, l); B(.21, .13, .17, dk, 0, -.09, .14, l); }
+  const mk = new THREE.Group(); for (let i = 0; i < 3; i++) B(.6, .03, .05, dk, 0, -.2 + i * .14, .52, mk); for (const x of [-.18, 0, .18]) B(.03, .46, .05, dk, x, -.02, .53, mk); rig.head.add(mk);
+  const tr = new THREE.Mesh(new THREE.TorusGeometry(.535, .028, 6, 18), dk); tr.rotation.x = Math.PI / 2; tr.position.y = .04; rig.head.add(tr);
+  if (rig.glove) rig.glove.scale.setScalar(1.35);
+}
+function addUmpGear(rig, vis) {      // 主審護胸與推到頭頂的面罩
+  const dk = mat('#2b2b33'); const b = new THREE.Mesh(new THREE.BoxGeometry(.64 * vis.w, .55, .26), dk); b.position.set(0, .9, .15); rig.body.add(b);
+  const mk = new THREE.Group(); mk.position.set(0, .5, .12); mk.rotation.x = -.9; for (let i = 0; i < 3; i++) { const bar = new THREE.Mesh(new THREE.BoxGeometry(.56, .03, .05), mat('#444')); bar.position.set(0, i * .12 - .1, .4); mk.add(bar); } rig.head.add(mk);
+}
 function makeChibi(o) {
   const suit = !!(o.pl && o.pl.suit), vkey = o.pl ? o.pl.name : 'x' + Math.random(), vis = o.vis || visFor(vkey), root = new THREE.Group(), jc = mat(suit ? '#141a2a' : o.jersey), pc = mat(suit ? '#10151f' : (o.pants || '#f4f4f4')), sk = mat(o.skin || vis.skin), cc = mat(o.cap || o.jersey);
   const sh = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .04; sh.scale.set(1.8, 1.8, 1); root.add(sh);
@@ -1908,10 +1948,10 @@ function makeChibi(o) {
   const mkLimb = (x, y, geo, len, m, hand) => { const g = new THREE.Group(); g.position.set(x, y, 0); const l = new THREE.Mesh(geo, m); l.position.y = -len / 2; g.add(l); if (hand) { const h = new THREE.Mesh(GEO.hand, sk); h.position.y = -len - .02; g.add(h); } return g; };
   const armL = mkLimb(.4, 1.12, GEO.arm, .5, jc, true), armR = mkLimb(-.4, 1.12, GEO.arm, .5, jc, true); body.add(armL, armR); { const sx = .3 * vis.w + .1; armL.position.x = sx; armR.position.x = -sx; for (const a of [armL, armR]) a.scale.set(vis.aw, vis.al, vis.aw); }
   const legL = mkLimb(-.17, .56, GEO.leg, .55, pc), legR = mkLimb(.17, .56, GEO.leg, .55, pc); root.add(legL, legR); { const lx = .17 * (.85 + .15 * vis.w); legL.position.x = -lx; legR.position.x = lx; for (const l of [legL, legR]) l.scale.set(vis.lw, vis.ll, vis.lw); }
-  for (const l of [legL, legR]) { const s = new THREE.Mesh(GEO.shoe, mat('#222')); s.position.set(0, -.56, .06); l.add(s); }
+  for (const l of [legL, legR]) { const s = new THREE.Mesh(GEO.shoe, mat(['#1d1d22', '#1d1d22', '#1d1d22', '#f2f2f2', '#b31b1b', '#16306a'][hashStr('shoe:' + vkey) % 6])); s.position.set(0, -.56, .06); l.add(s); }
   let legBase = null, bodyY = 0; if (o.bat) { const sy = vis.ll * 1.18, y0 = .55 * sy + .01; for (const l of [legL, legR]) { l.position.y = y0; l.scale.y = sy; } legBase = { y0, sy }; bodyY = y0 - .56; }      // 打者：腿加長約 18%，上半身整體抬高；蹲低時腿縮短＝膝蓋彎曲
   let gloveM = null, bat = null;
-  if (o.glove) { gloveM = new THREE.Mesh(GEO.glove, mat('#8a5a2a')); gloveM.position.set(0, -.58, .1); armL.add(gloveM); }
+  if (o.glove) { gloveM = new THREE.Mesh(GEO.glove, mat(['#8a5a2a', '#6b3f1d', '#a8742f', '#2a2a30', '#9a2a22', '#1f3a6a', '#c28a3a'][hashStr('glove:' + vkey) % 7])); gloveM.position.set(0, -.58, .1); armL.add(gloveM); const wb = new THREE.Mesh(WEB_GEO, mat('#3a2412')); wb.position.set(0, .12, .06); gloveM.add(wb); }
   let batTilt = null;
   if (o.bat) {
     bat = new THREE.Group(); batTilt = new THREE.Group(); bat.add(batTilt);
@@ -1923,13 +1963,16 @@ function makeChibi(o) {
   root.scale.setScalar((o.scale || 1) * vis.h);
   const rig = { root, body, head, torso, armL, armR, legL, legR, bat, batTilt, glove: gloveM, anim: null, t: 0, run: 0, side: 1, baseY: 0, fade: 1, vis, bs: batStyle(vkey), ps: pitStyle(vkey), legBase, bodyY };
   rig.mats = [];
+  try { addGear(rig, o, vis, jc, pc, sk, vkey, suit); if (o.catcher) addCatcherGear(rig, vis, o.cap || o.jersey); if (o.ump) addUmpGear(rig, vis); } catch (e) { console.error(e); }
   return rig;
 }
 // ----- animations -----
 // 左打者整個身體是鏡像（body.scale.x=-1），身體轉動方向（轉體／側傾）也要反向，否則會往反方向轉、揮棒軌跡變形
 function setRigPose(r, p) { const sg = r.side < 0 ? -1 : 1; r.body.rotation.set(p.bx || 0, (p.by || 0) * sg, (p.bz || 0) * sg);r.body.position.y = (p.y || 0) + (r.bodyY || 0); r.armL.rotation.set(p.alx || 0, 0, p.alz || 0); r.armR.rotation.set(p.arx || 0, 0, p.arz || 0); r.legL.rotation.x = p.llx || 0; r.legR.rotation.x = p.lrx || 0; r.legL.rotation.z = p.llz || 0; r.legR.rotation.z = p.lrz || 0;
-  if (!r.legBase && r.vis) { r.legL.scale.y = r.vis.ll * (1 - .45 * (p.llk || 0)); r.legR.scale.y = r.vis.ll * (1 - .45 * (p.lrk || 0)); }      // 抬腿時小腿收起（膝蓋彎曲）
-  if (r.legBase) { const cr = clamp(-(p.y || 0), 0, .4), y0 = r.legBase.y0; r.legL.position.y = r.legR.position.y = y0 - cr; r.legL.scale.y = r.legR.scale.y = r.legBase.sy * (y0 - cr) / y0; } r.head.rotation.set(p.hx || 0, p.hy || 0, p.hz || 0); }
+  if (!r.legBase && r.vis) { r.legL.scale.y = r.vis.ll * (1 - .45 * (p.llk || 0)); r.legR.scale.y = r.vis.ll * (1 - .45 * (p.lrk || 0));
+    const up = Math.max(0, p.y || 0), jk = clamp((up - .12) * 3, 0, 1);      // 跳躍：雙腿跟著身體離地，空中收膝、前後微擺（不再留在地面）
+    r.legL.position.y = r.legR.position.y = .56 + up; if (jk > 0) { r.legL.rotation.x -= .5 * jk; r.legR.rotation.x -= .3 * jk; r.legL.scale.y *= 1 - .22 * jk; r.legR.scale.y *= 1 - .22 * jk; } }      // 抬腿時小腿收起（膝蓋彎曲）
+  if (r.legBase) { const cr = clamp(-(p.y || 0), 0, .4), y0 = r.legBase.y0; r.legL.position.y = r.legR.position.y = y0 - cr + Math.max(0, p.y || 0); r.legL.scale.y = r.legR.scale.y = r.legBase.sy * (y0 - cr) / y0; } r.head.rotation.set(p.hx || 0, p.hy || 0, p.hz || 0); }
 function rigPlay(r, name, dur, opt) { r.anim = { name, t: 0, dur: dur || 1, opt: opt || {} }; }
 function rigStep(r, dt) {
   const a = r.anim; r.t += dt;
@@ -2302,14 +2345,14 @@ function rebuildField() {
   if (E.ump) disposeRig(E.ump);
   const ft = fieldingTeam(), st = teamStyle(1 - G.half);
   for (const pos of POS_LIST) {
-    const pl = playerAt(ft, pos); const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl });
+    const pl = playerAt(ft, pos); const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl, catcher: pos === 'C' });
     scene.add(rig.root); const d = DEFAULT_POS[pos];
     const f = { pos, pl, rig, x: d.x, z: d.z, tx: d.x, tz: d.z, hasBall: false, busy: 0, dive: false };
     rig.root.position.set(d.x, 0, d.z); faceRig(rig, 0, 0); rig.ready = pos !== 'C';
     E.F[pos] = f;
   }
   E.F.C.rig.anim = { name: 'crouch', t: 0, dur: 1e9, opt: { hold: true } }; ghostRig(E.F.C.rig, .28);
-  E.ump = makeChibi({ jersey: '#1a1a22', pants: '#3a3a44', cap: '#111', scale: 1, pl: { name: '主審' } }); E.ump.root.position.set(1.2, 0, 5.7); E.ump.root.rotation.y = Math.PI; scene.add(E.ump.root); E.ump.root.rotation.y = Math.PI; ghostRig(E.ump, .28);
+  E.ump = makeChibi({ jersey: '#1a1a22', pants: '#3a3a44', cap: '#111', scale: 1, ump: true, pl: { name: '主審' } }); E.ump.root.position.set(1.2, 0, 5.7); E.ump.root.rotation.y = Math.PI; scene.add(E.ump.root); E.ump.root.rotation.y = Math.PI; ghostRig(E.ump, .28);
   setupBatter();
 }
 const MOVEK = .78;      // 全場跑動速度係數：場地很大的感覺（跑者、守備員同步放慢）
@@ -5651,7 +5694,7 @@ function subInto(side, old, sub, why) {
 }
 function swapFielderRig(pos, pl) {
   const f = E.F[pos]; if (!f) return; const st = teamStyle(1 - G.half); disposeRig(f.rig);
-  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = pl; rig.ready = pos !== 'C'; faceRig(rig, 0, 0);
+  const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl, catcher: pos === 'C' }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = pl; rig.ready = pos !== 'C'; faceRig(rig, 0, 0);
   if (pos === 'C') { rig.anim = { name: 'crouch', t: 0, dur: 1e9, opt: { hold: true } }; ghostRig(rig, .28); }
 }
 const FIELD_INJ = ['奮力飛撲接球，手腕著地扭傷', '追球衝撞外野全壘打牆，肩膀受傷', '急停轉身瞬間腳踝扭到', '接球瞬間手指遭球直接撞擊挫傷', '與隊友相撞，膝蓋疼痛站不起來'];
@@ -6747,7 +6790,7 @@ function changePitcher(side, idx, forced, why) {
   if (!t.dh) { const pb = genBatter(1, 'P', np.num, 8); pb.name = np.name; pb.isPitcherBat = true; pb.nat = 'P'; pb.out = false; pb.pos = 'P'; t.lineup[8] = pb; }
   if (side === 1 - G.half && E.F.P) {
     const f = E.F.P, st = teamStyle(side); disposeRig(f.rig);
-    const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl: np }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
+    const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl: np, catcher: f.pos === 'C' }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
   }
   if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}${why ? '（' + why + '）' : ''}`);
   toast('換投', '#fff', '#39f'); updatePlayerBoxes(); introPitcher(side, np, old);
