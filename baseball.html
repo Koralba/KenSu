@@ -1085,7 +1085,7 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
   </details>
   <details class="how"><summary>📖 操作說明</summary>
     <div><b>投球</b>：<span class="d-pc">選球種（1~5）→ 移動瞄準圈 → 點擊／空白鍵（E 牽制）</span><span class="d-mob">選球種 → 拖曳瞄準 → 按「投球」</span></div>
-    <div><b>打擊</b>：<span class="d-pc">圈住來球，球到本壘時點擊／空白鍵揮棒（Shift 強打、Q 盜壘、B 短打：圈住來球即自動觸擊）</span><span class="d-mob">拖曳圈住來球 → 球到時按「揮棒」（短打：圈住即觸擊）</span></div>
+    <div><b>打擊</b>：<span class="d-pc">圈住來球，球到本壘時點擊／空白鍵揮棒（Shift 強打、Q 盜壘＝跑者立即起跑，投手抬腿前可被牽制、B 短打：圈住來球即自動觸擊）</span><span class="d-mob">拖曳圈住來球 → 球到時按「揮棒」（短打：圈住即觸擊）</span></div>
     <div><b>挑戰</b>：<span class="d-pc">下一球投出前按 C，申請 ABS 鷹眼</span><span class="d-mob">出現「ABS 挑戰」鈕時點一下</span></div>
     <div><b>跑壘／全壘打判決</b>：<span class="d-pc">close play 或貼近界外柱、牆邊的球，出現挑戰面板時 4 秒內按 C</span><span class="d-mob">出現「ABS 挑戰」鈕時點一下</span>，回放後可能改判</div>
   </details>
@@ -1111,7 +1111,7 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
   <button id="btnPush" class="hide">推進 <small>F</small></button><button id="btnBack" class="hide">回壘 <small>D</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><button id="btnPow">強打</button><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（擠壓／打跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（擠壓／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -2506,7 +2506,7 @@ function resolveSwing(pt, sw, b) {
   const sideB = E.bat.side, insA = sw.bunt ? 0 : clamp(-(pt.fx * sideB) / ZW, -1.4, 1.4);          // >0 內角（靠近身體）、<0 外角
   const inK = Math.min(Math.max(insA, 0), 1.2), outK = Math.min(Math.max(-insA, 0), 1.2);
   const idealS = 0;                                    // 最佳出手時機：內角略早（要在身體前方打）、外角偏晚（讓球多飛一點再打）
-  const W = WIN * (sw.human ? 1.3 : 1) * (sw.power ? 0.90 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
+  const W = WIN * (sw.human ? 1.3 : 1) * (sw.power ? 0.90 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03) * (G.hitAndRun && !sw.bunt ? 1.08 : 1), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
   let dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - (sw.human && pt.Tv ? pt.Tv : pt.T);      // 時機＝揮棒接觸瞬間與球到達本壘板時刻的差，無隨機誤差
   let dtE = dt - idealS * W, Wd = W * (dtE < 0 ? 1 - outK * .12 + inK * .04 : 1 + outK * .12 - inK * .10), adt = Math.abs(dtE);   // 相對最佳時機的偏差；內角晚側窗口窄、外角晚側窗口寬／早側窗口窄
   const jx = sw.human ? 0 : gauss() * .012 * Math.max(0, mv - .7), jy = sw.human ? 0 : gauss() * .012 * Math.max(0, mv - .7);      // 玩家揮棒不加隨機偏移：位置與時機對了就不會被「隱形誤差」判成揮空
@@ -2602,6 +2602,7 @@ function resolveSwing(pt, sw, b) {
   else if (v < -.5) { const k = clamp((-v - .5) / .7, 0, 1); ang -= k * k * (24 + Math.random() * 8); ev *= 1 - .22 * k; }      // 棒子打到球的上緣：往下壓成滾地球／彈地球
   if (ang < 14 && Q > .6) ev *= 1 + (Q - .6) * .2 * (.85 + b.con * .003);                       // 紮實擊中的低仰角球：強勁滾地球／平飛球
   if (cz === 'sweet' && Q > .6 && !sw.bunt) { const pull = clamp((Q - .6) / .4, 0, 1) * (.2 + skill * .25); ang += (clamp(ang, 7 + pwk * 2, 24 + pwk * 6) - ang) * pull; ev *= 1 + pull * .06 * (.6 + pskill * .6); }      // 甜蜜點＋好時機：球被打成「黃金仰角」的強勁平飛／長打，能力越強越明顯
+  if (G.hitAndRun && !sw.bunt && ang > 4 && ang < 32) ang -= Math.min(ang - 3, 3.5 + Math.random() * 3.5);      // 打帶跑：打者壓低球路、盡量打成滾地球，配合起跑的跑者
   ang = clamp(ang, -26, 78);
   let th = side * s * 34 - side * inside * (inside > 0 ? 8 : 6.5) + (pj.x - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);   // 內角偏拉、外角偏推
   if (marginal) {      // 擦邊／時機邊緣：方向由接觸幾何決定（球在棒頭側／偏早→拉向界外側，握把側／偏晚→推向另一側），力道依偏離程度遞減，不再擲硬幣
@@ -3150,6 +3151,7 @@ function reconcileRunners() {
   }
 }
 function runnerArrive(r) {
+  if (r.earlyGo && !r.bat && !PL && r.to >= 2 && r.to <= 3) { r.earlyGo = false; try { say(SAY.steal(r, true)); toast('盜壘成功！', '#fff27a', '#2a9a3a'); } catch (e) { } }
   r.stealRun = false; r.from = r.to; r.ruledSafe = false; r.reviewed = false; r.arrT = G.clk || 0;
   if (r.from >= 1 && r.from <= 3 && !r.slipped && !r.sliding) maybeSlip(r, r.stealer ? 1.6 : 1);
   if (r.from >= 1 && r.from <= 3) { if (r.stealer) maybeInjureRunner(r, 'slide'); else if (r.bat && r.from === 3) maybeInjureRunner(r, 'sprint'); else if (PL && PL.state === 'thrown') maybeInjureRunner(r, 'slide'); }
@@ -3813,7 +3815,7 @@ function runnersThink(dt) {
     const base = r.state === 'run' ? r.to : r.from + 1;
     const dirNow = r.state === 'run' ? r.dir : 1;
     // retreat logic
-    if (r.state === 'run' && r.dir > 0 && !r.isForce && !r.bat && r.from >= 1 && r.s < .55 && !(r.pushUntil > PL.tAge) && !(r.stealer && (PL.kind === 'steal' || PL.kind === 'wp')) && !(r.squeeze && PL.res && PL.res.bunt)) {
+    if (r.state === 'run' && r.dir > 0 && !r.isForce && !r.bat && r.from >= 1 && r.s < .55 && !(r.pushUntil > PL.tAge) && !(r.stealer && (PL.kind === 'steal' || PL.kind === 'wp')) && !(r.squeeze && PL.res && PL.res.bunt) && !(r.hnr && PL.kind === 'gb' && r.s > .25)) {
       const rem = (1 - r.s) * BASE_LEN / r.spd, eta = ballETA(r.to % 4 === 0 ? 0 : r.to);
       if (eta < rem - .15 && PL.state !== 'flight' && baseFree(r.from, r) && !E.runners.some(o => o !== r && o.state === 'run' && o.dir > 0 && o.to === r.from)) { r.dir = -1; r.goal = r.from; continue; }
     }
@@ -3836,7 +3838,7 @@ function runnersThink(dt) {
       if (r.goal > r.to) continue;
       const nb = r.to + 1; if (nb > 4) continue;
       if (nb < 4 && !baseFree(nb, r) ) continue;
-      const tR = rem / r.spd + BASE_LEN / r.spd + .1;
+      const tR = rem / r.spd + BASE_LEN / r.spd + .1 - (r.hnr ? .3 : 0);
       const eta = ballETA(nb >= 4 ? 0 : nb);
       const need = (G.outs === 2 ? -.12 : .14) + (nb === 4 ? .08 : 0) + (G.lv < 2 ? .25 : 0) - (PL.plan && PL.plan.f && PL.plan.f.pl.arm < 55 ? .15 : 0) - ((r.pl.agg || 50) - 50) * .003 - (G.lv >= 2 ? .06 : 0);
       if (tR + need < eta && (r.s > .35 || r.s === 0 || true)) { r.goal = nb; }
@@ -4051,10 +4053,10 @@ function clearPlay() { const tp = document.getElementById('throwPanel'); if (tp)
    Part 5: CPU brain  (pitch calling / batting / baserunning / defence / bench)
    ===================================================================== */
 const LVL = [      // ctl=控球散佈倍率(越小越準)、wild=暴投倍率、lvAdj=電腦球種等級加減、brk=球威(變化幅度)倍率、spd=球速修正、hit=電腦打者揮棒誤差倍率(越小越會打)
-  { name: '弱', noise: 2.0, temp: .9, think: .55, steal: 1.0, shift: false, learn: 0, mid: 1.3, plain: 1.3, ctl: .62, wild: .3, lvAdj: -1.8, brk: .78, spd: -.035, hit: 1.4 },
-  { name: '普通', noise: 1.1, temp: .5, think: .75, steal: .85, shift: true, learn: .5, mid: .5, plain: .35, ctl: .74, wild: .45, strk: .55, lvAdj: -.4, brk: .93, spd: -.01, hit: 1.05 },
-  { name: '強', noise: .7, temp: .28, think: .92, steal: .75, shift: true, learn: 1, mid: 0, plain: 0, ctl: 1, wild: 1, lvAdj: .6, brk: 1.06, spd: .01, hit: .9 },
-  { name: '宗師', noise: .24, temp: .07, think: 1.0, steal: .6, shift: true, learn: 2.0, mid: 0, plain: 0, ctl: .9, wild: 1, lvAdj: 1.6, brk: 1.2, spd: .025, hit: .75 }
+  { name: '弱', noise: 2.0, temp: .9, think: .55, steal: 1.0, sr: .1, srT: .95, hnr: 0, shift: false, learn: 0, mid: 1.3, plain: 1.3, ctl: .62, wild: .3, lvAdj: -1.8, brk: .78, spd: -.035, hit: 1.4 },
+  { name: '普通', noise: 1.1, temp: .5, think: .75, steal: .85, sr: .28, srT: .65, hnr: .55, shift: true, learn: .5, mid: .5, plain: .35, ctl: .74, wild: .45, strk: .55, lvAdj: -.4, brk: .93, spd: -.01, hit: 1.05 },
+  { name: '強', noise: .7, temp: .28, think: .92, steal: .75, sr: .45, srT: .45, hnr: .85, shift: true, learn: 1, mid: 0, plain: 0, ctl: 1, wild: 1, lvAdj: .6, brk: 1.06, spd: .01, hit: .9 },
+  { name: '宗師', noise: .24, temp: .07, think: 1.0, steal: .6, sr: .6, srT: .3, hnr: 1, shift: true, learn: 2.0, mid: 0, plain: 0, ctl: .9, wild: 1, lvAdj: 1.6, brk: 1.2, spd: .025, hit: .75 }
 ];
 const lvl = () => LVL[G.lv];
 function phi(x) { const t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2); const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return x > 0 ? 1 - p : p; }
@@ -4324,7 +4326,7 @@ function aiOffenseCall() {
     const lead = Math.max(.9, (run.leadMax || 2.2) * (1 - (run.wary || 0) * .3)); const runT = (BASE_LEN - lead) / run.spd + .25 * stealRamp(run) + .2;
     const dist = dist2(0, 1.6, to.x, to.z), throwT = tCatch + dist / armSpeed(c);
     const margin = throwT - runT - stealThreat(run) * .0 - (defenseThreat().r === run ? .0 : 0) + (defenseThreat().t > 1.2 ? -.06 : 0);
-    const agg = run.pl.agg || 50; let need = L.steal * 0 + (L.steal - .68) * 1.2 + .15 - (agg - 50) * .0035 - (G.lv >= 2 ? .03 : 0) + (run.wary || 0) * .22;      // 被牽制過：跑者更保守
+    const agg = run.pl.agg || 50; let need = L.steal * 0 + (L.steal - .68) * 1.2 + .15 - (agg - 50) * .0035 - (G.lv >= 2 ? .03 : 0) + (run.wary || 0) * .22 + .1;      // 被牽制過：跑者更保守（立即起跑有被牽制的風險，再加一點保守）
     if (out === 2) need -= .02; if (diff >= 3 || diff <= -4) need += .3; if (out === 0 && i === 0) need += .05;
     if (G.strikes === 2 && out === 2) need -= .02;
     if (strengthOf(b) > 78 && i === 0 && out < 2) need += .12;
@@ -4333,8 +4335,12 @@ function aiOffenseCall() {
       if (Math.random() < clamp((.28 + (margin - need) * 1.3) * (.7 + agg / 100 * .6), 0, .9) * (1 - clamp((run.wary || 0) * .6, 0, .75))) { sendIdx = i; }
     }
   }
+  if (sendIdx < 0 && L.hnr > 0 && r[0] && r[0].state === 'on' && !r[1] && out < 2 && G.strikes < 2 && b.con >= 58 && r[0].pl.spd >= 45) {      // 打帶跑：一壘有人、打者擅長擊球時，電腦也會喊出打帶跑（難度愈高愈常用）
+    let ph = L.hnr * (.06 + (b.con - 58) * .004 + (G.balls > G.strikes ? .06 : 0)) * (strengthOf(b) > 80 ? .45 : 1) * ((diff >= 3 || diff <= -3) ? .5 : 1) * (r[2] ? .5 : 1);
+    if (humanDefTac('in')) ph *= .8; if (Math.random() < ph) { G.runnerGo = [0]; G.hitAndRun = true; return; }
+  }
   if (sendIdx >= 0) {
-    G.runnerGo = [sendIdx];
+    G.runnerGo = (sendIdx === 1 && G.on[0] && G.on[0].state === 'on' && !G.on[2] && G.on[0].pl.spd >= 55 && G.lv >= 2 && Math.random() < .3) ? [1, 0] : [sendIdx];      // 偶爾雙盜壘
     if (G.on[sendIdx + 1 - 1] && b.con > 66 && !G.on[sendIdx + 1] && G.strikes < 2 && Math.random() < .25) G.hitAndRun = true;
   }
 }
@@ -4376,6 +4382,77 @@ function startSteal(idxs, pre0) {
     if (nb < 4 && G.on[nb - 1]) continue;
     r.state = 'run'; r.goal = nb; r.to = nb; r.dir = 1; r.s = (r.lead || 0) / BASE_LEN; r.pre = pre0 != null ? pre0 : clamp(.3 - (r.pl.spd - 50) * .0008 - ((r.pl.agg || 50) - 50) * .0004 + Math.abs(gauss()) * .04, .16, .5); r.accT = 0; r.stealTry = (r.stealTry || 0) + 1; r.stealer = true; r.stealRun = true; r.squeeze = (G.squeeze === 'suicide' && i === 2); G.on[i] = null; r.isForce = false;
   }
+}
+
+/* -------- 立即盜壘（按下盜壘＝跑者當場盡全力起跑；投手還沒抬腿前可隨時牽制刺殺跑者） -------- */
+function stealWindowOpen() { return G.mode === 'play' && !G.over && (G.phase === 'pre' || (G.phase === 'windup' && !G.legUp)); }
+function launchEarlySteal(idxs) {
+  if (!stealWindowOpen() || !idxs || !idxs.length) return false;
+  const L = lvl(), go = [], set = idxs.slice().sort((a, b) => b - a);
+  for (const i of set) {
+    const r = G.on[i]; if (!r || r.state !== 'on' || (i < 2 && G.on[i + 1] && !set.includes(i + 1))) continue;
+    const pre0 = clamp(.2 - (r.pl.spd - 50) * .0008 - ((r.pl.agg || 50) - 50) * .0005 + Math.abs(gauss()) * .05, .08, .4);
+    startSteal([i], pre0); r.earlyGo = true; r.decided = false; r.watchT = 0;
+    r.reactT = L.srT * (.75 + Math.random() * .6) * (1 + (curPitcher().fatigue || 0) * .004); go.push(i);
+  }
+  if (!go.length) return false;
+  G.stealReq = false; G.stealSel = null; G.stealSet = null; G.earlyRun = true;
+  try { coverSteal(go); } catch (e) { }
+  const nm = go.map(i => G.on[i] ? '' : '').join(''); void nm;
+  if (humanPitches() && G.human >= 0) { say('<em>跑者起跑盜壘！</em>投手還沒抬腿前，按 <em>E</em> 可以直接牽制刺殺；或快速投球讓捕手傳球'); toast('跑者起跑！按 E 牽制', '#fff', '#d9961c'); }
+  else { say('<em>跑者起跑盜壘！</em>'); toast('盜壘！', '#ffe9a0', '#c60'); }
+  return true;
+}
+function updateStealWatch(dt) {
+  if (G.mode !== 'play' || G.over) return;
+  if (G.earlyAt >= 0) { if (!stealWindowOpen()) G.earlyAt = -1; else { G.earlyAt -= dt; if (G.earlyAt < 0) { G.earlyAt = -1; const ix = (G.earlyIdx || []).filter(i => G.on[i] && G.on[i].state === 'on'); launchEarlySteal(ix); } } }
+  if (humanBats() && G.human >= 0 && G.stealReq && G.offCall !== 'hitrun' && !G.callBunt && stealWindowOpen()) { const ix = stealIdxs(); if (ix.length) launchEarlySteal(ix); else G.stealReq = false; }
+  if (!G.earlyRun) return;
+  if (!E.runners.some(r => r.earlyGo && r.state === 'run')) { if (G.phase !== 'pickoff') G.earlyRun = false; return; }
+  if (!stealWindowOpen() || G.cpuBusy || G.rosinBusy || (humanPitches() && !G.intWalk)) return;      // 電腦投手才自動判斷；玩家投手自己按 E
+  const L = lvl();
+  for (const r of E.runners) {
+    if (!r.earlyGo || r.state !== 'run' || r.decided || r.dir < 0 || r.bat) continue;
+    r.watchT += dt; if (r.watchT < r.reactT) continue; r.decided = true;      // 反應時間：難度愈高、投手愈有精神，愈快發現跑者起跑
+    let p = L.sr * (1 + pickAbility(r.from - 1) * 1.3) * (1 - (r.wary || 0) * .3) * (r.s < .3 ? 1 : .55);
+    if (r.s >= .5) p = 0;      // 跑者已跑過半程：傳了也來不及
+    if (Math.random() < p) { stealPickoff(r); return; }
+    G.stealAlert = true; if (G.phase === 'pre') G.pitchDelay = Math.min(G.pitchDelay, G.preT + .12 + Math.random() * .25);      // 不牽制：改成快速投球，讓捕手趕快傳球
+  }
+}
+function stealPickoff(r) {      // 投手對「已起跑的盜壘跑者」牽制：直接傳向跑者要去的壘包，跑者還沒到就被觸殺
+  const P = E.F.P, tb = r.to, tgt = tb === 2 ? (E.bat && E.bat.side > 0 ? E.F.SS : E.F['2B']) : tb === 3 ? E.F['3B'] : null;
+  if (!P || !tgt || r.state !== 'run' || r.dir < 0 || G.phase === 'pickoff' || !stealWindowOpen()) return false;
+  if (G.phase === 'windup') PT = null;      // 還沒抬腿：取消這次投球
+  pitcherToMound(); G.phase = 'pickoff'; G.pickCount++; G.earlyRun = true;
+  const pp = curPitcher(); pp.pkLoad = (pp.pkLoad || 0) + .6; pp.fatigue = calcFatigue(pp);
+  const tok = G.pkTok = (G.pkTok || 0) + 1, alive = () => tok === G.pkTok && !G.over && G.mode === 'play';
+  const bs = baseSpot(tb), cv = { x: bs.x + (bs.x > 0 ? -.5 : bs.x < 0 ? .5 : 0), z: bs.z + (tb === 2 ? 1.2 : .6) }, hd = pp.hand === 'L' ? -1 : 1;
+  const wild = Math.random() < clamp(.035 - pickAbility(r.from - 1) * .05, .008, .08);
+  r.decided = true; faceRig(P.rig, cv.x, cv.z); faceRig(tgt.rig, P.x, P.z); P.rig.anim = { name: 'throw', t: 0, dur: .36, opt: { hand: hd } };
+  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 1.15; tgt.wait = 0; tgt.hold = 0;
+  say(`<em>${pp.name}</em>發現<em>${r.pl.name}</em>起跑，轉身傳向${tb === 2 ? '二' : '三'}壘！`); toast('牽制！', '#fff', '#2a7ae8');
+  const finish = () => {
+    if (!alive()) return;
+    if (E.runners.some(q => q.state === 'run' && q.earlyGo && q.dir > 0 && q.s < 1)) { after(.12, finish); return; }
+    G.earlyRun = false; if (G.outs >= 3) { endHalf(); return; } cleanupRunners(); prePitch();
+  };
+  after(.18, () => {
+    if (!alive()) return; const h = new V3(); try { pitcherHandPos(h); } catch (e) { h.set(P.x, 1.5, P.z); } flowSfx('pick', .4);
+    const to = wild ? { x: cv.x + (cv.x >= 0 ? 3 : -3), y: 1.2, z: cv.z + 3.5 } : { x: cv.x, y: 1.15, z: cv.z };
+    ballTween({ x: h.x, y: h.y, z: h.z }, to, clamp(throwDur(P, cv), .3, .8), .45, () => {
+      if (!alive()) return; flowSfx('mitt'); tgt.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} };
+      after(.14, () => {
+        if (!alive()) return; tagAnim(tgt);
+        if (wild) { say('牽制暴傳！球跑掉了，跑者安全！'); toast('牽制暴傳', '#fff', '#d9731a'); if (r.state === 'run' && r.to < 4 && r.goal === r.to && baseFree(r.to + 1, r)) r.goal = r.to + 1; }
+        else if (r.state === 'run' && r.dir > 0 && r.s < 1 - (r.sliding ? (r.slideReach || 0) : 0) - .03) { putOut(r, 'tag'); toast('牽制刺殺！', '#fff', '#f55'); }
+        else { say(SAY.steal(r, true)); toast('盜壘成功！', '#fff27a', '#2a9a3a'); }
+        after(.9, finish);
+      });
+    });
+  });
+  after(10, () => { if (tok === G.pkTok && !G.over && G.mode === 'play' && G.phase === 'pickoff') { G.earlyRun = false; if (G.outs >= 3) endHalf(); else { cleanupRunners(); prePitch(); } } });      // 保險
+  return true;
 }
 
 /* -------- pickoff -------- */
@@ -5988,7 +6065,9 @@ function prePitch(first) {
   if (!humanBats()) { G.callBunt = false; G.sneak = false; aiOffenseCall(); if (G.callBunt && !G.sneak && E.bat) E.bat.rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } }; if (G.squeeze === 'safety') say(castA('<em>安全式擠壓短打</em>！打者擺出短打姿勢，三壘跑者看球再決定。')); }     // 一般犧牲短打：提早擺出短打姿勢（防守看得出來）；奇襲短打則到投手出手才轉身
   else if (G.sneak && G.callBunt) { G.sneak = false; }
   else if (G.human < 0) { }
-  for (const r of G.on) if (r && !r.leadMax) r.leadMax = 2.2;
+  for (const r of G.on) if (r) { if (!r.leadMax) r.leadMax = 2.2; r.stealer = false; r.earlyGo = false; r.hnr = false; }
+  G.legUp = false; G.earlyAt = -1; G.earlyIdx = [];
+  if (!humanBats() && G.runnerGo.length && !G.squeeze && !G.hitAndRun) { G.earlyIdx = G.runnerGo.slice(); G.runnerGo = []; G.earlyAt = .3 + Math.random() * Math.max(.2, G.pitchDelay * .55); }      // 電腦盜壘：同樣是當場起跑（不再配合投球動作）
   updateLamps(); updatePlayerBoxes(); buildPitchPanel(); updateActs(); absShowPend();
   if (humanPitches() && !G.intWalk) say(`<em>${curPitcher().name}</em>，選擇球種與落點後投球！（按 1～${curPitcher().pitches.length} 鍵 / 點擊）`);
 }
@@ -6023,8 +6102,9 @@ function cpuDeliver() {
   if (aiMoundThink()) return;
   const p = curPitcher();
   if (G.on.some(x => x)) readRunners(); else G.stealAlert = false;
+  if (E.runners.some(q => q.earlyGo && q.state === 'run')) G.stealAlert = true;
   const pk = aiPickoffThink();
-  if (pk >= 0 && !G.intWalk) { doPickoff(pk); return; }
+  if (pk >= 0 && !G.intWalk && !E.runners.some(q => q.earlyGo && q.state === 'run')) { doPickoff(pk); return; }
   const sel = aiPickPitch(p, curBatter());
   const sqRead = !!(G.runnerGo && G.runnerGo.includes(2) && G.squeeze === 'suicide') && Math.random() < ([0, .07, .16, .28][G.lv] || 0);      // 電腦捕手／教練偶爾識破自殺式擠壓，投出外角球讓跑者出局
   const th = defenseThreat();                                          // 捕手預判：跑速快／有企圖盜壘的跑者 → 偶爾投出外角壞球(pitchout)讓捕手站起來直接傳
@@ -6088,22 +6168,23 @@ function doPickoff(i) {
   after(9, () => { if (tok === G.pkTok && !G.over && G.mode === 'play' && G.phase === 'pickoff') { clr(); if (G.outs >= 3) endHalf(); else { cleanupRunners(); prePitch(); } } });      // 保險：流程被打斷時不會卡住
 }
 function doPitch(sel) {
-  if (G.phase !== 'pre') return; const p = curPitcher(); G.phase = 'windup'; pitcherToMound(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); $('pitchPanel').classList.add('hide'); hideHitInfo(0);
+  if (G.phase !== 'pre') return; const p = curPitcher(); G.phase = 'windup'; G.legUp = false; pitcherToMound(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); $('pitchPanel').classList.add('hide'); hideHitInfo(0);
   const pt = makePitch(p, sel.id, sel.x, sel.y, sel.acc); PT = pt; if (typeof sel.acc === 'number') { pt.acc = sel.acc; pt.tier = sel.tier; const TT = [['完美出手', '#2a9a3a'], ['正常出手', '#b89a10'], ['稍微失控', '#d9731a'], ['出手失準', '#c33']][sel.tier == null ? 1 : sel.tier]; toast(TT[0], '#fff', TT[1]); } pt.ibb = !!sel.ibb; pt.pitchout = !!sel.pitchout;
   const anyRun = G.on.some(x => x); const rhy = Math.random(), rk = rhy < .2 ? .85 : rhy < .8 ? 1 : 1.18;     // 快速投球／一般／慢節奏，每球不同
   const th0 = defenseThreat(), alertQ = anyRun && !humanPitches() && !!G.stealAlert, wind = (anyRun ? .85 - Math.min(.1, th0.t * .05) : 1.2) * (alertQ ? .88 : 1) * rk * (.92 + Math.random() * .16) * ((E.F.P && E.F.P.rig.ps && E.F.P.rig.ps.tempo) || 1);       // 提防盜壘時投手改用快速投球(滑步)       // 出手時間（從開始投球動作算起）；有人在壘＝快速投球
   const set = humanPitches() && !G.intWalk ? .1 + Math.random() * .3 : (() => { let st = Math.random() < .22 ? .9 + Math.random() * .9 : .3 + Math.random() * .8; st *= .8 + (p._tp || 1) * .3; if (anyRun) st *= alertQ ? .6 : Math.random() < .35 ? 1.5 : .8; return clamp(st, .22, alertQ ? .8 : 1.9); })();   // 出手前先站定、看捕手暗號，偶爾停更久
   if (set > .12) { const P = E.F.P; faceRig(P.rig, 0, 4); P.rig.anim = { name: 'stretch', t: 0, dur: set + .05, opt: { hand: p.hand === 'R' ? 1 : -1 } }; }       // 出手前雙手併胸站定
-  after(set, () => { if (PT === pt) E.F.P.rig.anim = { name: 'pitch', t: 0, dur: wind / .62, opt: { hand: p.hand === 'R' ? 1 : -1, hold: false } }; });
-  if (humanBats() && G.human >= 0) {      // 玩家進攻戰術：擠壓短打／打跑（與電腦使用同一套起跑與守備反應）
+  after(set, () => { if (PT === pt) { G.legUp = true; E.F.P.rig.anim = { name: 'pitch', t: 0, dur: wind / .62, opt: { hand: p.hand === 'R' ? 1 : -1, hold: false } }; } });
+  if (humanBats() && G.human >= 0) {      // 玩家進攻戰術：擠壓短打／打帶跑（與電腦使用同一套起跑與守備反應）
     if (G.offCall === 'suicide' || G.offCall === 'safety') { if (G.callBunt && G.on[2] && G.on[2].state === 'on' && G.outs < 2) { G.squeeze = G.offCall; if (G.offCall === 'suicide') { G.runnerGo = [2]; G.stealReq = false; } } else G.squeeze = null; }
     G.hitAndRun = G.offCall === 'hitrun' && !!G.stealReq;
   }
-  if (humanBats() && G.stealReq) { const idx = stealIdxs(); if (idx.length) G.runnerGo = idx; }
+  if (humanBats() && G.stealReq && G.offCall === 'hitrun') { const idx = stealIdxs(); if (idx.length) G.runnerGo = idx; }
   G.stealWatch = th0.t; G.lastPitchout = !!sel.pitchout;
+  if (G.hitAndRun && G.runnerGo.length && !humanBats()) { say(castA('<em>打帶跑！</em>跑者提前起跑，打者務必揮棒配合！')); toast('打帶跑！', '#ffe9a0', '#c60'); }
   if (G.squeeze === 'suicide') { say(castA('<em>三壘跑者起跑！自殺式擠壓短打！</em>')); toast('擠壓短打！', '#ffe9a0', '#c60'); }
-  if (G.runnerGo.length) { const go = G.runnerGo.slice().sort((a, b) => b - a), jtOf = {}; let latest = 0; for (const i of go) { const r = G.on[i]; if (!r) continue; const pre0 = .05, jf = clamp(.8 + gauss() * .11 - ((r.pl.agg || 50) - 50) * .0014 - ((r.pl.spd || 50) - 50) * .0012, .5, 1.07); let jt = Math.max(0, wind * jf - pre0); if (go.includes(i + 1) && jtOf[i + 1] != null) jt = Math.max(jt, jtOf[i + 1] + .03); jtOf[i] = jt; latest = Math.max(latest, jt); after(set + jt, () => startSteal([i], pre0)); }       // 起跑時機因人而異：看準投手動作的好跳／慢跳
-    after(set + wind * .55 + .06, () => coverSteal(go)); }
+  if (G.runnerGo.length) { const go = G.runnerGo.slice().sort((a, b) => b - a), jtOf = {}; let latest = 0; for (const i of go) { const r = G.on[i]; if (!r) continue; const pre0 = .05, jf = clamp((G.hitAndRun ? .3 : .8) + gauss() * .11 - ((r.pl.agg || 50) - 50) * .0014 - ((r.pl.spd || 50) - 50) * .0012, G.hitAndRun ? .12 : .5, 1.07); let jt = Math.max(0, wind * jf - pre0); if (go.includes(i + 1) && jtOf[i + 1] != null) jt = Math.max(jt, jtOf[i + 1] + .03); jtOf[i] = jt; latest = Math.max(latest, jt); after(set + jt, () => { startSteal([i], pre0); if (G.hitAndRun && r) r.hnr = true; }); }       // 起跑時機因人而異：看準投手動作的好跳／慢跳
+    after(set + wind * (G.hitAndRun ? .32 : .55) + .06, () => coverSteal(go)); }
   absClearPend();
   say(SAYX.pitchStart(p, G.seq.length + 1));
   after(set + wind, () => releasePitch(pt));
@@ -7611,10 +7692,11 @@ function updatePickTags() {      // 「牽制」半透明字樣：貼在有跑�
       if (_rv.z < 1 && sc.x / pr > -20 && sc.x / pr < ov.clientWidth + 20 && Y > 20 && Y < ov.clientHeight - 20) { show = true; b.style.left = X + 'px'; b.style.top = Y + 'px'; } }
     b.classList.toggle('on', show); if (show) any = true;
   }
-  const bp = $('btnPick'); if (bp) bp.style.display = (humanPitches() && G.human >= 0 && !any && ok && G.on.some(r => r && r.state === 'on')) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
+  const bp = $('btnPick'); if (bp) bp.style.display = (humanPitches() && G.human >= 0 && !any && ok && (G.on.some(r => r && r.state === 'on') || E.runners.some(q => q.earlyGo && q.state === 'run'))) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
 }
 const _rv = new V3();
 function humanPickoff(sel) {
+  if (humanPitches() && G.human >= 0 && !G.rosinBusy && stealWindowOpen()) { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) { stealPickoff(rr); return; } }
   if (typeof sel === 'number') { if (humanPitches() && G.phase === 'pre' && !G.rosinBusy && G.on[sel] && G.on[sel].state === 'on') doPickoff(sel); return; } if (humanPitches() && G.phase === 'pre' && !G.rosinBusy) { for (const i of [2, 1, 0]) if (G.on[i] && G.on[i].state === 'on') { doPickoff(i); return; } } }
 $('absGo').onclick = () => EV.abs ? absResolveInput(true) : runPend(); $('absSkip').onclick = () => EV.abs ? absResolveInput(false) : absClearPend();
 $('btnPowPc').onclick = () => setPow(!POW_PREF);
@@ -7841,7 +7923,7 @@ function openTacPanel() {
   for (const k in TAC_OF) mk(`${G.tac && G.tac.of === k ? '✔ ' : ''}${TAC_OF[k].name}<span>${TAC_OF[k].desc}</span>`, () => setTac('of', k), G.tac && G.tac.of === k);
   mk('關閉', () => { });
 }
-/* ---------------- 比賽中：進攻戰術（擠壓短打／打跑／盜壘選人／離壘距離） ---------------- */
+/* ---------------- 比賽中：進攻戰術（擠壓短打／打帶跑／盜壘選人／離壘距離） ---------------- */
 function openOffPanel() {
   const sub = $('sub'); sub.classList.remove('hide'); sub.dataset.k = 'o'; sub.dataset.s = '';
   const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>'; sub.innerHTML = '<h3>🏃 進攻戰術' + close + '</h3>';
@@ -7849,7 +7931,7 @@ function openOffPanel() {
   const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } sub.classList.add('hide'); }; sub.appendChild(d); };
   const stopBunt = () => { if (G.callBunt) { cancelBunt(true); applyBatStance(); } };
   const none = !(G.offCall || G.leadMode || G.stealReq || G.callBunt);
-  mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、盜壘、擠壓、打跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.stealSet = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
+  mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、盜壘、擠壓、打帶跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.stealSet = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
   if (G.on[2] && G.on[2].state === 'on' && G.outs < 2) {
     head('擠壓短打（三壘有人、未滿兩出局；再按一次＝取消）');
     mk(`${G.offCall === 'safety' ? '✔ ' : ''}安全式擠壓<span>打者短打，三壘跑者看球再決定要不要衝回本壘</span>`, () => { if (G.offCall === 'safety') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = 'safety'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>安全式擠壓短打</em>'); toast('安全式擠壓', '#ffe9a0', '#c60'); }, G.offCall === 'safety');
@@ -7859,10 +7941,10 @@ function openOffPanel() {
   if (runs.length) {
     head('盜壘（再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall !== 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
-      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，下一球起跑`); }, on); });
-    head('打跑戰術（跑者起跑、打者務必揮棒；再按一次＝取消）');
+      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，跑者立即起跑`); }, on); });
+    head('打帶跑（跑者提前起跑、打者務必揮棒；再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall === 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
-      mk(`${on ? '✔ ' : ''}${nm}打跑（跑${to}）<span>${r.pl.name}起跑，打者要揮棒配合</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } stopBunt(); G.stealSel = i; G.stealSet = null; G.stealReq = true; G.offCall = 'hitrun'; say(`進攻戰術：<em>打跑</em>！${nm}起跑，打者務必揮棒`); toast('打跑戰術', '#ffe9a0', '#c60'); }, on); });
+      mk(`${on ? '✔ ' : ''}${nm}打帶跑（跑${to}）<span>${r.pl.name}比盜壘更早起跑，打者要揮棒；滾地安打可多推進一壘，揮空或飛球有被刺殺／雙殺風險</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } stopBunt(); G.stealSel = i; G.stealSet = null; G.stealReq = true; G.offCall = 'hitrun'; say(`進攻戰術：<em>打帶跑</em>！${nm}提前起跑，打者務必揮棒`); toast('打帶跑', '#ffe9a0', '#c60'); }, on); });
   }
   if (G.on.some(r => r && r.state === 'on')) {
     head('壘上跑者離壘距離');
@@ -7885,7 +7967,7 @@ function openStealPanel() {      // 盜壘選擇：全員盜壘，或自己勾�
     sub.innerHTML = '<h3>🏃 盜壘選擇<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
     const cur = stealIdxs(), cand = [1, 0].filter(i => G.on[i] && G.on[i].state === 'on' && (i === 1 ? !G.on[2] : (!G.on[1] || !G.on[2])));
     const item = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } render(); }; sub.appendChild(d); };
-    const apply = set => { set = [...new Set(set)]; if (!set.length) { G.stealReq = false; G.stealSet = null; G.stealSel = null; say('取消盜壘指示'); return; } if (G.offCall === 'hitrun') G.offCall = null; G.stealSel = null; G.stealSet = set; G.stealReq = true; const ix = stealIdxs(); say(ix.length ? `盜壘指示：<em>${ix.map(i => names[i]).join('、')}</em>下一球起跑` : '盜壘指示無法執行（前方壘包有人）'); };
+    const apply = set => { set = [...new Set(set)]; if (!set.length) { G.stealReq = false; G.stealSet = null; G.stealSel = null; say('取消盜壘指示'); return; } if (G.offCall === 'hitrun') G.offCall = null; G.stealSel = null; G.stealSet = set; G.stealReq = true; const ix = stealIdxs(); say(ix.length ? `盜壘：<em>${ix.map(i => names[i]).join('、')}</em>立即起跑` : '盜壘指示無法執行（前方壘包有人）'); };
     const all = cand.filter(i => i === 1 || !G.on[1] || cand.includes(1));
     item(`${G.stealReq && all.length && all.every(i => cur.includes(i)) && cur.length === all.length ? '✔ ' : ''}全員盜壘<span>所有能跑的跑者一起起跑（${all.map(i => names[i]).join('、')}）</span>`, () => apply(all), G.stealReq && all.length > 0 && all.every(i => cur.includes(i)));
     cand.forEach(i => { const r = G.on[i], on = cur.includes(i), need = i === 0 && G.on[1] ? '（二壘跑者會一起跑）' : '';
@@ -8047,6 +8129,7 @@ function step(dt) {
   if (G.freeze) return;
   G.clk = (G.clk || 0) + dt;
   if (G.mode === 'play') {
+    try { updateStealWatch(dt); } catch (e) { console.error(e); }
     if (G.phase === 'pre') updatePre(dt); else if (G.phase === 'flight') updateFlight(dt);
     if (!PL && (G.phase === 'pre' || G.phase === 'windup') && !tweens.length && E.F.P) { pitcherHandPos(_hp); setBall(_hp, true); }
   }
