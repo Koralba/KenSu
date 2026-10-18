@@ -1229,7 +1229,7 @@ const MOUND = { x: 0, z: -15 };
 const ZW = 0.55, ZC = 1.35, ZH = 0.72;      // strike zone half width / centre y / half height（寬:高≈3:4，與真實好球帶 43cm × 約 57cm 比例相近）
 const BALL_R = 0.16;
 const ZCM = 43 / (2 * ZW);      // 1 單位 ≈ 幾公分（好球帶寬 43cm 對應 2×ZW）
-let WALL_H = 4.6;
+let WALL_H = 5.4;
 const WALL_PTS = [[0, 80], [45, 71], [90, 44], [135, 32], [180, 30]];
 function wallRadius(phi) {                // phi deg from centre field (0), either sign
   let a = Math.abs(phi); a = a > 180 ? 360 - a : a;
@@ -1287,17 +1287,17 @@ const STADIUMS = ['洲際棒球場', '亞太主球場', '桃園棒球場', '新�
 /* 球場特性（2026 年中職例行賽共使用 11 座球場）。cf=中外野、gap=左右中間、ln=兩翼（遊戲單位），h=外野牆高，
    dt=氣溫修正(°C)，wind=風力倍率，rain=降雨傾向，wc=牆頂顏色。尺寸為依球場特色設定的示意比例，非精確丈量值 */
 const PARKS = {
-  '洲際棒球場': { cf: 80, gap: 75.5, ln: 71, h: 4.6, dt: 0, wind: 1.0, rain: 1.0, wc: 0x1d7a45, note: '標準尺寸，中部球場' },
-  '亞太主球場': { cf: 81.5, gap: 76.5, ln: 71.5, h: 4.8, dt: 1, wind: .9, rain: 1.1, wc: 0x1b4f9c, note: '全新球場，場地寬敞' },
-  '桃園棒球場': { cf: 79, gap: 74, ln: 70, h: 4.2, dt: -1, wind: 1.3, rain: 1.0, wc: 0x7a1030, note: '風勢較大，外野牆較矮' },
-  '新莊棒球場': { cf: 79, gap: 74.5, ln: 70, h: 4.5, dt: 0, wind: 1.0, rain: 1.0, wc: 0x0a56a8, note: '中規中矩的北部球場' },
-  '天母棒球場': { cf: 76, gap: 72, ln: 68.5, h: 4.2, dt: -1, wind: .9, rain: 1.1, wc: 0x9a1020, note: '場地偏小，容易出現全壘打' },
-  '澄清湖棒球場': { cf: 80, gap: 75.5, ln: 71, h: 4.6, dt: 2, wind: 1.1, rain: .9, wc: 0x0d6b3d, note: '南部炎熱，天氣多半晴朗' },
-  '台北大巨蛋': { cf: 81, gap: 76, ln: 71.5, h: 5.0, dt: 0, wind: 0, rain: 0, wc: 0x203a60, dome: true, note: '室內球場，無風無雨' },
-  '嘉義市立棒球場': { cf: 78, gap: 73.5, ln: 69.5, h: 4.5, dt: 2, wind: .9, rain: 1.2, wc: 0x2f6b3a, note: '悶熱潮濕，午後雷陣雨多' },
-  '斗六棒球場': { cf: 77, gap: 72.5, ln: 69, h: 4.3, dt: 2, wind: .8, rain: 1.2, wc: 0x3d6b2f, note: '內陸悶熱，風小、場地偏小' },
-  '花蓮縣立棒球場': { cf: 79, gap: 74.5, ln: 70, h: 4.5, dt: -2, wind: 1.4, rain: 1.5, wc: 0x23607a, note: '東岸多風多雨，氣溫較涼' },
-  '台東縣立棒球場': { cf: 77.5, gap: 73, ln: 69.5, h: 4.3, dt: 2, wind: 1.5, rain: 1.1, wc: 0x2a7a6a, note: '海風強勁，天氣炎熱' }
+  '洲際棒球場': { cf: 80, gap: 75.5, ln: 71, h: 5.4, dt: 0, wind: 1.0, rain: 1.0, wc: 0x1d7a45, note: '標準尺寸，中部球場' },
+  '亞太主球場': { cf: 81.5, gap: 76.5, ln: 71.5, h: 5.6, dt: 1, wind: .9, rain: 1.1, wc: 0x1b4f9c, note: '全新球場，場地寬敞' },
+  '桃園棒球場': { cf: 79, gap: 74, ln: 70, h: 5.0, dt: -1, wind: 1.3, rain: 1.0, wc: 0x7a1030, note: '風勢較大，外野牆較矮' },
+  '新莊棒球場': { cf: 79, gap: 74.5, ln: 70, h: 5.3, dt: 0, wind: 1.0, rain: 1.0, wc: 0x0a56a8, note: '中規中矩的北部球場' },
+  '天母棒球場': { cf: 76, gap: 72, ln: 68.5, h: 5.0, dt: -1, wind: .9, rain: 1.1, wc: 0x9a1020, note: '場地偏小，容易出現全壘打' },
+  '澄清湖棒球場': { cf: 80, gap: 75.5, ln: 71, h: 5.4, dt: 2, wind: 1.1, rain: .9, wc: 0x0d6b3d, note: '南部炎熱，天氣多半晴朗' },
+  '台北大巨蛋': { cf: 81, gap: 76, ln: 71.5, h: 5.8, dt: 0, wind: 0, rain: 0, wc: 0x203a60, dome: true, note: '室內球場，無風無雨' },
+  '嘉義市立棒球場': { cf: 78, gap: 73.5, ln: 69.5, h: 5.3, dt: 2, wind: .9, rain: 1.2, wc: 0x2f6b3a, note: '悶熱潮濕，午後雷陣雨多' },
+  '斗六棒球場': { cf: 77, gap: 72.5, ln: 69, h: 5.1, dt: 2, wind: .8, rain: 1.2, wc: 0x3d6b2f, note: '內陸悶熱，風小、場地偏小' },
+  '花蓮縣立棒球場': { cf: 79, gap: 74.5, ln: 70, h: 5.3, dt: -2, wind: 1.4, rain: 1.5, wc: 0x23607a, note: '東岸多風多雨，氣溫較涼' },
+  '台東縣立棒球場': { cf: 77.5, gap: 73, ln: 69.5, h: 5.1, dt: 2, wind: 1.5, rain: 1.1, wc: 0x2a7a6a, note: '海風強勁，天氣炎熱' }
 };
 /* 自動選場時的全聯盟加權（2026 年例行賽各球場使用場次） */
 const PARK_W = [['台北大巨蛋', 90], ['桃園棒球場', 52], ['新莊棒球場', 50], ['亞太主球場', 48], ['洲際棒球場', 47], ['澄清湖棒球場', 45], ['天母棒球場', 40], ['嘉義市立棒球場', 10], ['台東縣立棒球場', 6], ['斗六棒球場', 2], ['花蓮縣立棒球場', 2]];
@@ -2898,7 +2898,7 @@ function planFielding(sim, cl, foul, res) {
     const o = sim.over; let best = null, bd = 1e9;
     for (const p of ['LF', 'CF', 'RF']) { const f = E.F[p]; const d = dist2(f.x, f.z, o.x, o.z); if (d < bd) { bd = d; best = f; } }
     const wr = wallRadius(o.phi) - 1.2, k = wr / Math.hypot(o.x, o.z); let missF = null;
-    const ROBY = Math.min(WALL_H + 1.15, 4.4);
+    const ROBY = WALL_H + .8;      // 擦牆頭的球（高度在牆頂上 0.8 m 內）：外野手可攀牆探手搶救
     if (best && o.y < ROBY && !foul && !cl.grd) {                  // 擦著牆頭的球：外野手有機會跳起來把全壘打抓回來
       const fl = best.pl.fld || 55, spd = fspeed(best), react = .42 - fl * .0012 + Math.abs(gauss()) * .06;
       const need = react + spd / (2 * (12 + fl * .05)) + Math.max(0, dist2(best.x, best.z, o.x * k, o.z * k) - 1.0) / spd, margin = o.t - need;
@@ -2931,7 +2931,7 @@ function planFielding(sim, cl, foul, res) {
       const s = S[i]; if (sim.over && s.t > sim.over.t) break;
       // 外野全壘打牆邊：球在碰牆前，外野手可貼牆接殺（球高度超過 2.8m 要起跳攀牆，成功率看守備能力與球高）；碰牆之後的球算地滾球
       const rad = Math.hypot(s.x, s.z), wr = wallRadius(Math.atan2(s.x, -s.z) * 180 / Math.PI), nearWall = rad > wr - 2.4 && s.t <= wT + .02;
-      const leap = s.y > 2.8 && s.y <= Math.min(WALL_H + .7, 3.7) && nearWall;
+      const leap = s.y > 2.8 && s.y <= WALL_H + .5 && nearWall;
       if (s.y > 2.8 && !leap) continue;
       let sx = s.x, sz = s.z;
       if (!limit(sx, sz) && !foul) { if (rad <= wr + .7 && s.t <= wT + .05) { const k = (wr - .9) / rad; sx *= k; sz *= k; } else continue; }
