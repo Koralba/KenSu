@@ -1079,6 +1079,8 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
   <div id="rp" class="hide"></div>
  <div id="brawlBanner" class="hide">⚾ 觸身球！雙方球員衝出休息室！ ⚾</div>
   <div id="injOv" class="hide"><div id="injI">🚑</div><div id="injT"></div><div id="injD"></div></div>
+  <style>#rainDelay{position:fixed;left:50%;top:27%;transform:translate(-50%,-50%);z-index:36;width:min(88vw,400px);background:rgba(8,20,40,.93);border:3px solid #6ab;border-radius:14px;padding:12px 16px;text-align:center;color:#fff;pointer-events:auto;box-shadow:0 4px 20px #000a}#rainDelay.hide{display:none!important}#rdTitle{font-weight:900;font-size:clamp(16px,2.6vh,20px);color:#8cf;margin-bottom:4px}#rdTx{font-size:clamp(12px,1.8vh,14px);opacity:.95;margin-bottom:8px;line-height:1.55}.rdlab{font-size:12px;opacity:.85;margin:6px 0 2px;text-align:left}#rdWait{background:linear-gradient(90deg,#4af,#8ef)!important}#rdBtn{margin-top:10px;width:100%;padding:12px;font-size:16px;background:#a33!important;user-select:none;-webkit-user-select:none}#rdBtn:active{background:#d44!important;transform:scale(.97)}</style>
+  <div id="rainDelay" class="hide"><div id="rdTitle">⛈ 暴雨・主審暫停比賽</div><div id="rdTx"></div><div class="rdlab">雨勢減弱中…</div><div class="bar big"><i id="rdWait" style="width:0%"></i></div><div id="rdProt"><div class="rdlab">抗議值（全滿＝激烈抗議成功）</div><div class="bar big"><i id="rdMeter" style="width:0%"></i></div><button class="abtn" id="rdBtn" type="button">🧑‍🏫 教練抗議！（連點／空白鍵）</button></div></div>
   <div id="mashUi" class="hide"><div id="mashTx"></div><div class="bar big"><i id="mashBar" style="width:0%"></i></div></div>
   <div id="flash"></div>
   <div id="sub" class="hide"></div>
@@ -2067,7 +2069,7 @@ function pitchLv(p, id) { const o = p.pitches.find(q => q.id === id); return o ?
 function ctlSigma(p, type, lv) {
   const fat = p.fatigue || 0;
   let c = p.ctl - fat * 0.38 - (G.on[0] || G.on[1] || G.on[2] ? 2 : 0) + (moodOf(p) - 55) * .14 + roleEdge(p);
-  let sg = clamp(0.72 - c * 0.0058, 0.08, 0.6) * (1 + (moodVol(p) - 1) * .8) * (1 + rainK() * .18) * (1 + windK() * (.05 + Math.max(0, (G.wx.gust || 0)) * .02));
+  let sg = clamp(0.72 - c * 0.0058, 0.08, 0.6) * (1 + (moodVol(p) - 1) * .8) * (1 + rainK() * .18) * (1 + stormK() * .3) * (1 + windK() * (.05 + Math.max(0, (G.wx.gust || 0)) * .02));
   sg *= .86;      // 好球帶縮小後，投球散佈也依比例縮小
   if (type) sg *= 1.22 - (lv || 4) * 0.035;
   if (G.lv >= 0 && LVL[G.lv] && !humanPitches()) sg *= LVL[G.lv].ctl || 1;      // 電腦投手：難度愈低控球愈不精準
@@ -2085,7 +2087,7 @@ function makePitch(p, id, aimX, aimY, acc) {
   // 控球誤差（高斯）＋偶發失投（體力差、心情差、球路不熟時更容易）
   // 失投（暴投）機率：控球越好越穩；體力下降、心情／心態差、球種不熟（等級低）、變化幅度越大的球種都更容易失控；球威好的投手稍穩
   const stab = clamp((p.ctl - 40) / 55, 0, 1), mood0 = moodOf(p), fat0 = p.fatigue || 0;
-  const unrest = (.003 + Math.pow(1 - stab, 1.6) * .034) * (1 + fat0 * .014) * (1 + ((G.tilt && G.tilt[1 - G.half]) || 0) * .35) * clamp(Math.pow(G.day || 1, .6), .7, 1.5) * (mood0 < 50 ? 1 + (50 - mood0) * .04 : Math.max(.6, 1 - (mood0 - 50) * .008)) * (lvRaw >= 6 ? .85 : 1 + Math.max(0, 5 - lvRaw) * .45) * clamp(1 - (p.dom || 0) * .25, .75, 1.15) * (1 + rainK() * 1.2) * (p.rosin > 0 ? .8 : 1);
+  const unrest = (.003 + Math.pow(1 - stab, 1.6) * .034) * (1 + fat0 * .014) * (1 + ((G.tilt && G.tilt[1 - G.half]) || 0) * .35) * clamp(Math.pow(G.day || 1, .6), .7, 1.5) * (mood0 < 50 ? 1 + (50 - mood0) * .04 : Math.max(.6, 1 - (mood0 - 50) * .008)) * (lvRaw >= 6 ? .85 : 1 + Math.max(0, 5 - lvRaw) * .45) * clamp(1 - (p.dom || 0) * .25, .75, 1.15) * (1 + rainK() * 1.2) * stormMul() * (p.rosin > 0 ? .8 : 1);
   const breakK = .8 + clamp(Math.hypot(spec.bx, spec.by) / 1.6, 0, 1.1) * .7 + (spec.knuckle ? .5 : 0);
   const wildP = clamp(unrest * breakK * (hasAcc ? 1 + (1 - acc) * 1.5 : 1) * (LC ? LC.wild : 1), .002, .12);
   const wildPitch = Math.random() < wildP; const k = wildPitch ? 2.4 : 1;
@@ -2445,14 +2447,14 @@ const GRAV = 9.8, DRAG = 0.0028;
 const LIFT = .028, SIDEF = .028;
 function ballEnv(res) {            // 風、氣溫、旋轉、運氣 → 物理環境
   const w = G.wx || { spd: 0, dir: 0, temp: 26 }, gust = res ? clamp(res.luck, -2.4, 2.4) * .95 : 0;     // 擊球當下的陣風
-  const rr = rainK(), wm = 1 + clamp(rr - .55, 0, .25) * .5 + clamp(rr - .8, 0, .2) * 1.5, ws = w.spd * clamp(.3 + Math.pow(Math.min(w.spd, 11) / 11, 2) * .7, .3, 1), gk = .5 + .5 * clamp(w.spd / 9, 0, 1), wx = ws * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5 * gk, wz = -ws * wm * Math.cos(w.dir * Math.PI / 180) - gust * gk;      // 微風～中風對球的影響大幅減弱，狂風暴雨（約 8 m/s 以上）才明顯
-  return { wx, wz, back: res ? res.spinB * (1 - rainBK() * .08) : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, seed: (Math.random() * 4294967296) >>> 0, rough: clamp((.72 + Math.random() * .6) * (1 + rainBK() * .5) * (1 + Math.abs(res ? res.luck : 0) * .1), .6, 2.1), swirl: 1 + windK() * 1.6 + rainBK() * .5, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .09), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04) };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
+  const rr = rainK(), wm = 1 + clamp(rr - .55, 0, .25) * .5 + clamp(rr - .8, 0, .2) * 1.5, ws = w.spd * clamp(.3 + Math.pow(Math.min(w.spd, 11) / 11, 2) * .7, .3, 1), gk = .5 + .5 * clamp(w.spd / 9, 0, 1), wx = ws * wm * Math.sin(w.dir * Math.PI / 180) + gust * .5 * gk, wz = -ws * wm * Math.cos(w.dir * Math.PI / 180) - gust * gk;      // 微風～中風對球的影響大幅減弱，暴雨（約 8 m/s 以上）才明顯
+  return { wx, wz, back: res ? res.spinB * (1 - rainBK() * .08) : 1, side: res ? res.spinS : 0, hop: res ? res.luck : 0, seed: (Math.random() * 4294967296) >>> 0, rough: clamp((.72 + Math.random() * .6) * (1 + rainBK() * .5) * (1 + Math.abs(res ? res.luck : 0) * .1), .6, 2.1), swirl: 1 + windK() * 1.6 + rainBK() * .5, drag: (1 - (w.temp - 24) * .0025) * (1 + rainBK() * .09), roll: 1 + rainBK() * .42 + clamp((20 - w.temp) * .006, 0, .08), rest: 1 - rainBK() * .14 - clamp((22 - w.temp) * .0025, 0, .04), pud: PUD.lvl > .55 ? 1 : 0 };     // 濕地：滾動阻力大、彈跳低；低溫：球偏硬悶
 }
 function mkRng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }      // 每一球一個種子：同一球的模擬結果固定，但每球不同
 function simulateBall(p0, v0, maxT, env) {
   env = env || { wx: 0, wz: 0, back: 1, side: 0, hop: 0, drag: 1, roll: 1, rest: 1 };
   const S = [], dt = 1 / 60; let x = p0.x, y = p0.y, z = p0.z, vx = v0.x, vy = v0.y, vz = v0.z, t = 0, bk = env.back, sd = env.side;
-  let first = null, hr = false, wallHit = false, bounces = 0, stopped = false, over = null, wallT = 0, wallY = 0; const BN = [];
+  let pudHit = null, first = null, hr = false, wallHit = false, bounces = 0, stopped = false, over = null, wallT = 0, wallY = 0; const BN = [];
   /* ---- 不可控因素（以種子隨機，每球不同）---- */
   const rng = mkRng(env.seed || 20260), RN = (a, b) => a + (b - a) * rng(), RG = () => { let u = 0, v = 0; while (!u) u = rng(); while (!v) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); };
   const rough = env.rough || 1, swl = env.swirl || 1;
@@ -2477,7 +2479,8 @@ function simulateBall(p0, v0, maxT, env) {
     if (ny <= BALL_R) {
       ny = BALL_R;
       if (!first) first = { x: nx, z: nz, t: t + dt };
-      if (vy < -1.6) {
+      if (env.pud && puddleAt(nx, nz)) { if (!pudHit) pudHit = { x: nx, z: nz, t: t + dt }; vx = vy = vz = 0; stopped = true; onG = true; }      // 暴雨積水：球一碰到水窪就直接停住、不再彈跳或滾動
+      else if (vy < -1.6) {
         const vin = -vy, sp0 = Math.hypot(vx, vz), inf = Math.hypot(nx, nz) < 27, be = { t: t + dt, v: vin, x: nx, z: nz }; BN.push(be);
         let rest = .5 * (env.rest || 1) * (inf ? 1.04 : .96) * (bounces === 0 ? 1 + clamp(env.hop, -1.5, 1.5) * .16 : 1), hk = clamp(.94 - (bk - 1) * .05, .85, 1.02);      // 旋轉：前旋→落地後加速滑行；後旋→落地煞住、減速
         vx *= hk; vz *= hk;
@@ -2539,7 +2542,7 @@ function simulateBall(p0, v0, maxT, env) {
     S.push({ t, x, y, z, g: onG || y <= BALL_R + .001 });
     if (stopped) { for (let i = 0; i < 6; i++) S.push({ t: t + (i + 1) * dt, x, y, z, g: true }); break; }
   }
-  return { S, first, over, wallHit, wallT, wallY, bn: BN, tEnd: S[S.length - 1].t, bad, chop, bagHit, moundHit, wallTop, bumps, hug: hugDist > 6, hugDist, kicked };
+  return { S, first, over, wallHit, wallT, wallY, bn: BN, tEnd: S[S.length - 1].t, bad, chop, bagHit, moundHit, wallTop, bumps, hug: hugDist > 6, hugDist, kicked, pud: pudHit };
 }
 function sampleAt(S, t, out) {
   if (t <= 0) { out.x = S[0].x; out.y = S[0].y; out.z = S[0].z; return out; }
@@ -2594,7 +2597,7 @@ function moveFielder(f, dt) {
   if (!(rig.anim && rig.anim.name === 'dive')) rig.root.position.y = moundY(rig.root.position.x, rig.root.position.z);
 }
 function fieldFace(f, dt) {                  // 野手站定時的朝向：未擊球＝全員看打者；球打出後＝全員看球（球在誰手上就看誰）
-  const rig = f.rig; if (!rig || G.mode !== 'play' || rig.run > 0 || f.hasBall || (f.v || 0) > .8) return;
+  const rig = f.rig; if (!rig || G.mode !== 'play' || G.phase === 'pickoff' || rig.run > 0 || f.hasBall || (f.v || 0) > .8) return;
   if (rig.anim && rig.anim.name !== 'stance' && !(f.pos === 'C' && rig.anim.name === 'crouch')) return;
   let tx, tz;
   if (PL) { tx = ballMesh.position.x; tz = ballMesh.position.z; }
@@ -2622,6 +2625,7 @@ function launchBall(res, pt) {
   if (plan.kind === 'hr' && plan.miss && !plan.grd) { const mf = plan.miss, pl0 = PL, ot = (sim.over && sim.over.t) || 2, weakHit = (res.ev || 99) < 41; after(Math.max(.25, ot - .3), () => { if (PL !== pl0) return; mf.rig.anim = { name: 'catch', t: 0, dur: .5, opt: {} }; toast('差一點就攔下！', '#fff', '#8a5ad8'); say(`<em>${POS_FULL[mf.pos]}${mf.pl.name}貼牆躍起、伸長了手套…</em>${weakHit ? '球就在手套上方飛過牆頭，剛好出去的全壘打！' : '球差一點點就被攔下，還是飛出了全壘打牆！'}`, 3200); } ); }
   const rv = plan.robHR ? null : absReviewSetup(sim, cl, plan);
   G.phase = 'inplay';
+  if (sim.pud) { const plp = PL; after(Math.max(.2, sim.pud.t), () => { if (PL === plp) { toast('積水！球停住了', '#fff', '#3a8ad8'); flowSfx('bounce', .5); } }); }
   setBall(sim.S[0], true, '#fff');
   maybeInjureOnBall(res, plan);
   { const sm = sim, pl0 = PL; const note = res.broken ? ['斷棒！', '#fff', '#c84'] : res.tip ? [res.tipText || '擦棒高飛', '#fff', '#68a'] : (sm.hug && cl.fair) ? ['貼線球！', '#fff', '#2a8'] : sm.chop ? ['高彈跳球', '#fff', '#a5f'] : sm.bagHit ? ['碰到壘包！', '#fff', '#a5f'] : sm.bumps ? ['不規則滾地球', '#fff', '#a5f'] : sm.wallTop ? ['擦牆頭！', '#fff', '#e83'] : null;
@@ -2712,7 +2716,7 @@ function planFielding(sim, cl, foul, res) {
     let c = cands[0];
     if (c.dive) {
       const fl = c.f.pl.fld || 55;
-      const p = c.leap ? clamp(.26 + fl * .004 - (c.y - 2.8) * .38 + luck * .03 - rainK() * .12, .04, .75) : clamp((c.superTry ? .03 + fl * .003 : .38 + fl * .0035) + luck * .03 - rainK() * .12, .03, .8);
+      const p = c.leap ? clamp(.26 + fl * .004 - (c.y - 2.8) * .38 + luck * .03 - rainK() * .12, .04, .75) : clamp((c.superTry ? .03 + fl * .003 : .38 + fl * .0035) + luck * .03 - rainK() * .12 - stormK() * .1, .03, .8);
       if (Math.random() > p - hardK * .10) { // dive fails : ball goes through, next chaser
         const rest = cands.filter(x => x !== c && !x.dive);
         c.failedDive = true; if (rest.length) { c = rest[0]; c.failDive = cands[0]; } else { c = chasePlan(sim, S, list, foul); c.failDive = cands[0]; }
@@ -2855,8 +2859,9 @@ function updateRunners(dt) {
     if (r.sliding && r.state !== 'run' && !(r.rig.anim && r.rig.anim.name === 'slide')) r.sliding = false;
     if (r.state === 'out' || r.state === 'home') { r.fadeT = (r.fadeT || 0) + dt; if (r.fadeT > 1.2 && r.rig.root.visible) r.rig.root.visible = false; continue; }
     if (r.state === 'on') {   // lead ramp
-      const want = (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && !PL ? (r.leadMax ? effLead(r) : 0) : 0;
-      r.lead += clamp(want - r.lead, -3 * dt, 3 * dt);
+      const live = (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && !PL, hold = G.phase === 'pickoff' && r.pkHold;      // 牽制進行中：跑者維持離壘，直到投手球出手後才反應回壘（不再球一投出去就瞬間縮回壘包、卻仍被判出局）
+      const want = (live || hold) ? (r.leadMax ? effLead(r) : 0) : 0, rate = G.phase === 'pickoff' && r.pkRate ? r.pkRate : 3;
+      r.lead += clamp(want - r.lead, -rate * dt, 3 * dt);
     } else if (r.state === 'run') {
       if (r.stall > 0) { r.stall -= dt; runnerXZ(r, _rp); r.rig.root.position.set(_rp.x, 0, _rp.z); if (r.stall <= 0) { r.rig.anim = null; r.slipped = false; } continue; }
       if (r.pre > 0) { r.pre -= dt; r.rig.run = 0; if (r.pre > 0) { runnerXZ(r, _rp); r.rig.root.position.set(_rp.x, 0, _rp.z); continue; } if (r.bat && r.rig.bat) { r.rig.bat.visible = false; r.rig.anim = null; } }
@@ -3016,27 +3021,40 @@ function throwTo(f, recv, b, info, forceRelay) {
   const target = relay ? { x: to.x, z: to.z } : spot;
   // 遠距離傳球：外野手（或超遠距離）通常要落地彈跳一次才到接球者手上；肩力強的野手在合理距離內有機會像雷射一樣直接傳到位
   const tdist = dist2(f.x, f.z, target.x, target.z), arm0 = f.pl.arm || 60, isOF0 = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF', hopD = isOF0 ? 30 : 50;
-  let hop = false, laser = false;
+  let hop = false, laser = false, roll = false;
   if (tdist > hopD && f.pos !== 'C' && f.pos !== 'P') {
     const laserMax = hopD + clamp((arm0 - 62) * 1.0, 0, 38);
-    const pL = laserMax > hopD && tdist <= laserMax ? clamp((arm0 - 62) / 34, 0, 1) * clamp(1 - (tdist - hopD) / (laserMax - hopD), .15, 1) * .9 : 0;
-    if (Math.random() < pL) laser = true; else hop = true;
+    const pL = laserMax > hopD && tdist <= laserMax ? clamp((arm0 - 62) / 34, 0, 1) * clamp(1 - (tdist - hopD) / (laserMax - hopD), .15, 1) * .4 : 0;      // 雷射肩要夠強、距離不能太遠，而且機率不高
+    if (Math.random() < pL) laser = true;
+    else {
+      hop = true;      // 遠距離回傳：多半要彈地才到；太遠或肩力弱的野手會彈兩下、再貼地滾一小段才到接球者手上
+      const rollP = clamp((tdist - hopD - 10) / 40, 0, .85) * (1 + clamp((70 - arm0) / 60, -.3, .5));
+      if (Math.random() < rollP) { roll = true; hop = false; }
+    }
   }
-  const wm = laser ? .5 : hop ? .8 : 1;
+  const wm = laser ? .5 : roll ? .95 : hop ? .8 : 1;
   const dpTry = !!PL && PL.outsMade === 1 && b === 1 && (f.pos === '2B' || f.pos === 'SS' || f.pos === '3B'), rushK = (dpTry ? 1.55 : 1) * (PL.plan && PL.plan.dive && PL.plan.f === f && !PL.plan.robHR && PL.outsMade === 0 ? 1.6 : 1);      // 轉傳雙殺很倉促、撲接後來不及站穩就傳：暴傳機率提高
-  const wild = clamp(0.018 * (1 + (70 - (f.pl.arm || 60)) / 60) * (d > 45 ? 1.5 : 1) + (f.pl.fld < 50 ? .01 : 0), .007, .08) * (1 + rainK() * 1.6) * wm * rushK * chaosK(1 - G.half) > Math.random() && !PL.cleanThrow;
+  const wild = clamp(0.018 * (1 + (70 - (f.pl.arm || 60)) / 60) * (d > 45 ? 1.5 : 1) + (f.pl.fld < 50 ? .01 : 0), .007, .08) * (1 + rainK() * 1.6) * moodVol(f.pl) * wm * rushK * chaosK(1 - G.half) > Math.random() && !PL.cleanThrow;      // 傳歪機率：傳球者肩力／守備、當下心情與低潮、當天運氣與場面氣氛(chaosK)、雨天暴雨，不是人人固定加成
   PL.state = 'thrown'; f.hasBall = false; f.rig.anim = { name: 'throw', t: 0, dur: .35, opt: { hand: 1 } }; faceRig(f.rig, target.x, target.z);
-  const dur = (dist2(f.x, f.z, target.x, target.z) / armSpeed(f.pl) + .05) * (laser ? .94 : hop ? 1.06 : 1);
+  const dur = (dist2(f.x, f.z, target.x, target.z) / armSpeed(f.pl) + .05) * (laser ? .94 : roll ? 1.45 + clamp((tdist - hopD) / 60, 0, .3) : hop ? 1.12 + clamp((tdist - hopD) / 45, 0, .28) : 1);      // 彈地／滾地的球比較慢，跑者多出更多時間
+  if (roll && tdist > 45) say(`<em>${POS_FULL[f.pos]}${f.pl.name}距離太遠，球彈了兩下才滾向壘包…</em>`, 2500);
   if (laser && tdist > 40) { toast('雷射肩！', '#fff', '#0a9'); say(`<em>${POS_FULL[f.pos]}${f.pl.name}的雷射肩！</em>一傳到位！`, 2500); }
-  PL.thr = { dp: dpTry, rushed: rushK > 1.5 && !dpTry, hop, laser, from: f, to, b, t: 0, dur, x0: f.x, z0: f.z, x1: target.x, z1: target.z, wild, relay, delay: f.pos === 'C' ? clamp(.2 - (f.pl.arm || 60) * .0016 - (f.pl.fld || 60) * .0006 - (G.stealWatch || 0) * .05 - (G.stealAlert ? .03 : 0) - (G.lastPitchout ? .07 : 0), .03, .14) : .12, info };
+  PL.thr = { dp: dpTry, rushed: rushK > 1.5 && !dpTry, hop, roll, laser, wkind: (() => { const q = Math.random(); return q < .4 ? 'wide' : q < .75 ? 'over' : 'short'; })(), from: f, to, b, t: 0, dur, x0: f.x, z0: f.z, x1: target.x, z1: target.z, wild, relay, delay: f.pos === 'C' ? clamp(.2 - (f.pl.arm || 60) * .0016 - (f.pl.fld || 60) * .0006 - (G.stealWatch || 0) * .05 - (G.stealAlert ? .03 : 0) - (G.lastPitchout ? .07 : 0), .03, .14) : .12, info };
   if (!relay && to !== f) { const dR = dist2(to.x, to.z, spot.x, spot.z); if (dR > 1.8) { to.tx = spot.x; to.tz = spot.z; to.sp = fspeed(to) * 1.1; PL.thr.delay += clamp(dR / (fspeed(to) * 1.1) + .1 - dur, 0, 1.4); } }   // 壘上沒人：先等補位的野手跑到壘包再傳
   PL.holder = null; flowOnThrow(PL.thr);
 }
 function onThrowArrive(th) {
   const to = th.to, f = to;
   if (th.wild) { // errant throw : rolls loose
-    PL.err = true; G.errs[1 - G.half]++; const a = Math.random() * TAU, rd = 7 + Math.random() * 6;
-    PL.loose = { x: th.x1 + Math.cos(a) * rd, z: th.z1 + Math.sin(a) * rd, t: 0 }; PL.state = 'loose'; flowOnError(th.from, 'throw');
+    PL.err = true; G.errs[1 - G.half]++;
+    { const ux0 = th.x1 - th.x0, uz0 = th.z1 - th.z0, ul = Math.hypot(ux0, uz0) || 1, ux = ux0 / ul, uz = uz0 / ul, sd = Math.random() < .5 ? -1 : 1;      // 傳歪：傳偏一旁／傳過頭／彈在壘前，球滾到壘包附近的別處，守備員還要跑去撿
+      let lx, lz; const k = th.wkind || 'wide';
+      if (k === 'over') { const o = 5 + Math.random() * 8; lx = th.x1 + ux * o + -uz * sd * Math.random() * 3; lz = th.z1 + uz * o + ux * sd * Math.random() * 3; }
+      else if (k === 'short') { const o = 1.5 + Math.random() * 3; lx = th.x1 - ux * o + -uz * sd * Math.random() * 2.5; lz = th.z1 - uz * o + ux * sd * Math.random() * 2.5; }
+      else { const o = 3 + Math.random() * 6; lx = th.x1 + -uz * sd * o + ux * Math.random() * 2; lz = th.z1 + ux * sd * o + uz * Math.random() * 2; }
+      const rad = Math.hypot(lx, lz), wr = wallRadius(Math.atan2(lx, -lz) * 180 / Math.PI) - 1.5; if (rad > wr) { lx *= wr / rad; lz *= wr / rad; }
+      th._lx = lx; th._lz = lz; if (!th.dp && !th.rushed) say(`<em>${POS_FULL[th.from.pos]}${th.from.pl.name}傳球${k === 'over' ? '傳過頭了' : k === 'short' ? '傳得太低、彈在壘前' : '傳偏了'}！</em>球滾向一旁，守備員得再去撿。`); }
+    PL.loose = { x: th._lx, z: th._lz, t: 0 }; PL.state = 'loose'; flowOnError(th.from, 'throw');
     if (th.dp) say(`<em>想轉成雙殺，但${POS_FULL[th.from.pos]}${th.from.pl.name}的轉傳偏離目標！</em>雙殺泡湯了！`); else if (th.rushed) say(`<em>${POS_FULL[th.from.pos]}${th.from.pl.name}撲接後來不及站穩，倉促傳球偏掉了！</em>`);
     const nb = nearestFielderTo(PL.loose.x, PL.loose.z, null); PL.looseF = nb; nb.tx = PL.loose.x; nb.tz = PL.loose.z; nb.sp = fspeed(nb) * 1.05; PL.thr = null; return;
   }
@@ -3045,7 +3063,7 @@ function onThrowArrive(th) {
   }
   if (!th.relay && !th.ret && !PL.cleanThrow && E.runners.some(r => r.state === 'run')) {      // 接傳球偶爾會漏接／掉球（守備差、雨天、彈地球更容易）
     const rc = (f.pl.cat == null ? (f.pl.fld || 55) : f.pl.cat) * .6 + (f.pl.fld || 55) * .4;
-    if (Math.random() < clamp((.009 + (65 - rc) * .0004 + rainK() * .03 + (th.hop ? .012 : 0)) * chaosK(1 - G.half), .006, .07) * (th.laser ? 1.3 : 1) * (th.dp ? 1.5 : 1)) { PL.thr = null; dropBall(f, false); if (th.dp) say(`<em>${POS_FULL[f.pos]}${f.pl.name}接傳球時掉了球！</em>雙殺落空！`); return; }
+    if (Math.random() < clamp((.009 + (65 - rc) * .0004 + rainK() * .03 + (th.hop ? .012 : 0) + (th.roll ? .012 : 0)) * chaosK(1 - G.half), .006, .08) * moodVol(f.pl) * (th.laser ? 1.3 : 1) * (th.dp ? 1.5 : 1)) { PL.thr = null; dropBall(f, false); if (!th.dp) say(`<em>${POS_FULL[f.pos]}${f.pl.name}沒接好，球掉到身旁！</em>`); if (th.dp) say(`<em>${POS_FULL[f.pos]}${f.pl.name}接傳球時掉了球！</em>雙殺落空！`); return; }
   }
   PL.thr = null; PL.state = 'held'; PL.holder = f; f.hasBall = true; f.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} };
   if (th.ret) { flowSfx('mitt', .7); after(.2, () => { if (PL && PL.retCb) PL.retCb(); }); return; }
@@ -3302,7 +3320,7 @@ function tagUpThink(r, f) {         // 高飛犧牲打／接殺後跑者判斷�
    時間充裕時用「剛好趕到」的步調跑，不會提早很久站著；時間吃緊（誤差修正不及）時立刻改成全力衝向真正落點，所以不影響原本的接殺／處理判定。 */
 function chaosK(team) {      // 天時地利人和：當天狀態 × 該隊場面氣氛（失誤連鎖）× 單次隨機波動；數值越高，越容易發生不可控的小狀況（強者也不例外，只是基礎機率較低）
   const d = G.day || 1, t = (G.tilt && G.tilt[team == null ? 1 - G.half : team]) || 0;
-  return clamp(d * (1 + t * .7) * Math.exp(gauss() * .22), .45, 2.6);
+  return clamp(d * (1 + t * .7) * Math.exp(gauss() * .22) * stormMul(), .45, 2.6 + stormK() * 1.6);      // 暴雨：所有失誤與突發狀況更頻繁
 }
 function bumpTilt(team, v) { if (!G.tilt) G.tilt = [0, 0]; G.tilt[team] = clamp(G.tilt[team] + v, 0, 1.2); }
 function dropBall(f, coll, soft) {      // 接球失誤／相撞掉球：球掉在野手附近，變成界內滾動球（soft＝美技嘗試沒抓穩：記安打、不記失誤）
@@ -3323,7 +3341,7 @@ function collideCheck() {      // 兩名野手同時衝向同一顆球：多數�
   const d = dist2(f.x, f.z, A.x, A.z);
   if (!PL.called && d < 3.6) {
     PL.called = true; const fl = f.pl.fld || 55, left = plan.t - PL.t, urg = (plan.dive ? .28 : 0) + (left < .9 ? .12 : 0) + (plan.t < 1.5 ? .1 : 0);
-    PL.callOff = !G.evt || Math.random() < clamp(.80 + (fl - 55) * .003 - urg - rainK() * .1, .3, .94);
+    PL.callOff = !G.evt || Math.random() < clamp(.80 + (fl - 55) * .003 - urg - rainK() * .1 - stormK() * .12, .3, .94);
     if (PL.callOff) { A.tx = A.x; A.tz = A.z; A.wait = .6; A.assist = false; PL.colDone = true; say(`${POS_FULL[f.pos]}${f.pl.name}喊「我來！」，${A.pl.name}讓開`); return; }
   }
   if (PL.called && !PL.callOff && d < 1.15) {
@@ -3355,7 +3373,12 @@ function steerChaser() {
   const dTrue = dist2(f.x, f.z, plan.x, plan.z), tNeed = Math.max(0, dTrue - 1.0) / spd + spd / (2 * acc) + .03;
   const off = dist2(ex, ez, plan.x, plan.z);
   const commit = rem - tNeed < off * 2 / spd + .2;                 // 剩餘時間不夠繞路 → 全力衝向球的實際位置
-  if (commit) { f.tx = air ? plan.x : lerp(ex, plan.x, .6); f.tz = air ? plan.z : lerp(ez, plan.z, .6); f.sp = spd; }
+  if (!air) {      // 滾地球／低球：直接全速衝向「最早能攔到球」的位置，不閃躲、不慢慢跟、不讓球滾遠再追；到位後再迎前一步把球接在身前
+    const dT = dist2(f.x, f.z, plan.x, plan.z);
+    if (dT < 1.1 && PL.t < plan.t + .1) { sampleAt(PL.sim.S, Math.min(PL.t + .3, PL.sim.tEnd), _gb2); f.tx = lerp(plan.x, _gb2.x, .7); f.tz = lerp(plan.z, _gb2.z, .7); f.sp = spd * .8; }
+    else { f.tx = lerp(ex, plan.x, .85 + .15 * conf); f.tz = lerp(ez, plan.z, .85 + .15 * conf); f.sp = spd; }
+  }
+  else if (commit) { f.tx = plan.x; f.tz = plan.z; f.sp = spd; }
   else { f.tx = ex; f.tz = ez; f.sp = clamp(Math.max(0, dist2(f.x, f.z, ex, ez) - 1.0) / Math.max(.25, rem - .3) * 1.15, spd * .6, spd); }
   const A = PL.assist; if (A && A !== f && !A.hasBall && !A.cover) { A.tx = f.tx + (A.x - f.tx) * .1; A.tz = f.tz + (A.z - f.tz) * .1; }
 }
@@ -3429,6 +3452,10 @@ function updatePlay(dt) {
       if (u < u0) { const a = u / u0; y = lerp(1.6, BALL_R, Math.pow(a, 1.5)) + Math.sin(a * Math.PI) * Math.min(1.6, dd * .035); }
       else { const a = (u - u0) / (1 - u0); y = lerp(BALL_R, 1.1, a * a) + Math.sin(a * Math.PI) * Math.min(1.0, dd * .016); }
       if (!th.hopDone && u >= u0) { th.hopDone = true; flowSfx('bounce'); spawnBurst(x, .06, z, .3, Math.hypot(x, z) > 30 ? '#6a9a50' : '#c9a06a'); }
+    } else if (th.roll) {      // 太遠：落地彈起、再彈一小下，最後貼地滾到接球者腳邊
+      if (u < .4) { const a = u / .4; y = lerp(1.6, BALL_R, Math.pow(a, 1.4)) + Math.sin(a * Math.PI) * Math.min(1.6, dd * .03); if (!th.hopDone && u >= .38) { th.hopDone = true; flowSfx('bounce'); spawnBurst(x, .06, z, .3, Math.hypot(x, z) > 30 ? '#6a9a50' : '#c9a06a'); } }
+      else if (u < .72) { const a = (u - .4) / .32; y = BALL_R + Math.sin(a * Math.PI) * Math.min(.9, dd * .012); if (!th.hop2 && a >= .95) { th.hop2 = true; flowSfx('bounce', .6); } }
+      else { const a = clamp((u - .85) / .15, 0, 1); y = BALL_R + a * a * .5; }
     } else if (th.laser) y = lerp(1.7, 1.2, u) + Math.sin(u * Math.PI) * Math.min(1.1, dd * .018);      // 雷射肩：低平直線
     else y = lerp(1.6, 1.1, u) + Math.sin(u * Math.PI) * Math.min(3, dd * .07);
     setBall({ x, y, z }, true, '#fff');
@@ -4973,7 +5000,7 @@ function maybeInjureFielder(f) {
   const dv = PL.plan && PL.plan.dive, dd = DEFAULT_POS[f.pos], far = dd && dist2(f.x, f.z, dd.x, dd.z) > 26;
   if (!dv && !wall && !far) return;
   const base = wall ? (PL.plan && PL.plan.robHR ? .075 : .045) : dv ? .03 : .0028;
-  const p = base * (1 + (80 - (f.pl.fld || 60)) * .01) * durMul(f.pl) * (G.evt === 2 ? 1.9 : 1);
+  const p = base * (1 + (80 - (f.pl.fld || 60)) * .01) * durMul(f.pl) * (G.evt === 2 ? 1.9 : 1) * stormMul();
   if (Math.random() < p) {
     f.pl.out = true; G.injQ.push({ type: 'field', side: 1 - G.half, pl: f.pl, pos: f.pos, why: pick(far && !dv && !wall ? ['長距離追球急停，腳踝扭傷', '全力衝刺時大腿後側拉傷'] : FIELD_INJ) });
     f.rig.anim = { name: 'down', t: 0, dur: 1, opt: { hold: true } }; say(`<em>${f.pl.name}倒地了！</em>看起來是${pick(['手','腳','肩膀'])}受傷，趴著沒有起來…`); crowdCheer(0); flowSfx('whistle');
@@ -4981,7 +5008,7 @@ function maybeInjureFielder(f) {
 }
 function maybeInjurePitcher(p) {
   if (!G.evt || p.out) return; const side = 1 - G.half;
-  const pr = (.00026 + Math.max(0, p.fatigue - 50) * .00007 + Math.max(0, p.pc - 95) * .0001) * durMul(p) * (G.evt === 2 ? 2.2 : 1);
+  const pr = (.00026 + Math.max(0, p.fatigue - 50) * .00007 + Math.max(0, p.pc - 95) * .0001) * durMul(p) * (G.evt === 2 ? 2.2 : 1) * stormMul();
   if (Math.random() < pr) { p.out = true; G.injQ.push({ type: 'pitch', side, pl: p, why: pick(['手肘突然傳來劇痛，抱著手臂蹲下', '投球瞬間肩膀拉傷，臉色發白', '大腿後側拉傷，一跛一跛']) }); }
 }
 function processInjuries(next) {
@@ -5345,7 +5372,7 @@ function newGame(cfg) {
   G.teams = [buildTeam(TEAMS[cfg.away], cfg, 0), buildTeam(TEAMS[cfg.home], cfg, 1)]; if (cfg.ace) { G.teams.forEach(t => { }); }
   G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.easy = !!cfg.easy; G.innings = cfg.inn;
   G.score = [0, 0]; G.line = [[], []]; G.hits = [0, 0]; G.errs = [0, 0]; G.fancy = 0; G.inning = 1; G.half = 0; G.bi = [0, 0]; G.pmodel = {}; G.batHist = {};
-  G.rosinBusy = false; G.batFetch = false; try { if (FLYBAT) endFlyBat(true); killBoy(); clearTrash(); } catch (e) { } G.over = false; G.walkoff = false; G.venueDone = false; VENUE.on = false; VENUE.done = null; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; G.homeIdx = cfg.homeFirst ? 0 : 1; initWeather(G.teams[G.homeIdx], cfg.park); hideHitInfo(0);
+  G.rosinBusy = false; G.batFetch = false; try { if (FLYBAT) endFlyBat(true); killBoy(); clearTrash(); } catch (e) { } G.over = false; G.walkoff = false; G.venueDone = false; VENUE.on = false; VENUE.done = null; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); G.mode = 'play'; G.playId = 0; G.pending = null; G.absOn = cfg.abs !== 0; G.evt = cfg.evt === undefined ? 1 : cfg.evt; evInit(); G.visits = [3, 3]; G.errPl = {}; G.wxOn = cfg.wx !== 0; G.homeIdx = cfg.homeFirst ? 0 : 1; initWeather(G.teams[G.homeIdx], cfg.park); G.stormHalves = 0; try { resetRainDelay(); resetPuddles(); } catch (e) { console.error(e); } hideHitInfo(0);
   $('hud').classList.remove('hide'); $('menu').classList.add('hide'); $('title').classList.add('hide'); $('result').classList.add('hide'); $('sub').classList.add('hide');
   startHalf();
 }
@@ -5424,7 +5451,7 @@ function nextBatter() {
   after(.2, go);
 }
 function prePitch(first) {
-  if (G.over) return; try { syncPowUI(); } catch (e) { } if (E.bat && E.bat.rig && !E.bat.rig.anim) batterStance(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); resetFormation(false); if (E.F.P) E.F.P.sp = 6.5; G.phase = 'pre'; try { if (E.bat && E.bat.rig && E.bat.rig.batBroken) startBatBoy({ deliver: E.bat.rig }); } catch (e) { } try { updateActs(); } catch (e) { } G.preT = 0; G.prepT = .12 + Math.random() * .25; { const P0 = curPitcher(); if (P0._tp == null) P0._tp = .8 + Math.random() * .55;           // 每位投手有自己的節奏（快手／慢工），每球再隨機浮動
+  if (G.over) return; if (G.mode === 'play' && G.balls === 0 && G.strikes === 0 && rainDelayNeeded()) { startRainDelay(first); return; } try { syncPowUI(); } catch (e) { } if (E.bat && E.bat.rig && !E.bat.rig.anim) batterStance(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); resetFormation(false); if (E.F.P) E.F.P.sp = 6.5; G.phase = 'pre'; try { if (E.bat && E.bat.rig && E.bat.rig.batBroken) startBatBoy({ deliver: E.bat.rig }); } catch (e) { } try { updateActs(); } catch (e) { } G.preT = 0; G.prepT = .12 + Math.random() * .25; { const P0 = curPitcher(); if (P0._tp == null) P0._tp = .8 + Math.random() * .55;           // 每位投手有自己的節奏（快手／慢工），每球再隨機浮動
     const rr = Math.random(); let d = rr < .25 ? .9 + Math.random() * .8 : rr < .75 ? 1.6 + Math.random() * 1.2 : 2.7 + Math.random() * 1.5;
     d *= P0._tp * (.88 + Math.random() * .24) * (1 + (P0.fatigue || 0) * .003 + (G.strikes === 2 ? Math.random() * .12 : 0)); if (first) d += .3 + Math.random() * .5; if (G.on.some(x => x)) d *= .75 + Math.random() * .35;
     G.pitchDelay = clamp(d, .9, 4.8); G.preSwAt = (!(humanBats() && G.human >= 0) && Math.random() < .5 && G.pitchDelay > 1.4) ? .5 + Math.random() * (G.pitchDelay - 1.3) : -1; } PT = null; G.runnerGo = []; G.squeeze = null; G.hitAndRun = false;
@@ -5477,19 +5504,59 @@ function cpuDeliver() {
   doPitch(sel);
 }
 function doPickoff(i) {
-  const r = G.on[i]; if (!r) return; r.leadAtPick = r.lead || 0; r.pkIntent = stealIntent(r); G.phase = 'pickoff'; G.pickCount++;
+  const r = G.on[i], P = E.F.P, tgt = i === 0 ? E.F['1B'] : i === 1 ? E.F.SS : E.F['3B'];
+  if (!r || r.state !== 'on' || !P || !tgt || G.phase === 'pickoff') return;
+  pitcherToMound();
+  r.leadAtPick = r.lead || 0; r.pkIntent = stealIntent(r); G.phase = 'pickoff'; G.pickCount++;
   { const pp0 = curPitcher(); pp0.pkLoad = (pp0.pkLoad || 0) + .6 + .35 * Math.max(0, G.pickCount - 1); pp0.fatigue = calcFatigue(pp0); }      // 牽制也耗體力：連續牽制消耗愈來愈多
   { const ab0 = pickAbility(i), w0 = r.wary || 0; r.wary = clamp(w0 + (.2 + ab0 * .3 + (r.leadAtPick > 2.6 ? .08 : 0)) * (1 - w0 * .5), 0, 1); }      // 跑者更警戒：離壘縮短、盜壘意願降低
-  const p = E.F.P, tgt = i === 0 ? E.F['1B'] : i === 1 ? E.F.SS : E.F['3B'];
-  p.rig.anim = { name: 'throw', t: 0, dur: .3, opt: { hand: 1 } }; faceRig(p.rig, tgt.x, tgt.z);
-  const b = baseSpot(i + 1);
-  after(.2, () => {
-    ballTween({ x: p.x, y: 1.6, z: p.z }, { x: b.x, y: 1.1, z: b.z }, .3, .6, () => {
-      flowSfx('mitt'); tgt.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} };
-      if (pickoffSuccess(r)) { r.rig.anim = { name: 'down', t: 0, dur: 1, opt: { hold: true } }; r.state = 'on'; putOut(r, 'pick'); say(`牽制出局！${r.pl.name}，來不及回壘！`); toast('牽制出局', '#fff', '#f55'); after(1.2, () => { if (G.outs >= 3) { endHalf(); } else { cleanupRunners(); prePitch(); } }); }
-      else { r.lead = 0; r.rig.anim = { name: 'slide', t: 0, dur: .5, opt: {} }; say(`牽制，安全上壘！${r.wary > .35 ? '跑者變得更謹慎，離壘縮短了；' : ''}投手也消耗了一些體力。`); after(.7, () => { r.rig.anim = null; prePitch(); }); }
+  const out = pickoffSuccess(r), tok = G.pkTok = (G.pkTok || 0) + 1;
+  const alive = () => tok === G.pkTok && !G.over && G.mode === 'play' && G.phase === 'pickoff', alive2 = () => tok === G.pkTok && !G.over && G.mode === 'play';
+  const b = baseSpot(i + 1), cv = { x: b.x + (b.x > 0 ? -.5 : b.x < 0 ? .5 : 0), z: b.z + (i === 1 ? 1.2 : .6) }, hd = curPitcher().hand === 'L' ? -1 : 1;
+  const clr = () => { for (const q of E.runners) { q.pkHold = false; q.pkRate = 0; } };
+  const hand = () => { const h = new V3(); try { pitcherHandPos(h); } catch (e) { h.set(P.x, 1.5, P.z); } return h; };
+  for (const q of E.runners) if (q.state === 'on') { q.pkHold = true; q.pkRate = 3; }      // 其他壘上跑者在牽制期間也維持原本的離壘
+  // 流程：①投手站定盯著跑者、壘包手同時補位到壘包旁 → ②投手完整的傳球動作 → ③球飛到壘包、野手接球並觸殺 → ④判定 → ⑤野手把球傳回投手 → 才繼續比賽
+  faceRig(P.rig, cv.x, cv.z); P.rig.anim = { name: 'stretch', t: 0, dur: .7, opt: { hand: hd } };
+  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 1.1; tgt.wait = 0; tgt.hold = 0; if (tgt.rig.anim && (tgt.rig.anim.name === 'stance' || tgt.rig.anim.name === 'crouch')) tgt.rig.anim = null;
+  const finish = () => { if (!alive2()) return; clr(); prePitch(); };
+  const returnBall = () => {
+    if (!alive2()) return; const h2 = hand();
+    faceRig(tgt.rig, P.x, P.z); tgt.rig.anim = { name: 'throw', t: 0, dur: .3, opt: { hand: 1 } };
+    after(.15, () => { if (!alive2()) return; ballTween({ x: cv.x, y: 1.3, z: cv.z }, { x: h2.x, y: h2.y, z: h2.z }, clamp(throwDur(tgt, P), .3, .7), .35, () => { if (!alive2()) return; flowSfx('mitt', .5); P.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; after(.3, finish); }); });
+  };
+  const tagIt = () => {
+    if (!alive()) return;
+    tagAnim(tgt);
+    after(.2, () => {
+      if (!alive()) return;
+      if (out && r.state === 'on' && G.on[i] === r) {
+        r.pkHold = false; putOut(r, 'pick'); say(`牽制出局！${r.pl.name}，來不及回壘！`); toast('牽制出局', '#fff', '#f55');
+        after(1.1, () => { if (!alive2()) return; clr(); if (G.outs >= 3) { endHalf(); } else { cleanupRunners(); G.phase = 'pickoff'; returnBall(); } });
+      } else {
+        r.pkHold = false; say(`牽制，安全上壘！${r.wary > .35 ? '跑者變得更謹慎，離壘縮短了；' : ''}投手也消耗了一些體力。`);
+        after(.55, () => { if (!alive()) return; if (r.rig.anim && r.rig.anim.name === 'slide') r.rig.anim = null; returnBall(); });
+      }
     });
-  });
+  };
+  const throwIt = () => {
+    if (!alive()) return;
+    faceRig(P.rig, cv.x, cv.z); faceRig(tgt.rig, P.x, P.z); P.rig.anim = { name: 'throw', t: 0, dur: .36, opt: { hand: hd } };
+    after(.18, () => {
+      if (!alive()) return;
+      const h = hand(); flowSfx('pick', .4);
+      r.pkHold = false; r.pkRate = out ? 1.1 : 3; r.rig.anim = { name: 'slide', t: 0, dur: .6, opt: {} };      // 球一出手跑者才開始撲回壘（被牽制出局者反應慢、回得慢）
+      ballTween({ x: h.x, y: h.y, z: h.z }, { x: cv.x, y: 1.15, z: cv.z }, clamp(throwDur(P, cv), .3, .75), .45, () => { if (!alive()) return; flowSfx('mitt'); tgt.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; after(.14, tagIt); });
+    });
+  };
+  let el = 0;
+  const ready = () => {
+    if (!alive()) return; el += .06; faceRig(P.rig, cv.x, cv.z);
+    if ((el >= .5 && dist2(tgt.x, tgt.z, cv.x, cv.z) < .6) || el >= 1.6) { throwIt(); return; }      // 壘包手到位（或最多等 1.6 秒）才傳
+    after(.06, ready);
+  };
+  after(.06, ready);
+  after(9, () => { if (tok === G.pkTok && !G.over && G.mode === 'play' && G.phase === 'pickoff') { clr(); if (G.outs >= 3) endHalf(); else { cleanupRunners(); prePitch(); } } });      // 保險：流程被打斷時不會卡住
 }
 function doPitch(sel) {
   if (G.phase !== 'pre') return; const p = curPitcher(); G.phase = 'windup'; pitcherToMound(); if (CAMC.mode !== 'bat' && CAMC.mode !== 'title') setCamBat(); $('pitchPanel').classList.add('hide'); hideHitInfo(0);
@@ -5675,7 +5742,7 @@ let FLYBAT = null;
 function maybeBatSlip(res, sw, pt) {
   if (!G.evt || FLYBAT || sw.bunt || res.bunt || res.broken || G.mode !== 'play') return;
   const b = E.bat; if (!b || !b.rig || !b.rig.bat || !b.rig.bat.visible) return;
-  const p = .009 * (sw.power ? 3 : 1) * (res.kind === 'whiff' ? 1.8 : (res.ev > 40 ? 1.4 : 1)) * (1 + rainK() * 2) * (G.evt === 2 ? 1.8 : 1);      // 強打、揮空（用力過猛）、擊出強勁球、雨天都更容易脫手
+  const p = .009 * (sw.power ? 3 : 1) * (res.kind === 'whiff' ? 1.8 : (res.ev > 40 ? 1.4 : 1)) * (1 + rainK() * 2) * stormMul() * (G.evt === 2 ? 1.8 : 1);      // 強打、揮空（用力過猛）、擊出強勁球、雨天都更容易脫手
   if (Math.random() >= Math.min(p, .07)) return;
   after(res.kind === 'whiff' ? .16 : .1, () => { try { slipBat(b); } catch (e) { console.error(e); } });
 }
@@ -5843,7 +5910,7 @@ function catcherCatch(pt, hbp) {
   const hasR = G.on.some(x => x), far = Math.abs(pt.fx) > ZW + 1.25 - rainK() * .5 || pt.fy < ZC - ZH - .95 + rainK() * .3;
   const fldK = 1.25 - (C.pl.fld || 60) / 100 * .9;
   // 暴投／擋不住：控球失控的遠離好球帶球、彈地球，捕手接不住（有人在壘上時機率更高）；沒人在壘上也會滾走要去撿球
-  const wild = !hbp && !pt.ibb && !pt.pitchout && (pt.dirt || far) && Math.random() < (pt.dirt ? .3 : .26) * fldK * (1 + rainK() * 1.6) * (hasR ? 1 : .55);
+  const wild = !hbp && !pt.ibb && !pt.pitchout && (pt.dirt || far) && Math.random() < (pt.dirt ? .3 : .26) * fldK * (1 + rainK() * 1.6) * stormMul() * (hasR ? 1 : .55);
   pt.wild = wild; G.lastPitch = pt; if (!hbp) G.seq.push(pt.id);
   if (hbp) { ballTween(a0, { x: a0.x, y: .12, z: a0.z + .5 }, .3, .25); return; }       // 觸身球：球打到身體後掉在打者腳邊
   if (wild) {
@@ -5922,7 +5989,7 @@ function finishAB(kind, already) {
   G.phase = 'change'; after(buf, () => processInjuries(nextBatter));
 }
 function endHalf() {
-  if (G.over || G.phase === 'endhalf') return; G.phase = 'endhalf'; G.outFlag = false; clearPlay(); tweens.length = 0; setBall({ x: 0, y: 0, z: 0 }, false);
+  if (G.over || G.phase === 'endhalf') return; G.phase = 'endhalf'; G.stormHalves = rainK() >= .8 ? (G.stormHalves || 0) + 1 : 0; G.outFlag = false; clearPlay(); tweens.length = 0; setBall({ x: 0, y: 0, z: 0 }, false);
   toast('三上三下 攻守交換', '#fff', '#39f'); flowSfx('whistle'); say(SAYX.inningEnd());
   for (const r of E.runners) r.rig.root.visible = false;
   const lastIn = G.inning >= G.innings;
@@ -6108,15 +6175,15 @@ function pitcherToMound() {                // 投手每球都從投手丘站好�
    ===================================================================== */
 /* ---------------- 天氣與球場（風、雨、動態變化；可於開賽前關閉） ---------------- */
 const rainK = () => (G.wxOn && G.rain) ? G.rain : 0;
-const rainBK = () => {                      // 打擊／球飛行用雨勢（分段加重）：毛毛雨、小雨影響很小；大雨明顯；狂風暴雨(>.8)再大幅加重
+const rainBK = () => {                      // 打擊／球飛行用雨勢（分段加重）：毛毛雨、小雨影響很小；大雨明顯；暴雨(>.8)再大幅加重
   const r = rainK(); if (r <= 0) return 0;
   if (r < .3) return r * .25;                                    // 毛毛雨：最多 .075
   if (r < .55) return .075 + (r - .3) * .6;                       // 小雨：.075 ~ .225
   if (r < .8) return .225 + (r - .55) * 2.1;                      // 大雨：.225 ~ .75
-  return .75 + (r - .8) * 3.8;                                   // 狂風暴雨：.805 ~ 1.505（明顯大於大雨）
+  return .75 + (r - .8) * 3.8;                                   // 暴雨：.805 ~ 1.505（明顯大於大雨）
 };
 const WX_SCEN = [['calm', 24], ['sunny', 32], ['overcast', 20], ['drizzle', 8], ['change', 11], ['heavy', 10], ['storm', 6.5]];
-function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .55 ? ['小雨', '🌧'] : r < .8 ? ['大雨', '🌧'] : ['狂風暴雨', '⛈']; }
+function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['毛毛雨', '🌦'] : r < .55 ? ['小雨', '🌧'] : r < .8 ? ['大雨', '🌧'] : ['暴雨', '⛈']; }
 function initWeather(homeTeam, parkSel) {
   const on = G.wxOn !== false; let st = parkSel && PARKS[parkSel] ? parkSel : null;      // 玩家指定球場；未指定則依主場／移師場地／大巨蛋機率決定
   if (!st) {
@@ -6193,6 +6260,105 @@ function updateWeather(dt) {
   }
   G._lastRain = G.rain; G._wxHud = (G._wxHud || 0) + dt; if (G._wxHud > .35) { G._wxHud = 0; updateWindHud(); applyLighting(); }
 }
+/* ---------------- 暴雨：失誤加成／場地積水／主審暫停比賽（可教練抗議） ---------------- */
+const stormK = () => clamp((rainK() - .78) / .2, 0, 1);      // 暴雨強度 0~1（雨勢超過約 .78 才開始計）
+const stormMul = () => 1 + stormK() * 1.2;                   // 暴雨時，失誤與各種突發狀況的機率倍率（最高約 2.2 倍）
+const PUD = { list: null, meshes: [], lvl: 0, grp: null, ph: 0 };
+function puddleAt(x, z) {
+  if (!PUD.list) return false; const k = .55 + .45 * PUD.lvl;
+  for (const p of PUD.list) { const dx = (x - p.x) / (p.rx * k), dz = (z - p.z) / (p.rz * k); if (dx * dx + dz * dz <= 1) return true; }
+  return false;
+}
+function resetPuddles() {
+  if (PUD.grp) { scene.remove(PUD.grp); PUD.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); }
+  PUD.grp = null; PUD.meshes = []; PUD.list = null; PUD.lvl = (G.wxOn && G.wx && !G.wx.dome && G.rain >= .8) ? 1 : 0;
+}
+function initPuddles() {
+  const rn = mkRng((Math.random() * 4294967296) >>> 0), list = [];
+  const ok = (x, z, rx, rz) => {
+    const R = Math.max(rx, rz);
+    for (let b = 0; b < 4; b++) if (Math.hypot(x - BASES[b].x, z - BASES[b].z) < R + 2.4) return false;
+    if (Math.hypot(x - MOUND.x, z - MOUND.z) < R + 3.6) return false;
+    for (const q of list) if (Math.hypot(x - q.x, z - q.z) < R + Math.max(q.rx, q.rz) + 1.5) return false;
+    const rad = Math.hypot(x, z), phi = Math.atan2(x, -z) * 180 / Math.PI;
+    return rad < wallRadius(phi) - 5 - R && z < -3 && Math.abs(x) <= -z - 1;
+  };
+  const add = (n, r0, r1, rx0, rx1) => {
+    for (let k = 0; k < n; k++) for (let tries = 0; tries < 80; tries++) {
+      const rad = r0 + (r1 - r0) * rn(), ang = (-44 + 88 * rn()) * Math.PI / 180, x = Math.sin(ang) * rad, z = -Math.cos(ang) * rad;
+      const rx = rx0 + (rx1 - rx0) * rn(), rz = rx * (.6 + .3 * rn());
+      if (ok(x, z, rx, rz)) { list.push({ x, z, rx, rz }); break; }
+    }
+  };
+  add(3, 7, 30, 1.5, 2.4);      // 內野：幾灘小水窪
+  add(6, 34, 68, 2.0, 3.4);     // 外野草皮：比較大的積水
+  PUD.list = list;
+}
+function buildPuddleMeshes() {
+  PUD.grp = new THREE.Group(); scene.add(PUD.grp); PUD.meshes = [];
+  const mk = (geo, color, y) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })); m.rotation.x = -Math.PI / 2; m.position.y = y; m.renderOrder = 2; PUD.grp.add(m); return m; };
+  for (const p of PUD.list) {
+    const w = mk(new THREE.CircleGeometry(1, 32), 0x56789c, .035), h = mk(new THREE.CircleGeometry(1, 24), 0xdcecff, .04), r = mk(new THREE.RingGeometry(.88, 1, 32), 0xeaf4ff, .045);
+    w.position.x = p.x; w.position.z = p.z; h.position.x = p.x - p.rx * .18; h.position.z = p.z - p.rz * .12; r.position.x = p.x; r.position.z = p.z;
+    PUD.meshes.push({ w, h, r });
+  }
+}
+function updatePuddles(dt) {
+  const on = G.wxOn && G.wx && !G.wx.dome && G.mode === 'play';
+  if (!on) PUD.lvl = Math.max(0, PUD.lvl - dt * .1);
+  else if (G.rain >= .8) PUD.lvl = Math.min(1, PUD.lvl + dt * .12);      // 暴雨：約 8 秒積滿水
+  else if (G.rain >= .45) PUD.lvl = Math.max(0, PUD.lvl - dt * .008);    // 雨小一點：積水慢慢退
+  else PUD.lvl = Math.max(0, PUD.lvl - dt * .03);
+  if (PUD.lvl <= .001 && !PUD.grp) return;
+  if (!PUD.list) initPuddles(); if (!PUD.grp) buildPuddleMeshes();
+  PUD.ph += dt; const lv = PUD.lvl, k = .55 + .45 * lv, a = Math.min(1, lv * 1.4); PUD.grp.visible = lv > .01;
+  PUD.meshes.forEach((m, i) => {
+    const p = PUD.list[i], ph = (PUD.ph * .9 + i * .37) % 1;
+    m.w.scale.set(p.rx * k, p.rz * k, 1); m.w.material.opacity = .62 * a;
+    m.h.scale.set(p.rx * k * .55, p.rz * k * .4, 1); m.h.material.opacity = .22 * a;
+    m.r.scale.set(p.rx * k * (.25 + ph * .75), p.rz * k * (.25 + ph * .75), 1); m.r.material.opacity = (1 - ph) * .35 * (G.rain > .5 ? 1 : 0) * a;
+  });
+}
+const RD = { on: false, t: 0, minT: 10, meter: 0, idle: 0, resume: null, r0: .9, scenWas: null, coach: false };
+function rainDelayNeeded() { return !RD.on && G.mode === 'play' && !G.over && G.wxOn && G.wx && !G.wx.dome && rainK() >= .8 && (G.stormHalves || 0) >= 2; }      // 暴雨持續超過兩個半局 → 主審暫停比賽
+function resetRainDelay() { RD.on = false; RD.resume = null; RD.meter = 0; RD.coach = false; const el = $('rainDelay'); if (el) el.classList.add('hide'); }
+function startRainDelay(first) {
+  RD.on = true; RD.t = 0; RD.minT = 10 + Math.random() * 5; RD.meter = 0; RD.idle = 0; RD.coach = false; RD.r0 = Math.max(G.rain, .8); RD.resume = () => prePitch(first);
+  G.phase = 'rain'; try { $('pitchPanel').classList.add('hide'); hideHitInfo(0); } catch (e) { }
+  RD.scenWas = G.wxScen; G.rainT = .55 + Math.random() * .1; if (G.wxScen === 'storm') { G.wxScen = 'heavy'; G.windBoost = 1.4; }      // 暫停期間雨勢慢慢變小
+  const human = G.human >= 0;
+  $('rdTx').innerHTML = human ? '暴雨太大，場地已經不適合比賽！<br>等雨勢變小，或用<b>連點／空白鍵</b>讓教練出面激烈抗議，把<b>抗議值</b>衝滿就能繼續比賽。' : '暴雨太大，場地已經不適合比賽，等雨勢變小再繼續…';
+  $('rdProt').classList.toggle('hide', !human); $('rdWait').style.width = '0%'; $('rdMeter').style.width = '0%'; $('rainDelay').classList.remove('hide');
+  toast('主審宣布：暫停比賽', '#fff', '#3a6ad8'); flowSfx('whistle'); crowdCheer(.3);
+  say(`<em>暴雨太大了！</em>主審宣布暫停比賽，等雨勢變小再繼續。${human ? '教練可以出面抗議（連點把抗議值衝滿）！' : ''}`);
+}
+function rdPress() {
+  if (!RD.on || G.human < 0) return;
+  RD.meter = Math.min(100, RD.meter + 8); RD.idle = 0;
+  if (!RD.coach) { RD.coach = true; try { argCoachIn(G.human); } catch (e) { } flowSfx('cheer', .5); }
+}
+function endRainDelay(protest) {
+  const f = RD.resume; RD.on = false; RD.resume = null; $('rainDelay').classList.add('hide'); G.stormHalves = 0;
+  try { if (E.argC && E.argC.st !== 'out') argCoachOut(false); } catch (e) { }
+  if (protest) {
+    G.rainT = Math.max(G.rainT, .86 + Math.random() * .12); if (RD.scenWas === 'storm') { G.wxScen = 'storm'; G.windBoost = 6; }      // 抗議成功：雨勢沒變小，繼續在暴雨中比賽（之後雨勢一直沒變小會再度暫停）
+    toast('激烈抗議成功！比賽繼續', '#9fffb0', '#0a8'); say('<em>教練激烈抗議！</em>主審被說服了，雨雖然還很大，比賽照常繼續…'); crowdCheer(1); flowSfx('cheer', 1);
+  } else {
+    if (RD.scenWas === 'storm' && Math.random() < .35) { G.wxScen = 'storm'; G.windBoost = 6; }      // 偶爾雨勢之後又轉強
+    toast('雨勢減弱，比賽恢復', '#cfe', '#38c'); say('🌦 雨勢終於變小了，主審宣布比賽恢復！');
+  }
+  after(.9, () => { if (!G.over && G.mode === 'play' && G.phase === 'rain') { if (f) f(); } });
+}
+function updateRainDelay(dt) {
+  if (!RD.on) return;
+  if (G.mode !== 'play' || G.over) { resetRainDelay(); return; }
+  RD.t += dt; RD.idle += dt; if (RD.idle > .45) RD.meter = Math.max(0, RD.meter - 26 * dt);      // 停手抗議值就會掉
+  $('rdWait').style.width = clamp((RD.r0 - G.rain) / Math.max(.01, RD.r0 - .74), 0, 1) * 100 + '%'; $('rdMeter').style.width = RD.meter + '%';
+  if (RD.meter >= 100) { endRainDelay(true); return; }
+  if (RD.t >= RD.minT && G.rain < .74) endRainDelay(false);
+}
+window.addEventListener('keydown', e => { if (!RD.on) return; if (e.code === 'Space' || e.key === 'r' || e.key === 'R' || e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) rdPress(); } }, true);
+$('rdBtn').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); rdPress(); });
 function windStep(dt) {                   // 風速／風向連續變化＋陣風
   const g = G.gust, w = G.wx;
   G.windMean += clamp(G.windMeanT - G.windMean, -dt * .3, dt * .3);
@@ -6279,7 +6445,7 @@ function coverSteal(idxs) {               // 盜壘起跑時，負責補位的�
     f.tx = bs.x + (base === 2 ? (f.pos === 'SS' ? -.6 : .6) : .5); f.tz = bs.z + .5; f.sp = fspeed(f) * 1.08; f.cover = base; f.wait = clamp(.16 - ((f.pl.fld || 55) - 55) * .002, .05, .3);
   }
 }
-/* ---------- 狂風暴雨：閃電＋雷聲 ---------- */
+/* ---------- 暴雨：閃電＋雷聲 ---------- */
 function ltBolt(W, H) {      // 鋸齒狀閃電主幹＋幾條分支
   const pts = []; let x = W * (.12 + Math.random() * .76), y = 0; pts.push([x, y]);
   const n = 9 + Math.floor(Math.random() * 4), dy = H * (.5 + Math.random() * .12) / n;
@@ -6343,7 +6509,7 @@ function slipRunner(r, why) {            // 跑者在濕滑場地滑倒
 function maybeSlip(r, mult) {
   const q = rainK(); if (!r || r.pl.isPitcherBat) return;
   if (q < .08) { const p = clamp(.004 * (mult || 1) * (1 + (55 - (r.pl.spd || 55)) * .01) * chaosK(G.half), .001, .02); if (Math.random() < p) slipRunner(r, 'stumble'); return; }      // 晴天也偶爾會踉蹌（跑速慢、盜壘衝刺時機率稍高）
-  const p = q * q * .06 * (mult || 1) * (1 + ((r.pl.spd || 55) - 55) * .006); if (Math.random() < p) slipRunner(r);
+  const p = q * q * .06 * (mult || 1) * stormMul() * (1 + ((r.pl.spd || 55) - 55) * .006); if (Math.random() < p) slipRunner(r);
 }
 /* ---------------- 心情值事件 ---------------- */
 function abMood(kind, b) {
@@ -6450,12 +6616,12 @@ function durMul(pl) { return 1 + (75 - (pl && pl.dur || 75)) * .012; }
 function queueInj(e) { e.pl.out = true; G.injQ.push(e); }
 function maybeInjureRunner(r, kind) {
   if (!G.evt || r.pl.out || r.pl.isPitcherBat) return;
-  const p = (kind === 'slide' ? .008 : kind === 'sprint' ? .012 : kind === 'slip' ? .07 : .005) * durMul(r.pl) * (G.evt === 2 ? 2 : 1) * (1 + Math.max(0, r.pl.spd - 70) * .01);
+  const p = (kind === 'slide' ? .008 : kind === 'sprint' ? .012 : kind === 'slip' ? .07 : .005) * durMul(r.pl) * (G.evt === 2 ? 2 : 1) * stormMul() * (1 + Math.max(0, r.pl.spd - 70) * .01);
   if (Math.random() < p) { queueInj({ type: 'run', side: G.half, pl: r.pl, r, why: kind === 'slip' ? pick(['滑倒時膝蓋重重著地，疑似韌帶受傷', '滑倒後手腕撐地，疼痛難忍']) : kind === 'slide' ? pick(['滑壘時手指被壘包卡住，疑似骨折', '滑壘後腳踝扭傷，無法站起來']) : pick(['全力衝刺時大腿後肌拉傷，緩緩蹲下', '跑壘急停時膝蓋扭到，臉色難看']) }); r.rig.anim = { name: 'down', t: 0, dur: 1, opt: { hold: true } }; say(`<em>${r.pl.name}倒在壘包上了！</em>看起來受傷不輕…`); crowdCheer(0); }
 }
 function maybeInjureOnBall(res, plan) {
   if (!G.evt || !res) return;
-  const k = G.evt === 2 ? 2 : 1;
+  const k = (G.evt === 2 ? 2 : 1) * stormMul();
   // 1) 強勁平飛／滾地球直擊投手
   if (plan && plan.f && plan.f.pos === 'P' && res.ev > 31 && res.ang < 16 && !plan.air && !plan.great) {
     const p = clamp((res.ev - 30) * .008, 0, .05) * durMul(plan.f.pl) * k;
@@ -6928,7 +7094,7 @@ function quitToMenu() {
   closeQuitDlg();
   TIMERS = []; tweens.length = 0; INTRO.q.length = 0; INTRO.busy = false; INTRO.gen = (INTRO.gen || 0) + 1; HS = 0;
   try { clearPlay(); } catch (e) { }
-  G.freeze = false; G.judgeTok = (G.judgeTok || 0) + 1; rpHide(); pmCancel(); PT = null; G.over = true; G.mode = 'menu'; G.phase = 'over'; G.pending = null; G.walking = false; G.absPend = null; G.cpuBusy = false; G.ts = 1;
+  G.freeze = false; G.judgeTok = (G.judgeTok || 0) + 1; rpHide(); pmCancel(); PT = null; G.over = true; try { resetRainDelay(); } catch (e) { } G.mode = 'menu'; G.phase = 'over'; G.pending = null; G.walking = false; G.absPend = null; G.cpuBusy = false; G.ts = 1;
   try { evInit(); } catch (e) { }
   if (E.coach) { try { scene.remove(E.coach.rig.root); } catch (e) { } E.coach = null; }
   if (E.argC) { try { scene.remove(E.argC.rig.root); } catch (e) { } E.argC = null; }
@@ -7062,7 +7228,7 @@ function renderLineup() {
   <b>打者</b>：巧打＝揮棒圈大小／碰到壞球的極限；力量＝擊球初速與全壘打；速度＝跑壘、盜壘與內野安打；選球＝辨識變化球；得點圈＝壘上有人時的打擊技術；對左投＝面對左投手的打擊；捕球＝野手接球失誤率（與守備範圍合計）。異手對決打者較有利。<br>
   <b>投手</b>：球速與球種等級（Lv）決定位移幅度；控球決定落點與暴投率；球數增加會疲勞。<br>
   <b>守備</b>：守＝反應、跑速、飛撲與失誤率；肩＝傳球速度；非本位球員依適性折減。<br>
-  <b>天氣</b>：大雨與狂風暴雨會縮小揮棒圈、削弱擊球力道，並讓球路與滾地球更難掌握。</div></details>
+  <b>天氣</b>：大雨與暴雨會縮小揮棒圈、削弱擊球力道，並讓球路與滾地球更難掌握。暴雨時失誤與突發狀況更常發生、場上會積水（球碰到水窪會直接停住）；暴雨持續太久主審會暫停比賽，暫停時可用「教練抗議」連點把抗議值衝滿、激烈抗議讓比賽繼續，但過一陣子雨勢沒變小仍會再度暫停。</div></details>
   <div class="lu-btns"><button type="button" id="luBack" class="pillb">← 返回</button><button type="button" id="luDone" class="pillb" style="background:linear-gradient(#5fd98f,#1f9150)">開始比賽 ▶</button></div></div>`;
   el.innerHTML = h;
 }
@@ -7278,7 +7444,7 @@ function step(dt) {
   if (G.mode === 'play' && E.bat && E.bat.rig && E.bat.rig.anim && E.bat.rig.anim.name === 'bunt' && !G.callBunt && !(PT && PT.sw) && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) batterStance();      // 觸擊取消後不再卡在觸擊姿勢
   if (HS > 0) { HS -= dt; updateBursts(dt); sqStep(dt * .5); return; }
   sqStep(dt);
-  updateBursts(dt); updateFireworks(dt); updateBatPieces(dt); updateFlyBat(dt); updateBatBoy(dt); updateTrash(dt); stepTimers(dt); updateEvents(dt); updateCoach(dt); if (G.mode === 'play') updateWeather(dt); if (window.__dbg) checkInv(); if (window.__hook) window.__hook(dt);
+  updateBursts(dt); updateFireworks(dt); updateBatPieces(dt); updateFlyBat(dt); updateBatBoy(dt); updateTrash(dt); stepTimers(dt); updateEvents(dt); updateCoach(dt); if (G.mode === 'play') updateWeather(dt); try { updatePuddles(dt); updateRainDelay(dt); } catch (e) { console.error(e); } if (window.__dbg) checkInv(); if (window.__hook) window.__hook(dt);
   pmTick(dt);
   if (G.freeze && G.mode !== 'play') G.freeze = false;
   if (G.freeze) return;
