@@ -3946,16 +3946,17 @@ function returnBall(pl, cb) {
 const humanDef = () => !G.easy && G.human >= 0 && G.human === 1 - G.half && !G.intWalk;
 const BASE_NAME = { 1: '一壘', 2: '二壘', 3: '三壘', 0: '本壘' };
 function openAsk(f, best, auto) {
-  PL.ask = { f, t: 2.1, T: 2.1, auto, rec: best ? best.b : -1 };
+  PL.ask = { f, t: 3.2, T: 3.2, auto, rec: best ? best.b : -1 };
   const tp = $('throwPanel'); tp.classList.remove('hide');
   const pos = { 0: [50, 84], 1: [84, 50], 2: [50, 16], 3: [16, 50] };
   const isOF = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF';
   let h = '<svg viewBox="0 0 100 100"><polygon points="50,16 84,50 50,84 16,50" fill="none" stroke="#fff" stroke-width="2"/></svg><div class="tt">' + (isOF ? '外野傳球：傳給哪位？' : '傳往哪個壘包？') + '</div><div class="tbar"><i id="tAskBar"></i></div>';
   h += '<div class="tb" data-b="near" style="left:50%;top:50%">傳最近<small>T</small></div>';
   for (const b of [2, 3, 1, 0]) { const cv = PL.cover && PL.cover[b]; h += `<div class="tb" data-b="${b}" style="left:${pos[b][0]}%;top:${pos[b][1]}%">${BASE_NAME[b]}<small>${b === 0 ? '4' : b}</small>${cv ? '<span class="tf">' + cv.pos + '</span>' : ''}</div>`; }
+  if (E.runners.some(runnerTaggable)) h += '<div class="tb tchase" data-b="chase" style="left:14%;top:88%;transform:translate(-50%,-50%) scale(.9)">追人觸殺<small>C</small></div>';      // 持球野手自己追跑者用身體觸殺
   if (isOF) h += `<div class="tb tmode" data-b="mode" style="left:86%;top:88%">${PL.directThrow ? '直傳' : '中繼'}<small>R</small></div>`;      // 外野遠傳：中繼（傳給內野中繼員）／直傳（直接傳到壘包，快但容易落地彈跳）
   tp.innerHTML = h;
-  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); const d = el.dataset.b; humanThrow(d === 'near' || d === 'mode' ? d : +d); }; el.addEventListener('pointerdown', go); });
+  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); const d = el.dataset.b; humanThrow(d === 'near' || d === 'mode' || d === 'chase' ? d : +d); }; el.addEventListener('pointerdown', go); });
   askMark();
 }
 function selfRunSpeed(f) {      // 野手自己持球跑壘包：依個人跑速、守備能力調整（持球略慢於全速）
@@ -3996,7 +3997,7 @@ function execNear(f) {      // 把球傳給離自己最近的守備員（遠距�
   g.tx = g.x; g.tz = g.z; g.sp = 0; g.chaser = false; g.wait = 0;
   throwTo(f, g, -2, {}, true); say(`${POS_FULL[f.pos]}${f.pl.name}把球傳給最近的${POS_FULL[g.pos]}${g.pl.name}`, 2200);
 }
-function humanThrow(b) { if (!PL || !PL.ask || G.freeze) return; const f = PL.ask.f; if (b === 'mode') { PL.directThrow = !PL.directThrow; const el = document.querySelector('#throwPanel .tmode'); if (el && el.firstChild) el.firstChild.nodeValue = PL.directThrow ? '直傳' : '中繼'; return; } if (b !== 'near' && b !== 'tag') { const av = thrAvail(b); if (!av.ok) { say(av.why === '補位中' ? `${BASE_NAME[b]}的守備員還在補位途中，等他到壘包再傳！` : `${BASE_NAME[b]}目前沒有守備員，等有人補位後才能傳球！`, 1800); return; } } closeAsk(); if (b === 'near' || b === 'tag') { execNear(f); return; } execThrow(f, b, {}); }
+function humanThrow(b) { if (!PL || !PL.ask || G.freeze) return; const f = PL.ask.f; if (b === 'mode') { PL.directThrow = !PL.directThrow; const el = document.querySelector('#throwPanel .tmode'); if (el && el.firstChild) el.firstChild.nodeValue = PL.directThrow ? '直傳' : '中繼'; return; } if (b === 'chase') { const tg = bestTagChase(f, true); if (!tg) { say('目前沒有可以觸殺的跑者！', 1500); return; } closeAsk(); startTagChase(f, tg.r); return; } if (b !== 'near' && b !== 'tag') { const av = thrAvail(b); if (!av.ok) { say(av.why === '補位中' ? `${BASE_NAME[b]}的守備員還在補位途中，等他到壘包再傳！` : `${BASE_NAME[b]}目前沒有守備員，等有人補位後才能傳球！`, 1800); return; } } closeAsk(); if (b === 'near' || b === 'tag') { execNear(f); return; } execThrow(f, b, {}); }
 function clearPlay() { const tp = document.getElementById('throwPanel'); if (tp) tp.classList.add('hide'); PL = null; for (const f of Object.values(E.F)) { f.hasBall = false; f.chaser = false; f.dive = false; f.divePlayed = f.divePlayed2 = f.fdPlayed = false; f.selfTag = null; f.hold = 0; f.wait = 0; f.v = 0; } }
 
 /* =====================================================================
@@ -7511,6 +7512,7 @@ window.addEventListener('keydown', e => {
   if (G.freeze) { e.preventDefault(); return; }
   if (PL && PL.ask && /^[tT]$/.test(e.key)) { humanThrow('tag'); e.preventDefault(); return; }
   if (PL && PL.ask && /^[rR]$/.test(e.key)) { humanThrow('mode'); e.preventDefault(); return; }
+  if (PL && PL.ask && /^[cC]$/.test(e.key)) { humanThrow('chase'); e.preventDefault(); return; }
   if (PL && PL.ask && /^[0-4]$|^[hH]$/.test(e.key)) { humanThrow(/^[hH0]$/.test(e.key) ? 0 : +e.key === 4 ? 0 : +e.key); e.preventDefault(); return; }
   if (e.repeat && (e.code === 'Space' || /^[bBqQeEsSmMfFrRdD]$/.test(e.key))) { e.preventDefault(); return; }
   if (e.code === 'Space') { humanAction(); e.preventDefault(); }
