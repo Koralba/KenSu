@@ -129,10 +129,10 @@ body.mob #timingTip{font-size:12px;margin-left:6px;padding:.12em .6em;border-wid
 #sub{max-height:84vh;overflow-y:auto;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:auto;background:#0b1a2cf2;border:3px solid #fff;border-radius:14px;padding:16px 22px;min-width:min(86vw,420px);z-index:30}
 #sub h3{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';color:#ffe14a;margin-bottom:8px}
 #sub .pbtn{margin:5px 0;width:100%}
-#throwPanel{left:50%;bottom:calc(clamp(54px,9.5vh,92px) + 2vh);transform:translateX(-50%);width:min(46vh,300px);height:min(40vh,260px);pointer-events:auto;z-index:22}
+#throwPanel{left:50%;bottom:calc(clamp(54px,9.5vh,92px) + 2vh);transform:translateX(-50%);width:min(40vh,280px);height:min(40vh,280px);pointer-events:auto;z-index:22}
 #throwPanel .tf{display:block;font-size:10px;font-weight:700;opacity:.85;line-height:1}#throwPanel .tmode{transform:translate(-50%,-50%) scale(.82)}#throwPanel .tt{position:absolute;left:0;right:0;top:-24px;text-align:center;font-weight:900;font-size:13px;text-shadow:0 2px 4px #000}
 #throwPanel .tbar{position:absolute;left:10%;right:10%;top:-6px;height:5px;background:#0008;border-radius:3px;overflow:hidden}#throwPanel .tbar i{display:block;height:100%;background:#ff7a1a;width:100%}
-.tb{position:absolute;width:30%;height:30%;transform:translate(-50%,-50%);border-radius:14px;border:3px solid #fff;background:#142a46ee;color:#fff;font-weight:900;font-size:clamp(14px,2.2vh,20px);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;line-height:1.1}
+.tb{position:absolute;width:28%;height:28%;transform:translate(-50%,-50%);border-radius:50%;border:3px solid #fff;background:#142a46ee;color:#fff;font-weight:900;font-size:clamp(14px,2.2vh,20px);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;line-height:1.1}
 .tb small{font-size:.62em;opacity:.85;font-family:'Orbitron'}
 .tb.dis{opacity:.38;filter:grayscale(1);border-style:dashed;animation:none!important}.tb.hot{background:linear-gradient(#ff9d3a,#ff5a1a);animation:tpulse .5s infinite alternate}.tb.rec{border-color:#ffe14a;box-shadow:0 0 12px #ffe14a}
 @keyframes tpulse{to{transform:translate(-50%,-50%) scale(1.08)}}
@@ -164,7 +164,7 @@ body.mob #btnAct .al{font-size:11px}
 @media (orientation:portrait){body.touch.playing #rot{display:block}}
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 @media (max-height:520px),(max-width:900px){
- #throwPanel{width:min(40vh,210px);height:min(34vh,170px);bottom:calc(clamp(54px,9.5vh,92px) + 1vh)}.tb{border-width:2px;border-radius:10px}
+ #throwPanel{width:min(36vh,190px);height:min(36vh,190px);bottom:calc(clamp(54px,9.5vh,92px) + 1vh)}.tb{border-width:2px;border-radius:50%}
  #pinfo{left:1vw;transform:none;gap:6px}.pbox{min-width:0;width:fit-content;max-width:44vw;padding:3px 8px}.pbox .t{font-size:9px}.pbox .n{font-size:12px}.pbox .s{font-size:9px;white-space:normal;line-height:1.2}
  #bso{transform:scale(.82);transform-origin:top right;right:1vw;top:1vh}#sb{transform:scale(.85);transform-origin:bottom left}#toast{font-size:clamp(34px,9vw,80px)}
  .abtn{padding:6px 9px;font-size:11px}#pitchPanel{right:.8vw}.pbtn{min-width:104px;padding:5px 8px;font-size:11px}#caption .tx{font-size:clamp(13px,2.2vw,20px)}
@@ -320,9 +320,9 @@ body.mob #pitchPanel{left:8px;right:auto;top:auto;bottom:calc(var(--cap) + 52px)
 body.mob #pitchPanel .pbtn{min-width:0;padding:6px 9px;font-size:12px;border-width:2px;border-radius:9px;gap:4px}
 body.mob #pitchPanel .pbtn span{display:inline;font-size:9px}
 body.mob .pbtn em.lg{display:none}body.mob .pbtn em.sh{display:inline}
-body.mob #throwPanel{left:auto;right:10px;transform:none;bottom:calc(var(--cap) + 12px);width:176px;height:150px}
+body.mob #throwPanel{left:auto;right:10px;transform:none;bottom:calc(var(--cap) + 12px);width:176px;height:176px}
 body.mob #throwPanel .tt{top:-20px;font-size:12px}
-body.mob .tb{width:34%;height:34%;font-size:13px;border-width:2px;border-radius:10px}
+body.mob .tb{width:29%;height:29%;font-size:12px;border-width:2px;border-radius:50%}
 
 /* --- 換投／代打：右側抽屜 --- */
 body.mob #sub{left:auto;right:0;top:0;bottom:0;transform:none;max-height:none;width:min(64vw,380px);min-width:0;border-radius:14px 0 0 14px;border-width:2px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));touch-action:pan-y;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -345,7 +345,7 @@ body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5p
 @media (orientation:portrait){
  body.mob #pinfo{left:2px;right:2px;top:64px}
  body.mob #leftCol{top:106px}
- body.mob #throwPanel{width:160px;height:140px}
+ body.mob #throwPanel{width:160px;height:160px}
 }
 /* --- 平板：放大一點 --- */
 @media (min-width:900px) and (min-height:600px){
@@ -1173,6 +1173,13 @@ body.moreOpen #rot{display:none!important}
 #sjhDlg .sjh-b #sjhYes{background:linear-gradient(#ffd84a,#e29a1c);color:#33200a}
 .spc.sjh{border-color:#ffd84a!important;background:linear-gradient(rgba(255,216,74,.18),rgba(255,216,74,.05))}
 #pitchPanel.open .plist{max-height:min(58dvh,320px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+/* 修正：球種按鈕在有高度限制的 flex 欄位中被壓縮、互相遮擋 → 禁止收縮、依內容撐高並可捲動 */
+#pitchPanel>*,#pitchPanel .plist>.pbtn,#pitchPanel .pbtn,#sub .pbtn{flex:0 0 auto;flex-shrink:0;min-height:max-content;height:auto;box-sizing:border-box}
+#pitchPanel .pbtn{line-height:1.25;white-space:nowrap;align-items:center}
+#pitchPanel .plist{flex-shrink:0;min-height:0}
+#pitchPanel.open{max-height:calc(100dvh - 90px);overflow-y:auto;overscroll-behavior:contain}
+#pitchPanel.open .plist{max-height:none;overflow:visible}
+#throwPanel .tb{padding:0;text-align:center}#throwPanel .tb.tctr{border-color:#ff7a1a;background:#4a1f0aee}#throwPanel .tb.tctr.dis{border-color:#fff}#throwPanel .tb .tn{font-size:.72em;line-height:1}
 </style>
   <div id="rainDelay" class="hide"><div id="rdTitle">⛈ 暴雨・主審暫停比賽</div><div id="rdTx"></div><div class="rdlab">雨勢減弱中…</div><div class="bar big"><i id="rdWait" style="width:0%"></i></div><div id="rdProt"><div class="rdlab">抗議值（全滿＝激烈抗議成功）</div><div class="bar big"><i id="rdMeter" style="width:0%"></i></div><button class="abtn" id="rdBtn" type="button">🧑‍🏫 教練抗議！（連點／空白鍵）</button></div></div>
   <div id="mashUi" class="hide"><div id="mashTx"></div><div class="bar big"><i id="mashBar" style="width:0%"></i></div></div>
@@ -2818,6 +2825,7 @@ function moundY(x, z) { const d = Math.hypot(x - MOUND.x, z - MOUND.z); return d
 function moveFielder(f, dt) {
   const dx = f.tx - f.x, dz = f.tz - f.z, d = Math.hypot(dx, dz), rig = f.rig;
   if (f.busy > 0) { f.busy -= dt; }
+  if (f.wait > 0 && f.chaser && PL && PL.state === 'flight' && PL.ballPos && dist2(f.x, f.z, PL.ballPos.x, PL.ballPos.z) < 6) f.wait = 0;      // 球已在身邊：立刻動作
   if (f.wait > 0) { f.wait -= dt; rig.run = 0; if (rig.stride && (!rig.anim || rig.anim.name !== 'pitch')) rig.stride = Math.max(0, rig.stride - dt * 2.2); rig.root.position.x = f.x; rig.root.position.z = f.z + (rig.stride || 0); if (!(rig.anim && rig.anim.name === 'dive')) rig.root.position.y = moundY(rig.root.position.x, rig.root.position.z); return; }       // 反應時間（看球／起步判斷）
   f.v = f.v || 0;
   if (d > 0.06 && !(f.hold > 0)) {
@@ -2993,7 +3001,7 @@ function chasePlan(sim, S, list, foul) {
 function assignRoles(plan) {
   const F = E.F, ch = plan.f; const cover = {};
   for (const f of Object.values(F)) { f.cover = null; f.sp = 4.6; f.hold = 0; f.assist = false; }
-  ch.tx = plan.x; ch.tz = plan.z; ch.sp = fspeed(ch) * (plan.air && plan.kind === 'catch' ? AIR_SPD : 1); ch.chaser = true; ch.wait = Math.max(0, plan.react !== undefined ? plan.react : .3);
+  ch.tx = plan.x; ch.tz = plan.z; ch.sp = fspeed(ch) * (plan.air && plan.kind === 'catch' ? AIR_SPD : 1); ch.chaser = true; { const w0 = Math.max(0, plan.react !== undefined ? plan.react : .3); ch.wait = (plan.air && plan.kind === 'catch') ? Math.min(w0, .28) : Math.min(w0, .1); }      // 起步反應時間上限：不再呆站著等球經過身旁才追
   for (const f of Object.values(F)) if (f !== ch) f.chaser = false;
   if (plan.dive) ch.dive = true;
   const infieldPlay = Math.hypot(plan.x, plan.z) < 36;
@@ -3729,7 +3737,9 @@ function updatePlay(dt) {
     } else if (PL.t >= plan.t) {
       const f = plan.f; if (plan.dive && !f.divePlayed) { f.divePlayed = true; }
       const dd = dist2(f.x, f.z, plan.x, plan.z), thr = plan.dive || plan.robHR ? 3.2 : 2.0;
-      if (dd < thr) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
+      let nearBall = dd < thr;
+      if (!plan.air && !plan.dive && !plan.robHR) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); nearBall = dd < 1.0 || (dist2(f.x, f.z, _gb.x, _gb.z) < 1.4 && _gb.y < 1.4); }      // 滾地球：手套真的碰到球才算接到（不再球還沒到、人還在跑就判出局）
+      if (nearBall) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
       else if (!plan.robHR && PL.t > plan.t + .15) rechaseBall(PL);      // 球早就過去、野手還沒趕到：沒接到！改成追球（不再瞬間移動接球）
       else if (PL.t > plan.t + 1.5) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
     }
@@ -3741,6 +3751,9 @@ function updatePlay(dt) {
     if (PL.pick) { PL.pick.t += dt; const k = clamp(PL.pick.t / PL.pick.dur, 0, 1); by = lerp(.14, 1.25, k * k); bz = f.z + lerp(.5, .2, k); if (k >= 1) PL.pick = null; }
     setBall({ x: f.x, y: by, z: bz }, true);
     if (PL.ask) askUpdate(dt);
+    if (!PL.ask && !PL.noRunAsk && humanDef() && !PL.foul && !PL.tagChase && !PL.selfTag && !PL.pick && !(f.hold > 0) && !PL.done && G.outs < 3 && !E.runners.some(r => r.state === 'run')) {      // 沒有跑者在跑：撿到球仍可按傳壘（傳球選單）
+      PL.noRunAsk = true; openAsk(f, null, null); if (PL.ask) { PL.ask.noRun = true; PL.ask.T = PL.ask.t = 2.2; }
+    }
     if (!PL.ask && !PL.tagChase && !PL.selfTag && !PL.pick && !(f.hold > 0) && !PL.done && G.outs < 3 && E.runners.some(r => r.state === 'run')) {      // 保險：持球野手有跑者在跑卻遲遲不動作 → 立刻重新判斷傳球／追人（玩家守備時＝重新跳出傳球選單，外野接殺後跑者才起跑也能選）
       PL.idleT = (PL.idleT || 0) + dt; if (PL.idleT > (humanDef() ? .18 : .45)) { PL.idleT = 0; holderThink(f); }
     } else PL.idleT = 0;
@@ -3769,7 +3782,11 @@ function updatePlay(dt) {
     } else if (th.laser) y = lerp(1.7, 1.2, u) + Math.sin(u * Math.PI) * Math.min(1.1, dd * .018);      // 雷射肩：低平直線
     else y = lerp(1.6, 1.1, u) + Math.sin(u * Math.PI) * Math.min(3, dd * .07);
     setBall({ x, y, z }, true, '#fff');
-    if (u >= 1) { onThrowArrive(th); }
+    if (u >= 1) {
+      const rc = th.to, dRc = rc ? dist2(rc.x, rc.z, th.x1, th.z1) : 0;
+      if (!th.wild && rc && dRc > 1.0 && dRc <= (th.relay || th.ret ? 4 : 2.6) && (th.wA = (th.wA || 0) + dt) < .6) { rc.tx = th.x1; rc.tz = th.z1; rc.sp = fspeed(rc) * 1.1; rc.wait = 0; rc.hold = 0; }      // 接球的人還沒到位：球先停在壘包上方，等他伸手接到才判定
+      else onThrowArrive(th);
+    }
   } else if (PL.state === 'loose') {
     const L = PL.loose; L.t += dt; const nb = PL.looseF; setBall({ x: L.x, y: BALL_R, z: L.z }, true);
     if (dist2(nb.x, nb.z, L.x, L.z) < 1.0 && L.t > .5) { PL.state = 'held'; PL.holder = nb; nb.hasBall = true; PL.cleanThrow = true; nb.tx = nb.x; nb.tz = nb.z; nb.hold = .3; startPick(.3); nb.rig.anim = { name: 'pickup', t: 0, dur: .3, opt: {} }; after(.34, () => { if (PL && PL.state === 'held' && PL.holder === nb) holderThink(nb); }); }
@@ -3899,7 +3916,8 @@ function checkPlayEnd() {
   { const dtp = Math.max(0, PL.tAge - (PL._cpeT == null ? PL.tAge : PL._cpeT)); PL._cpeT = PL.tAge; if (!PL.ending && G.outs < 3 && !E.runners.some(r => r.state === 'run') && PL.tAge < 20 && pushWindowOpen(dtp)) return; }
   if (G.outs >= 3 && PL.state !== 'flight') { if (!PL.ending) { PL.ending = true; after(.8, () => endPlay()); } return; }
   const moving = E.runners.some(r => r.state === 'run');
-  if ((PL.state === 'held' || PL.state === 'hrdone') && !moving && !PL.selfTag && !PL.tagChase && PL.tAge > .3) {
+  const askWait = PL.state === 'held' && humanDef() && !PL.foul && G.outs < 3 && (PL.ask || !PL.noRunAsk);
+  if ((PL.state === 'held' || PL.state === 'hrdone') && !moving && !PL.selfTag && !PL.tagChase && PL.tAge > .3 && !askWait) {
     if (!PL.ending) { PL.ending = true; after(PL.state === 'hrdone' ? 2.8 : .35, () => endPlay()); }
   }
   if (PL.tAge > (PL.plan && PL.plan.kind === 'hr' ? 70 : 40) && !PL.ending) { PL.ending = true; endPlay(); }
@@ -3919,7 +3937,7 @@ function returnBall(pl, cb) {
   const mound = formationPos('P');
   P.tx = mound.x; P.tz = mound.z; P.sp = 6.5; P.hold = 0;
   pl.retCb = () => { pl.retCb = null; cb(); };
-  if (h === P) { after(.2, () => pl.retCb && pl.retCb()); return; }
+  if (h === P) { const back = n => { if (PL !== pl) return; if (dist2(P.x, P.z, mound.x, mound.z) > 1.3 && n < 80) { P.tx = mound.x; P.tz = mound.z; P.sp = 6.5; P.hold = 0; P.wait = 0; after(.1, () => back(n + 1)); return; } pl.retCb && pl.retCb(); }; after(.2, () => back(0)); return; }      // 投手自己持球（例如補位一壘接到傳球）：先拿著球走回投手丘才開始下一球，不再瞬間切換
   const d = dist2(h.x, h.z, mound.x, mound.z);
   // 距離太遠（多半是外野手）：先傳給「距離他最近的壘上內野手」，再由內野手傳回投手，不再一路遠傳到投手丘
   let relayF = null;
@@ -3953,34 +3971,44 @@ function returnBall(pl, cb) {
 const humanDef = () => !G.easy && G.human >= 0 && G.human === 1 - G.half && !G.intWalk;
 const BASE_NAME = { 1: '一壘', 2: '二壘', 3: '三壘', 0: '本壘' };
 function openAsk(f, best, auto) {
+  if (PL.directThrow === undefined) PL.directThrow = true;      // 玩家選壘包＝直接傳到該壘包（按 R 才改成經中繼員）
   PL.ask = { f, t: 3.2, T: 3.2, auto, rec: best ? best.b : -1 };
   const tp = $('throwPanel'); tp.classList.remove('hide');
   const pos = { 0: [50, 84], 1: [84, 50], 2: [50, 16], 3: [16, 50] };
   const isOF = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF';
-  let h = '<svg viewBox="0 0 100 100"><polygon points="50,16 84,50 50,84 16,50" fill="none" stroke="#fff" stroke-width="2"/></svg><div class="tt">' + (isOF ? '外野傳球：傳給哪位？' : '傳往哪個壘包？') + '</div><div class="tbar"><i id="tAskBar"></i></div>';
-  h += '<div class="tb" data-b="near" style="left:50%;top:50%">傳最近<small>T</small></div>';
-  for (const b of [2, 3, 1, 0]) { const cv = PL.cover && PL.cover[b]; h += `<div class="tb" data-b="${b}" style="left:${pos[b][0]}%;top:${pos[b][1]}%">${BASE_NAME[b]}<small>${b === 0 ? '4' : b}</small>${cv ? '<span class="tf">' + cv.pos + '</span>' : ''}</div>`; }
-  if (E.runners.some(runnerTaggable)) h += '<div class="tb tchase" data-b="chase" style="left:14%;top:88%;transform:translate(-50%,-50%) scale(.9)">追人觸殺<small>C</small></div>';      // 持球野手自己追跑者用身體觸殺
-  if (isOF) h += `<div class="tb tmode" data-b="mode" style="left:86%;top:88%">${PL.directThrow ? '直傳' : '中繼'}<small>R</small></div>`;      // 外野遠傳：中繼（傳給內野中繼員）／直傳（直接傳到壘包，快但容易落地彈跳）
+  let h = '<svg viewBox="0 0 100 100"><polygon points="50,16 84,50 50,84 16,50" fill="none" stroke="#fff" stroke-width="2"/></svg><div class="tt"></div><div class="tbar"><i id="tAskBar"></i></div>';
+  h += '<div class="tb tctr" data-b="chase" style="left:50%;top:50%"><span class="tn">追殺</span><small>T</small></div>';      // 中間：持球追最近的跑者並觸殺（沒有跑者時不能按）
+  for (const b of [2, 3, 1, 0]) { const cv = PL.cover && PL.cover[b]; h += `<div class="tb" data-b="${b}" style="left:${pos[b][0]}%;top:${pos[b][1]}%"><span class="tn">${BASE_NAME[b]}</span><small>${b === 0 ? 'H' : b}</small>${cv ? '<span class="tf">' + cv.pos + '</span>' : ''}</div>`; }
+  h += `<div class="tb tmode" data-b="relay" style="left:88%;top:88%"><span class="tn">中繼</span><small>R</small></div>`;      // 傳給中繼內野手（外野手傳回內野、內野手也可轉傳）
   tp.innerHTML = h;
-  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); const d = el.dataset.b; humanThrow(d === 'near' || d === 'mode' || d === 'chase' ? d : +d); }; el.addEventListener('pointerdown', go); });
+  tp.querySelectorAll('.tb').forEach(el => { const go = e => { e.preventDefault(); e.stopPropagation(); const d = el.dataset.b; humanThrow(d === 'mode' || d === 'chase' || d === 'relay' ? d : +d); }; el.addEventListener('pointerdown', go); });
   askMark();
 }
 function selfRunSpeed(f) {      // 野手自己持球跑壘包：依個人跑速、守備能力調整（持球略慢於全速）
   const pl = f.pl; return fspeed(f) * clamp(.96 + ((pl.spd || 55) - 55) * .0022 + ((pl.fld || 55) - 55) * .0006, .88, 1.1);
 }
+function baseMan(b, f) {      // 該壘包的守備員：投手補一壘時，依「持球者」與「投手」誰離壘包近決定——持球者較近就自己站壘包，投手較近就傳給投手（兩人不會同時搶壘包）
+  let cv = PL && PL.cover && PL.cover[b]; if (b < 1 || b > 3 || !PL.cover) return cv;
+  if (cv && (cv.pos === 'P' || cv.pos === 'C')) {
+    const nm = E.F[{ 1: '1B', 2: '2B', 3: '3B' }[b]], spot = baseSpot(b), okF = g => g && !(g.pl && g.pl.out) && (g === f || !g.chaser);
+    let best = cv, bd = dist2(cv.x, cv.z, spot.x, spot.z);
+    for (const g of [nm, f]) { if (!okF(g) || g === cv) continue; const d = dist2(g.x, g.z, spot.x, spot.z); if (d < bd - .01) { bd = d; best = g; } }
+    cv = PL.cover[b] = best;
+  }
+  return cv;
+}
 function thrAvail(b) {      // 玩家選擇傳往哪個壘包：該壘包必須已有守備員在壘包上（或持球者自己就是該壘包的守備員），否則不能傳
   const A = PL && PL.ask; if (!A) return { ok: false };
-  const cv = PL.cover && PL.cover[b], spot = baseSpot(b);
+  const cv = baseMan(b, A.f), spot = baseSpot(b);
   if (!cv || (cv.pl && cv.pl.out)) return { ok: false, why: '無人' };
   if (cv === A.f) return { ok: true, self: true, cv };
   if (cv.chaser) return { ok: false, why: '無人' };
-  if (dist2(cv.x, cv.z, spot.x, spot.z) > 2.2) return { ok: false, why: '補位中', cv };
   return { ok: true, cv };
 }
 function askMark() {
   if (!PL || !PL.ask) return; const rs = E.runners.filter(r => r.state === 'run'); const hot = new Set(rs.map(r => (r.dir > 0 ? r.to : r.from) % 4));
   document.querySelectorAll('#throwPanel .tb').forEach(el => { const b = +el.dataset.b; el.classList.toggle('hot', hot.has(b)); el.classList.toggle('rec', b === PL.ask.rec);
+    if (el.dataset.b === 'chase') { el.classList.toggle('dis', !nearestTagRunner(PL.ask.f)); return; }
     if (el.dataset.b === 'near' || el.dataset.b === 'mode' || isNaN(b)) return;
     const av = thrAvail(b); el.classList.toggle('dis', !av.ok); let sp = el.querySelector('.tf'); if (!sp) { sp = document.createElement('span'); sp.className = 'tf'; el.appendChild(sp); }
     sp.textContent = av.ok ? (av.self ? '自己跑' : av.cv.pos) : av.why; });
@@ -3988,13 +4016,14 @@ function askMark() {
 function closeAsk() { if (PL) PL.ask = null; const tp = $('throwPanel'); if (tp) { tp.classList.add('hide'); } }
 function askUpdate(dt) {
   const A = PL.ask; if (!A) return;
-  if (PL.holder !== A.f || PL.done || !E.runners.some(r => r.state === 'run') || G.outs >= 3) { closeAsk(); return; }
+  if (PL.holder !== A.f || PL.done || (!A.noRun && !E.runners.some(r => r.state === 'run')) || G.outs >= 3) { closeAsk(); return; }
   A.t -= dt; const bar = $('tAskBar'); if (bar) bar.style.width = clamp(A.t / A.T, 0, 1) * 100 + '%'; askMark();
   if (A.t <= 0) { const au = A.auto; closeAsk(); if (au) execThrow(A.f, au.b, au); }
 }
 function execThrow(f, b, info) {
   if (!PL || PL.state !== 'held' || PL.holder !== f) return;
-  const cov = PL.cover && PL.cover[b], spot = baseSpot(b);
+  const cov = baseMan(b, f), spot = baseSpot(b);
+  { const P = E.F.P; if (cov === f && P && P !== f && P.cover === b) { P.cover = null; const m = formationPos('P'); P.tx = m.x; P.tz = m.z; P.sp = fspeed(P) * .9; P.wait = 0; } if (cov && cov !== f && cov.pos !== 'P' && E.F.P && E.F.P.cover === b) { const P = E.F.P; P.cover = null; const m = formationPos('P'); P.tx = m.x; P.tz = m.z; P.sp = fspeed(P) * .9; P.wait = 0; } if (cov) cov.cover = b; }      // 只留一個人守壘包：另一個回投手丘／原位
   if (cov === f) { f.tx = spot.x; f.tz = spot.z; f.sp = selfRunSpeed(f); f.selfTag = b; f.hold = 0; f.wait = clamp(.12 - ((f.pl.fld || 55) - 55) * .002, .04, .22); PL.selfTag = f; say(`${POS_FULL[f.pos]}${f.pl.name}持球跑向${BASE_NAME[b]}！`, 1800); return; }
   throwTo(f, cov || nearestFielderTo(spot.x, spot.z, f), b, info || {});
 }
@@ -4004,7 +4033,18 @@ function execNear(f) {      // 把球傳給離自己最近的守備員（遠距�
   g.tx = g.x; g.tz = g.z; g.sp = 0; g.chaser = false; g.wait = 0;
   throwTo(f, g, -2, {}, true); say(`${POS_FULL[f.pos]}${f.pl.name}把球傳給最近的${POS_FULL[g.pos]}${g.pl.name}`, 2200);
 }
-function humanThrow(b) { if (!PL || !PL.ask || G.freeze) return; const f = PL.ask.f; if (b === 'mode') { PL.directThrow = !PL.directThrow; const el = document.querySelector('#throwPanel .tmode'); if (el && el.firstChild) el.firstChild.nodeValue = PL.directThrow ? '直傳' : '中繼'; return; } if (b === 'chase') { const tg = bestTagChase(f, true); if (!tg) { say('目前沒有可以觸殺的跑者！', 1500); return; } closeAsk(); startTagChase(f, tg.r); return; } if (b !== 'near' && b !== 'tag') { const av = thrAvail(b); if (!av.ok) { say(av.why === '補位中' ? `${BASE_NAME[b]}的守備員還在補位途中，等他到壘包再傳！` : `${BASE_NAME[b]}目前沒有守備員，等有人補位後才能傳球！`, 1800); return; } } closeAsk(); if (b === 'near' || b === 'tag') { execNear(f); return; } execThrow(f, b, {}); }
+function nearestTagRunner(f) {      // 離持球者最近、可被觸殺的跑者
+  let best = null, bd = 1e9; if (!f) return null;
+  for (const r of E.runners) { if (!runnerTaggable(r)) continue; runnerXZ(r, _rp); const d = dist2(f.x, f.z, _rp.x, _rp.z); if (d < bd) { bd = d; best = r; } }
+  return best;
+}
+function execRelay(f) {      // 傳給中繼內野手：優先用外野落點對應的中繼員，否則傳給最近的內野手
+  if (!PL || PL.state !== 'held' || PL.holder !== f) return;
+  let g = PL.cover && PL.cover.relay; if (!g || g === f || g.chaser || (g.pl && g.pl.out)) { g = null; let bd = 1e9; for (const pos of ['SS', '2B', '3B', '1B']) { const c = E.F[pos]; if (!c || c === f || c.chaser || (c.pl && c.pl.out)) continue; const d = dist2(c.x, c.z, f.x, f.z); if (d < bd) { bd = d; g = c; } } }
+  if (!g) return; g.tx = g.x; g.tz = g.z; g.sp = 0; g.chaser = false; g.wait = 0;
+  throwTo(f, g, -2, {}, true); say(`${POS_FULL[f.pos]}${f.pl.name}傳給中繼的${POS_FULL[g.pos]}${g.pl.name}`, 2200);
+}
+function humanThrow(b) { if (!PL || !PL.ask || G.freeze) return; const f = PL.ask.f; if (b === 'relay') { closeAsk(); execRelay(f); return; } if (b === 'mode') { PL.directThrow = !PL.directThrow; const el = document.querySelector('#throwPanel .tmode'); if (el && el.firstChild) el.firstChild.nodeValue = PL.directThrow ? '直傳' : '中繼'; return; } if (b === 'chase') { const tr = nearestTagRunner(f); if (!tr) { say('目前沒有可以觸殺的跑者！', 1500); return; } closeAsk(); startTagChase(f, tr); return; } if (b !== 'near' && b !== 'tag') { const av = thrAvail(b); if (!av.ok) { say(av.why === '補位中' ? `${BASE_NAME[b]}的守備員還在補位途中，等他到壘包再傳！` : `${BASE_NAME[b]}目前沒有守備員，等有人補位後才能傳球！`, 1800); return; } } closeAsk(); if (b === 'near' || b === 'tag') { execNear(f); return; } execThrow(f, b, {}); }
 function clearPlay() { const tp = document.getElementById('throwPanel'); if (tp) tp.classList.add('hide'); PL = null; for (const f of Object.values(E.F)) { f.hasBall = false; f.chaser = false; f.dive = false; f.divePlayed = f.divePlayed2 = f.fdPlayed = false; f.selfTag = null; f.hold = 0; f.wait = 0; f.v = 0; } }
 
 /* =====================================================================
@@ -5060,7 +5100,7 @@ function buildPitchPanel() {
 function canSteal() { return !!((G.on[0] && !G.on[1]) || (G.on[1] && !G.on[2])); }      // 一壘有人且二壘空、或二壘有人且三壘空，才能盜壘
 function updateActs() {
   const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
-  $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; if (!canSteal()) G.stealReq = false; $('btnSteal').disabled = !canSteal(); $('btnSteal').style.opacity = canSteal() ? '' : '.4'; syncPowUI(); $('btnPick').style.display = hp ? '' : 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
+  $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; if (!canSteal()) G.stealReq = false; $('btnSteal').disabled = !canSteal(); $('btnSteal').style.opacity = canSteal() ? '' : '.4'; syncPowUI(); $('btnPick').style.display = 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
   { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb) || (sb0.dataset.k === 'd' && !hp) || (sb0.dataset.k === 't' && !hp) || (sb0.dataset.k === 'o' && !hb))) sb0.classList.add('hide'); }
   { const bd = $('btnDef'); if (bd) bd.style.display = hp ? '' : 'none'; const bt2 = $('btnTac'); if (bt2) bt2.style.display = hp ? '' : 'none'; }
   { const bo = $('btnOff'); if (bo) { bo.style.display = hb ? '' : 'none'; bo.classList.toggle('on', hb && !!(G.offCall || G.leadMode || G.stealReq)); } }
@@ -7517,8 +7557,8 @@ window.addEventListener('keydown', e => {
   if (EV.abs) { const k = e.key.toLowerCase(); if (EV.abs.protest ? k === 'r' : k === 'c') { absResolveInput(true); e.preventDefault(); return; } if (e.code === 'Space' || k === 'escape') { absResolveInput(false); e.preventDefault(); return; } }
   if (!EV.abs && G.absPend && e.key.toLowerCase() === 'c') { runPend(); e.preventDefault(); return; }
   if (G.freeze) { e.preventDefault(); return; }
-  if (PL && PL.ask && /^[tT]$/.test(e.key)) { humanThrow('tag'); e.preventDefault(); return; }
-  if (PL && PL.ask && /^[rR]$/.test(e.key)) { humanThrow('mode'); e.preventDefault(); return; }
+  if (PL && PL.ask && /^[tT]$/.test(e.key)) { humanThrow('chase'); e.preventDefault(); return; }
+  if (PL && PL.ask && /^[rR]$/.test(e.key)) { humanThrow('relay'); e.preventDefault(); return; }
   if (PL && PL.ask && /^[cC]$/.test(e.key)) { humanThrow('chase'); e.preventDefault(); return; }
   if (PL && PL.ask && /^[0-4]$|^[hH]$/.test(e.key)) { humanThrow(/^[hH0]$/.test(e.key) ? 0 : +e.key === 4 ? 0 : +e.key); e.preventDefault(); return; }
   if (e.repeat && (e.code === 'Space' || /^[bBqQeEsSmMfFrRdD]$/.test(e.key))) { e.preventDefault(); return; }
@@ -7571,7 +7611,7 @@ function updatePickTags() {      // 「牽制」半透明字樣：貼在有跑�
       if (_rv.z < 1 && sc.x / pr > -20 && sc.x / pr < ov.clientWidth + 20 && Y > 20 && Y < ov.clientHeight - 20) { show = true; b.style.left = X + 'px'; b.style.top = Y + 'px'; } }
     b.classList.toggle('on', show); if (show) any = true;
   }
-  const bp = $('btnPick'); if (bp) bp.style.display = (humanPitches() && G.human >= 0 && !any) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
+  const bp = $('btnPick'); if (bp) bp.style.display = (humanPitches() && G.human >= 0 && !any && ok && G.on.some(r => r && r.state === 'on')) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
 }
 const _rv = new V3();
 function humanPickoff(sel) {
