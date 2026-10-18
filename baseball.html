@@ -2897,7 +2897,7 @@ function planFielding(sim, cl, foul, res) {
       const need = react + spd / (2 * (12 + fl * .05)) + Math.max(0, dist2(best.x, best.z, o.x * k, o.z * k) - 1.0) / spd, margin = o.t - need;
       if (margin > -.1) {
         const weak = res ? clamp((41 - (res.ev || 41)) / 6, 0, 1) : 0;      // 沒打得很扎實的全壘打（初速偏低、剛好過牆）更容易被攔下
-        const pr = clamp((.04 + margin * .34 + (fl - 60) * .003 + (spd - 6.5) * .02 + (WALL_H + 1.15 - o.y) * .14 + weak * .1 - luck * .04) * fancyK(), 0, .5);      // 守備、腳程越好越容易；本場精彩守備已多時會遞減（避免太常出現）
+        const pr = best.pl.ultra ? .85 : clamp((.04 + margin * .34 + (fl - 60) * .003 + (spd - 6.5) * .02 + (WALL_H + 1.15 - o.y) * .14 + weak * .1 - luck * .04) * fancyK(), 0, .5);      // 守備、腳程越好越容易；本場精彩守備已多時會遞減（避免太常出現）
         if (Math.random() < pr) return { kind: 'catch', f: best, x: o.x * k, z: o.z * k, t: o.t, air: true, dive: true, great: true, robHR: true, react, y: o.y, weakHR: weak > .35 };
         if (pr > .03 && Math.random() < .75) missF = best;      // 有跳起來、但差一點點沒搆到
       }
@@ -2915,7 +2915,7 @@ function planFielding(sim, cl, foul, res) {
     react += hardK * (.07 + (1 - clamp(fl / 85, 0, 1)) * .09) + clamp(gauss() * .06, -.12, .14) + (Math.random() < .045 + (1 - clamp(fl / 100, 0, 1)) * .04 ? .06 + Math.random() * .16 : 0);      // 起步好壞不一，偶爾判斷失誤慢半拍；強勁球看不清＋每次起跑好壞不同（好的起跑能多救一顆、差的起跑會慢半拍）
     const pNB = f.pos === 'P' && !(res && res.bunt);      // 投手投完球重心在前、站位又離打者近：強勁平飛球／直擊球很難處理，高飛球交給內野手與捕手
     if (pNB) { react += .10 + hardK * .20; if (res && res.ang >= 42) continue; }
-    const reach = (pNB ? .85 : 1.05) - hardK * .34;                                                                  // 球速越快，手套實際能構到的範圍越小
+    const ult = !!f.pl.ultra, reach = ult ? 2.6 : (pNB ? .85 : 1.05) - hardK * .34;      // 傳說球員：手套範圍超大、不受強勁球影響                                                                  // 球速越快，手套實際能構到的範圍越小
     if (res && res.bunt) { react += (f.pos === 'P' ? .06 : 0); if (res.sneak) react += (.06 + Math.abs(gauss()) * .06) * (aiExpectBunt() ? .5 : 1) * (1.15 - fl * .004); }   // 投手剛投完球重心未穩；奇襲短打讓全隊來不及反應
     let got = null, dive = null, sup = null;
     const slack = Math.random() < .45 ? Math.random() * .22 : 0;      // 邊緣球：野手可能判斷／衝刺差一點點，球落在身前（不再是『算得到就一定接到』）
@@ -2932,7 +2932,7 @@ function planFielding(sim, cl, foul, res) {
       if (f.pos === 'C' && res && res.foulTip) continue;
       let d = dist2(f.x, f.z, sx, sz); if (G.tacGap && s.y < 1.2 && (f.pos === '1B' || f.pos === '2B' || f.pos === 'SS' || f.pos === '3B') && !(res && res.bunt)) d += G.tacGap; if (f.pos === 'C' && res && res.bunt) d = Math.max(0, d - 2.2);          // 捕手蹲在本壘後方，短打球／小飛球近在眼前
       const back = res && res.ang >= 14 ? Math.max(0, Math.hypot(sx, sz) - Math.hypot(f.x, f.z)) * .012 : 0;      // 往後退著跑／轉身追球比較慢
-      const sp = (s.t < firstT - .02 && s.t <= wT + .02) ? spd * AIR_SPD : spd, ov1 = Math.max(0, d - reach), ov2 = pNB ? 99 : Math.max(0, d - (2.3 - hardK * .45)), ov3 = pNB ? 99 : Math.max(0, d - (3.0 - hardK * .6));      // 投手不能飛身撲接／極限伸展
+      const sp = (s.t < firstT - .02 && s.t <= wT + .02) ? spd * AIR_SPD : spd, ov1 = Math.max(0, d - reach), ov2 = pNB ? 99 : Math.max(0, d - (ult ? 6.0 : 2.3 - hardK * .45)), ov3 = pNB ? 99 : Math.max(0, d - (ult ? 8.0 : 3.0 - hardK * .6));      // 投手不能飛身撲接／極限伸展
       const need = react * clamp(ov1 / 1.4, 0, 1) + ov1 / sp + (leap ? .22 : 0) + (ov1 > 0 ? back : 0);      // 球在手套範圍內＝野手本來就站在那裡，不需要起步反應；範圍外才要判斷＋起跑＋跑到
       const airOk = s.t < firstT - .02 && s.t <= wT + .02;
       if (leap) { if (!dive && need <= s.t && airOk) dive = { f, t: s.t, x: sx, z: sz, air: true, dive: true, leap: true, y: s.y, react: react - lag }; continue; }
@@ -2948,12 +2948,13 @@ function planFielding(sim, cl, foul, res) {
     let c = cands[0];
     if (c.dive) {
       const fl = c.f.pl.fld || 55;
-      const p = c.leap ? clamp(.26 + fl * .004 - (c.y - 2.8) * .38 + luck * .03 - rainK() * .12, .04, .75) : clamp((c.superTry ? .03 + fl * .003 : .38 + fl * .0035) + luck * .03 - rainK() * .12 - stormK() * .1, .03, .8);
-      if (Math.random() > p - hardK * .10) { // dive fails : ball goes through, next chaser
+      const p = c.f.pl.ultra ? .97 : c.leap ? clamp(.26 + fl * .004 - (c.y - 2.8) * .38 + luck * .03 - rainK() * .12, .04, .75) : clamp((c.superTry ? .03 + fl * .003 : .38 + fl * .0035) + luck * .03 - rainK() * .12 - stormK() * .1, .03, .8);
+      if (Math.random() > (c.f.pl.ultra ? p : p - hardK * .10)) { // dive fails : ball goes through, next chaser
         const rest = cands.filter(x => x !== c && !x.dive);
         c.failedDive = true; if (rest.length) { c = rest[0]; c.failDive = cands[0]; } else { c = chasePlan(sim, S, list, foul); c.failDive = cands[0]; }
       } else c.great = true;                                       // 飛身撲接／極限伸展成功＝精彩守備
     }
+    if (c.f.pl.ultra && !c.dive && !c.failedDive && c.t > .5 && Math.random() < .65) { c.dive = true; c.great = true; }      // 傳說球員：大機率以飛身撲接／美技處理球
     c.kind = c.air ? 'catch' : 'field'; if (!c.air && c.kind === 'field' && c.y > 1.2) c.kind = 'field';
     return c;
   }
@@ -7753,7 +7754,7 @@ function renderLineup() {
   });
   el.addEventListener('change', e => {
     const t = e.target, ed = ED[ED_TAB.v]; if (!ed || t.dataset.i === undefined || CFG.side !== ED_TAB.v) return; const i = +t.dataset.i;
-    if (t.classList.contains('lp') && t.value === SJH.name) { const nv = t.value; renderLineup(); askSJH(() => { const s2 = el.querySelector('.lp[data-i="' + i + '"]'); if (s2) { s2.value = nv; s2.dispatchEvent(new Event('change', { bubbles: true })); } }); return; }
+    if (t.classList.contains('lp') && t.value === SJH.name && !SJH.pass) { const nv = t.value; renderLineup(); askSJH(() => { const s2 = el.querySelector('.lp[data-i="' + i + '"]'); if (s2) { s2.value = nv; SJH.pass = true; s2.dispatchEvent(new Event('change', { bubbles: true })); SJH.pass = false; } }); return; }
     if (t.classList.contains('lp')) {              // 換人：選到先發者＝兩人互換打序；選到板凳者＝替換並承接守位
       const n = t.value, j = ed.order.indexOf(n), old = ed.order[i];
       if (j >= 0) { if (j !== i) [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; }
