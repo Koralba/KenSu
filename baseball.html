@@ -1229,7 +1229,7 @@ const MOUND = { x: 0, z: -15 };
 const ZW = 0.55, ZC = 1.35, ZH = 0.72;      // strike zone half width / centre y / half height（寬:高≈3:4，與真實好球帶 43cm × 約 57cm 比例相近）
 const BALL_R = 0.16;
 const ZCM = 43 / (2 * ZW);      // 1 單位 ≈ 幾公分（好球帶寬 43cm 對應 2×ZW）
-let WALL_H = 3.6;
+let WALL_H = 4.6;
 const WALL_PTS = [[0, 80], [45, 71], [90, 44], [135, 32], [180, 30]];
 function wallRadius(phi) {                // phi deg from centre field (0), either sign
   let a = Math.abs(phi); a = a > 180 ? 360 - a : a;
@@ -1252,16 +1252,16 @@ const BASE_JP = ['本壘', '一壘', '二壘', '三壘'];
 // bx: +glove side (for RHP => +x in world),  by: vertical break (neg = drop)
 const PITCHES = {
   // bx/by: 到本壘板時相對「慣性直線」的總位移(公尺)；tx/ty: 位移成長指數（越大＝越晚才變化＝尾勁越強）；miss: 此球路常見的落點偏差[橫(依投手手)、縱]
-  ST: { id: 'ST', dec: 0.8, jp: '四縫線直球', sp: 1.00, bx: 0.20, by: 0.42, tx: 1.5, ty: 1.45, bite: .22, arc: -0.03, sx: .85, sy: .85, miss: [.04, .16], col: '#ff6a5a', short: '直球', tail: '尾段上飄' },
-  SL: { id: 'SL', dec: 1.0, jp: '滑球', sp: 0.89, bx: 1.55, by: -0.42, tx: 2.3, ty: 2.0, bite: .86, arc: .0, sx: 1.2, sy: .95, miss: [.26, -.08], col: '#ffb23a', short: '滑球', tail: '末段橫向急切' },
-  CU: { id: 'CU', dec: 1.2, jp: '曲球', sp: 0.72, bx: 0.70, by: -1.5, tx: 1.65, ty: 1.55, bite: .60, arc: 0.22, sx: .95, sy: 1.25, miss: [.08, -.22], col: '#7ad0ff', short: '曲球', tail: '高拋大弧線下墜' },
-  FK: { id: 'FK', dec: 1.35, jp: '指叉球', sp: 0.84, bx: 0.18, by: -1.4, tx: 1.95, ty: 2.8, bite: .92, arc: 0.02, sx: .9, sy: 1.35, miss: [0, -.32], col: '#9a7aff', short: '指叉', tail: '最後 1/4 才掉落' },
-  SH: { id: 'SH', dec: 0.95, jp: '內曲球', sp: 0.94, bx: -1.30, by: -0.26, tx: 1.80, ty: 1.70, bite: .34, arc: .0, sx: 1.15, sy: .9, miss: [-.22, 0], col: '#6aff9a', short: '內曲', tail: '持續內切' },
-  CH: { id: 'CH', dec: 1.7, jp: '變速球', sp: 0.80, bx: -1.00, by: -0.80, tx: 1.85, ty: 2.25, bite: .76, arc: 0.04, sx: 1.05, sy: 1.15, miss: [-.15, -.20], col: '#ffe84a', short: '變速', tail: '減速後沉降內飄' },
-  CT: { id: 'CT', dec: 0.9, jp: '卡特球', sp: 0.93, bx: 0.6, by: -0.20, tx: 2.7, ty: 1.80, bite: .84, arc: .0, sx: 1.1, sy: .9, miss: [.15, .0], col: '#ff9acb', short: '卡特', tail: '進壘前急切' },
-  SK: { id: 'SK', dec: 0.95, jp: '伸卡球', sp: 0.92, bx: -1.10, by: -0.85, tx: 1.80, ty: 1.95, bite: .30, arc: -0.02, sx: 1.1, sy: 1.1, miss: [-.18, -.20], col: '#4adfc0', short: '伸卡', tail: '內切下沉' },
-  TS: { id: 'TS', dec: 0.9, jp: '二縫線速球', sp: 0.96, bx: -0.80, by: -0.35, tx: 1.70, ty: 1.70, bite: .26, arc: -0.01, sx: 1.0, sy: .95, miss: [-.12, -.06], col: '#ffd27a', short: '二縫', tail: '內切微沉' },
-  SV: { id: 'SV', dec: 1.1, jp: '滑曲球', sp: 0.80, bx: 1.20, by: -0.90, tx: 2.1, ty: 2.1, bite: .80, arc: 0.06, sx: 1.15, sy: 1.15, miss: [.18, -.18], col: '#b266ff', short: '滑曲', tail: '斜向大幅切入' },
+  ST: { id: 'ST', dec: 0.8, jp: '四縫線直球', sp: 1.00, bx: 0.20, by: 0.42, tx: 1.3, ty: 2.3, ex: 0, ey: 0, grv: .55, bite: .22, arc: -0.03, sx: .85, sy: .85, miss: [.04, .16], col: '#ff6a5a', short: '直球', tail: '尾段上飄' },
+  SL: { id: 'SL', dec: 1.0, jp: '滑球', sp: 0.89, bx: 1.55, by: -0.42, tx: 2.9, ty: 2.2, ex: .08, ey: 0, grv: 1, bite: .86, arc: .0, sx: 1.2, sy: .95, miss: [.26, -.08], col: '#ffb23a', short: '滑球', tail: '末段橫向急切' },
+  CU: { id: 'CU', dec: 1.2, jp: '曲球', sp: 0.72, bx: 0.70, by: -1.5, tx: 1.5, ty: 1.35, ex: .30, ey: .42, grv: 1.1, bite: .60, arc: 0.22, sx: .95, sy: 1.25, miss: [.08, -.22], col: '#7ad0ff', short: '曲球', tail: '高拋大弧線下墜' },
+  FK: { id: 'FK', dec: 1.35, jp: '指叉球', sp: 0.84, bx: 0.18, by: -1.4, tx: 2.4, ty: 3.6, ex: 0, ey: 0, grv: 1, bite: .92, arc: 0.02, sx: .9, sy: 1.35, miss: [0, -.32], col: '#9a7aff', short: '指叉', tail: '最後 1/4 才掉落' },
+  SH: { id: 'SH', dec: 0.95, jp: '內曲球', sp: 0.94, bx: -1.30, by: -0.26, tx: 1.35, ty: 1.9, ex: .38, ey: .1, grv: 1, bite: .34, arc: .0, sx: 1.15, sy: .9, miss: [-.22, 0], col: '#6aff9a', short: '內曲', tail: '持續內切' },
+  CH: { id: 'CH', dec: 1.7, jp: '變速球', sp: 0.80, bx: -1.00, by: -0.80, tx: 1.75, ty: 2.1, ex: .15, ey: .12, grv: 1.15, bite: .76, arc: 0.04, sx: 1.05, sy: 1.15, miss: [-.15, -.20], col: '#ffe84a', short: '變速', tail: '減速後沉降內飄' },
+  CT: { id: 'CT', dec: 0.9, jp: '卡特球', sp: 0.93, bx: 0.6, by: -0.20, tx: 3.7, ty: 2.4, ex: 0, ey: 0, grv: .9, bite: .84, arc: .0, sx: 1.1, sy: .9, miss: [.15, .0], col: '#ff9acb', short: '卡特', tail: '進壘前急切' },
+  SK: { id: 'SK', dec: 0.95, jp: '伸卡球', sp: 0.92, bx: -1.10, by: -0.85, tx: 1.6, ty: 2.0, ex: .22, ey: .2, grv: 1, bite: .30, arc: -0.02, sx: 1.1, sy: 1.1, miss: [-.18, -.20], col: '#4adfc0', short: '伸卡', tail: '內切下沉' },
+  TS: { id: 'TS', dec: 0.9, jp: '二縫線速球', sp: 0.96, bx: -0.80, by: -0.35, tx: 1.4, ty: 2.0, ex: .34, ey: .05, grv: .85, bite: .26, arc: -0.01, sx: 1.0, sy: .95, miss: [-.12, -.06], col: '#ffd27a', short: '二縫', tail: '內切微沉' },
+  SV: { id: 'SV', dec: 1.1, jp: '滑曲球', sp: 0.80, bx: 1.20, by: -0.90, tx: 1.6, ty: 1.9, ex: .30, ey: .28, grv: 1.05, bite: .80, arc: 0.06, sx: 1.15, sy: 1.15, miss: [.18, -.18], col: '#b266ff', short: '滑曲', tail: '斜向大幅切入' },
   KN: { id: 'KN', jp: '蝴蝶球', sp: 0.56, bx: 0.0, by: -0.12, tx: 2.0, ty: 2.0, bite: .5, arc: .1, miss: [0, 0], col: '#f5f5f5', short: '蝴蝶', knuckle: true, tail: '不規則飄動' }
 };
 // 各球種的出手點微調（相對於投手個人的手臂角度）
@@ -1287,17 +1287,17 @@ const STADIUMS = ['洲際棒球場', '亞太主球場', '桃園棒球場', '新�
 /* 球場特性（2026 年中職例行賽共使用 11 座球場）。cf=中外野、gap=左右中間、ln=兩翼（遊戲單位），h=外野牆高，
    dt=氣溫修正(°C)，wind=風力倍率，rain=降雨傾向，wc=牆頂顏色。尺寸為依球場特色設定的示意比例，非精確丈量值 */
 const PARKS = {
-  '洲際棒球場': { cf: 80, gap: 75.5, ln: 71, h: 3.6, dt: 0, wind: 1.0, rain: 1.0, wc: 0x1d7a45, note: '標準尺寸，中部球場' },
-  '亞太主球場': { cf: 81.5, gap: 76.5, ln: 71.5, h: 3.8, dt: 1, wind: .9, rain: 1.1, wc: 0x1b4f9c, note: '全新球場，場地寬敞' },
-  '桃園棒球場': { cf: 79, gap: 74, ln: 70, h: 3.4, dt: -1, wind: 1.3, rain: 1.0, wc: 0x7a1030, note: '風勢較大，外野牆較矮' },
-  '新莊棒球場': { cf: 79, gap: 74.5, ln: 70, h: 3.5, dt: 0, wind: 1.0, rain: 1.0, wc: 0x0a56a8, note: '中規中矩的北部球場' },
-  '天母棒球場': { cf: 76, gap: 72, ln: 68.5, h: 3.4, dt: -1, wind: .9, rain: 1.1, wc: 0x9a1020, note: '場地偏小，容易出現全壘打' },
-  '澄清湖棒球場': { cf: 80, gap: 75.5, ln: 71, h: 3.6, dt: 2, wind: 1.1, rain: .9, wc: 0x0d6b3d, note: '南部炎熱，天氣多半晴朗' },
-  '台北大巨蛋': { cf: 81, gap: 76, ln: 71.5, h: 4.0, dt: 0, wind: 0, rain: 0, wc: 0x203a60, dome: true, note: '室內球場，無風無雨' },
-  '嘉義市立棒球場': { cf: 78, gap: 73.5, ln: 69.5, h: 3.5, dt: 2, wind: .9, rain: 1.2, wc: 0x2f6b3a, note: '悶熱潮濕，午後雷陣雨多' },
-  '斗六棒球場': { cf: 77, gap: 72.5, ln: 69, h: 3.4, dt: 2, wind: .8, rain: 1.2, wc: 0x3d6b2f, note: '內陸悶熱，風小、場地偏小' },
-  '花蓮縣立棒球場': { cf: 79, gap: 74.5, ln: 70, h: 3.5, dt: -2, wind: 1.4, rain: 1.5, wc: 0x23607a, note: '東岸多風多雨，氣溫較涼' },
-  '台東縣立棒球場': { cf: 77.5, gap: 73, ln: 69.5, h: 3.4, dt: 2, wind: 1.5, rain: 1.1, wc: 0x2a7a6a, note: '海風強勁，天氣炎熱' }
+  '洲際棒球場': { cf: 80, gap: 75.5, ln: 71, h: 4.6, dt: 0, wind: 1.0, rain: 1.0, wc: 0x1d7a45, note: '標準尺寸，中部球場' },
+  '亞太主球場': { cf: 81.5, gap: 76.5, ln: 71.5, h: 4.8, dt: 1, wind: .9, rain: 1.1, wc: 0x1b4f9c, note: '全新球場，場地寬敞' },
+  '桃園棒球場': { cf: 79, gap: 74, ln: 70, h: 4.2, dt: -1, wind: 1.3, rain: 1.0, wc: 0x7a1030, note: '風勢較大，外野牆較矮' },
+  '新莊棒球場': { cf: 79, gap: 74.5, ln: 70, h: 4.5, dt: 0, wind: 1.0, rain: 1.0, wc: 0x0a56a8, note: '中規中矩的北部球場' },
+  '天母棒球場': { cf: 76, gap: 72, ln: 68.5, h: 4.2, dt: -1, wind: .9, rain: 1.1, wc: 0x9a1020, note: '場地偏小，容易出現全壘打' },
+  '澄清湖棒球場': { cf: 80, gap: 75.5, ln: 71, h: 4.6, dt: 2, wind: 1.1, rain: .9, wc: 0x0d6b3d, note: '南部炎熱，天氣多半晴朗' },
+  '台北大巨蛋': { cf: 81, gap: 76, ln: 71.5, h: 5.0, dt: 0, wind: 0, rain: 0, wc: 0x203a60, dome: true, note: '室內球場，無風無雨' },
+  '嘉義市立棒球場': { cf: 78, gap: 73.5, ln: 69.5, h: 4.5, dt: 2, wind: .9, rain: 1.2, wc: 0x2f6b3a, note: '悶熱潮濕，午後雷陣雨多' },
+  '斗六棒球場': { cf: 77, gap: 72.5, ln: 69, h: 4.3, dt: 2, wind: .8, rain: 1.2, wc: 0x3d6b2f, note: '內陸悶熱，風小、場地偏小' },
+  '花蓮縣立棒球場': { cf: 79, gap: 74.5, ln: 70, h: 4.5, dt: -2, wind: 1.4, rain: 1.5, wc: 0x23607a, note: '東岸多風多雨，氣溫較涼' },
+  '台東縣立棒球場': { cf: 77.5, gap: 73, ln: 69.5, h: 4.3, dt: 2, wind: 1.5, rain: 1.1, wc: 0x2a7a6a, note: '海風強勁，天氣炎熱' }
 };
 /* 自動選場時的全聯盟加權（2026 年例行賽各球場使用場次） */
 const PARK_W = [['台北大巨蛋', 90], ['桃園棒球場', 52], ['新莊棒球場', 50], ['亞太主球場', 48], ['洲際棒球場', 47], ['澄清湖棒球場', 45], ['天母棒球場', 40], ['嘉義市立棒球場', 10], ['台東縣立棒球場', 6], ['斗六棒球場', 2], ['花蓮縣立棒球場', 2]];
@@ -1443,7 +1443,7 @@ function buildAllStarData() {
 /* 傳說球員：蘇家禾（只出現在明星隊；可當先發投手或指定打擊；選擇時需輸入密碼） */
 const SJH = { name: '蘇家禾', pw: '0181', ok: false };
 const SJH_BAT = Object.assign(B('蘇家禾', 'DH', 'R', .450, .560, 1.100, 60, 60, 5, 16, 99, 99), { ultra: true });
-const SJH_SP = Object.assign(P('蘇家禾', 'SP', 'R', 165, 0.00, 42, 0, 260, 9, ['SL', 'CU', 'FK', 'SH', 'CH', 'CT', 'SK', 'TS', 'SV', 'KN']), { ultra: true });
+const SJH_SP = Object.assign(P('蘇家禾', 'SP', 'R', 170, 0.00, 42, 0, 260, 9, ['SL', 'CU', 'FK', 'SH', 'CH', 'CT', 'SK', 'TS', 'SV', 'KN']), { ultra: true });
 const isSJH = r => !!(r && (r.ultra || r.name === SJH.name || r.n === SJH.name));
 { let _all = null; Object.defineProperty(CPBL, 'ALL', { enumerable: true, configurable: true, get() { return _all || (_all = buildAllStarData()); } }); }
 /* 球種超過四種的投手（估算）：額外球種會出現在選球面板，電腦投手也會使用 */
@@ -2277,6 +2277,7 @@ function ctlSigma(p, type, lv) {
   if (type === 'KN') sg *= 1.5;
   return sg;
 }
+const FAST_T = { ST: 1, TS: 1, SK: 1, CT: 1, SH: 1 };      // 速球類（直球／二縫／伸卡／卡特／內曲）：傳說球員全部用最高球速投出
 function flightT(kmh) { return clamp(.69 * Math.pow(150 / kmh, 1.6), .5, 1.5); }      // 投出到進壘的時間：快速球更「咻」一下就到、慢速球明顯飄很久（速差被放大，約為原本的 1.5 次方）
 function brkVis(lv) { return 1 + clamp(lv - 1, 0, 6) * .12; }
 function makePitch(p, id, aimX, aimY, acc) {
@@ -2300,7 +2301,7 @@ function makePitch(p, id, aimX, aimY, acc) {
   let ox = 0, oy = 0; if (hasAcc && acc < 1) { const miss = 1 - acc, ag = Math.random() * TAU, mag = Math.pow(miss, 1.4) * .9 * (.6 + Math.random() * .4); ox = Math.cos(ag) * mag; oy = Math.sin(ag) * mag * .9; }      // 時機差太多：整體偏離想投的位置
   let fx = aimX + ex + ox + mb[0] * hs0 * ms, fy = aimY + ey + oy + mb[1] * ms;           // 各球路有各自常見的落點偏差
   const fat = p.fatigue || 0;
-  const kmh = Math.round(p.kmh * (spec.sp - (spec.sp < .95 && id !== 'KN' ? (lv - 4) * .008 : 0)) * (1 - fat * 0.0009) * (p.role === 'CL' && fat < 45 ? 1.008 : 1) * (1 + moodBonus(p) * .25) * (hasAcc ? 1 + (acc - .6) * .02 : 1) * (LC ? 1 + LC.spd : 1) + (Math.random() - .5) * 2.6 * moodVol(p) + (perfect ? 1.2 + Math.random() * 1.2 : 0));
+  const kmh = Math.round(p.kmh * ((p.ultra && FAST_T[id] ? 1 : spec.sp) - (spec.sp < .95 && !(p.ultra && FAST_T[id]) && id !== 'KN' ? (lv - 4) * .008 : 0)) * (1 - fat * 0.0009) * (p.role === 'CL' && fat < 45 ? 1.008 : 1) * (1 + moodBonus(p) * .25) * (hasAcc ? 1 + (acc - .6) * .02 : 1) * (LC ? 1 + LC.spd : 1) + (Math.random() - .5) * 2.6 * moodVol(p) + (perfect ? 1.2 + Math.random() * 1.2 : 0));
   const hs = p.hand === 'R' ? 1 : -1;
   // 球威(stuff)：變化幅度由「該球種等級 lv」「投手壓制力 dom」「球速」決定；控球差的投手每球變化幅度更不穩
   const stuff = clamp(.8 + (lv - 4) * .068 + (p.dom || 0) * .24 + ((p.kmh || 145) - 146) * .005, .62, 1.45) * (LC ? LC.brk : 1);      // 越強的投手／球種等級越高，變化幅度差距越明顯
@@ -2349,11 +2350,14 @@ function batterHitPart(fx, fy) {      // 把打者各部位（球）投影到好
   for (const l of [rg.legL, rg.legR]) { const lr = .15 * l.scale.x; if (hit(l, 0, -.42, 0, lr)) return 'knee'; if (hit(l, 0, -.56, .06, .18 * l.scale.x)) return 'foot'; }
   return null;
 }
+const earlyC = v => 1 - Math.pow(1 - v, 1.9);      // 出手後立即開始彎的「早段變化」曲線
 function pitchBase(pt, v, out) {
-  // 位移 = 指數 t^p：p 越大，變化越集中在尾段（尾勁）；p≈1.7~2.0 為平順的拋物線；p<=3 保證速度連續、不會突然「掉」進好球帶
-  const s = pt.spec, tj = pt.tj || 1, hx = Math.pow(v, clamp((s.tx || 2) * tj * 1.12, 1.4, 3.3)), hy = Math.pow(v, clamp((s.ty || 2) * tj * 1.12, 1.4, 3.3)), zp = v * (1 + clamp(.04 + (pt.kmh - 105) * .0016, .04, .11) * (s.dec || 1) * (1 - v));      // 空氣阻力：球速越快、末段減速越明顯   // 球速末段略減
+  // 位移 = (1-e)·t^p ＋ e·早段曲線：p 大＝尾勁（極晚才變化）、e 大＝出手即開始彎；每種球各有 tx/ty/ex/ey，軌跡形狀不同（不只是變化量大小不同）
+  const s = pt.spec, tj = pt.tj || 1, ex = s.ex || 0, ey = s.ey || 0, ec = (ex || ey) ? earlyC(v) : 0;
+  const hx = (1 - ex) * Math.pow(v, clamp((s.tx || 2) * (1 + (tj - 1) * .8) * 1.08, 1.1, 4.2)) + ex * ec, hy = (1 - ey) * Math.pow(v, clamp((s.ty || 2) * (1 + (tj - 1) * .8) * 1.08, 1.1, 4.2)) + ey * ec;
+  const zp = v * (1 + clamp(.04 + (pt.kmh - 105) * .0016, .04, .11) * (s.dec || 1) * (1 - v));      // 空氣阻力：球速越快、末段減速越明顯
   out.x = pt.start.x + (pt.apx - pt.start.x) * v + pt.bx * hx;
-  out.y = pt.start.y + (pt.apy - pt.start.y) * v + pt.by * hy + (pt.arc + (pt.grav || 0)) * 4 * v * (1 - v);      // 重力拋物線：慢球弧度大、快球近乎直線
+  out.y = pt.start.y + (pt.apy - pt.start.y) * v + pt.by * hy + (pt.arc + (pt.grav || 0) * (s.grv === undefined ? 1 : s.grv)) * 4 * v * (1 - v);      // 重力拋物線：慢球弧度大；直球 grv<1＝比預期少掉（上飄感）、曲球／變速球 grv>1＝下墜更明顯
   if (pt.dirt && out.y < BALL_R) out.y = BALL_R + (BALL_R - out.y) * .55;                // 彈地：向上反彈並損失能量
   out.z = pt.start.z + (0 - pt.start.z) * zp;
   if (s.knuckle) { const e = Math.sin(Math.PI * v); out.x += Math.sin(v * 11 + pt.ph) * .2 * e; out.y += Math.sin(v * 9 + pt.ph2) * .2 * e; }
@@ -2533,13 +2537,13 @@ function resolveSwing(pt, sw, b) {
     const od = Math.max(0, outsideDist(pt.fx, pt.fy) - ZPAD);                 // 擦到判定好球帶邊緣（含球半徑）者視同好球帶內
     if (od > 0) {
       const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .03 : 0) - rainBK() * .03, .22, .72);
-      if (od > reach * (humanA ? 1.7 : 1.15) && !(humanA && d <= bc.rr + BALL_R * .3 && adt <= Wd)) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };          // 太外側的壞球：揮空
+      if (!humanA && od > reach * 1.15) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };          // 太外側的壞球：揮空
       chase = clamp(od / reach, 0, 1);
       // 邊緣壞球（chase<.3）只要位置與時機到位就必定碰到；愈遠愈難，變化球愈遠愈容易揮空
       const brk = ['SL', 'CU', 'FK', 'SV', 'SK', 'SH'].includes(pt.id) ? 1 - .12 * clamp((chase - .3) / .7, 0, 1) : 1;
       const tight = (d < R0 * .5 && adt < Wd * .5) ? .5 : 1;                  // 擊球點與時機都很準：不容易被壞球騙到揮空
       const pc = chase < .3 ? 1 : clamp(1 - Math.pow((chase - .3) / .7, 1.3) * .8 * tight, .15, 1);
-      if (!(humanA && adt <= Wd && d <= bc.rr + BALL_R * .6) && Math.random() > pc * brk) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };
+      if (!humanA && Math.random() > pc * brk) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };
       Q = clamp(Q * (1 - chase * .45), 0, 1);                                  // 擊球點差：甜蜜點命中率下降、很難打成安打／全壘打
     }
   }
@@ -2593,14 +2597,16 @@ function resolveSwing(pt, sw, b) {
   if (cz === 'sweet' && Q > .6 && !sw.bunt) { const pull = clamp((Q - .6) / .4, 0, 1) * (.2 + skill * .25); ang += (clamp(ang, 7 + pwk * 2, 24 + pwk * 6) - ang) * pull; ev *= 1 + pull * .06 * (.6 + pskill * .6); }      // 甜蜜點＋好時機：球被打成「黃金仰角」的強勁平飛／長打，能力越強越明顯
   ang = clamp(ang, -26, 78);
   let th = side * s * 34 - side * inside * (inside > 0 ? 8 : 6.5) + (pj.x - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);   // 內角偏拉、外角偏推
-  if (marginal) { th += (Math.random() < .5 ? -1 : 1) * (humanA ? 8 + Math.random() * 26 : 22 + Math.random() * 40); ev *= humanA ? .85 : 0.7; }
+  if (marginal) {      // 擦邊／時機邊緣：方向由接觸幾何決定（球在棒頭側／偏早→拉向界外側，握把側／偏晚→推向另一側），力道依偏離程度遞減，不再擲硬幣
+    const off = clamp(Math.max(d / Math.max(rrRef, .01) - .9, adt / Math.max(Wd, .01) - .9, 0), 0, 1.2), dirS = (Math.abs(s) > .25 ? Math.sign(s) : (un < 0 ? -1 : 1));
+    th += dirS * side * (humanA ? 6 + off * 22 : 18 + off * 40) + gauss() * 4; ev *= humanA ? 1 - .12 * clamp(off, 0, 1) : 0.7; }
   let broken = false, tip = false, tipKind = null, tipText = null, foulTip = false;
   if (!sw.bunt) {
     // 斷棒：球打在握把端被壓制、或擦到棒子邊緣，棒子可能斷裂 → 球軟弱、仰角高、落點難測（常是飄過內野的小飛球）
     const hardP = clamp((pt.kmh - 142) / 16, 0, 1) * .6 + lvk * .35;      // 強勁球（球速快／球種威力大）更容易震斷球棒
     if ((((bp > .5 || bp < -.62 || Math.abs(v) > .8) && Q < .58 && Math.random() < .09 + press * .06 + hardP * .07) || (Q < .3 && bp > .3 && Math.random() < .06 + hardP * .04)) && !marginal) { broken = true; ev *= .55 + Math.random() * .15; ang = clamp(ang + 9 + Math.random() * 11, -26, 78); th += gauss() * 9; }
     // 擦棒：只擦到球的邊緣，球往後方高高飛起（界外高飛球／捕手後方的小飛球）
-    else if (graze || (marginal && Math.random() < (humanA ? .06 : .18))) {      // 擦棒：只擦到球的邊緣——依擦到球的哪個位置，結果不同
+    else if (graze || (!humanA && marginal && Math.random() < .18)) {      // 擦棒：只擦到球的邊緣——依擦到球的哪個位置，結果不同
       tip = true; Q = Math.min(Q, .2); const rs = Math.random();
       if (endC || (graze && Math.abs(v) < .55 && rs < .4)) { tipKind = 'side'; tipText = '擦邊・界外'; th = side * (Math.random() < .5 ? 1 : -1) * (35 + Math.random() * 45); ang = 2 + Math.random() * 24; ev = 14 + Math.random() * 10; }      // 擦到球的側邊／棒子末端：切向左右界外
       else if (v > 0) {
@@ -2892,12 +2898,13 @@ function planFielding(sim, cl, foul, res) {
     const o = sim.over; let best = null, bd = 1e9;
     for (const p of ['LF', 'CF', 'RF']) { const f = E.F[p]; const d = dist2(f.x, f.z, o.x, o.z); if (d < bd) { bd = d; best = f; } }
     const wr = wallRadius(o.phi) - 1.2, k = wr / Math.hypot(o.x, o.z); let missF = null;
-    if (best && o.y < WALL_H + 1.15 && !foul && !cl.grd) {                  // 擦著牆頭的球：外野手有機會跳起來把全壘打抓回來
+    const ROBY = Math.min(WALL_H + 1.15, 4.4);
+    if (best && o.y < ROBY && !foul && !cl.grd) {                  // 擦著牆頭的球：外野手有機會跳起來把全壘打抓回來
       const fl = best.pl.fld || 55, spd = fspeed(best), react = .42 - fl * .0012 + Math.abs(gauss()) * .06;
       const need = react + spd / (2 * (12 + fl * .05)) + Math.max(0, dist2(best.x, best.z, o.x * k, o.z * k) - 1.0) / spd, margin = o.t - need;
       if (margin > -.1) {
         const weak = res ? clamp((41 - (res.ev || 41)) / 6, 0, 1) : 0;      // 沒打得很扎實的全壘打（初速偏低、剛好過牆）更容易被攔下
-        const pr = best.pl.ultra ? .85 : clamp((.04 + margin * .34 + (fl - 60) * .003 + (spd - 6.5) * .02 + (WALL_H + 1.15 - o.y) * .14 + weak * .1 - luck * .04) * fancyK(), 0, .5);      // 守備、腳程越好越容易；本場精彩守備已多時會遞減（避免太常出現）
+        const pr = best.pl.ultra ? .85 : clamp((.04 + margin * .34 + (fl - 60) * .003 + (spd - 6.5) * .02 + (ROBY - o.y) * .22 + weak * .1 - luck * .04) * fancyK(), 0, .5);      // 守備、腳程越好越容易；本場精彩守備已多時會遞減（避免太常出現）
         if (Math.random() < pr) return { kind: 'catch', f: best, x: o.x * k, z: o.z * k, t: o.t, air: true, dive: true, great: true, robHR: true, react, y: o.y, weakHR: weak > .35 };
         if (pr > .03 && Math.random() < .75) missF = best;      // 有跳起來、但差一點點沒搆到
       }
@@ -2924,7 +2931,7 @@ function planFielding(sim, cl, foul, res) {
       const s = S[i]; if (sim.over && s.t > sim.over.t) break;
       // 外野全壘打牆邊：球在碰牆前，外野手可貼牆接殺（球高度超過 2.8m 要起跳攀牆，成功率看守備能力與球高）；碰牆之後的球算地滾球
       const rad = Math.hypot(s.x, s.z), wr = wallRadius(Math.atan2(s.x, -s.z) * 180 / Math.PI), nearWall = rad > wr - 2.4 && s.t <= wT + .02;
-      const leap = s.y > 2.8 && s.y <= WALL_H + .7 && nearWall;
+      const leap = s.y > 2.8 && s.y <= Math.min(WALL_H + .7, 3.7) && nearWall;
       if (s.y > 2.8 && !leap) continue;
       let sx = s.x, sz = s.z;
       if (!limit(sx, sz) && !foul) { if (rad <= wr + .7 && s.t <= wT + .05) { const k = (wr - .9) / rad; sx *= k; sz *= k; } else continue; }
@@ -4104,7 +4111,7 @@ function aiPickPitch(p, b) {
     const spec = PITCHES[pi.id], sg = ctlSigma(p, pi.id, pi.lv);
     const bxv = spec.bx * pi.lv / 7 * (p.hand === 'R' ? 1 : -1);
     const away = bxv * side > .15 ? 1 : (bxv * side < -.15 ? -1 : 0);              // moves away from the batter ?
-    const kmh = p.kmh * spec.sp;
+    const kmh = p.kmh * (p.ultra && FAST_T[id] ? 1 : spec.sp);
     for (const tx of xs) for (const ty of ys) {
       const pS = pStrikeAt(tx, ty, sg), od = outsideDist(tx, ty), near = Math.exp(-Math.max(0, od) / .42);
       const rate = batterZoneRating(b, tx, ty);
