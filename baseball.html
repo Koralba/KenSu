@@ -1153,6 +1153,15 @@ body:not(.touch) #btnBuntT{display:none!important}
 body.touch #acts #btnBunt{display:none!important}
 body.mob #btnBuntT{padding:6px 10px;font-size:12px;border-width:2px;border-radius:10px}
 
+/* ===== 能力等級（F～S）顏色 ===== */
+b.gr{font-weight:900;font-style:normal;letter-spacing:0}
+b.gr.gF{color:#7f93ad!important}
+b.gr.gE{color:#1c8a3a!important;text-shadow:0 0 2px rgba(0,0,0,.6)}
+b.gr.gD{color:#1a8fb8!important}
+b.gr.gC{color:#e8b923!important}
+b.gr.gB{color:#ff5a2a!important}
+b.gr.gA{color:#ff4fa3!important}
+b.gr.gS{color:#f5efdc!important;text-shadow:0 0 6px rgba(245,239,220,.8)}
 /* ===== v8：短打／強打按鈕統一外觀：未使用＝不透明灰黑、短打使用中＝綠色、強打使用中＝橘紅色 ===== */
 #hud #btnBuntT,#hud #btnPow,body.mob #hud #btnBuntT,body.mob #hud #btnPow{min-height:26px;padding:0 14px;gap:0;border:2px solid transparent;border-radius:999px;font-weight:900;font-size:12px;letter-spacing:.12em;white-space:nowrap;color:#e4e8ee;text-shadow:0 1px 0 rgba(0,0,0,.6);opacity:1;
   background:linear-gradient(#3b4048,#1b1e23) padding-box,linear-gradient(180deg,#b9c0ca,#5d646f 55%,#a9b0ba) border-box;box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12);-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -1423,27 +1432,108 @@ function seededZone(name, con) {
   const z = []; for (let i = 0; i < 9; i++) { const g = (rr() + rr() + rr() - 1.5) * 1.5; z.push(clamp(Math.round(g + (con - 60) / 40), -2, 2)); } return z;
 }
 function seededNoise(key, amp) { let h = hashStr(key) || 1; h ^= h << 13; h >>>= 0; h ^= h >> 17; h ^= h << 5; h >>>= 0; return ((h / 4294967296) + ((hashStr(key + '#') >>> 0) / 4294967296) - 1) * amp; }      // 固定的個人差異（同名同值，三角分佈）
+/* ===== 能力值：內部範圍 30～99；前台一律顯示為 F～S 等級（F30-39 E40-49 D50-59 C60-69 B70-79 A80-89 S90-99） ===== */
+const STAT_GAIN = 1.12;      // 能力值生成時以 50 為中心略為拉開（差距更明顯），並限制在 30～99
+function ST(x) { return Math.round(Math.max(30, Math.min(99, 50 + (x - 50) * STAT_GAIN))); }
+function grLetter(v) { v = Math.round(v); return v >= 90 ? 'S' : v >= 80 ? 'A' : v >= 70 ? 'B' : v >= 60 ? 'C' : v >= 50 ? 'D' : v >= 40 ? 'E' : 'F'; }
+function lvGr(lv) { const L = 'FEDCBAS'[Math.max(0, Math.min(6, Math.round(lv) - 1))]; return '<b class="gr g' + L + '">' + L + '</b>'; }      // 球種等級 Lv1～7 → F～S
+function stuffOf(p) { if (p.stf != null) return Math.round(Math.max(30, Math.min(99, p.stf))); return Math.round(Math.max(30, Math.min(99, 60 + (p.dom || 0) * 55 + (p.kmh - 146) * 2.2 + (p.ultra ? 30 : 0)))); }      // 球威：優先使用校準後的球威能力值（stf，30～99）
+function gr(v) { const L = grLetter(v); return '<b class="gr g' + L + '">' + L + '</b>'; }
 /* 能力值換算（實況野球風格：50＝聯盟一般、60＝不錯、70＝主力、80＝明星、90＋＝頂級；各項彼此獨立，且都會影響比賽結果）
    巧打：打擊率＋三振率（揮棒圈大小）　力量：長打率−打擊率（ISO）＋全壘打（擊球初速）　選球：保送率−三振率＋上壘率差（辨識變化球）
    跑力：盜壘＋守位基準　得點圈：打擊技術＋固定個人特性（壘上有人時揮棒圈增減）　對左投：打擊側＋個人特性　捕球：守備＋個人特性（失誤率） */
+/* ===== 打者個性化能力（球員特色）：以全聯盟成績做標準分數，再依球員類型拉開差距 =====
+   ‧ 長打型（重砲）：力量高、跑速慢　‧ 速度／安打型：跑速快、力量小　‧ 守備型：守備與肩力高　‧ 巧打型：巧打高
+   ‧ 每隊都會有長打、速度、守備、巧打的代表球員；每位球員都至少有一項明顯弱點（E／F）；聯盟頂尖球員會有數項 A／S */
+/* ===== 能力值校準引擎（百分位 × 標準分數；野球魂式分佈）=====
+   ‧ 把全聯盟球員（含板凳、國家隊）的真實成績算成各項綜合分，先排百分位、再與標準分數混合，最後對應到 30～99：
+     50 前後＝聯盟一般，60＝不錯，70＝主力，80＝明星，90＋(S)＝聯盟前 2～3% 的頂尖；99 只留給傳說角色。
+   ‧ S 級沒有項數上限：成績真的是聯盟頂尖（標準分數 ≥1.9）才給 S，超級球星可以多項 S；成績不夠的一律壓在 A。重砲型跑得慢、速度型力量小，保持各項彼此獨立。
+   ‧ REAL_TUNE：依球員實際風格與 2026 成績做的個別微調（只列辨識度高的選手，其餘全靠成績算出）。 */
+const RATE_CURVE = [[0, 31], [.04, 38], [.12, 45], [.30, 53], [.50, 59], [.68, 65], [.82, 72], [.91, 79], [.955, 85], [.978, 90], [.995, 93.5], [1, 96]];
+const PIT_CURVE = [[0, 36], [.04, 43], [.12, 51], [.30, 59], [.50, 65], [.68, 70], [.82, 76], [.91, 82], [.955, 87], [.978, 91], [.995, 94], [1, 96]];      // 投手曲線：整體比打者高約 6（維持原本投打平衡），頂端同樣稀少
+function curveRate(p, c) { c = c || RATE_CURVE; for (let i = 1; i < c.length; i++) { const a = c[i - 1], b = c[i]; if (p <= b[0]) return a[1] + (b[1] - a[1]) * (p - a[0]) / Math.max(1e-9, b[0] - a[0]); } return 96; }
+function softTop(x) { return x > 84 ? 84 + (x - 84) * .55 : x < 40 ? 40 + (x - 40) * .6 : x; }
+function pctRank(vals, v) { let lt = 0, eq = 0; for (const x of vals) { if (x < v - 1e-9) lt++; else if (Math.abs(x - v) <= 1e-9) eq++; } return (lt + eq / 2) / Math.max(1, vals.length); }
+function calRate(vals, v, z, noise, curve, base) { return .6 * curveRate(pctRank(vals, v), curve) + .4 * softTop((base || 59) + 12.5 * z) + (noise || 0); }
+function limitS(o, keys, zm, free) {      // S（≥90）不設項數上限：只有「該項成績真的是聯盟頂尖（標準分數 ≥1.9）」才保留 S，否則壓在 89；單項上限 97。真正的超級球星可同時有多項 S
+  keys.forEach(k => { if (o[k] >= 90 && !(free && free[k] != null) && zm && zm[k] != null && zm[k] < 1.9) o[k] = 89; if (o[k] > 97) o[k] = 97; });
+}
+const REAL_TUNE = {      // 打者個別微調：只收「公式算出來與球員實際風格明顯不符」的幾位，其餘全由成績算出（_a＝限定打擊率範圍，避免同名的估算板凳誤套用）
+  '陳傑憲': { con: 93, eye: 85, pow: 58, spd: 72, fld: 86, arm: 72 },       // 聯盟頂級安打機器＋中外野金手套：巧打 S、選球 A、長打普通
+  '江坤宇': { fld: 88, arm: 80 },                                           // 金手套級游擊手：守備 A 上緣、肩力 A
+  '王柏融': { con: 52, pow: 66, eye: 38 }                                   // 近年打擊率下滑、三振偏多，但長打仍在
+};
+const PIT_TUNE = {};      // 投手全由成績（K%、BB%、ERA+、球速）算出；需要個別調整時在此加 '姓名': { stf, ctl }
+let _BLG = null;
+const batSig = r => r.n + '|' + r.a + '|' + r.s + '|' + r.hr + '|' + r.sb;
+function batLeague() {
+  if (_BLG) return _BLG;
+  const ids = ['CTB', 'UNI', 'RAK', 'FBK', 'WCD', 'TSG', 'TPE'], rows = [], seen = new Set();
+  ids.forEach(id => { const T = CPBL[id]; if (!T) return; T.bat.concat(T.bench || []).forEach(r => { const k = batSig(r); if (!seen.has(k)) { seen.add(k); rows.push(r); } }); });
+  const F = { a: r => r.a, iso: r => r.s - r.a, hr: r => r.hr, sb: r => r.sb, k: r => r.k, bb: r => r.bb, ob: r => r.o - r.a, f: r => r.f, ar: r => r.ar }, M = {}, S = {};
+  for (const k in F) { M[k] = rows.reduce((a, r) => a + F[k](r), 0) / rows.length; S[k] = Math.sqrt(rows.reduce((a, r) => a + Math.pow(F[k](r) - M[k], 2), 0) / rows.length) || 1; }
+  const z = (k, r) => (F[k](r) - M[k]) / S[k], posSpd = { CF: .5, SS: .4, '2B': .3, RF: .2, LF: 0, '3B': -.15, C: -.7, '1B': -.6, DH: -.6 };
+  const raw = r => ({ con: z('a', r) * .72 - z('k', r) * .28, pow: z('iso', r) * .55 + z('hr', r) * .45, eye: z('bb', r) * .55 + z('ob', r) * .35 - z('k', r) * .1, spd: z('sb', r) * .7 + (posSpd[r.p] || 0) + seededNoise(r.n + 'spz', .35), fld: z('f', r), arm: z('ar', r) });
+  const ks = ['con', 'pow', 'eye', 'spd', 'fld', 'arm'], V = {}, mu = {}, sd = {}, all = rows.map(raw);
+  ks.forEach(k => { V[k] = all.map(o => o[k]); mu[k] = V[k].reduce((a, x) => a + x, 0) / V[k].length; sd[k] = Math.sqrt(V[k].reduce((a, x) => a + (x - mu[k]) * (x - mu[k]), 0) / V[k].length) || 1; });
+  const ovr = q => q.con * .9 + q.pow * .9 + q.eye * .4 + q.spd * .3 + q.fld * .3, list = all.map(ovr).sort((a, b) => b - a);
+  _BLG = { raw, V, mu, sd, ks, starCut: list[Math.max(0, Math.round(list.length * .09))] || 9 };
+  return _BLG;
+}
+function batProf(r) {
+  const BL = batLeague(), q = BL.raw(r), nz = (k, a) => seededNoise(r.n + k, a), o = {};
+  BL.ks.forEach(k => { o[k] = calRate(BL.V[k], q[k], (q[k] - BL.mu[k]) / BL.sd[k], nz(k, 2.4)); });
+  o.spd -= 3; o.fld += 3; o.arm += 4;                    // 整體平衡微調：跑力略降、守備與肩力略升（與原本全聯盟平均水準一致）
+  if (o.pow >= 76) o.spd -= (o.pow - 76) * .55 + 3;       // 重砲型：身形壯、跑得慢
+  if (o.spd >= 80) o.pow -= (o.spd - 80) * .45 + 2;       // 速度型：力量小
+  const strong = BL.ks.filter(k => o[k] >= 84).length, weak = BL.ks.slice().sort((a, b) => o[a] - o[b])[0];
+  if (strong < 2 && o[weak] > 52) o[weak] = 47 + nz('w', 4);      // 非明星至少有一項明顯弱點（E）
+  const t = REAL_TUNE[r.n]; if (t && (!t._a || (r.a >= t._a[0] && r.a <= t._a[1]))) Object.assign(o, t, { _a: undefined });
+  const zm = {}; BL.ks.forEach(k => { zm[k] = (q[k] - BL.mu[k]) / BL.sd[k]; });
+  limitS(o, BL.ks, zm, t);
+  BL.ks.forEach(k => { o[k] = Math.round(Math.max(30, Math.min(99, o[k]))); });
+  return o;
+}
+function ovrOf(q) { return q.con * .9 + q.pow * .9 + q.eye * .4 + q.spd * .3 + q.fld * .3; }
+/* 投手校準：球速 vel（絕對換算）、球威 stf（三振率＋ERA+＋球速）、控球 ctl（保送率）；球威同時決定壓制力 dom 與各球種等級 */
+let _PLG = null;
+function pitLeague() {
+  if (_PLG) return _PLG;
+  const ids = ['CTB', 'UNI', 'RAK', 'FBK', 'WCD', 'TSG', 'TPE'], rows = [], seen = new Set();
+  ids.forEach(id => { const T = CPBL[id]; if (!T) return; T.sp.concat(T.rp).forEach(r => { const k = r.n + '|' + r.v + '|' + r.era + '|' + r.k + '|' + r.bb; if (!seen.has(k)) { seen.add(k); rows.push(r); } }); });
+  const F = { k: r => r.k, bb: r => r.bb, ep: r => r.ep, v: r => r.v }, M = {}, S = {};
+  for (const k in F) { M[k] = rows.reduce((a, r) => a + F[k](r), 0) / rows.length; S[k] = Math.sqrt(rows.reduce((a, r) => a + Math.pow(F[k](r) - M[k], 2), 0) / rows.length) || 1; }
+  const z = (k, r) => (F[k](r) - M[k]) / S[k], raw = r => ({ stf: z('k', r) * .4 + z('ep', r) * .4 + z('v', r) * .2, ctl: -z('bb', r) * .8 + z('ep', r) * .2 });
+  const all = rows.map(raw), ks = ['stf', 'ctl'], V = {}, mu = {}, sd = {};
+  ks.forEach(k => { V[k] = all.map(o => o[k]); mu[k] = V[k].reduce((a, x) => a + x, 0) / V[k].length; sd[k] = Math.sqrt(V[k].reduce((a, x) => a + (x - mu[k]) * (x - mu[k]), 0) / V[k].length) || 1; });
+  _PLG = { raw, V, mu, sd, ks };
+  return _PLG;
+}
+function pitProf(r) {
+  const PL = pitLeague(), q = PL.raw(r), nz = (k, a) => seededNoise(r.n + k, a), o = {};
+  PL.ks.forEach(k => { o[k] = calRate(PL.V[k], q[k], (q[k] - PL.mu[k]) / PL.sd[k], nz('p' + k, 2.6), PIT_CURVE, 65); });
+  o.vel = clamp(30 + (r.v - 130) * 2.45, 30, 99);        // 球速：130→30、140→54、146→69、150→79、153→86、156→94
+  const t = PIT_TUNE[r.n]; if (t) Object.assign(o, t);
+  const zm = {}; PL.ks.forEach(k => { zm[k] = (q[k] - PL.mu[k]) / PL.sd[k]; });
+  limitS(o, ['stf', 'ctl', 'vel'], zm, t);
+  ['stf', 'ctl', 'vel'].forEach(k => { o[k] = Math.round(Math.max(30, Math.min(99, o[k]))); });
+  return o;
+}
 function mkBatter(r, slot, nat) {
   if (r.ultra && !r._base) {      // 傳說球員：全能力 99、擊球特別強勁、西裝造型
     const m = mkBatter(Object.assign({}, r, { ultra: false, _base: 1 }), slot, nat);
     return Object.assign(m, { ultra: true, suit: true, con: 99, pow: 99, spd: 99, eye: 99, fld: 99, arm: 99, fld0: 99, arm0: 99, cat: 99, cat0: 99, clt: 99, vsl: 99, traj: 4, bunt: 99, mood: 99, dur: 99, agg: 99, line: '傳說級・全能力 99・西裝' });
   }
-  const pos = nat || r.p, con = Math.round(clamp(51 + (r.a - .262) * 390 + (14.5 - r.k) * .9, 32, 92));
+  const pos = nat || r.p, pf = batProf(r), con = pf.con, pow = pf.pow, eye = pf.eye, spd = pf.spd;
   const iso = r.s - r.a;
-  const pow = Math.round(clamp(33 + iso * 228 + r.hr * .34, 30, 92));
-  const eye = Math.round(clamp(42 + r.bb * 2.7 - r.k * .55 + (r.o - r.a - .068) * 42, 32, 90));
-  const posSpd = { CF: 3, SS: 3, '2B': 2, RF: 1, LF: 0, '3B': -1, C: -7, '1B': -5, DH: -5 }[r.p] || 0;
-  const spd = Math.round(clamp(43 + r.sb * .95 + posSpd + seededNoise(r.n + 'spd', 3), 32, 92));
   const traj = clamp(Math.round(1.5 + iso * 8 + (r.hr > 12 ? .5 : 0)), 1, 4);
-  const fld0 = Math.round(clamp(r.f - 10, 35, 88)), cat0 = Math.round(clamp(fld0 + seededNoise(r.n + 'cat', 9), 33, 90));
-  const clt = Math.round(clamp(50 + (con - 55) * .25 + (pow - 55) * .1 + seededNoise(r.n + 'clt', 15), 28, 85));
-  const vsl = Math.round(clamp((r.h === 'R' ? 53 : r.h === 'L' ? 41 : 56) + (con - 55) * .2 + seededNoise(r.n + 'vsl', 10), 25, 85));
+  const fld0 = pf.fld, arm0 = pf.arm, cat0 = Math.round(clamp(fld0 + seededNoise(r.n + 'cat', 14) + (r.p === 'C' ? 4 : 0), 30, 99));
+  const clt = Math.round(clamp(50 + (con - 55) * .25 + (pow - 55) * .1 + seededNoise(r.n + 'clt', 24), 30, 99));
+  const vsl = Math.round(clamp((r.h === 'R' ? 53 : r.h === 'L' ? 41 : 56) + (con - 55) * .2 + seededNoise(r.n + 'vsl', 20), 30, 99));
   return {
-    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: fld0, arm: Math.round(clamp(r.ar - 8, 35, 88)), fld0, arm0: Math.round(clamp(r.ar - 8, 35, 88)), cat: cat0, cat0, clt, vsl, traj, zone: seededZone(r.n, con),
-    st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: Math.round(clamp(75 - pow * .5 + spd * .25, 25, 92)), out: false, slot,
+    kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: fld0, arm: arm0, fld0, arm0, cat: cat0, cat0, clt, vsl, traj, zone: seededZone(r.n, con),
+    st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: Math.round(clamp(70 - pow * .45 + spd * .4 + seededNoise(r.n + 'bnt', 16), 30, 99)), out: false, slot,
     mood: Math.round(clamp(52 + (r.a - .265) * 150 + (Math.random() - .5) * 18, 30, 80)), dur: Math.round(clamp(72 + Math.random() * 22, 55, 96)), agg: Math.round(clamp(40 + r.sb * 1.6, 25, 95)),
     line: `2027 .${String(Math.round(r.a * 1000)).padStart(3, '0')}/.${String(Math.round(r.o * 1000)).padStart(3, '0')}/.${String(Math.round(r.s * 1000)).padStart(3, '0')} ${r.hr}HR ${r.sb}SB${r.est ? '（估）' : ''}`
   };
@@ -1492,19 +1582,19 @@ function mkPitcher(r, slot) {
   if (r.ultra && !r._base) {      // 傳說球員：全球種 Lv7、變化幅度誇張、控球與體力頂級
     const p = mkPitcher(Object.assign({}, r, { ultra: false, _base: 1 }), slot);
     p.pitches = ['ST'].concat(r.ps).map(id => ({ id, lv: 7 }));
-    return Object.assign(p, { ultra: true, suit: true, kmh: r.v, ctl: 99, sta: 100, mood: 99, dur: 99, dom: .6, clt: 99, lr: false, line: '傳說級・全球種 Lv7・體力無限' });
+    return Object.assign(p, { ultra: true, suit: true, kmh: r.v, vel: 99, stf: 99, ctl: 99, sta: 100, mood: 99, dur: 99, dom: .6, clt: 99, lr: false, line: '傳說級・全球種 S 級・體力無限' });
   }
   const sp = r.r === 'SP';
-  const lv = clamp(Math.round(2.1 + (r.k - 10) / 4.2), 2, 6);                         // 變化球基礎等級（依三振率）：一般投手約 3~5，只有頂級才到 6~7
-  const pitches = [{ id: 'ST', lv: clamp(Math.round(2.6 + (r.v - 140) / 4.2), 2, 6) }];
+  const pp = pitProf(r), lv = clamp(Math.round(2.1 + (r.k - 10) / 4.2 + (pp.stf - 62) / 70), 2, 6);                         // 變化球基礎等級（依三振率）：一般投手約 3~5，只有頂級才到 6~7
+  const pitches = [{ id: 'ST', lv: clamp(Math.round(2.6 + (r.v - 140) / 4.2 + (pp.vel - 70) / 60), 2, 6) }];
   const xps = (EXTRA_PS[r.n] || []).filter(id => PITCHES[id] && id !== 'ST' && !r.ps.includes(id)); const allPs = r.ps.concat(xps);      // 部分投手球種超過四種：額外球種較不熟（等級低）
   allPs.forEach((id, i) => pitches.push({ id, lv: clamp(lv - (i === 0 ? 0 : 1) - (i >= 3 ? 1 : 0) - ((hashStr(r.n + id) >>> 3) % 3 === 2 ? 1 : 0), 2, 7) }));   // 第一變化球最熟，其餘較生疏
-  const ctl = Math.round(clamp(92 - r.bb * 3.6, 42, 88)), lr = !sp && r.r !== 'CL' && r.ipg >= 1.6;
+  const ctl = pp.ctl, lr = !sp && r.r !== 'CL' && r.ipg >= 1.6;
   return {
-    kind: 'P', name: r.n, num: '', role: r.r, hand: r.h, kmh: r.v, ctl, sta: sp ? Math.round(clamp(60 + (r.ipg - 5.5) * 14, 55, 100)) : (r.r === 'CL' ? 32 : lr ? 55 : 42),
+    kind: 'P', name: r.n, num: '', role: r.r, hand: r.h, kmh: r.v, vel: pp.vel, stf: pp.stf, ctl, sta: sp ? Math.round(clamp(60 + (r.ipg - 5.5) * 14, 55, 100)) : (r.r === 'CL' ? 32 : lr ? 55 : 42),
     pitches, slot: Math.random(), tilt: 0, fatigue: 0, pc: 0, er: 0, outs: 0, hA: 0, bbA: 0, kA: 0, out: false, used: false, hbp: 0,
     mood: Math.round(clamp(58 + (r.ep - 100) * .12 + (Math.random() - .5) * 14, 36, 84)), dur: Math.round(clamp(70 + Math.random() * 24, 55, 96)),
-    dom: clamp((r.ep - 100) / 140, -.35, .6), lr, clt: Math.round(clamp(50 + (r.ep - 100) * .08 + (60 - r.bb * 3 - 40) * .1 + seededNoise(r.n + 'pclt', 14), 28, 85)),
+    dom: clamp(((pp.stf * .7 + pp.ctl * .3) - 60) / 62, -.35, .6), lr, clt: Math.round(clamp(50 + (r.ep - 100) * .08 + (60 - r.bb * 3 - 40) * .1 + seededNoise(r.n + 'pclt', 14), 30, 99)),
     line: `2027 ERA ${r.era.toFixed(2)} K%${r.k.toFixed(1)} BB%${r.bb.toFixed(1)}${r.est ? '（估）' : ''}`
   };
 }
@@ -1513,8 +1603,8 @@ const POS9 = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
 function setPos(pl, pos) {
   pl.pos = pos; const pen = fitPenalty(pl.nat, pos); pl.penalty = pen;
   const sl = 1 - Math.min(.12, (pl.slump || 0) * .01);      // 失誤後的低潮：暫時小幅降低守備範圍／傳球／接球能力（隨時間慢慢恢復）
-  pl.fld = Math.round((pl.fld0 != null ? pl.fld0 : pl.fld) * (1 - pen) * sl); pl.arm = Math.round((pl.arm0 != null ? pl.arm0 : pl.arm) * (1 - pen * .6) * (1 - (1 - sl) * .7));
-  if (pl.cat0 != null) pl.cat = Math.round(pl.cat0 * (1 - pen) * sl);
+  pl.fld = Math.max(30, Math.round((pl.fld0 != null ? pl.fld0 : pl.fld) * (1 - pen) * sl)); pl.arm = Math.max(30, Math.round((pl.arm0 != null ? pl.arm0 : pl.arm) * (1 - pen * .6) * (1 - (1 - sl) * .7)));
+  if (pl.cat0 != null) pl.cat = Math.max(30, Math.round(pl.cat0 * (1 - pen) * sl));
 }
 /* 套用玩家的賽前編成：9 名先發（棒次＋守位）＋其餘為板凳；資料不合法就退回預設 */
 function applyLineupEdit(ed, raw, benchRaw) {
@@ -2562,7 +2652,8 @@ function batterZoneRating(b, x, y) {         // -2..2 : in terms of absolute (ca
 function batterR(b, pt, power) {
   let r = 0.22 + b.con * 0.0031 - Math.max(0, pt.kmh - 140) * 0.0022 - (pt.perfect ? .014 : 0) - (pt.id === 'ST' ? 0 : pt.lv * 0.012 * clamp(1.35 - b.eye * .0065, .75, 1.15));   // 選球高→較能辨識變化球
   const fatigue = pt.p.fatigue || 0; r *= 1 + fatigue * 0.0011;
-  { const risp = G.on[1] || G.on[2]; if (risp) r *= 1 + ((b.clt == null ? 50 : b.clt) - 50) * .0012; if (pt.p.hand === 'L') r *= 1 + ((b.vsl == null ? 50 : b.vsl) - 50) * .0010; }      // 得點圈打擊／對左投能力：壘上有人或面對左投時，揮棒圈隨個人能力增減（約 ±3~4%）
+  r *= 1 - clamp(((pt.p.stf == null ? 60 : pt.p.stf) - 60) * .0016, -.04, .07) * (1.1 - clamp((b.eye - 30) / 140, 0, .5));      // 球威：投手球質越強、擊球圈越小；選球好的打者較能抵消
+  { const risp = G.on[1] || G.on[2]; if (risp) r *= 1 + ((b.clt == null ? 50 : b.clt) - 50) * .0017; if (pt.p.hand === 'L') r *= 1 + ((b.vsl == null ? 50 : b.vsl) - 50) * .0014; }      // 得點圈打擊／對左投能力：壘上有人或面對左投時，揮棒圈隨個人能力增減（約 ±3~4%）
   { const bh = b.hand === 'S' ? (pt.p.hand === 'R' ? 'L' : 'R') : b.hand; r *= bh !== pt.p.hand ? 1.045 : .955; }      // 左右對決：異手打者較佔優勢、同手較吃虧（左右開弓永遠站有利一側）
   r *= (1 + moodBonus(b) * 1.1) * (1 - rainBK() * .07);                                   // 心情加成（好→揮棒圈變大）
   if (typeof pt.acc === 'number') r *= 1 - (pt.acc - .6) * .1;                 // 失準的球好打（最多 +6%）、很準的球略難打（最多 -4%）
@@ -2683,7 +2774,7 @@ function resolveSwing(pt, sw, b) {
   if (!sw.bunt) {
     const od = Math.max(0, outsideDist(pt.fx, pt.fy) - ZPAD);                 // 擦到判定好球帶邊緣（含球半徑）者視同好球帶內
     if (od > 0) {
-      const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .03 : 0) - rainBK() * .03, .22, .72);
+      const reach = clamp(.3 + b.con * .0036 + b.eye * .0007 - (pt.id === 'ST' ? 0 : pt.lv * .01) - Math.max(0, pt.kmh - 140) * .0012 - (sw.power ? .03 : 0) - rainBK() * .03 - ((pt.p.stf == null ? 60 : pt.p.stf) - 60) * .0005, .22, .72);
       if (!humanA && od > reach * 1.15) return { kind: 'whiff', dt, d, R: R0, dtE, adt, Wd, pz: bq.z };          // 太外側的壞球：揮空
       chase = clamp(od / reach, 0, 1);
       // 邊緣壞球（chase<.3）只要位置與時機到位就必定碰到；愈遠愈難，變化球愈遠愈容易揮空
@@ -2719,6 +2810,7 @@ function resolveSwing(pt, sw, b) {
   let ev = 15 + 25 * (.25 + .75 * Q) * (0.36 + pw * 1.25) * (sw.power ? 1 + .09 * clamp((b.pow - 30) / 55, .1, 1.15) : 1) + (Q > .85 ? (sw.power ? 1.6 + 1.4 * clamp((b.pow - 35) / 55, 0, 1) : 1.8) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
   ev += (pt.kmh - 140) * .04 * Q; if (pt.id !== 'ST') ev *= 1 - Math.max(0, pt.lv - 3) * .006 * (1 - Q * .4);
   ev *= 1 + mb * .55 - dom * .03;
+  ev *= 1 - clamp(((pt.p.stf == null ? 60 : pt.p.stf) - 60) * .0010, -.03, .045);      // 球威強的投手：同樣擊中也較難打出強勁初速
   ev *= clamp(1 - Math.max(0, Math.abs(bp) - .3) * .30 * (bp > 0 ? 1.1 + press * .35 : 1), .6, 1);
   if (b.ultra) ev = Math.max(ev, 38) * 1.3;      // 傳說球員：任何擊球都非常強勁    // 離開甜蜜點：握把端（被壓制）損失比球頭端更大
   if (inK > .25 && s < 0) ev *= 1 + clamp(-s, 0, 1) * Math.min(inK, 1) * .07 * Q * (.7 + pskill * .5) * (bp < -.3 ? 1.35 : 1);   // 內角球偏早、打在甜蜜點／球棒前端：拉得出去、力道略增
@@ -5302,22 +5394,22 @@ function updateScoreboard() {
   t.innerHTML = h;
   layoutTop();
 }
-function pitchSetText(p) { return p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' '); }
+function pitchSetText(p) { return p.pitches.map(q => PITCHES[q.id].short + lvGr(q.lv)).join(' '); }
 function updatePlayerBoxes() {
   const p = curPitcher(), b = curBatter();
   const mdiv = m => `<div class="mood"><span>${moodFace(m)}</span><span class="mb"><i style="width:${Math.round(m)}%;background:${moodColor(m)}"></i></span><span>心情 ${Math.round(m)}・${moodWord(m)}</span></div>`;
   $('pN').innerHTML = '<span style="color:#9cf">' + ({ SP: '先發', RP: '中繼', CL: '終結' }[p.role] || '') + '</span> ' + p.name + ' <small>(' + (p.hand === 'R' ? '右' : '左') + '投)</small>';
-  $('pS').innerHTML = Math.round(p.kmh) + 'km/h ・ ' + pitchSetText(p) + ' ・ ' + p.pc + ' 球' + mdiv(moodOf(p));
+  $('pS').innerHTML = Math.round(p.kmh) + 'km/h' + (p.vel != null ? gr(p.vel) : '') + ' ・ 球威' + gr(stuffOf(p)) + ' 控球' + gr(p.ctl) + ' ・ ' + pitchSetText(p) + ' ・ ' + p.pc + ' 球' + mdiv(moodOf(p));
   $('pBar').style.width = clamp(100 - p.fatigue, 3, 100) + '%';
   const h = E.bat ? E.bat.hand : b.hand;
   $('bN').innerHTML = '<span style="color:#9cf">第' + (G.bi[G.half] + 1) + '棒</span> ' + b.name + ' <small>(' + (h === 'R' ? '右' : '左') + '打)</small>';
-  $('bS').innerHTML = (b.pos || '') + '・巧打' + b.con + ' 力量' + b.pow + ' 速度' + b.spd + ' 選球' + b.eye + (b.clt != null ? ' 得點圈' + b.clt + ' 對左' + b.vsl + ' 捕球' + b.cat : '') + ' ・ 今日 ' + b.st.ab + '打數' + b.st.h + '安打' + (b.st.hr ? ' 全壘打' + b.st.hr : '') + mdiv(moodOf(b));
+  $('bS').innerHTML = (b.pos || '') + '・巧打' + gr(b.con) + ' 力量' + gr(b.pow) + ' 速度' + gr(b.spd) + ' 選球' + gr(b.eye) + (b.clt != null ? ' 得點圈' + gr(b.clt) + ' 對左' + gr(b.vsl) + ' 捕球' + gr(b.cat) : '') + ' ・ 今日 ' + b.st.ab + '打數' + b.st.h + '安打' + (b.st.hr ? ' 全壘打' + b.st.hr : '') + mdiv(moodOf(b));
   {   // 手機／平板精簡面板：能力與狀態一眼看完（兩行）
     const fat = clamp(100 - p.fatigue, 0, 100), fc = fat >= 55 ? '#7dff7d' : fat >= 30 ? '#ffe14a' : '#ff6a5a';
     const lv = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
     const md = m => '<span class="md" style="color:' + moodColor(m) + '">' + moodFace(m) + ' ' + moodWord(m) + '</span>';
-    $('pC').innerHTML = '<div class="ln"><span><b>' + Math.round(p.kmh) + '</b>km/h</span><span>球數<b>' + p.pc + '</b></span><span class="fat">體力<i><u style="width:' + Math.round(fat) + '%;background:' + fc + '"></u></i><b style="color:' + fc + '">' + Math.round(fat) + '</b></span></div><div class="ln"><span class="pt">' + pitchSetText(p) + '</span>' + md(moodOf(p)) + '</div>';
-    $('bC').innerHTML = '<div class="ln"><span>巧打<b class="' + lv(b.con) + '">' + b.con + '</b></span><span>力量<b class="' + lv(b.pow) + '">' + b.pow + '</b></span><span>速度<b class="' + lv(b.spd) + '">' + b.spd + '</b></span><span>選球<b class="' + lv(b.eye) + '">' + b.eye + '</b></span>' + (b.clt != null ? '<span>圈<b class="' + lv(b.clt) + '">' + b.clt + '</b></span><span>左<b class="' + lv(b.vsl) + '">' + b.vsl + '</b></span>' : '') + '</div><div class="ln"><span>' + (b.pos ? b.pos + '・' : '') + '今日<b>' + b.st.ab + '</b>打數<b>' + b.st.h + '</b>安打' + (b.st.hr ? '<b>' + b.st.hr + '</b>HR' : '') + '</span>' + md(moodOf(b)) + '</div>';
+    $('pC').innerHTML = '<div class="ln"><span><b>' + Math.round(p.kmh) + '</b>km/h' + (p.vel != null ? gr(p.vel) : '') + '</span><span>球威' + gr(stuffOf(p)) + '</span><span>控球' + gr(p.ctl) + '</span><span>球數<b>' + p.pc + '</b></span><span class="fat">體力<i><u style="width:' + Math.round(fat) + '%;background:' + fc + '"></u></i><b style="color:' + fc + '">' + Math.round(fat) + '</b></span></div><div class="ln"><span class="pt">' + pitchSetText(p) + '</span>' + md(moodOf(p)) + '</div>';
+    $('bC').innerHTML = '<div class="ln"><span>巧打' + gr(b.con) + '</span><span>力量' + gr(b.pow) + '</span><span>速度' + gr(b.spd) + '</span><span>選球' + gr(b.eye) + '</span>' + (b.clt != null ? '<span>圈' + gr(b.clt) + '</span><span>左' + gr(b.vsl) + '</span>' : '') + '</div><div class="ln"><span>' + (b.pos ? b.pos + '・' : '') + '今日<b>' + b.st.ab + '</b>打數<b>' + b.st.h + '</b>安打' + (b.st.hr ? '<b>' + b.st.hr + '</b>HR' : '') + '</span>' + md(moodOf(b)) + '</div>';
     layoutTop();
   }
 }
@@ -5328,12 +5420,12 @@ function buildPitchPanel() {
   const cur = p.pitches.find(q => q.id === G.selPitch), cs = PITCHES[cur.id];
   pp.classList.toggle('open', !!G.pitchOpen);
   const head = document.createElement('div'); head.className = 'pbtn sel pchead'; head.style.setProperty('--pc', cs.col); head.style.borderColor = cs.col;
-  head.innerHTML = '<b class="pt">球種</b><b class="pcur"><em class="lg">' + cs.jp + '</em><em class="sh">' + cs.short + '</em></b><span>Lv' + cur.lv + '</span><b class="car">▾</b>';
+  head.innerHTML = '<b class="pt">球種</b><b class="pcur"><em class="lg">' + cs.jp + '</em><em class="sh">' + cs.short + '</em></b><span>' + lvGr(cur.lv) + '</span><b class="car">▾</b>';
   head.onpointerdown = e => { e.stopPropagation(); if (G.pm) return; G.pitchOpen = !G.pitchOpen; buildPitchPanel(); };
   pp.appendChild(head);
   const list = document.createElement('div'); list.className = 'plist';
   p.pitches.forEach((q, i) => {
-    const b = document.createElement('div'); b.className = 'pbtn' + (G.selPitch === q.id ? ' sel' : ''); b.innerHTML = '<b class="pn"><i class="k">' + (i + 1) + '. </i><em class="lg">' + PITCHES[q.id].jp + '</em><em class="sh">' + PITCHES[q.id].short + '</em></b><span>Lv' + q.lv + '</span>'; b.style.borderColor = PITCHES[q.id].col; b.style.setProperty('--pc', PITCHES[q.id].col);
+    const b = document.createElement('div'); b.className = 'pbtn' + (G.selPitch === q.id ? ' sel' : ''); b.innerHTML = '<b class="pn"><i class="k">' + (i + 1) + '. </i><em class="lg">' + PITCHES[q.id].jp + '</em><em class="sh">' + PITCHES[q.id].short + '</em></b><span>' + lvGr(q.lv) + '</span>'; b.style.borderColor = PITCHES[q.id].col; b.style.setProperty('--pc', PITCHES[q.id].col);
     b.onpointerdown = e => { e.stopPropagation(); if (G.pm) return; G.selPitch = q.id; G.pitchOpen = false; buildPitchPanel(); }; list.appendChild(b);      // 選好後選單收起，上方顯示目前球種，之後一直沿用直到再手動更換
   });
   pp.appendChild(list);
@@ -7998,7 +8090,7 @@ $('btnSub').onclick = () => {
   if (G.phase !== 'pre') { say('投球前才能換投'); return; }
   if (G.human < 0 || !humanPitches()) { say('只有自己守備（投球）時才能換投'); return; }
   const side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'p'; sub.innerHTML = '<h3>換投<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
-  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
+  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h・控球${gr(p.ctl)}<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
   const c = document.createElement('div'); c.className = 'pbtn'; c.textContent = '關閉'; c.onclick = () => sub.classList.add('hide'); sub.appendChild(c);
 };
 /* ---------------- 代打／代跑 ---------------- */
@@ -8014,10 +8106,10 @@ $('btnBench').onclick = () => {
   if (!avail.length) { head('板凳已經沒有人了'); }
   else {
     head(b.isPitcherBat ? '代打：投手打席無法代打（請先換投）' : `代打：換下第${G.bi[side] + 1}棒 ${b.name}`);
-    if (!b.isPitcherBat) avail.forEach(x => mk(`${x.name} (${x.nat}・${x.hand === 'R' ? '右' : x.hand === 'L' ? '左' : '兩'}打)<span>巧${x.con} 力${x.pow} 速${x.spd}・${fitTx(x, b.pos)}</span>`, '', () => {
+    if (!b.isPitcherBat) avail.forEach(x => mk(`${x.name} (${x.nat}・${x.hand === 'R' ? '右' : x.hand === 'L' ? '左' : '兩'}打)<span>巧${gr(x.con)} 力${gr(x.pow)} 速${gr(x.spd)}・${fitTx(x, b.pos)}</span>`, '', () => {
       const s2 = subInto(side, b, x); if (!s2) return; if (E.bat) E.bat.pl = s2; setupBatter(); say(`代打！${sideName(side)}換上 <em>${s2.name}</em> 代替 ${b.name}`); toast('代打', '#fff', '#39f'); G.log.push('代打'); done(); }));
     const runners = E.runners.filter(r => r.state === 'on' && r.from >= 1 && !r.pl.isPitcherBat);
-    runners.forEach(r => { head(`代跑：${r.from}壘跑者 ${r.pl.name}（速度${r.pl.spd}）`); avail.forEach(x => mk(`${x.name} (${x.nat})<span>速${x.spd}・${fitTx(x, r.pl.pos)}</span>`, '', () => {
+    runners.forEach(r => { head(`代跑：${r.from}壘跑者 ${r.pl.name}（速度${grLetter(r.pl.spd)}）`); avail.forEach(x => mk(`${x.name} (${x.nat})<span>速${gr(x.spd)}・${fitTx(x, r.pl.pos)}</span>`, '', () => {
       const old = r.pl, s2 = subInto(side, old, x); if (!s2) return; r.pl = s2; r.spd = (5.6 + s2.spd * .036) * MOVEK; r.rig.limp = 0; say(`代跑！${s2.name}代替 ${old.name} 站上${r.from}壘`); toast('代跑', '#fff', '#39f'); G.log.push('代跑'); done(); })); });
   }
   { const ret = t.retired || []; head('規則：退場球員本場不得再上場；代打／代跑者承接被替換者的棒次與守位');
@@ -8073,10 +8165,10 @@ function edDefault(ti) {
 }
 function edEnsure(ti) { const id = TEAMS[ti ? CFG.home : CFG.away].id; if (!ED[ti] || ED[ti].teamId !== id) ED[ti] = edDefault(ti); return ED[ti]; }
 const edChips = (p, pos) => { const pen = fitPenalty(p.nat, pos), fl = Math.round(p.fld0 * (1 - pen)), c = v => v >= 80 ? 'hi' : v >= 65 ? 'mid' : v >= 50 ? '' : 'lo';
-  return `<span class="chip">巧<b class="${c(p.con)}">${p.con}</b></span><span class="chip">力<b class="${c(p.pow)}">${p.pow}</b></span><span class="chip">速<b class="${c(p.spd)}">${p.spd}</b></span><span class="chip">守<b class="${c(fl)}">${fl}</b></span><span class="chip">${p.hand === 'S' ? '兩' : p.hand === 'L' ? '左' : '右'}打</span>${pen ? `<span class="chip warn">非本位 −${Math.round(pen * 100)}%</span>` : ''}`; };
+  return `<span class="chip">巧${gr(p.con)}</span><span class="chip">力${gr(p.pow)}</span><span class="chip">速${gr(p.spd)}</span><span class="chip">守${gr(fl)}</span><span class="chip">${p.hand === 'S' ? '兩' : p.hand === 'L' ? '左' : '右'}打</span>${pen ? `<span class="chip warn">非本位 −${Math.round(pen * 100)}%</span>` : ''}`; };
 function spCardHtml(r, i, on, clickable) {
   const p = mkPitcher(r);
-  return `<div class="spc${on ? ' on' : ''}${isSJH(r) ? ' sjh' : ''}"${clickable ? ` data-sp="${i}"` : ' style="cursor:default"'}><div><b>${isSJH(r) ? (SJH.ok ? '⭐ ' : '🔒 ') : ''}${r.n}</b><em>${r.h === 'L' ? '左' : '右'}投</em></div><small>${Math.round(p.kmh)}km/h・ERA ${r.era.toFixed(2)}${r.est ? '（估）' : ''}</small><small>${p.pitches.map(q => PITCHES[q.id].short + q.lv).join(' ')}</small></div>`;
+  return `<div class="spc${on ? ' on' : ''}${isSJH(r) ? ' sjh' : ''}"${clickable ? ` data-sp="${i}"` : ' style="cursor:default"'}><div><b>${isSJH(r) ? (SJH.ok ? '⭐ ' : '🔒 ') : ''}${r.n}</b><em>${r.h === 'L' ? '左' : '右'}投</em></div><small>${Math.round(p.kmh)}km/h・球威${gr(stuffOf(p))}・控球${gr(p.ctl)}・ERA ${r.era.toFixed(2)}${r.est ? '（估）' : ''}</small><small>${p.pitches.map(q => PITCHES[q.id].short + lvGr(q.lv)).join(' ')}</small></div>`;
 }
 function askSJH(onOk, onCancel) {      // 傳說球員密碼視窗
   const old = document.getElementById('sjhDlg'); if (old) old.remove();
@@ -8208,7 +8300,7 @@ function openOffPanel() {
   if (runs.length) {
     head('盜壘（再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall !== 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
-      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety' || G.offCall === 'sac') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，跑者立即起跑`); }, on); });
+      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${gr(r.pl.spd)}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety' || G.offCall === 'sac') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，跑者立即起跑`); }, on); });
     head('打帶跑（跑者提前起跑、打者務必揮棒；再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall === 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
       mk(`${on ? '✔ ' : ''}${nm}打帶跑（跑${to}）<span>${r.pl.name}比盜壘更早起跑，打者要揮棒；滾地安打可多推進一壘，揮空或飛球有被刺殺／雙殺風險</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } stopBunt(); G.stealSel = i; G.stealSet = null; G.stealReq = true; G.offCall = 'hitrun'; say(`進攻戰術：<em>打帶跑</em>！${nm}提前起跑，打者務必揮棒`); toast('打帶跑', '#ffe9a0', '#c60'); }, on); });
@@ -8240,7 +8332,7 @@ function openStealPanel() {      // 盜壘選擇：全員盜壘，或自己勾�
     const all = cand;
     item(`${G.stealReq && all.length && all.every(i => cur.includes(i)) && cur.length === all.length ? '✔ ' : ''}全員盜壘<span>所有能跑的跑者一起起跑（${all.map(i => names[i]).join('、')}）</span>`, () => apply(all), G.stealReq && all.length > 0 && all.every(i => cur.includes(i)));
     cand.forEach(i => { const r = G.on[i], on = cur.includes(i), need = G.on[i + 1] && i < 2 ? '（前方有人，跑到壘前等）' : '';
-      item(`${on ? '✔ ' : '☐ '}${names[i]}盜${tos[i]}${need}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { let set = cur.slice(); if (on) set = set.filter(x => x !== i); else set.push(i); apply(set); }, on); });
+      item(`${on ? '✔ ' : '☐ '}${names[i]}盜${tos[i]}${need}<span>${r.pl.name}　速${gr(r.pl.spd)}</span>`, () => { let set = cur.slice(); if (on) set = set.filter(x => x !== i); else set.push(i); apply(set); }, on); });
     if (G.stealReq) item('取消盜壘', () => apply([]), false);
     item('完成', () => sub.classList.add('hide'), false);
   };
@@ -8267,13 +8359,13 @@ function openDefPanel(a) {
   const pct = (nat, pos) => { const p = fitPenalty(nat, pos); return p ? '守備 −' + Math.round(p * 100) + '%' : '守位適合'; };
   if (!a) {
     sub.innerHTML = '<h3>守備調整' + close + '</h3>'; head('點選要調整的野手（投球前、球進入死球狀態才能換）');
-    t.lineup.forEach(p => { if (p.out) return; mk(`${POS_LABEL[p.pos] || p.pos}　${p.name}<span>守${p.fld} 肩${p.arm}${p.penalty ? '・非本位' : ''}</span>`, () => openDefPanel(p)); });
+    t.lineup.forEach(p => { if (p.out) return; mk(`${POS_LABEL[p.pos] || p.pos}　${p.name}<span>守${gr(p.fld)} 肩${gr(p.arm)}${p.penalty ? '・非本位' : ''}</span>`, () => openDefPanel(p)); });
     mk('關閉', () => sub.classList.add('hide')); return;
   }
   sub.innerHTML = `<h3>${POS_LABEL[a.pos] || a.pos}　${a.name}${close}</h3>`;
   head('代守：換上板凳球員（原球員退場、本場不得再上）');
   const bn = t.bench.filter(x => !x.out); if (!bn.length) head('（板凳沒有人了）');
-  bn.forEach(x => mk(`${x.name}（${x.nat}）<span>${pct(x.nat, a.pos)}・巧${x.con} 守${x.fld0} 肩${x.arm0}</span>`, () => { const old = a, s2 = subInto(side, old, x); if (s2) { toast('代守', '#fff', '#39f'); fin(`代守！${sideName(side)}換上 <em>${s2.name}</em> 守${POS_LABEL[a.pos] || a.pos}，${old.name}退場`); } }));
+  bn.forEach(x => mk(`${x.name}（${x.nat}）<span>${pct(x.nat, a.pos)}・巧${gr(x.con)} 守${gr(x.fld0)} 肩${gr(x.arm0)}</span>`, () => { const old = a, s2 = subInto(side, old, x); if (s2) { toast('代守', '#fff', '#39f'); fin(`代守！${sideName(side)}換上 <em>${s2.name}</em> 守${POS_LABEL[a.pos] || a.pos}，${old.name}退場`); } }));
   if (a.pos === 'DH') head('指定打擊不能與野手互換守位（規則：DH 一旦守備即失去指定打擊資格）');
   else { head('互換守位（兩人都留在場上）'); t.lineup.forEach(b => { if (b === a || b.out || b.pos === 'DH') return; mk(`與 ${POS_LABEL[b.pos]} ${b.name} 互換<span>你守${POS_LABEL[b.pos]}：${pct(a.nat, b.pos)}　他守${POS_LABEL[a.pos]}：${pct(b.nat, a.pos)}</span>`, () => { const pa = a.pos, pb = b.pos; setPos(a, pb); setPos(b, pa); swapFielderRig(pa, b); swapFielderRig(pb, a); toast('換守位', '#fff', '#39f'); fin(`守備調整：${a.name}改守${POS_LABEL[pb]}，${b.name}改守${POS_LABEL[pa]}`); }); }); }
   mk('← 返回', () => openDefPanel()); 
