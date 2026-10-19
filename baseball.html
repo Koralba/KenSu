@@ -105,7 +105,7 @@ body.mob #timingTip{font-size:12px;margin-left:6px;padding:.12em .6em;border-wid
 #caption .cl.a{background:linear-gradient(#ff5a3a,#d4221a)}#caption .cl.b{background:linear-gradient(#3a8cff,#1654c8)}
 #caption .tx b{color:#ffe14a}
 #caption .sm{position:absolute;right:2vw;top:6px;font-size:11px;color:#9cf;letter-spacing:.25em;font-family:'Orbitron'}
-#toast{left:50%;top:38%;transform:translate(-50%,-50%) scale(1);font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';font-size:clamp(40px,9vw,120px);white-space:nowrap;-webkit-text-stroke:.1em #fff;paint-order:stroke fill;filter:drop-shadow(0 .05em 0 #0008);opacity:0;pointer-events:none}
+#toast{left:50%;top:38%;transform:translate(-50%,-50%) scale(1);font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';font-size:clamp(40px,9vw,120px);white-space:nowrap;-webkit-text-stroke:0;filter:drop-shadow(.04em 0 0 #fff) drop-shadow(-.04em 0 0 #fff) drop-shadow(0 .04em 0 #fff) drop-shadow(0 -.04em 0 #fff) drop-shadow(0 .07em 0 rgba(0,0,0,.45)) drop-shadow(0 .1em .14em rgba(0,0,0,.35));opacity:0;pointer-events:none}
 #toast.show{animation:pop 1.3s ease-out forwards}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}22%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
 #spd{left:50%;top:15vh;transform:translateX(-50%);font-family:'Orbitron';font-weight:900;font-size:clamp(12px,1.35vw,17px);line-height:1;white-space:nowrap;padding:3px 10px;border-radius:999px;background:#06101cb3;border:1px solid #ffffff55;text-shadow:0 1px 3px #000;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -1247,6 +1247,15 @@ body.moreOpen #rot{display:none!important}
   <div class="ap-s" id="audioNow">（擊球與環境音效不受影響）</div>
 </div>
 </div>
+<style id="fixPatch1">
+/* 球種／球速：貼在計分板正下方的小標籤（層級最高，不被遮住） */
+#spd{z-index:24;transform:none!important;text-align:center;border:1.5px solid rgba(255,255,255,.85);border-top:0;border-radius:0 0 10px 10px;background:linear-gradient(rgba(16,36,58,.95),rgba(8,18,31,.95));padding:3px 10px 4px;box-shadow:0 4px 10px rgba(0,0,0,.5);text-shadow:0 1px 3px #000}
+body.mob #spd{font-size:11px;padding:2px 8px 3px}
+/* 電腦版：計分板在畫面左下、實況字幕上方 → 往上留一格給球速標籤，不壓到字幕 */
+body:not(.mob) #sb{bottom:calc(clamp(54px,9.5vh,92px) + 1.4vh + 28px)}
+/* 天氣風向面板：和球員資訊板一樣半透明 */
+#windBox{background:linear-gradient(rgba(16,36,58,.52),rgba(8,18,31,.46))!important;border-color:rgba(255,255,255,.5)!important;box-shadow:0 2px 6px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+</style>
 <script>
 'use strict';
 /* =====================================================================
@@ -1826,13 +1835,29 @@ const crowdTex = canvasTex(1024, 256, (g, w, h) => {
 const stand = new THREE.Mesh(ringGeom(p => wallRadius(p), WALL_H, p => wallRadius(p) + 34, WALL_H + 24, 220, 90), new THREE.MeshBasicMaterial({ map: crowdTex, side: THREE.DoubleSide })); scene.add(stand);
 const roof = new THREE.Mesh(ringGeom(p => wallRadius(p) + 34, WALL_H + 24, p => wallRadius(p) + 40, WALL_H + 30, 120, 60), new THREE.MeshLambertMaterial({ color: 0x3a3f50, side: THREE.DoubleSide })); scene.add(roof);
 const backWall = new THREE.Mesh(ringGeom(p => wallRadius(p) + 40, WALL_H + 30, p => wallRadius(p) + 40, WALL_H - 2, 120, 60), new THREE.MeshLambertMaterial({ color: 0x20242e, side: THREE.DoubleSide })); scene.add(backWall);
-// light towers
+// light towers：桁架式燈塔＋多排燈具燈組（深色燈架、一排排獨立燈頭）＋維修平台＋燈光光暈，面向球場；白天燈具熄滅（灰色）、夜間點亮
 const LIGHT_TOWERS = [];
-for (const phi of [40, 150, 210, 320]) {
+const LAMP_MAT = new THREE.MeshBasicMaterial({ color: 0x8d8f96 });                    // 燈頭：白天灰、夜間暖白（updateNight 切換）
+const STEEL = new THREE.MeshLambertMaterial({ color: 0x8a8f9c }), FRAME = new THREE.MeshLambertMaterial({ color: 0x2a2e38 });
+const LAMP_GEO = new THREE.BoxGeometry(1.25, 1.05, .5), LAMP_COLS = 8, LAMP_ROWS = 5;
+const BEAM_MAT = new THREE.MeshBasicMaterial({ color: 0xfff1d0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+for (const phi of [30, 88, 150, 210, 272, 330]) {
   const a = phi * Math.PI / 180, R0 = wallRadius(phi) + 42;
-  const g = new THREE.Group(); LIGHT_TOWERS.push({ g, phi }); g.position.set(R0 * Math.sin(a), 0, -R0 * Math.cos(a));
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.6, 1, 56, 8), new THREE.MeshLambertMaterial({ color: 0x777b88 })); pole.position.y = 28; g.add(pole);
-  const lamp = new THREE.Mesh(new THREE.BoxGeometry(12, 7, 1.2), new THREE.MeshBasicMaterial({ color: 0xfffbe6 })); lamp.position.y = 58; lamp.lookAt(0, 58, -20); g.add(lamp);
+  const g = new THREE.Group(), T = { g, phi }; LIGHT_TOWERS.push(T); g.position.set(R0 * Math.sin(a), 0, -R0 * Math.cos(a));
+  // 桁架塔身：四支斜立柱＋每 8 公尺一圈橫撐
+  for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.22, .34, 52, 5), STEEL); leg.position.set(sx * 1.4, 26, sz * 1.4); leg.rotation.z = -sx * .022; leg.rotation.x = sz * .022; g.add(leg); }
+  for (let y = 4; y < 52; y += 8) { const w = 2.9 - y * .0045; for (const q of [[0, 0, w * 2, .22, .22], [0, 0, .22, .22, w * 2]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(q[2], q[3], q[4]), STEEL); b.position.set(0, y, 0); g.add(b); } }
+  const base = new THREE.Mesh(new THREE.BoxGeometry(5, 1.2, 5), FRAME); base.position.y = .6; g.add(base);
+  // 燈組：面向球場中心
+  const bank = new THREE.Group(); bank.position.y = 58; bank.rotation.y = Math.atan2(-g.position.x, -30 - g.position.z); g.add(bank);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(LAMP_COLS * 1.6 + 1, LAMP_ROWS * 1.4 + 1, .7), FRAME); bank.add(frame);
+  const lamps = new THREE.InstancedMesh(LAMP_GEO, LAMP_MAT, LAMP_COLS * LAMP_ROWS), m4 = new THREE.Matrix4(); let n = 0;
+  for (let r = 0; r < LAMP_ROWS; r++) for (let c = 0; c < LAMP_COLS; c++) { m4.makeTranslation((c - (LAMP_COLS - 1) / 2) * 1.6, (r - (LAMP_ROWS - 1) / 2) * 1.4, .55); lamps.setMatrixAt(n++, m4); }
+  lamps.instanceMatrix.needsUpdate = true; lamps.frustumCulled = false; bank.add(lamps);
+  const walk = new THREE.Mesh(new THREE.BoxGeometry(LAMP_COLS * 1.6 + 2.5, .35, 2.4), FRAME); walk.position.set(0, -(LAMP_ROWS * 1.4 + 1) / 2 - .2, -1.1); bank.add(walk);      // 維修平台
+  const mast = new THREE.Mesh(new THREE.BoxGeometry(.5, 5, .5), STEEL); mast.position.set(0, -(LAMP_ROWS * 1.4 + 1) / 2 - 2.6, -.3); bank.add(mast);
+  // 夜間朝場內打出的淡淡光束（只畫塔邊一小段，避免整場畫面被光柱橫切）
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(3, 15, 52, 16, 1, true), BEAM_MAT); beam.rotation.x = -Math.PI / 2 + .32; beam.position.set(0, -8, 24.7); beam.visible = false; bank.add(beam); T.beam = beam; T.bank = bank;
   scene.add(g);
 }
 
@@ -1844,20 +1869,22 @@ const flood2 = new THREE.DirectionalLight(0xfff2dc, 0); flood2.position.set(-30,
 const skyDome = (() => { const g = new THREE.SphereGeometry(520, 28, 18), p = g.attributes.position, c = []; for (let i = 0; i < p.count; i++) { const v = 1 - .78 * Math.pow(Math.max(0, p.getY(i) / 520), .55); c.push(v, v, v); } g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3)); const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false })); m.renderOrder = -100; m.visible = false; scene.add(m); return m; })();
 const stars = [0, 1].map(() => { const pos = [], col = []; for (let i = 0; i < 380; i++) { const a = Math.random() * TAU, e = Math.asin(.06 + Math.random() * .94), r = 480, k = .75 + Math.random() * .25; pos.push(r * Math.cos(e) * Math.sin(a), r * Math.sin(e), -r * Math.cos(e) * Math.cos(a)); col.push(k, k, Math.min(1, k + .1)); } const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ size: 2.4, vertexColors: true, transparent: true, fog: false, depthWrite: false })); p.visible = false; scene.add(p); return p; });
 const moon = (() => { const t = canvasTex(128, 128, (g) => { const r = g.createRadialGradient(64, 64, 10, 64, 64, 64); r.addColorStop(0, 'rgba(255,248,220,.55)'); r.addColorStop(1, 'rgba(255,248,220,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); g.fillStyle = '#fff8e0'; g.beginPath(); g.arc(64, 64, 20, 0, TAU); g.fill(); g.fillStyle = 'rgba(200,190,160,.35)'; for (const [x, y, q] of [[58, 58, 5], [70, 66, 4], [60, 72, 3]]) { g.beginPath(); g.arc(x, y, q, 0, TAU); g.fill(); } }); const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, fog: false, depthWrite: false })); s.scale.set(60, 60, 1); s.position.set(-120, 125, -330); s.visible = false; scene.add(s); return s; })();
-LIGHT_TOWERS.forEach(t => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: radTex, color: 0xfff0cc, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false })); s.scale.set(48, 48, 1); s.position.y = 58; s.visible = false; t.g.add(s); t.halo = s; });
+LIGHT_TOWERS.forEach(t => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: radTex, color: 0xfff0cc, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false })); s.scale.set(70, 56, 1); s.position.set(0, 58, 0); s.visible = false; t.bank.add(s); t.halo = s; });
 const lightPool = new THREE.Mesh(new THREE.PlaneGeometry(190, 190), new THREE.MeshBasicMaterial({ map: radTex, color: 0xfff1d0, transparent: true, opacity: .22, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
 lightPool.rotation.x = -Math.PI / 2; lightPool.position.set(0, .05, -32); lightPool.renderOrder = 1; lightPool.visible = false; scene.add(lightPool);
 const CL = [0, 1].map(() => { const n = 360, g = new THREE.BufferGeometry(), col = [], meta = [], pal = [[1, .95, .8], [.6, .9, 1], [1, .6, .8], [.7, 1, .6]]; for (let i = 0; i < n; i++) { col.push(...pal[(Math.random() * 4) | 0]); meta.push([Math.random() * 360, Math.random()]); } g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.8, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); p.visible = false; p.frustumCulled = false; scene.add(p); return { p, meta }; });
-function placeCrowdLights() { for (const o of CL) { const a = o.p.geometry.attributes.position; o.meta.forEach(([phi, t], i) => { const r = wallRadius(phi) + 34 * t - .3, q = phi * Math.PI / 180; a.setXYZ(i, r * Math.sin(q), WALL_H + 24 * t + .3, -r * Math.cos(q)); }); a.needsUpdate = true; } }
+const RIM = [0].map(() => { const n = 180, g = new THREE.BufferGeometry(), col = []; for (let i = 0; i < n; i++) col.push(1, .96, .82); g.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ size: 2.6, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); p.visible = false; p.frustumCulled = false; scene.add(p); return { p, n }; });      // 屋簷下緣的一整圈照明
+function placeRim() { for (const o of RIM) { const a = o.p.geometry.attributes.position; for (let i = 0; i < o.n; i++) { const phi = i / o.n * 360, r = wallRadius(phi) + 36, q = phi * Math.PI / 180; a.setXYZ(i, r * Math.sin(q), WALL_H + 25.5, -r * Math.cos(q)); } a.needsUpdate = true; } }
+function placeCrowdLights() { placeRim(); for (const o of CL) { const a = o.p.geometry.attributes.position; o.meta.forEach(([phi, t], i) => { const r = wallRadius(phi) + 34 * t - .3, q = phi * Math.PI / 180; a.setXYZ(i, r * Math.sin(q), WALL_H + 24 * t + .3, -r * Math.cos(q)); }); a.needsUpdate = true; } }
 placeCrowdLights();
 function updateNight(dt) {                 // 夜空、星月、光暈與看台螢光棒／手機燈的閃爍
   const nt = !!G.night, vis = nt && !(G.wx && G.wx.dome), on = G.wxOn && G.wx && !G.wx.dome && !G.wx.off; NIGHT.t += dt; const t = NIGHT.t;
-  skyDome.visible = vis; moon.visible = vis; stars.forEach(s => s.visible = vis); lightPool.visible = nt; CL.forEach(o => o.p.visible = nt); LIGHT_TOWERS.forEach(x => x.halo.visible = nt);
+  skyDome.visible = vis; moon.visible = vis; stars.forEach(s => s.visible = vis); lightPool.visible = nt; CL.forEach(o => o.p.visible = nt); LIGHT_TOWERS.forEach(x => { x.halo.visible = nt; x.beam.visible = nt; }); LAMP_MAT.color.setHex(nt ? 0xfff6dc : 0x8d8f96); RIM.forEach(o => o.p.visible = nt);
   if (!nt) return;
   const cl = on ? cloudK() : 0, hz = on ? hazeK() : 0, clear = (1 - clamp(cl * 1.5, 0, 1)) * (1 - hz * .6);
   stars[0].material.opacity = clear * (.65 + .35 * Math.sin(t * 2.1)); stars[1].material.opacity = clear * (.65 + .35 * Math.sin(t * 1.5 + 2)); moon.material.opacity = clear;
   CL[0].p.material.opacity = .5 + .5 * Math.sin(t * 6.1); CL[1].p.material.opacity = .5 + .5 * Math.sin(t * 4.3 + 2);
-  const hs = .8 + .1 * Math.sin(t * 1.7) + (on ? rainK() * .15 : 0); LIGHT_TOWERS.forEach(x => x.halo.material.opacity = Math.min(1, hs));
+  const hs = .8 + .1 * Math.sin(t * 1.7) + (on ? rainK() * .15 : 0); LIGHT_TOWERS.forEach(x => x.halo.material.opacity = Math.min(1, hs)); BEAM_MAT.opacity = .05 + (on ? rainK() * .03 + hz * .03 : 0); RIM.forEach(o => o.p.material.opacity = .8 + .1 * Math.sin(t * 1.3));
 }
 /* 套用球場：重設外野牆形狀／高度，重建牆面、看台與燈塔位置 */
 function applyPark(name) {
@@ -2106,7 +2133,34 @@ function setRigPose(r, p) { const sg = r.side < 0 ? -1 : 1; r.body.rotation.set(
   if (!r.legBase && r.vis) { r.legL.scale.y = r.vis.ll * (1 - .45 * (p.llk || 0)); r.legR.scale.y = r.vis.ll * (1 - .45 * (p.lrk || 0));
     const up = Math.max(0, p.y || 0), jk = clamp((up - .12) * 3, 0, 1);      // 跳躍：雙腿跟著身體離地，空中收膝、前後微擺（不再留在地面）
     r.legL.position.y = r.legR.position.y = .56 + up; if (jk > 0) { r.legL.rotation.x -= .5 * jk; r.legR.rotation.x -= .3 * jk; r.legL.scale.y *= 1 - .22 * jk; r.legR.scale.y *= 1 - .22 * jk; } }      // 抬腿時小腿收起（膝蓋彎曲）
-  if (r.legBase) { const cr = clamp(-(p.y || 0), 0, .4), y0 = r.legBase.y0; r.legL.position.y = r.legR.position.y = y0 - cr + Math.max(0, p.y || 0); r.legL.scale.y = r.legR.scale.y = r.legBase.sy * (y0 - cr) / y0; } r.head.rotation.set(p.hx || 0, p.hy || 0, p.hz || 0); }
+  if (r.legBase) { const cr = clamp(-(p.y || 0), 0, .4), y0 = r.legBase.y0; r.legL.position.y = r.legR.position.y = y0 - cr + Math.max(0, p.y || 0); r.legL.scale.y = r.legR.scale.y = r.legBase.sy * (y0 - cr) / y0; } r.head.rotation.set(p.hx || 0, p.hy || 0, p.hz || 0); groundRig(r); }
+/* ---------- 落地修正：不論身高、腿長、打者加長腿、滑壘／撲壘／蹲低等任何姿勢，雙腳與身體都不會陷進地面 ----------
+   舊版腿的支點固定在 .56，但鞋底底部在 -.64（×腿長比例），站著就陷進地面約 .08～.14，蹲低／滑壘更深。
+   每次擺姿勢後，用鞋底四角算「腳」的最低點、用骨盆／軀幹上下圓盤／頭／雙手／手套算「身體」的最低點：
+   ① 腳陷進去 → 身體＋雙腿一起往上補到鞋底剛好貼地；② 身體（滑壘、撲壘、倒地等）比腳陷得更深 → 只把身體再往上補，腿不跟著懸空。 */
+const _gp = new THREE.Vector3();
+const _SOLE = [[-.125, -.6425, -.14], [.125, -.6425, -.14], [-.125, -.6425, .26], [.125, -.6425, .26]];
+const _DISK = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+function rigLowest(r, out) {      // 回傳（腳、身體）在人物座標系的最低高度；人物原點＝地面
+  r.body.updateMatrix(); r.legL.updateMatrix(); r.legR.updateMatrix(); r.armL.updateMatrix(); r.armR.updateMatrix();
+  let mf = 1e9, mb = 1e9;
+  for (const lg of [r.legL, r.legR]) for (const q of _SOLE) { _gp.set(q[0], q[1], q[2]).applyMatrix4(lg.matrix); if (_gp.y < mf) mf = _gp.y; }
+  const bm = r.body.matrix, vw = r.vis ? r.vis.w : 1;
+  for (const dk of [[.5, .28 * vw], [.55, .27 * vw], [1.17, .3 * vw]]) for (const q of _DISK) { _gp.set(q[0] * dk[1], dk[0], q[1] * dk[1]).applyMatrix4(bm); if (_gp.y < mb) mb = _gp.y; }
+  _gp.set(0, r.head.position.y, 0).applyMatrix4(bm); { const hy = _gp.y - .5 * (r.head.scale.y || 1); if (hy < mb) mb = hy; }
+  for (const a of [r.armL, r.armR]) { _gp.set(0, -.52, 0).applyMatrix4(a.matrix).applyMatrix4(bm); const hy = _gp.y - .12; if (hy < mb) mb = hy; }
+  if (r.glove) { _gp.copy(r.glove.position).applyMatrix4(r.armL.matrix).applyMatrix4(bm); const gy = _gp.y - .2 * (r.glove.scale.x || 1); if (gy < mb) mb = gy; }
+  out.f = mf; out.b = mb; return out;
+}
+const _gl = { f: 0, b: 0 };
+function groundRig(r) {
+  if (!r || !r.body || !r.legL || !r.legR || !r.armL || !r.armR || !r.head) return;
+  rigLowest(r, _gl);
+  const lf = _gl.f < .01 ? .01 - _gl.f : 0;                                  // 腳要補多少（留 1 公分間隙，避免與地面 z-fighting）
+  const lb = Math.max(lf, _gl.b < .01 ? .01 - _gl.b : 0);                    // 身體要補多少（至少跟腳一樣多）
+  if (lb > 0) r.body.position.y += lb;
+  if (lf > 0) { r.legL.position.y += lf; r.legR.position.y += lf; }
+}
 function rigPlay(r, name, dur, opt) { r.anim = { name, t: 0, dur: dur || 1, opt: opt || {} }; }
 function rigStep(r, dt) {
   const a = r.anim; r.t += dt;
@@ -2403,11 +2457,41 @@ function updateFireworks(dt) {
 }
 function updateBursts(dt) { updatePowder(dt); if (typeof updatePickTags === 'function') updatePickTags(); if (typeof updateStealTags === 'function') updateStealTags(); if (typeof updateRosinTag === 'function') updateRosinTag(dt); for (let i = 0; i < bursts.length; i++) { const b = bursts[i]; b.t += dt; const u = b.t / .28; b.sp.scale.setScalar(.2 + b.size * Math.min(1, u * 1.4)); b.sp.material.opacity = Math.max(0, 1 - u); if (u >= 1) { scene.remove(b.sp); bursts.splice(i, 1); i--; } } }
 /* ---------- camera controller ---------- */
-const CAMC = { mode: 'title', pos: new V3(0, 30, 50), look: new V3(0, 0, -25), fov: 46, tpos: new V3(), tlook: new V3(), tfov: 46, k: 3, orbit: 0, shake: 0 };
+const CAMC = { mode: 'title', pos: new V3(0, 30, 50), look: new V3(0, 0, -25), fov: 46, tpos: new V3(), tlook: new V3(), tfov: 46, k: 3, kl: 0, orbit: 0, shake: 0, pt: 0, has: false, px: 0, pz: 0, vx: 0, vz: 0, fy: 1.5, _pm: false };
 function camSnap() { CAMC.pos.copy(CAMC.tpos); CAMC.look.copy(CAMC.tlook); CAMC.fov = CAMC.tfov; }
 function setCamBat(snap) { CAMC.mode = 'bat'; CAMC.tpos.set(0, 4.6, 9.4); CAMC.tlook.set(0, 1.45, -9); CAMC.tfov = 42 * (VP.fk || 1); CAMC.k = 4; if (snap) camSnap(); }
 function setCamPlayTarget(f) { CAMC.mode = 'play'; }
+/* ---------- 擊球後追焦鏡頭 ----------
+   舊版：鏡頭貼在球後方低位跟拍，球飛到外野時鏡頭也跑進外野，內野與跑壘完全看不到、視角又太近。
+   新版：鏡頭固定在本壘後方高處（類似電視轉播的高機位），只隨球的方向小幅平移；
+   看的位置在「內野中心」與「球／跑者」之間依距離加權，內野球多看場面、遠飛球多看球；
+   球慢下來（被接殺、持球）時把還在跑的跑者一起納入畫面；球速越快鏡頭提前量越大，球不會跑出畫面。 */
+function camChase(dt, focus) {
+  const C = CAMC, fx = focus.x, fz = focus.z, fy = focus.y;
+  C.pt += dt;
+  if (C.has && dt > 1e-4) { const ik = 1 / dt, kk = Math.min(1, dt * 8); C.vx += (clamp((fx - C.px) * ik, -80, 80) - C.vx) * kk; C.vz += (clamp((fz - C.pz) * ik, -80, 80) - C.vz) * kk; } else { C.vx = C.vz = 0; C.has = true; }
+  C.px = fx; C.pz = fz;
+  const spd = Math.hypot(C.vx, C.vz);
+  let tx = fx, tz = fz, rx = 0, rz = 0, rn = 0;
+  try { for (const r of E.runners) if (r.state === 'run' && r.rig) { const p = r.rig.root.position; rx += p.x; rz += p.z; rn++; } } catch (e) { }
+  if (rn) { const w = .55 * clamp(1 - spd / 9, 0, 1); tx = fx * (1 - w) + (rx / rn) * w; tz = fz * (1 - w) + (rz / rn) * w; }      // 球幾乎停住 → 改看跑者
+  if (spd > 1) { const ld = Math.min(8, spd * .1); tx += C.vx / spd * ld; tz += C.vz / spd * ld; }      // 領先量：看球前進的方向
+  const dd = Math.hypot(tx, tz), wB = clamp(.5 + dd / 160, .5, .78);
+  const lx = tx * wB, lz = -22 * (1 - wB) + tz * wB;
+  C.fy += (Math.max(1, fy * .6) - C.fy) * Math.min(1, dt * 8);      // 高度另外平滑：球彈跳時畫面不上下抖，高飛球仍能快速抬頭追上
+  const ly = 1 + (C.fy - 1) * wB, far = Math.min(dd, 110);
+  const ramp = clamp(C.pt / .9, 0, 1);
+  C.tlook.set(lx, ly, lz);
+  C.tpos.set(clamp(lx * .28, -10, 10), 11 + far * .17 + Math.max(0, C.fy - 3) * .25, 18);      // 本壘後方、看台牆內側（牆半徑 ≥ 22）
+  C.tfov = (52 + clamp(dd / 90, 0, 1) * 8) * (VP.fk || 1);
+  C.k = 3 + 1.2 * ramp; C.kl = 7 + 2 * ramp;      // 剛擊球時鏡頭慢慢拉開、看的方向與視角（fov）較快跟上
+  if (tz > 1.5 && C.vz > 0) {      // 球飛到本壘後方（界外高飛、擦棒球）：不然球會跑到鏡頭正上方 → 鏡頭移到本壘旁邊看球
+    C.tpos.set((fx >= 0 ? -1 : 1) * 13, 8, 4); C.tlook.set(fx * .9, Math.max(1.2, C.fy * .85), fz); C.tfov = 58 * (VP.fk || 1);
+  }
+}
 function updateCamera(dt, focus) {
+  CAMC.kl = 0;
+  { const pm = CAMC.mode === 'play' || CAMC.mode === 'batfollow'; if (pm && !CAMC._pm) { CAMC.pt = 0; CAMC.has = false; CAMC.fy = focus ? Math.max(1, focus.y * .6) : 1.5; } CAMC._pm = pm; }
   if (VENUE.on && CAMC.mode !== 'venue') { VENUE.on = false; VENUE.done = null; document.body.classList.remove('venuing'); $('venueIntro').classList.add('hide'); }
   if (CAMC.mode === 'venue' && VENUE.on) {
     VENUE.t += dt; const u = clamp(VENUE.t / VENUE.orbit, 0, 1), e = u * .6 + (u * u * (3 - 2 * u)) * .4, a = e * Math.PI * 2 * .96, sw = Math.sin(u * Math.PI);
@@ -2417,19 +2501,15 @@ function updateCamera(dt, focus) {
   } else if (CAMC.mode === 'title') {
     CAMC.orbit += dt * .08; const a = CAMC.orbit, r = 62;
     CAMC.tpos.set(Math.sin(a) * 12, 40, 38 + Math.cos(a) * 3); CAMC.tlook.set(Math.sin(a * 1.3) * 6, 0, -27); CAMC.tfov = 58 * (VP.fk || 1); CAMC.k = 1.2;
-  } else if (CAMC.mode === 'play' && focus) {
-    // 追球鏡頭：在球後方（本壘方向）低位跟拍，距離與高度隨球的遠近緩增；球近本壘時固定朝外野方向
-    const d = Math.hypot(focus.x, focus.z), ux = d > 4 ? focus.x / d : 0, uz = d > 4 ? focus.z / d : -1;
-    const back = 12 + d * .2, hh = 7 + d * .13;
-    CAMC.tlook.set(focus.x + ux * 3, Math.max(.8, focus.y * .6), focus.z + uz * 3);
-    CAMC.tpos.set((focus.x - ux * back) * .85, hh + Math.max(0, focus.y * .25), Math.min(16, focus.z - uz * back)); CAMC.tfov = 48 * (VP.fk || 1); CAMC.k = 3;
+  } else if ((CAMC.mode === 'play' || CAMC.mode === 'batfollow') && focus) {
+    camChase(dt, focus);
   } else if (CAMC.mode === 'hrtrot' && focus) {
     CAMC.tlook.set(focus.x, 1.1, focus.z); CAMC.tpos.set(focus.x * .4, 15 + Math.hypot(focus.x, focus.z) * .15, focus.z + 26); CAMC.tfov = 52 * (VP.fk || 1); CAMC.k = 2.4;
   } else if (CAMC.mode === 'close' && focus) {
     CAMC.tlook.set(focus.x, 1, focus.z); CAMC.tpos.set(focus.x + (focus.x >= 0 ? 8 : -8), 7, focus.z + 12); CAMC.tfov = 46 * (VP.fk || 1); CAMC.k = 3.4;
   }
-  const f = 1 - Math.exp(-dt * CAMC.k);
-  CAMC.pos.lerp(CAMC.tpos, f); CAMC.look.lerp(CAMC.tlook, f); CAMC.fov += (CAMC.tfov - CAMC.fov) * f;
+  const f = 1 - Math.exp(-dt * CAMC.k), fl = CAMC.kl ? 1 - Math.exp(-dt * CAMC.kl) : f;
+  CAMC.pos.lerp(CAMC.tpos, f); CAMC.look.lerp(CAMC.tlook, fl); CAMC.fov += (CAMC.tfov - CAMC.fov) * (CAMC.kl ? fl : f);
   camera.position.copy(CAMC.pos);
   if (CAMC.shake > 0) { camera.position.x += (Math.random() - .5) * CAMC.shake; camera.position.y += (Math.random() - .5) * CAMC.shake; CAMC.shake = Math.max(0, CAMC.shake - dt * 2); }
   camera.fov = CAMC.fov; camera.lookAt(CAMC.look); camera.updateProjectionMatrix();
@@ -5391,14 +5471,23 @@ function timingTip(text, c1, c2) {      // 過早／過晚提示：顯示在底�
   t.textContent = text; t.style.background = `linear-gradient(180deg,${c1},${c2})`; t.classList.remove('show', 'fade'); void t.offsetWidth; t.classList.add('show');
   tipTimer = setTimeout(() => t.classList.add('fade'), 2600); tipTimer2 = setTimeout(() => t.classList.remove('show', 'fade'), 3150);
 }
+function _mixHex(a, b, k) { const p = c => { c = String(c).replace('#', ''); if (c.length === 3) c = c.split('').map(x => x + x).join(''); const n = parseInt(c, 16); return isNaN(n) ? [255, 255, 255] : [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }; const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); }
+function _isWhite(c) { c = String(c).replace('#', ''); if (c.length === 3) c = c.split('').map(x => x + x).join(''); const n = parseInt(c, 16); return !isNaN(n) && Math.min((n >> 16) & 255, (n >> 8) & 255, n & 255) >= 225; }
 function toast(text, c1, c2) {
-  const t = $('toast'); t.textContent = text; t.style.background = `linear-gradient(180deg,${c1 || '#fff27a'},${c2 || '#ff9a1a'})`; t.style.webkitBackgroundClip = 'text'; t.style.backgroundClip = 'text'; t.style.color = 'transparent';
+  let a = c1 || '#fff27a', b = c2 || '#ff9a1a';
+  if (_isWhite(a)) a = _mixHex(b, '#ffffff', .4);      // 純白上色會和白色外框糊在一起、整句變成白字 → 改用較淡的同色系（黃、淺藍等有顏色的不動）
+  const t = $('toast'); t.textContent = text; t.style.background = `linear-gradient(180deg,${a} 8%,${b} 92%)`; t.style.webkitBackgroundClip = 'text'; t.style.backgroundClip = 'text'; t.style.color = 'transparent'; t.style.webkitTextFillColor = 'transparent';
   t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
 }
-function showSpeed(kmh, name, col) {      // 球速／球路：小型膠囊，位置依「投手／打者資訊列」實際高度往下排，不遮擋上方介面
-  const s = $('spd'), pi = MOB ? $('topbar') : $('pinfo'); s.innerHTML = kmh + '<small>km/h</small> <small style="color:' + (col || '#fff') + '">' + name + '</small>';
-  const bt = pi ? pi.getBoundingClientRect().bottom : 0, hh = VH(); s.style.top = Math.round(Math.min(Math.max(bt + 6, hh * .1), hh * .3)) + 'px';
-  s.style.opacity = .62; clearTimeout(showSpeed.t); showSpeed.t = setTimeout(() => s.style.opacity = 0, 2400);
+function placeSpeed() {      // 球速／球路：貼在計分板（#sb）正下方，左緣對齊、寬度至少與計分板同寬，不再被其他面板蓋住
+  const s = $('spd'), sb = $('sb'), hud = $('hud'); if (!s || !sb || !hud) return;
+  const hr = hud.getBoundingClientRect(), r = sb.getBoundingClientRect();
+  if (r.width > 4 && r.height > 4) { s.style.left = Math.round(r.left - hr.left) + 'px'; s.style.top = Math.round(r.bottom - hr.top - 1) + 'px'; s.style.minWidth = Math.round(r.width) + 'px'; }
+  else { s.style.left = '50%'; s.style.top = '12vh'; s.style.minWidth = ''; }
+}
+function showSpeed(kmh, name, col) {
+  const s = $('spd'); s.innerHTML = kmh + '<small>km/h</small> <small style=\"color:' + (col || '#fff') + '\">' + name + '</small>';
+  placeSpeed(); s.style.opacity = .97; clearTimeout(showSpeed.t); showSpeed.t = setTimeout(() => s.style.opacity = 0, 2400);
 }
 function pitchHint(pt) {      // 球落點結束（進手套／被打到／揮空）後，才以半透明小提示顯示剛才的球種與球速
   if (!pt || pt.hinted || pt.ibb) return; pt.hinted = true; showSpeed(pt.kmh, pt.spec.jp, pt.spec.col);
@@ -8614,7 +8703,7 @@ function frame(now) {
   while (rem > 1e-6) { const s = Math.min(rem, 1 / 60); step(s); rem -= s; }
   let focus = null;
   if (CAMC.mode === 'play') { if (ballMesh.visible) { lastFocus.copy(ballMesh.position); } focus = lastFocus; }
-  else if (CAMC.mode === 'batfollow' && ballMesh.visible) { lastFocus.copy(ballMesh.position); }
+  else if (CAMC.mode === 'batfollow') { if (!CAMC._pm && !ballMesh.visible) lastFocus.set(0, 1.2, -1); if (ballMesh.visible) lastFocus.copy(ballMesh.position); focus = lastFocus; }
   else if (CAMC.mode === 'hrtrot') { focus = hrFocus(); }
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
   if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
