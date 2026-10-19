@@ -7192,7 +7192,7 @@ function initWeather(homeTeam, parkSel, nightSel) {
   G.wxLv = wxLevel(G.rain)[0]; G._windCls = windClass(); updateWindHud(); applyLighting();
 }
 function weatherRetarget() {                // 每隔十餘球決定下一階段的雨勢目標
-  if (!G.wxOn || G.wx.dome) return; if (Math.random() < ({ thunder: .6, typhoon: .15 }[G.wxScen] ?? .3)) shiftScene(); const sc = G.wxScen, r = Math.random();
+  if (!G.wxOn || G.wx.dome) return; if (G.scCool > 0) G.scCool--; else if (Math.random() < ({ thunder: .5, typhoon: .25 }[G.wxScen] ?? .3)) shiftScene(); const sc = G.wxScen, r = Math.random();
   if (TW_SC[sc]) G.rainT = TW_SC[sc].retarget(G.rainT);
   else if (sc === 'calm' || sc === 'sunny' || sc === 'overcast') G.rainT = 0;
   else if (sc === 'drizzle') G.rainT = clamp(.08 + Math.random() * .08, 0, 1);
@@ -7205,7 +7205,7 @@ function windRetarget(strong) {            // 風：每 5~10 球決定新的平�
   if (!G.wxOn || !G.wx || G.wx.dome) return;
   const calm = (G.wxScen === 'calm' || G.wxScen === 'sunny'), cap = calm ? 1.8 : G.wxScen === 'overcast' ? 4 : G.wxScen === 'storm' ? 9 : 7;
   let m = G.windMeanT + gauss() * (calm ? .5 : 1.7) + (strong ? (Math.random() < .5 ? -1 : 1) * 2 : 0); if (!calm && Math.random() < .12) m = 4.5 + Math.random() * 3;
-  G.windMeanT = clamp(m, calm ? .1 : .6, cap); if (TW_SC[G.wxScen]) G.windMeanT = clamp(G.windMeanT, TW_SC[G.wxScen].windRange[0], TW_SC[G.wxScen].windRange[1]);
+  G.windMeanT = clamp(m, calm ? .1 : .6, cap); if (TW_SC[G.wxScen]) G.windMeanT = clamp(G.windMeanT, TW_SC[G.wxScen].windRange[0], TW_SC[G.wxScen].windRange[1]); else if (G.wxScen !== 'storm') { const ty = { drizzle: 2.5, heavy: 4.5, change: 3, overcast: 2, calm: .8, sunny: .8 }[G.wxScen] ?? 2; G.windMeanT -= Math.max(0, G.windMeanT - ty) * .35; }      // 風雨天氣好轉後，風也慢慢減弱
   let turn = gauss() * 42; if (Math.random() < .2 || strong) turn = (Math.random() < .5 ? -1 : 1) * (80 + Math.random() * 90);   // 偶爾風向大轉彎（順風⇄逆風）
   if (TW_SC[G.wxScen] && TW_SC[G.wxScen].steady) turn *= .25; G.windDirT = (G.windDirT + turn + 720) % 360;
 }
@@ -7236,9 +7236,10 @@ function updateRainbow(dt) {
 function updateWeather(dt) {
   try { updateNight(dt); } catch (e) { }
   if (!G.wxOn || !G.wx || G.wx.dome) { if (rainbow.visible) rainbow.visible = false; return; }
-  G.rain = clamp(G.rain + clamp(G.rainT - G.rain, -dt * .014, dt * .014), 0, 1);
-  { const tg = Math.max(G.cloudBase || 0, clamp(G.rain * 2.5, 0, 1)); G.cloud = (G.cloud || 0) + clamp(tg - (G.cloud || 0), -dt * .018, dt * .018); }
-  { const hzT = G.wxScen === 'haze' ? .9 : 0, htT = G.wxScen === 'hot' ? 1 : G.wxScen === 'sunny' ? .3 : 0; G.haze = (G.haze || 0) + clamp(hzT - (G.haze || 0), -dt * .03, dt * .03); G.heat = (G.heat || 0) + clamp(htT - (G.heat || 0), -dt * .03, dt * .03); }
+  { const rt = G.rainT > G.rain ? Math.min(G.rainT, (G.cloud || 0) * .9 + .08) : G.rainT, rate = (typeof RD !== 'undefined' && RD.on) ? .012 : .004; G.rain = clamp(G.rain + clamp(rt - G.rain, -dt * rate, dt * rate), 0, 1); }      // 雨勢漸變（約每分鐘 ±.24）；要等雲層聚集，雨才跟著變大
+  { const tg = Math.max(G.cloudBase || 0, clamp(G.rain * 2.5, 0, 1)); G.cloud = (G.cloud || 0) + clamp(tg - (G.cloud || 0), -dt * .006, dt * .006); }
+  if (G.wx.tempT != null && G.wx.tempT !== G.wx.temp) { G._tClk = (G._tClk || 0) + dt; if (G._tClk > 45) { G._tClk = 0; G.wx.temp += Math.sign(G.wx.tempT - G.wx.temp); } }
+  { const hzT = G.wxScen === 'haze' ? .9 : 0, htT = G.wxScen === 'hot' ? 1 : G.wxScen === 'sunny' ? .3 : 0; G.haze = (G.haze || 0) + clamp(hzT - (G.haze || 0), -dt * .01, dt * .01); G.heat = (G.heat || 0) + clamp(htT - (G.heat || 0), -dt * .01, dt * .01); }
   windStep(dt); updateRainbow(dt); updateLightning(dt);
   const lv = wxLevel(G.rain)[0];
   if (lv !== G.wxLv) {
@@ -7348,8 +7349,8 @@ window.addEventListener('keydown', e => { if (!RD.on) return; if (e.code === 'Sp
 $('rdBtn').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); rdPress(); });
 function windStep(dt) {                   // 風速／風向連續變化＋陣風
   const g = G.gust, w = G.wx;
-  G.windMean += clamp(G.windMeanT - G.windMean, -dt * .3, dt * .3);
-  const dd = windDirDiff(G.windDirT, G.windDir); G.windDir = (G.windDir + clamp(dd, -dt * 6, dt * 6) + gauss() * dt * 1.2 + 360) % 360;
+  G.windMean += clamp(G.windMeanT - G.windMean, -dt * .1, dt * .1);
+  const dd = windDirDiff(G.windDirT, G.windDir); G.windDir = (G.windDir + clamp(dd, -dt * 3, dt * 3) + gauss() * dt * 1.2 + 360) % 360;
   g.cd -= dt;
   if (g.t <= 0 && g.cd <= 0) { g.t = g.dur = 2.4 + Math.random() * 5; g.amp = (.9 + Math.random() * 2.8) * gustMul() * (Math.random() < .5 ? 1 : -.55); }
   if (g.t > 0) { g.t -= dt; const u = 1 - g.t / g.dur; g.env = g.amp * Math.sin(Math.PI * clamp(u, 0, 1)) ** 2; if (g.t <= 0) { g.env = 0; g.cd = (5 + Math.random() * 12) * (G.wxScen === 'typhoon' ? .45 : 1); } }
@@ -7422,6 +7423,10 @@ function twTemp(on, dome, PK, sc) {
   if (t === undefined) t = 22 + r * 10 + PK.dt - G.rain * 4; else t += PK.dt * .5;
   if (G.night) t -= 3 + Math.random() * 3; return Math.round(t);      // 夜間比賽比較涼（球飛行阻力較大）
 }
+function twTempShift(nx) {
+  if (!G.wx || G.wx.dome || G.wx.off) return; const dt = (PARKS[G.wx.venue] || {}).dt || 0, tg = ({ hot: 36, monsoon: 20, plum: 25, typhoon: 26, haze: 30, thunder: 26, heavy: 24, storm: 24, drizzle: 25, overcast: 26, sunny: 29, calm: 28 }[nx] ?? 27) + dt * .5 - (G.night ? 4 : 0);
+  G.wx.tempT = Math.round(G.wx.temp + (tg - G.wx.temp) * .6);
+}
 const TW_MSG = { plum: '🌫 梅雨鋒面滯留，空氣濕黏，細雨綿綿下個不停…', thunder: '⛈ 午後對流旺盛，雲層快速堆高，雷陣雨來了！', typhoon: '🌀 颱風外圍環流接近，風雨一陣一陣越來越強！', hot: '🥵 悶熱難耐，球員揮汗如雨（投手體力消耗加快）', haze: '😷 空氣品質轉差，遠方蒙上一層霾，高飛球更難看清', monsoon: '🌬 東北季風增強，風勢穩定又濕冷，偶有細雨' };
 function twEnter(nx) {
   const T = TW_SC[nx]; if (!T) return; G.rainT = T.rain ? T.rain() : 0;
@@ -7429,7 +7434,7 @@ function twEnter(nx) {
   if (G.mode === 'play' && !G.over) { say(TW_MSG[nx]); toast(TW_LBL[nx][1] + ' ' + TW_LBL[nx][0], '#fff', '#c84'); }
 }
 Object.assign(WX_NEXT, { plum: [['plum', 6], ['drizzle', 3], ['overcast', 3], ['heavy', .8], ['calm', 1]], thunder: [['thunder', 3], ['heavy', 2], ['drizzle', 4], ['overcast', 2], ['sunny', 2]], typhoon: [['typhoon', 6], ['heavy', 2], ['drizzle', 1.5], ['storm', .8]], hot: [['hot', 7], ['sunny', 3], ['thunder', 2], ['calm', 2], ['overcast', 1]], haze: [['haze', 7], ['overcast', 2], ['calm', 2], ['sunny', 1]], monsoon: [['monsoon', 7], ['overcast', 3], ['drizzle', 2], ['calm', 1]] });
-WX_NEXT.sunny.push(['hot', 1.2], ['thunder', .6]); WX_NEXT.calm.push(['hot', 1.2], ['thunder', .5], ['haze', .5]); WX_NEXT.overcast.push(['plum', 1], ['thunder', .6]); WX_NEXT.drizzle.push(['plum', 1.4]); WX_NEXT.heavy.push(['typhoon', .3]);
+WX_NEXT.sunny.push(['hot', 1.2]); WX_NEXT.calm.push(['hot', 1.2], ['haze', .5]); WX_NEXT.overcast.push(['plum', 1], ['thunder', .6]); WX_NEXT.drizzle.push(['plum', 1.4]); WX_NEXT.heavy.push(['typhoon', .3]);
 function drawTwFx(c, W, H) {          // 夜間燈塔眩光／暗角、悶熱熱浪、霾害、梅雨濕氣
   if (!G.wx) return; const t = performance.now() / 1000, on = wxIn();
   if (G.night) {
@@ -7446,7 +7451,7 @@ function drawTwFx(c, W, H) {          // 夜間燈塔眩光／暗角、悶熱熱
 function shiftScene() {              // 隨比賽進行，天氣情境會慢慢轉變（晴→多雲→陰→雨，或雲散放晴）
   const cur = G.wxScen, tb = WX_NEXT[cur]; if (!tb) return;
   const nx = weighted(tb.map(x => x[0]), twW(tb, G.wx && G.wx.venue)); if (nx === cur) return;
-  G.wxScen = nx; G.cloudBase = cloudFor(nx); G.windBoost = scenBoost(nx); twEnter(nx);
+  G.scCool = 1; G.wxScen = nx; G.cloudBase = cloudFor(nx); G.windBoost = scenBoost(nx); twTempShift(nx); twEnter(nx);
   const clear = s => s === 'sunny' || s === 'calm';
   if (G.mode === 'play' && !G.over) { if (clear(cur) && nx === 'overcast') say(G.night ? '☁️ 雲層變厚，遮住了星月…' : '☁️ 雲層變厚了，天色漸漸暗下來…'); else if (cur === 'overcast' && clear(nx)) say(G.night ? '🌌 雲層散開，星月露臉，天氣轉好了！' : '🌤 雲層散開，陽光露臉，天氣轉好了！'); else if (nx === 'sunny' && cur !== 'calm') say(G.night ? '🌙 天空放晴，月光與燈光灑滿球場！' : '☀️ 天空放晴，陽光灑滿球場！'); else if ((nx === 'drizzle' || nx === 'heavy' || nx === 'storm') && (clear(cur) || cur === 'overcast')) say('🌦 烏雲壓境，雨點開始落下了…'); else if ((cur === 'drizzle' || cur === 'heavy' || cur === 'storm') && (nx === 'overcast' || nx === 'calm')) say(G.night ? '🌥 雨勢漸漸減弱，雲層慢慢散開…' : '🌥 雨勢漸漸減弱，天空慢慢轉亮…'); }
 }
