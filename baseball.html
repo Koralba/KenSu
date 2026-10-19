@@ -7144,8 +7144,7 @@ function wxLevel(r) { return r < .06 ? ['晴／多雲', '☀️'] : r < .3 ? ['�
 function initWeather(homeTeam, parkSel) {
   const on = G.wxOn !== false; let st = parkSel && PARKS[parkSel] ? parkSel : null;      // 玩家指定球場；未指定則依主場／移師場地／大巨蛋機率決定
   if (!st) {
-    if (Math.random() < .16) st = '台北大巨蛋';      // 室內大巨蛋：固定 16% 機率（再加上全聯盟加權抽中的機率，整體約 20%）
-    else if (Math.random() < .3) st = weighted(PARK_W.map(x => x[0]), PARK_W.map(x => x[1]));      // 30% 機率：全聯盟球場依 2026 年使用場次加權隨機（不一定是主隊主場）
+    if (Math.random() < .3) st = pick(STADIUMS);      // 30% 機率：從所有球場中平均隨機選一座（不一定是主隊主場）
     else { st = (homeTeam && homeTeam.home) || pick(STADIUMS.slice(0, 6)); const sat = homeTeam && SAT_PARKS[homeTeam.id]; if (sat) { let r = Math.random(); for (const [n, p] of sat) { if ((r -= p) < 0) { st = n; break; } } } }      // 70% 機率：主隊主場（偶爾移師外地）
   }
   const PK = PARKS[st] || PARKS['洲際棒球場'], dome = !!PK.dome; applyPark(st);
