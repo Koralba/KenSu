@@ -1121,7 +1121,7 @@ body.mob #pitchPanel{max-height:min(50dvh,calc(100dvh - (var(--cap,38px) + 8px +
   <button id="btnPush" class="hide">推進 <small>F</small></button><button id="btnBack" class="hide">回壘 <small>D</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><div class="pwRow"><button id="btnBuntT">短打</button><button id="btnPow">強打</button></div><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（擠壓／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -1152,6 +1152,16 @@ body.mob #pitchPanel{bottom:calc(var(--cap,38px) + 8px + var(--bs,76px) + 8px)}
 body:not(.touch) #btnBuntT{display:none!important}
 body.touch #acts #btnBunt{display:none!important}
 body.mob #btnBuntT{padding:6px 10px;font-size:12px;border-width:2px;border-radius:10px}
+
+/* ===== v8：短打／強打按鈕統一外觀：未使用＝不透明灰黑、短打使用中＝綠色、強打使用中＝橘紅色 ===== */
+#hud #btnBuntT,#hud #btnPow,body.mob #hud #btnBuntT,body.mob #hud #btnPow{min-height:26px;padding:0 14px;gap:0;border:2px solid transparent;border-radius:999px;font-weight:900;font-size:12px;letter-spacing:.12em;white-space:nowrap;color:#e4e8ee;text-shadow:0 1px 0 rgba(0,0,0,.6);opacity:1;
+  background:linear-gradient(#3b4048,#1b1e23) padding-box,linear-gradient(180deg,#b9c0ca,#5d646f 55%,#a9b0ba) border-box;box-shadow:0 2px 0 rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12);-webkit-backdrop-filter:none;backdrop-filter:none}
+#hud #btnBuntT.on,body.mob #hud #btnBuntT.on{color:#fff;text-shadow:0 1px 0 rgba(0,40,10,.75);background:linear-gradient(#5fdc7a,#1f9a3f) padding-box,linear-gradient(180deg,#e8ffd4,#4fcf6a 55%,#d2f7b8) border-box;box-shadow:0 2px 0 rgba(0,0,0,.55),0 0 12px rgba(79,207,106,.8)}
+#hud #btnPow.on,body.mob #hud #btnPow.on{color:#fff;text-shadow:0 1px 0 rgba(90,20,0,.75);background:linear-gradient(#ff8a3d,#e0360c) padding-box,linear-gradient(180deg,#ffd8b0,#e8501a 55%,#ffc9a0) border-box;box-shadow:0 2px 0 rgba(0,0,0,.55),0 0 12px rgba(255,100,40,.8)}
+@media (min-width:900px) and (min-height:600px){body.mob #hud #btnBuntT,body.mob #hud #btnPow{min-height:30px;font-size:13px}}
+#hud #acts #btnBunt,#hud #acts #btnPowPc{--rim:linear-gradient(180deg,#b9c0ca,#5d646f 55%,#a9b0ba);color:#e4e8ee;background:linear-gradient(105deg,#3b4048,#1b1e23) padding-box,var(--rim) border-box}
+#hud #acts #btnBunt.on{--rim:linear-gradient(180deg,#e8ffd4,#4fcf6a 55%,#d2f7b8);color:#fff;text-shadow:0 1px 0 rgba(0,40,10,.75);background:linear-gradient(105deg,#5fdc7a,#1f9a3f) padding-box,var(--rim) border-box;box-shadow:0 3px 0 rgba(0,0,0,.55),0 0 14px rgba(79,207,106,.8),inset 0 1px 0 rgba(255,255,255,.3)}
+#hud #acts #btnPowPc.on{--rim:linear-gradient(180deg,#ffd8b0,#e8501a 55%,#ffc9a0);color:#fff;text-shadow:0 1px 0 rgba(90,20,0,.75);background:linear-gradient(105deg,#ff8a3d,#e0360c) padding-box,var(--rim) border-box;box-shadow:0 3px 0 rgba(0,0,0,.55),0 0 14px rgba(255,100,40,.8),inset 0 1px 0 rgba(255,255,255,.3)}
 
 /* ===== 「更多」選單修正：項目太多往上展開會超出畫面、被其他面板蓋住 → 改兩欄排列、限制高度可捲動、提高層級 ===== */
 #hud #acts{z-index:31}
@@ -2736,6 +2746,7 @@ function resolveSwing(pt, sw, b) {
   if (ang < 14 && Q > .6) ev *= 1 + (Q - .6) * .2 * (.85 + b.con * .003);                       // 紮實擊中的低仰角球：強勁滾地球／平飛球
   if (cz === 'sweet' && Q > .6 && !sw.bunt) { const pull = clamp((Q - .6) / .4, 0, 1) * (.2 + skill * .25); ang += (clamp(ang, 7 + pwk * 2, 22 + pwk * 4) - ang) * pull; ev *= 1 + pull * .06 * (.6 + pskill * .6); }      // 甜蜜點＋好時機：球被打成「黃金仰角」的強勁平飛／長打，能力越強越明顯
   if (G.hitAndRun && !sw.bunt && ang > 4 && ang < 32) ang -= Math.min(ang - 3, 3.5 + Math.random() * 3.5);      // 打帶跑：打者壓低球路、盡量打成滾地球，配合起跑的跑者
+  if (G.offCall === 'sacfly' && !sw.bunt && G.on[2] && ang < 20) ang += Math.min(20 - ang, 5 + Math.random() * 5);      // 犧牲高飛：打者刻意把球打高，讓三壘跑者有機會觸壘跑回
   ang = clamp(ang, -26, 78);
   let th = side * s * 34 - side * inside * (inside > 0 ? 8 : 6.5) + (pj.x - sw.cx) / Math.max(R0, .3) * 8 + gauss() * (3 + 16 * (1 - Q)) * (.6 + .4 * mv);   // 內角偏拉、外角偏推
   if (marginal) {      // 擦邊／時機邊緣：方向由接觸幾何決定（球在棒頭側／偏早→拉向界外側，握把側／偏晚→推向另一側），力道依偏離程度遞減，不再擲硬幣
@@ -6257,7 +6268,7 @@ function prePitchCore(first) {
 }
 let _buntTs = 0;
 function cancelBunt(quiet) {              // 取消觸擊：一律把狀態、棒子姿勢、已投出球的處理都收乾淨
-  const had = G.callBunt; G.callBunt = false; G.sneak = false; if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; G.squeeze = null; }
+  const had = G.callBunt; G.callBunt = false; G.sneak = false; if (G.offCall === 'suicide' || G.offCall === 'safety' || G.offCall === 'sac') { G.offCall = null; G.squeeze = null; }
   if (PT && !PT.sw && !PT.done && G.phase === 'flight') { PT.pulled = true; if (had && !quiet) toast('收棒', '#cfe', '#07a'); }      // 球還沒過本壘前＝收棒（不嘗試觸擊）
   const b = E.bat;
   if (b && b.rig && humanBats() && G.human >= 0 && !(PT && PT.sw) && !(b.rig.anim && b.rig.anim.name === 'swing') && G.phase !== 'inplay' && G.phase !== 'result') batterStance();
@@ -6304,8 +6315,11 @@ function pitchReact(kind, end) {      // 投手／打者對結果的反應
   else if (end === 'BB') play('shrug', 1.1);
   else if (kind === 'ball' && G.balls === 3 && Math.random() < .4) play('wipe', 1.0);
 }
+function offHold() {      // 玩家打擊時：「更多」選單或進攻戰術面板開著，電腦投手就先等待，不會在你選戰術時就投球
+  try { if (!(humanBats() && G.human >= 0) || G.mode !== 'play') return false; const sb = $('sub'); return $('acts').classList.contains('open') || (!sb.classList.contains('hide') && sb.dataset.k === 'o'); } catch (e) { return false; }
+}
 function updatePre(dt) {
-  G.preT += dt; behaviorTick(dt); if (G.preSwAt > 0 && G.preT >= G.preSwAt) { G.preSwAt = -1; if (!(humanBats() && G.human >= 0)) practiceSwing(); }      // 玩家打擊時不自動試揮，只有玩家自己按鍵才會揮棒
+  G.preT += dt; if (offHold() && G.preT > G.pitchDelay - .4) G.preT = Math.max(0, G.pitchDelay - .4); behaviorTick(dt); if (G.preSwAt > 0 && G.preT >= G.preSwAt) { G.preSwAt = -1; if (!(humanBats() && G.human >= 0)) practiceSwing(); }      // 玩家打擊時不自動試揮，只有玩家自己按鍵才會揮棒
   if ((!humanPitches() || G.intWalk) && !G.cpuBusy) { G.prepT -= dt; if (G.prepT <= 0) { const d = prepAction(); G.prepT = d + .08 + Math.random() * .2; } }      // 等待期間（含玩家考慮 ABS 時），投手持續做準備動作
   if (G.preT > G.pitchDelay + (G.absPend ? 3.6 : 0) && (!humanPitches() || G.intWalk) && !G.cpuBusy && (Math.hypot(E.F.P.x - DEFAULT_POS.P.x, E.F.P.z - DEFAULT_POS.P.z) < .4 || G.preT > G.pitchDelay + 1.2) && (G.preT > G.pitchDelay + .5 || !(E.F.P.rig.anim && E.F.P.rig.anim.name !== 'stretch' && E.F.P.rig.anim.t < E.F.P.rig.anim.dur * .9))) cpuDeliver();     // 投手回到投手丘才開始投
 }
@@ -8175,21 +8189,32 @@ function openOffPanel() {
   const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } sub.classList.add('hide'); }; sub.appendChild(d); };
   const stopBunt = () => { if (G.callBunt) { cancelBunt(true); applyBatStance(); } };
   const none = !(G.offCall || G.leadMode || G.stealReq || G.callBunt);
-  mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、盜壘、擠壓、打帶跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.stealSet = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
-  if (G.on[2] && G.on[2].state === 'on' && G.outs < 2) {
-    head('擠壓短打（三壘有人、未滿兩出局；再按一次＝取消）');
+  mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、犧牲打、盜壘、擠壓、打帶跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.stealSet = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
+  const o2 = G.outs < 2, on3 = !!(G.on[2] && G.on[2].state === 'on'), on12 = !!((G.on[0] && G.on[0].state === 'on') || (G.on[1] && G.on[1].state === 'on'));
+  const dis = (txt, why) => { const d = document.createElement('div'); d.className = 'pbtn'; d.style.opacity = '.5'; d.innerHTML = txt + '<span style="color:#ffb0a0">⛔ 目前無法執行：' + why + '</span>'; d.onclick = () => { toast('無法執行：' + why, '#fff', '#c33'); say('進攻戰術<em>無法執行</em>：' + why); }; sub.appendChild(d); };
+  head('強迫取分・擠壓短打（再按一次＝取消）');
+  if (on3 && o2) {
     mk(`${G.offCall === 'safety' ? '✔ ' : ''}安全式擠壓<span>打者短打，三壘跑者看球再決定要不要衝回本壘</span>`, () => { if (G.offCall === 'safety') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = 'safety'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>安全式擠壓短打</em>'); toast('安全式擠壓', '#ffe9a0', '#c60'); }, G.offCall === 'safety');
     mk(`${G.offCall === 'suicide' ? '✔ ' : ''}自殺式擠壓<span>投手一出手三壘跑者就起跑，打者一定要把球短打在地上</span>`, () => { if (G.offCall === 'suicide') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = 'suicide'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>自殺式擠壓短打</em>！下一球三壘跑者起跑'); toast('自殺式擠壓', '#ffe9a0', '#c60'); }, G.offCall === 'suicide');
-  }
+  } else { const why = !on3 ? '三壘沒有跑者' : '已經兩出局（擠壓需未滿兩出局）'; dis('安全式擠壓（強迫取分）', why); dis('自殺式擠壓（強迫取分）', why); }
+  head('犧牲短打・犧牲高飛（再按一次＝取消）');
+  if (on12 && o2) {
+    mk(`${G.offCall === 'sac' ? '✔ ' : ''}犧牲短打<span>打者以出局數換取一、二壘跑者推進一個壘包，打者多半被刺殺</span>`, () => { if (G.offCall === 'sac') { G.offCall = null; stopBunt(); return; } G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = 'sac'; _buntTs = 0; if (!G.callBunt) toggleBunt(true); applyBatStance(); say('進攻戰術：<em>犧牲短打</em>，把跑者送上去！'); toast('犧牲短打', '#ffe9a0', '#c60'); }, G.offCall === 'sac');
+  } else dis('犧牲短打', !on12 ? '一、二壘都沒有跑者（三壘有人請用擠壓或犧牲高飛）' : '已經兩出局（犧牲短打需未滿兩出局）');
+  if (on3 && o2) {
+    mk(`${G.offCall === 'sacfly' ? '✔ ' : ''}犧牲高飛<span>打者刻意把球打高，外野接殺後三壘跑者觸壘跑回本壘得分；打成滾地球就沒效果</span>`, () => { if (G.offCall === 'sacfly') { G.offCall = null; return; } stopBunt(); G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = 'sacfly'; say('進攻戰術：<em>犧牲高飛</em>，打者要把球打高！'); toast('犧牲高飛', '#ffe9a0', '#c60'); }, G.offCall === 'sacfly');
+  } else dis('犧牲高飛', !on3 ? '三壘沒有跑者' : '已經兩出局（犧牲高飛需未滿兩出局）');
   const runs = []; if (G.on[1] && !G.on[2]) runs.push([1, '二壘跑者', '三壘']); if (G.on[0] && !G.on[1]) runs.push([0, '一壘跑者', '二壘']);
   if (runs.length) {
     head('盜壘（再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall !== 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
-      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，跑者立即起跑`); }, on); });
+      mk(`${on ? '✔ ' : ''}${nm}盜${to}<span>${r.pl.name}　速${r.pl.spd}</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } if (G.offCall === 'suicide' || G.offCall === 'safety' || G.offCall === 'sac') { G.offCall = null; stopBunt(); } G.offCall = null; G.stealSel = i; G.stealSet = null; G.stealReq = true; say(`進攻戰術：<em>${nm}盜${to}</em>，跑者立即起跑`); }, on); });
     head('打帶跑（跑者提前起跑、打者務必揮棒；再按一次＝取消）');
     runs.forEach(([i, nm, to]) => { const r = G.on[i], on = G.stealReq && G.offCall === 'hitrun' && (G.stealSel === i || (G.stealSel == null && i === runs[0][0]));
       mk(`${on ? '✔ ' : ''}${nm}打帶跑（跑${to}）<span>${r.pl.name}比盜壘更早起跑，打者要揮棒；滾地安打可多推進一壘，揮空或飛球有被刺殺／雙殺風險</span>`, () => { if (on) { G.stealReq = false; G.stealSel = null; G.stealSet = null; G.offCall = null; return; } stopBunt(); G.stealSel = i; G.stealSet = null; G.stealReq = true; G.offCall = 'hitrun'; say(`進攻戰術：<em>打帶跑</em>！${nm}提前起跑，打者務必揮棒`); toast('打帶跑', '#ffe9a0', '#c60'); }, on); });
   }
+  if (!runs.length) { head('盜壘・打帶跑'); const why = '沒有可前進的跑者（需一壘有人且二壘空，或二壘有人且三壘空）'; dis('盜壘', why); dis('打帶跑', why); }
+  if (!G.on.some(r => r && r.state === 'on')) { head('壘上跑者離壘距離'); dis('大幅／標準／保守離壘', '壘上沒有跑者'); }
   if (G.on.some(r => r && r.state === 'on')) {
     head('壘上跑者離壘距離');
     mk(`${G.leadMode > 0 ? '✔ ' : ''}大幅離壘<span>離壘更遠、更容易推進，但也更容易被牽制、被電腦看穿</span>`, () => { G.leadMode = G.leadMode > 0 ? 0 : 1; say(G.leadMode ? '跑者：<em>大幅離壘</em>' : '跑者：標準離壘'); }, G.leadMode > 0);
@@ -8223,7 +8248,8 @@ function openStealPanel() {      // 盜壘選擇：全員盜壘，或自己勾�
 }
 $('btnOff').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 'o') { sub.classList.add('hide'); return; }
-  if (G.human < 0 || !humanBats() || G.phase !== 'pre') { say('自己進攻、投球前才能下達進攻戰術'); return; }
+  if (G.human < 0 || !humanBats()) { say('進攻戰術只能在自己打擊時使用（守備時請用「戰術（敬遠／站位）」）'); return; }
+  if (G.phase !== 'pre') { say('投手已經開始投球動作，請在下一球投球前下達進攻戰術'); return; }
   openOffPanel();
 };
 $('btnTac').onclick = () => {
