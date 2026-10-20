@@ -228,10 +228,10 @@ const SKY = { clear: { bg: 0x86bdf2, fog: 0xa6c8e6, fn: 140, ff: 360, hemi: .82,
   overcast: { bg: 0x8d97a5, fog: 0x9ba4b1, fn: 110, ff: 300, hemi: .75, sun: .22, sc: 0xdde5ef, wall: .82, sp: [0, 90, 8], hc: 0xf0f2e6, hg: 0x4a7a40, fl: 0 },
   storm: { bg: 0x4a5461, fog: 0x586272, fn: 70, ff: 230, hemi: .6, sun: .1, sc: 0xb9c6d8, wall: .6, sp: [0, 90, 8], hc: 0xf0f2e6, hg: 0x4a7a40, fl: 0 } };
 /* 夜間：燈塔全開，整體亮度與白天相當（不昏暗），改用冷色天光＋暖白主燈＋兩盞泛光燈做出立體的夜場感 */
-const SKYN = { clear: { bg: 0x0b1838, fog: 0x1c2c58, fn: 150, ff: 420, hemi: .56, sun: .42, sc: 0xfff1d6, wall: 1.0, sp: [0, 95, 40], hc: 0xdfe8ff, hg: 0x4f8a55, fl: .26 },
-  sunny: { bg: 0x0b1838, fog: 0x1c2c58, fn: 150, ff: 420, hemi: .56, sun: .42, sc: 0xfff1d6, wall: 1.0, sp: [0, 95, 40], hc: 0xdfe8ff, hg: 0x4f8a55, fl: .26 },
-  overcast: { bg: 0x232b3c, fog: 0x38425e, fn: 120, ff: 340, hemi: .56, sun: .4, sc: 0xffe9cc, wall: 1.0, sp: [0, 95, 40], hc: 0xdfe6f5, hg: 0x4f8a55, fl: .26 },
-  storm: { bg: 0x161b27, fog: 0x2a3346, fn: 80, ff: 260, hemi: .52, sun: .34, sc: 0xdfe6f5, wall: .92, sp: [0, 95, 40], hc: 0xc6d2ea, hg: 0x44704c, fl: .24 } };
+const SKYN = { clear: { bg: 0x02050d, fog: 0x050b1a, fn: 220, ff: 640, hemi: .36, sun: .3, sc: 0xa8c0ff, wall: .95, sp: [-45, 90, -110], hc: 0x9db4e6, hg: 0x2c5436, fl: .62 },
+  sunny: { bg: 0x02050d, fog: 0x050b1a, fn: 220, ff: 640, hemi: .36, sun: .3, sc: 0xa8c0ff, wall: .95, sp: [-45, 90, -110], hc: 0x9db4e6, hg: 0x2c5436, fl: .62 },
+  overcast: { bg: 0x070b14, fog: 0x0c1324, fn: 170, ff: 520, hemi: .32, sun: .16, sc: 0x8fa4d0, wall: .93, sp: [-45, 90, -110], hc: 0x8fa0c8, hg: 0x2a4a32, fl: .56 },
+  storm: { bg: 0x03050a, fog: 0x070b16, fn: 110, ff: 360, hemi: .3, sun: .1, sc: 0x7f93bd, wall: .86, sp: [-45, 90, -110], hc: 0x7388b0, hg: 0x24402c, fl: .5 } };
 const _c3 = new THREE.Color();
 const mixHex = (a, b, t) => _c3.set(a).lerp(new THREE.Color(b), t).getHex();
 const HEXK = new Set(['bg', 'fog', 'sc', 'hc', 'hg']);
@@ -313,12 +313,12 @@ function applyLighting() {            // 依日夜、天氣（晴／陰／雨／
   scene.fog.near = fn; scene.fog.far = ff;
   hemi.intensity = mix(base.hemi, st.hemi); hemi.color.copy(col(base.hc, st.hc)); hemi.groundColor.copy(col(base.hg, st.hg));
   sun.intensity = mix(base.sun, st.sun); sun.color.copy(col(base.sc, st.sc)); sun.position.set(mix(base.sp[0], st.sp[0]), mix(base.sp[1], st.sp[1]), mix(base.sp[2], st.sp[2]));
-  flood1.intensity = flood2.intensity = mix(base.fl, st.fl);
-  if (ht > .01) { sun.intensity += .1 * ht; sun.color.lerp(_c2.set(0xffd89a), ht * .5); }                      // 悶熱：日照更強、偏暖
-  if (hz > .01) { sun.intensity *= 1 - hz * .25; sun.color.lerp(_c2.set(0xffc58a), hz * .5); }                  // 霾：日光變淡、偏橘
+  flood1.intensity = flood2.intensity = flood3.intensity = mix(base.fl, st.fl);
+  if (ht > .01 && !nt) { sun.intensity += .1 * ht; sun.color.lerp(_c2.set(0xffd89a), ht * .5); }                      // 悶熱：日照更強、偏暖
+  if (hz > .01 && !nt) { sun.intensity *= 1 - hz * .25; sun.color.lerp(_c2.set(0xffc58a), hz * .5); }                  // 霾：日光變淡、偏橘
   { const rb = G.rb || 0; if (rb > .01) { sun.color.lerp(_c2.set(0xffd9a0), rb * .6); sun.intensity += .16 * rb; hemi.intensity += .05 * rb; } }      // 彩虹時：暖色斜射光
-  const w = mix(base.wall, st.wall); wallMat.color.setScalar(w); stand.material.color.setScalar(clamp(w * (nt ? .92 : .98), .4, 1.1));
-  skyDome.material.color.copy(scene.fog.color).multiplyScalar(1.25); dark.material.color.set(nt ? 0x16301f : 0x23402a);
+  const w = mix(base.wall, st.wall); wallMat.color.setScalar(w); stand.material.color.setScalar(clamp(w * (nt ? .74 : .98), .4, 1.1));
+  skyDome.material.color.copy(scene.fog.color).multiplyScalar(nt ? 2.6 : 1.25); dark.material.color.set(nt ? 0x0a170e : 0x23402a);
 }
 function drawSky(c, W, H) {           // 晴：右上角柔和暖陽光暈；陰：灰藍色調與暗角（依雲量連續變化）
   if (!G.wxOn || !G.wx || G.wx.dome || G.wx.off) return; const cl = cloudK();
