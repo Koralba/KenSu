@@ -44,7 +44,8 @@ function rebuildField() {
   setupBatter();
 }
 const MOVEK = .78;      // 全場跑動速度係數：場地很大的感覺（跑者、守備員同步放慢）
-function fspeed(f) { return fspeed0(f) * MOVEK; }
+const FIELDK_OF = .95;      // 外野手跑動係數：外野距離最遠，不跟著跑者一起放慢到 .78（否則追球、撿球看起來像在散步）；內野與跑者仍用 MOVEK
+function fspeed(f) { const of = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF'; return fspeed0(f) * (of ? FIELDK_OF : MOVEK); }
 function fspeed0(f) { const pl = f.pl, of = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF'; return 3.7 + (pl.fld || 55) * 0.026 + ((pl.spd || 55) - 55) * (of ? .02 : .012) + (of ? .85 + (f.pos === 'CF' ? .25 : 0) : 0) + (f.pos === 'P' ? -.5 : 0); }      // 外野手腳程較快（中外野最快），並看個人跑速
 function armSpeed(pl) { return 15 + (pl.arm || 60) * 0.11; }      // 傳球飛行速度放慢（肩力60約21.6m/s、肩力90約24.9m/s）
 function setupBatter() {
