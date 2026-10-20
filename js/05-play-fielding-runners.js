@@ -303,6 +303,7 @@ function startSlide(r) {
   try { const p = runnerXZ(r, { x: 0, z: 0 }); spawnBurst(p.x, .15, p.z, .5 + clamp((spd - 50) * .012, 0, .6), '#c9a06a'); powderPuff(p.x, .12, p.z, 7, .5, 0, .3, 1.2, .35); flowSfx('swing', .5); if (spd >= 72) crowdCheer(.3); } catch (e) { }
 }
 function updateRunners(dt) {
+  G.rclk = (G.rclk || 0) + dt;      // 跑壘專用時鐘（只在跑者更新時前進）：記錄跑者踩壘的時間，供 close play 判斷「球比跑者晚到多久」
   for (const r of E.runners) {
     if (r.sliding && r.state !== 'run' && !(r.rig.anim && (r.rig.anim.name === 'slide' || r.rig.anim.name === 'hdive'))) r.sliding = false;
     if (r.sliding && r.state === 'run') { r.dustT = (r.dustT || 0) - dt; if (r.dustT <= 0) { r.dustT = .07; try { runnerXZ(r, _rp); spawnBurst(_rp.x + (Math.random() - .5) * .5, .1 + Math.random() * .15, _rp.z + (Math.random() - .5) * .5, .28 + Math.random() * .22, '#c9a06a'); } catch (e) { } } }
@@ -345,7 +346,7 @@ function reconcileRunners() {
 }
 function runnerArrive(r) {
   if (r.earlyGo && !r.bat && !PL && r.to >= 2 && r.to <= 3) { r.earlyGo = false; try { say(SAY.steal(r, true)); toast('盜壘成功！', '#fff27a', '#2a9a3a'); } catch (e) { } }
-  r.stealRun = false; r.from = r.to; r.ruledSafe = false; r.reviewed = false; r.arrT = G.clk || 0;
+  r.stealRun = false; r.from = r.to; r.ruledSafe = false; r.reviewed = false; r.arrT = G.rclk || 0;
   if (r.from >= 1 && r.from <= 3 && !r.slipped && !r.sliding) maybeSlip(r, r.stealer ? 1.6 : 1);
   if (r.from >= 1 && r.from <= 3) { if (r.stealer) maybeInjureRunner(r, 'slide'); else if (r.bat && r.from === 3) maybeInjureRunner(r, 'sprint'); else if (PL && PL.state === 'thrown') maybeInjureRunner(r, 'slide'); }
   if (r.trot && r.from >= 1 && r.from <= 3) { try { hrBaseFx(r.from); } catch (e) { } }
@@ -532,7 +533,8 @@ function throwTo(f, recv, b, info, forceRelay) {
   const dpTry = !!PL && PL.outsMade === 1 && b === 1 && (f.pos === '2B' || f.pos === 'SS' || f.pos === '3B'), rushK = (dpTry ? 1.55 : 1) * (PL.plan && PL.plan.dive && PL.plan.f === f && !PL.plan.robHR && PL.outsMade === 0 ? 1.6 : 1);      // 轉傳雙殺很倉促、撲接後來不及站穩就傳：暴傳機率提高
   const wild = clamp(0.018 * (1 + (70 - (f.pl.arm || 60)) / 60) * (d > 45 ? 1.5 : 1) + (f.pl.fld < 50 ? .01 : 0), .007, .08) * (1 + rainK() * 1.6) * moodVol(f.pl) * wm * rushK * chaosK(1 - G.half) > Math.random() && !PL.cleanThrow;      // 傳歪機率：傳球者肩力／守備、當下心情與低潮、當天運氣與場面氣氛(chaosK)、雨天暴雨，不是人人固定加成
   PL.state = 'thrown'; f.hasBall = false; f.rig.anim = { name: 'throw', t: 0, dur: .35, opt: { hand: 1 } }; faceRig(f.rig, target.x, target.z);
-  const dur = (dist2(f.x, f.z, target.x, target.z) / armSpeed(f.pl) + .05) * (laser ? .94 : roll ? 1.45 + clamp((tdist - hopD) / 60, 0, .3) : hop ? 1.12 + clamp((tdist - hopD) / 45, 0, .28) : 1);      // 彈地／滾地的球比較慢，跑者多出更多時間
+  const ofk = isOF0 ? .9 : 1;      // 外野手回傳：球速感與出手都比原本快一些（距離遠、不該像慢動作）
+  const dur = (dist2(f.x, f.z, target.x, target.z) / armSpeed(f.pl) + .05) * ofk * (laser ? .94 : roll ? 1.3 + clamp((tdist - hopD) / 70, 0, .22) : hop ? 1.06 + clamp((tdist - hopD) / 55, 0, .2) : 1);      // 彈地／滾地的球比較慢，跑者多出更多時間
   if (roll && tdist > 45) say(`<em>${POS_FULL[f.pos]}${f.pl.name}距離太遠，球彈了兩下才滾向壘包…</em>`, 2500);
   if (laser && tdist > 40) { toast('雷射肩！', '#fff', '#0a9'); say(`<em>${POS_FULL[f.pos]}${f.pl.name}的雷射肩！</em>一傳到位！`, 2500); }
   PL.thr = { dp: dpTry, rushed: rushK > 1.5 && !dpTry, hop, roll, laser, wkind: (() => { const q = Math.random(); return q < .4 ? 'wide' : q < .75 ? 'over' : 'short'; })(), from: f, to, b, t: 0, dur, x0: f.x, z0: f.z, x1: target.x, z1: target.z, wild, relay, delay: f.pos === 'C' ? clamp(.2 - (f.pl.arm || 60) * .0016 - (f.pl.fld || 60) * .0006 - (G.stealWatch || 0) * .05 - (G.stealAlert ? .03 : 0) - (G.lastPitchout ? .07 : 0), .03, .14) : .06, info };
