@@ -104,11 +104,13 @@ function snapToReady() {      // 轉場瞬間：所有守備員回到站位、�
   try { setBall({ x: 0, y: 0, z: 0 }, false); } catch (e) { }
   try { setCamBat(true); } catch (e) { }
 }
-function foulCurtain(msg, done) {      // 黑幕轉場：淡出 → 全員就定位 → 淡入 → 準備下一球
+function foulCurtain(msg, done) {      // 黑幕轉場（全螢幕上下百葉窗，樣式見 css/06-transition.css）：閉幕 → 全員就定位 → 開幕 → 準備下一球
   const c = $('curtain'), tok = G.crTok = (G.crTok || 0) + 1, lb = c && c.querySelector('span'); if (!c) { snapToReady(); done(); return; }
-  if (lb) lb.textContent = ''; c.style.opacity = 1;
+  if (lb) lb.textContent = msg || '';
+  c.classList.add('on');
   const ok = () => tok === G.crTok && !G.over && G.mode === 'play';
-  after(.55, () => { if (!ok()) { c.style.opacity = 0; return; } snapToReady(); after(.4, () => { c.style.opacity = 0; after(.4, () => { if (ok()) done(); }); }); });
+  const off = () => { if (tok === G.crTok) c.classList.remove('on'); };
+  after(.6, () => { if (!ok()) { off(); return; } snapToReady(); after(.45, () => { off(); after(.5, () => { if (ok()) done(); }); }); });
 }
 function fmReady() { for (const pos of POS_LIST) { const f = E.F[pos]; if (!f) continue; const q = formationPos(pos); if (dist2(f.x, f.z, q.x, q.z) > (pos === 'P' || pos === 'C' ? 1.8 : 1.0) || f.hasBall) return false; } return true; }
 function prePitch(first) {
