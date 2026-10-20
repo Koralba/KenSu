@@ -19,10 +19,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@500;700;900&family=Mochiy+Pop+One&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>window.THREE||document.write('<script src="js/three.min.js"><\/script>')</script>
 <link rel="stylesheet" href="css/01-base-title-menu-hud.css">
 <link rel="stylesheet" href="css/02-mobile-layout.css">
 <link rel="stylesheet" href="css/03-menu-lineup-result.css">
 <link rel="stylesheet" href="css/04-game-buttons-patches.css">
+<link rel="stylesheet" href="css/05-save-system.css">
 </head>
 <body>
 <div id="wrap">
@@ -40,7 +42,9 @@
   <div class="made"><small>— MADE IN CAM.SU</small>Made in Cam.Su</div>
 </div>
 
-<div id="careerDlg" class="hide"><div class="cbox"><div class="ct">🌟 生涯模式</div><div class="cs">非常抱歉，目前Su.正在開發中，請耐心等候...</div><button type="button" id="careerOk">我知道了</button></div></div>
+<div id="careerDlg" class="hide"><div class="cbox"><div class="ct">🌟 生涯模式</div><div class="cs">非常抱歉，目前Su.正在開發中，請耐心等候...</div><button type="button" id="careerLoad">📂 讀取生涯存檔</button><button type="button" id="careerOk">我知道了</button></div></div>
+
+<div id="saveDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="svTitle"><div class="sv-box"><div class="sv-t" id="svTitle">💾 存檔／讀取</div><div class="sv-s" id="svHint"></div><div class="sv-list" id="svList"></div><div class="sv-msg" id="svMsg"></div><div class="sv-foot"><button type="button" id="svImport">📥 匯入檔案</button><button type="button" id="svExpAll">📤 匯出全部</button><button type="button" id="svClose">關閉</button></div></div></div>
 
 <div id="exitDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="exitT"><div class="xbox"><div class="xt" id="exitT">離開遊戲？</div><div class="xs">將結束遊戲並關閉這個視窗。</div><div class="xb"><button type="button" id="exitNo">取消</button><button type="button" id="exitYes">離開遊戲</button></div></div></div>
 <div id="bye" class="hide"><div class="bt">感謝遊玩</div><div class="bs">中職野球 2027，下次球場見！</div><div class="bh hide" id="byeHint">瀏覽器不允許網頁自行關閉視窗。請直接關閉這個分頁，或用手機的 Home 鍵／上滑手勢回到桌面。</div><button type="button" id="byeBack" class="hide">回到遊戲</button></div>
@@ -82,7 +86,7 @@
     <div><b>挑戰</b>：<span class="d-pc">下一球投出前按 C，申請 ABS 鷹眼</span><span class="d-mob">出現「ABS 挑戰」鈕時點一下</span></div>
     <div><b>跑壘／全壘打判決</b>：<span class="d-pc">close play 或貼近界外柱、牆邊的球，出現挑戰面板時 4 秒內按 C</span><span class="d-mob">出現「ABS 挑戰」鈕時點一下</span>，回放後可能改判</div>
   </details>
-  <div class="mbar"><button type="button" id="menuBack" class="qbtn">← 主畫面</button><button type="button" id="quickBtn" class="qbtn">⚡ 直接開賽</button><button id="startBtn">編排陣容 ▶</button></div>
+  <div class="mbar"><button type="button" id="menuBack" class="qbtn">← 主畫面</button><button type="button" id="menuLoad" class="qbtn">📂 讀取存檔</button><button type="button" id="quickBtn" class="qbtn">⚡ 直接開賽</button><button id="startBtn">編排陣容 ▶</button></div>
 </div>
 
 <div id="hud" class="hide">
@@ -104,7 +108,7 @@
   <button id="btnPush" class="hide">推進 <small>F</small></button><button id="btnBack" class="hide">回壘 <small>D</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><div class="pwRow"><button id="btnBuntT">短打</button><button id="btnPow">強打</button></div><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnSave">💾 存檔／讀取</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="warmBox" class="hide"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -151,4 +155,6 @@
 <script src="js/11-game-flow.js"></script>
 <script src="js/12-systems.js"></script>
 <script src="js/13-ui-input-menu.js"></script>
-<script src="js/14-bullpen-loop-boot.js"></script></body></html>
+<script src="js/13b-save-system.js"></script>
+<script src="js/14-bullpen-loop-boot.js"></script>
+<script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></body></html>
