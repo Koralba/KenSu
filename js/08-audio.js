@@ -13,7 +13,8 @@ function sfxApplyVol() { if (!SND.master || !SND.ctx) return; const t = SND.ctx.
 function sndInit() {
   if (SND.ctx) { if (SND.ctx.state === 'suspended') SND.ctx.resume(); return; }
   try {
-    const C = new (window.AudioContext || window.webkitAudioContext)(); SND.ctx = C; SND.master = C.createGain(); SND.master.gain.value = sfxGainVal(); SND.master.connect(C.destination);
+    const C = new (window.AudioContext || window.webkitAudioContext)(); SND.ctx = C; SND.master = C.createGain(); SND.master.gain.value = sfxGainVal();
+    const mc = C.createDynamicsCompressor(); mc.threshold.value = -14; mc.knee.value = 18; mc.ratio.value = 5; mc.attack.value = .004; mc.release.value = .22; SND.master.connect(mc); mc.connect(C.destination);      // 總輸出壓縮／限幅：多層音效同時發聲（歡呼＋掌聲＋擊球）也不會爆音破音
     const len = C.sampleRate * 2, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * .97 + (Math.random() * 2 - 1) * .03; d[i] = l * 6; }
     const src = C.createBufferSource(); src.buffer = buf; src.loop = true; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = .5; const g = C.createGain(); g.gain.value = .07;
     src.connect(f); f.connect(g); g.connect(SND.master); src.start(); SND.crowdGain = g; SND.crowdF = f;
@@ -103,7 +104,12 @@ function crowdAmbTick() {      // 球場環境人聲：低沉的「嗡～」底�
   const swell = (G.phase === 'flight' || G.phase === 'windup') ? .03 : 0;      // 投球飛行時稍微安靜下來、帶一點期待感
   SND.amb.gain.setTargetAtTime(play ? .05 + Math.random() * .035 + swell + (crowdCheer.v || 0) * .08 : .02, t, 1.2);
   SND.ambF.frequency.setTargetAtTime(520 + Math.random() * 260, t, 1.0);
-  if (!play) return; const r = Math.random();
+  if (!play) return;
+  { const tens = (G.on && (G.on[1] || G.on[2])) && G.outs >= 2;      // 兩出局、得點圈有人：看台響起一串有節奏的拍手，營造緊張感
+    if (tens && G.phase === 'pre' && Math.random() < .3 && apOK(5)) for (let i = 0; i < 4; i++) setTimeout(() => noiseBurst(.05, 1500, .9, .16, 'bandpass'), i * 420);
+    if (G.night && !(typeof rainK === 'function' && rainK() > .15) && Math.random() < .45) { const f0 = 4300 + Math.random() * 500; for (let i = 0; i < 3; i++) setTimeout(() => tone(f0, .05, .008, 'sine'), i * 85); }      // 夜場：遠處極輕的蟲鳴
+  }
+  const r = Math.random();
   if (r < .16) { const n = 2 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) setTimeout(() => noiseBurst(.04, 1800 + Math.random() * 900, .8, .05 + Math.random() * .03, 'bandpass'), i * (180 + Math.random() * 140)); }      // 稀疏的零星拍手
   else if (r < .2) { const c = C.currentTime; noiseBurst(.5 + Math.random() * .4, 700 + Math.random() * 300, .6, .05, 'bandpass'); }      // 遠處一小群人的低語
 }
@@ -161,7 +167,7 @@ function hitSfx(res) {      // 擊球聲：木棒「叩」的實聲＋球被壓�
 }
 /* ---------------- 背景音樂（WebAudio 即時合成：輕鬆爵士／球場午後） ---------------- */
 const BGM = { vol: 50, mute: false, ctx: null, bus: null, ch: null, inst: null, lead: null, drum: null, gtr: null, noise: null, timer: 0, step: 0, t0: 0, track: 2, beat: .6, swing: .6, irc: {} };
-try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; const tk = localStorage.getItem('cpbl_bgm_track'); if (tk !== null && !isNaN(+tk) && +tk >= 0 && +tk < 5) BGM.track = +tk | 0; } catch (e) { }
+try { const v = localStorage.getItem('cpbl_bgm_vol'), m = localStorage.getItem('cpbl_bgm_mute'); if (v !== null && !isNaN(+v)) BGM.vol = clamp(+v, 0, 100); BGM.mute = m === '1'; const tk = localStorage.getItem('cpbl_bgm_track'); if (tk !== null && !isNaN(+tk) && +tk >= 0 && +tk < 16) BGM.track = +tk | 0; } catch (e) { }
 try { if (localStorage.getItem('cpbl_bgm_v2') !== '1') { BGM.track = 2; BGM.vol = Math.min(BGM.vol, 50); localStorage.setItem('cpbl_bgm_v2', '1'); localStorage.setItem('cpbl_bgm_track', '2'); localStorage.setItem('cpbl_bgm_vol', String(BGM.vol)); } } catch (e) { }      // 一次性：預設改為「應援號角」、音量不超過 50
 const BGM_LOOP = 128;
 const BGM_CH = {
@@ -441,12 +447,139 @@ function chipPlay(n, t) {
   bgmNoise(t, 'highpass', 9500, .7, .03, st & 1 ? .05 : .08);
 }
 
+/* ===================== 新增曲目（5 首）：新樂器＋程序式作曲 ===================== */
+function bgmStrings(ms, t, d, v) {      // 弦樂合奏：三重失諧鋸齒波、慢起音、濾波漸亮
+  const C = BGM.ctx;
+  ms.forEach(m => {
+    const g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(900, t); lp.frequency.linearRampToValueAtTime(2600, t + Math.min(.5, d * .5));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .05, t + Math.min(.28, d * .4)); g.gain.setTargetAtTime(0, t + d, .12);
+    [-9, 0, 9].forEach(dt => { const o = C.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(lp); o.start(t); o.stop(t + d + .9); });
+    lp.connect(g); g.connect(BGM.inst);
+  });
+}
+function bgmSuper(m, t, d, v, cut) {      // 超級鋸齒主奏（五重失諧）：電子曲的亮麗主旋律
+  const C = BGM.ctx, g = C.createGain(), lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 2; lp.frequency.setValueAtTime((cut || 3000) * .5, t); lp.frequency.exponentialRampToValueAtTime(cut || 3000, t + .05);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .07, t + .01); g.gain.setTargetAtTime(v * .05, t + .05, .2); g.gain.setTargetAtTime(0, t + d, .04);
+  [-14, -5, 0, 5, 14].forEach(dt => { const o = C.createOscillator(); o.type = 'sawtooth'; o.frequency.value = mtof(m); o.detune.value = dt; o.connect(lp); o.start(t); o.stop(t + d + .3); });
+  lp.connect(g); g.connect(BGM.lead);
+}
+function bgmRiser(t, d, v) {      // 升調噪音掃頻：段落前的緊張堆疊
+  const C = BGM.ctx, s = C.createBufferSource(); s.buffer = BGM.noise; s.loop = true; const f = C.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+  f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(7000, t + d); const g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * .18, t + d); g.gain.setTargetAtTime(0, t + d, .03);
+  s.connect(f); f.connect(g); g.connect(BGM.drum); s.start(t); s.stop(t + d + .2);
+}
+function sngRng(s) { return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+function mkSong(o) {      // 依和弦進行＋音階＋節奏型，自動編出 16 小節（A－B－A'－高潮）；每次固定同一首
+  const rn = sngRng(o.seed), sc = []; for (let oc = -3; oc <= 4; oc++) o.scale.forEach(x => sc.push(o.key + x + 12 * oc)); sc.sort((a, b) => a - b);
+  const R = [], T = [], M = [], tri = [];
+  o.prog.forEach(([off, q]) => {
+    const r = o.key + off; let b = r; while (b > o.bassHi) b -= 12; while (b < o.bassHi - 11) b += 12; R.push(b);
+    const rt = r + 12 * Math.ceil((o.chordLo - r) / 12), th = rt + (q === 'm' || q === 'd' ? 3 : q === 's' ? 5 : 4), fi = rt + (q === 'd' ? 6 : 7);
+    T.push([rt, th, fi]); tri.push([rt % 12, th % 12, fi % 12]);
+  });
+  const lo = sc.findIndex(x => x >= o.lo); let hi = 0; sc.forEach((x, i) => { if (x <= o.hi) hi = i; });
+  const nearest = (idx, bar) => { let best = idx, bd = 99; for (let k = lo; k <= hi; k++) if (tri[bar].includes(sc[k] % 12)) { const d = Math.abs(k - idx) + rn() * .3; if (d < bd) { bd = d; best = k; } } return best; };
+  let pos = sc.findIndex(x => x >= o.start);
+  for (let bar = 0; bar < 16; bar++) {
+    if (bar >= 8 && bar < 12) { M.push(M[bar - 8].map(([s, m, l]) => { if (s % 4 !== 0) return [s, m, l]; let k = sc.indexOf(m); if (k >= 0 && !tri[bar].includes(m % 12)) k = nearest(k, bar); return [s, k >= 0 ? sc[k] : m, l]; })); continue; }      // 第三段重現第一段的旋律（記憶點）
+    const pat = o.rhy[(bar >> 2) % o.rhy.length], fl = (bar & 3) === 3 ? (o.fill || pat) : pat, lift = bar >= 12, notes = [];
+    fl.forEach(([s, l], k) => {
+      if (k === 0 || s === 0 || s === 4) pos = nearest(clamp(pos + (lift ? 1 : 0), lo, hi), bar);
+      else { const stp = [-2, -1, -1, 1, 1, 2][Math.floor(rn() * 6)]; pos = clamp(pos + stp + (lift && rn() < .3 ? 1 : 0), lo, hi); }
+      notes.push([s, sc[pos], l]);
+    });
+    M.push(notes);
+  }
+  { let best = -1; for (let k = lo; k <= hi; k++) if (sc[k] % 12 === o.key % 12 && (best < 0 || Math.abs(k - pos) < Math.abs(best - pos))) best = k; const ln = M[15], z = ln[ln.length - 1]; if (best >= 0) ln[ln.length - 1] = [z[0], sc[best], Math.max(2, 8 - z[0])]; }      // 最後一小節回到主音
+  return { R, T, M };
+}
+const SONGS = {}, song = o => SONGS[o.id] || (SONGS[o.id] = mkSong(o)), MIN7 = [0, 2, 3, 5, 7, 8, 10], MAJ7 = [0, 2, 4, 5, 7, 9, 11];
+const SNG_CLUTCH = { id: 'clutch', seed: 7141, key: 62, scale: MIN7, bassHi: 47, chordLo: 57, lo: 69, hi: 88, start: 74,
+  prog: [[0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [5, 'm'], [0, 'm'], [8, 'M'], [10, 'M'], [5, 'm'], [0, 'm'], [7, 'M'], [7, 'M']],
+  rhy: [[[0, 2], [2, 1], [3, 1], [4, 2], [6, 2]], [[0, 1], [1, 1], [2, 2], [4, 1], [5, 1], [6, 2]], [[0, 3], [3, 1], [4, 2], [6, 2]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 2], [6, 2]]], fill: [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 2]] };
+const SNG_ACE = { id: 'ace', seed: 2203, key: 64, scale: MIN7, bassHi: 47, chordLo: 52, lo: 64, hi: 83, start: 71,
+  prog: [[0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [5, 'm'], [0, 'm'], [3, 'M'], [10, 'M'], [5, 'm'], [0, 'm'], [8, 'M'], [7, 'M']],
+  rhy: [[[0, 4], [4, 2], [6, 2]], [[0, 2], [2, 2], [4, 4]], [[0, 3], [3, 1], [4, 4]]], fill: [[0, 2], [2, 1], [3, 1], [4, 2], [6, 2]] };
+const SNG_BASES = { id: 'bases', seed: 9187, key: 57, scale: MIN7, bassHi: 45, chordLo: 57, lo: 69, hi: 93, start: 76,
+  prog: [[0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [5, 'm'], [8, 'M'], [0, 'm'], [7, 'M'], [5, 'm'], [8, 'M'], [7, 'M'], [7, 'M']],
+  rhy: [[[0, 1], [1, 1], [2, 1], [3, 1], [4, 2], [6, 2]], [[0, 2], [2, 1], [3, 1], [4, 1], [5, 1], [6, 2]], [[0, 1], [1, 1], [2, 2], [4, 1], [5, 1], [6, 1], [7, 1]]], fill: [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]] };
+const SNG_VICT = { id: 'victory', seed: 5519, key: 60, scale: MAJ7, bassHi: 47, chordLo: 55, lo: 67, hi: 88, start: 72,
+  prog: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [5, 'M'], [0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [0, 'M']],
+  rhy: [[[0, 2], [2, 1], [3, 1], [4, 2], [6, 2]], [[0, 1], [1, 1], [2, 2], [4, 2], [6, 1], [7, 1]], [[0, 3], [3, 1], [4, 4]]], fill: [[0, 1], [1, 1], [2, 1], [3, 1], [4, 4]] };
+const SNG_NIGHT = { id: 'night', seed: 3301, key: 63, scale: MAJ7, bassHi: 46, chordLo: 55, lo: 70, hi: 86, start: 74,
+  prog: [[0, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [2, 'm'], [7, 'M'], [0, 'M'], [9, 'm'], [2, 'm'], [7, 'M'], [0, 'M'], [0, 'M']],
+  rhy: [[[0, 3], [3, 1], [4, 4]], [[0, 2], [2, 2], [4, 2], [6, 2]], [[1, 2], [3, 1], [4, 3]]], fill: [[0, 2], [2, 2], [4, 4]] };
+function trackCtx(n, SN) { const s = n % 128, bar = s >> 3, loop = Math.floor(n / 128), S = song(SN); return { S, bar, st: s & 7, loop, R: S.R[bar], T: S.T[bar], M: S.M[bar], chorus: bar >= 8, intro: loop === 0 && bar < 2, dur: k => bgmStepTime(n + k) - bgmStepTime(n) }; }
+/* 曲目 6：逆轉關鍵（D 小調・138 BPM・弦樂切分＋超鋸齒＋銅管，緊張追分） */
+function clutchPlay(n, t) {
+  const { bar, st, loop, R, T, M, chorus, intro, dur } = trackCtx(n, SNG_CLUTCH);
+  bgmSynBass(R, t, dur(.9), st === 0 ? 1 : st & 1 ? .6 : .8, 'sawtooth', 480);
+  if (st === 0) bgmStrings(T, t, dur(8), chorus ? .95 : .7); else if (!intro && (st === 3 || st === 6)) bgmStrings(T, t, dur(1), .8);
+  if (chorus && (st === 0 || st === 3 || st === 6)) bgmBrass(T, t, dur(1.2), .55);
+  if (!intro) M.forEach(([ms, m, l]) => { if (ms === st) { bgmSuper(m, t, dur(l) * .95, 1, chorus ? 3600 : 2600); if (chorus) bgmBrass([m], t, dur(l) * .95, .7); } });
+  if (!intro) { if (st === 0 || st === 4 || (chorus && st === 3)) bgmKick(t, .7); if (st === 2 || st === 6) bgmSnare(t, .9); bgmHat(t, st & 1 ? .5 : .8, st === 7); }
+  if (bar === 7 || bar === 15) { if (st === 0) bgmRiser(t, dur(8), .9); if (st === 5 || st === 7) bgmSnare(t, .7); }
+  if (st === 0 && (bar & 3) === 0 && !(loop === 0 && bar === 0)) bgmCrash(t, .9);
+}
+/* 曲目 7：王牌登板（E 小調・104 BPM・電影感重鼓＋低音銅管） */
+function acePlay(n, t) {
+  const { bar, st, loop, R, T, M, chorus, intro, dur } = trackCtx(n, SNG_ACE);
+  if (st === 0) { bgmStrings(T, t, dur(8), .85); bgmSynBass(R, t, dur(7.5), 1, 'triangle', 300); }
+  if (st === 0 || st === 3) bgmBrass([R + 12, R + 19], t, dur(2.4), .6);
+  if (!intro) {
+    if (st === 0) { bgmKick(t, .8); bgmTom(t, 90, .9); } else if (st === 3) bgmTom(t, 110, .7); else if (st === 4) { bgmSnare(t, 1); bgmClap(t, .6); bgmKick(t, .5); } else if (st === 6) bgmTom(t, 130, .6);
+    if (chorus && (st & 1)) bgmHat(t, .4);
+    M.forEach(([ms, m, l]) => { if (ms === st) { bgmBrass([m], t, dur(l) * .95, 1); if (chorus) bgmBell(m + 12, t, dur(l), .8); } });
+  }
+  if (st === 0 && (bar & 3) === 0 && !(loop === 0 && bar === 0)) bgmCrash(t, .9);
+  if (bar === 15 && st >= 4) bgmTom(t, 220 - (st - 4) * 30, .9);
+}
+/* 曲目 8：滿壘危機（A 小調・150 BPM・高速電子脈衝＋超鋸齒主奏） */
+function basesPlay(n, t) {
+  const { bar, st, loop, R, T, M, chorus, intro, dur } = trackCtx(n, SNG_BASES);
+  bgmSynBass(R, t, dur(.8), st === 0 ? 1 : .7, 'sawtooth', 700);
+  bgmPulse(T[[0, 1, 2, 1, 2, 1, 0, 1][st]] + 12, t, dur(.9), .4, .25);
+  if (st === 0) bgmStrings(T, t, dur(8), .5);
+  if (!intro) M.forEach(([ms, m, l]) => { if (ms === st) bgmSuper(m, t, dur(l) * .9, 1, 3400); });
+  if (!(st & 1)) bgmKick(t, .65); if (st === 2 || st === 6) bgmClap(t, .6); bgmHat(t, st & 1 ? .55 : .35, !!(st & 1));
+  if (bar === 7 || bar === 15) { if (st === 0) bgmRiser(t, dur(8), 1); if (st >= 4) bgmSnare(t, .45 + (st - 4) * .15); }
+  if (st === 0 && (bar & 3) === 0 && !(loop === 0 && bar === 0)) bgmCrash(t, .9);
+}
+/* 曲目 9：冠軍之夜（C 大調・122 BPM・凱旋進行曲：銅管＋弦樂＋定音鼓＋鐘琴） */
+function victoryPlay(n, t) {
+  const { bar, st, loop, R, T, M, chorus, intro, dur } = trackCtx(n, SNG_VICT);
+  if (st === 0 || st === 4) bgmSynBass(R, t, dur(3.5), 1, 'sawtooth', 420); else if (st === 2 || st === 6) bgmSynBass(R + 7, t, dur(1.5), .7, 'sawtooth', 420);
+  if (st === 0) bgmStrings(T, t, dur(8), .9);
+  if (chorus && (st === 0 || st === 3 || st === 6)) bgmBrass(T, t, dur(st === 0 ? 3 : 1), .55); else if (!chorus && !intro && (st === 3 || st === 7)) bgmBrass(T, t, dur(.9), .35);
+  if (!intro) M.forEach(([ms, m, l]) => { if (ms === st) { bgmBrass([m], t, dur(l) * .95, 1); if (chorus) bgmBell(m + 12, t, dur(l), .8); } });
+  if (st === 0 || st === 4) bgmKick(t, .6); if (st === 2 || st === 6) { bgmSnare(t, .8); bgmClap(t, .5); }
+  if ((bar & 3) === 3 && st >= 4) bgmSnare(t, .55 + (st - 4) * .1);
+  if (chorus && st === 0) bgmTom(t, 85, .8);
+  if (st === 0 && (bar & 3) === 0 && !(loop === 0 && bar === 0)) bgmCrash(t, 1);
+}
+/* 曲目 10：夜場燈下（降 E 大調・96 BPM・電鋼琴＋顫音琴＋柔和鼓點，適合夜間比賽） */
+function nightPlay(n, t) {
+  const { bar, st, R, T, M, intro, dur } = trackCtx(n, SNG_NIGHT);
+  if (st === 0) { T.forEach((m, i) => bgmRhodes(m, t + i * .015, dur(2.7), 1)); bgmPad(T, t, dur(8)); } else if (st === 3 || st === 6) T.forEach((m, i) => bgmRhodes(m, t + i * .015, dur(1.4), .45));
+  if (st === 0) bgmBass(R, t, dur(2.7), 1); else if (st === 3) bgmBass(R + 7, t, dur(1), .7); else if (st === 4) bgmBass(R, t, dur(2.6), .85);
+  if (!intro) {
+    M.forEach(([ms, m, l]) => { if (ms === st) bgmBell(m, t, dur(l), .9); });
+    if (st === 0 || st === 4) bgmKick(t, .4); if (st === 2 || st === 6) bgmNoise(t, 'bandpass', 1800, .8, .09, .1);
+    bgmNoise(t, 'highpass', 7500, .7, .04, st & 1 ? .03 : .05);
+  }
+}
+
 const BGM_TRACKS = [
   { id: 'jazz', icon: '🎷', name: '午後球場', sub: '輕鬆爵士・電鋼琴與刷鼓', tag: '休閒', bpm: 100, swing: .6, trim: 1, mix: { rev: 2.2, revWet: .22, dly: .75, fb: .28, dw: .3, drum: .8 }, play: bgmPlayStep },
   { id: 'rock', icon: '🔥', name: '熱血決戰', sub: '激昂搖滾・失真吉他與重鼓', tag: '熱血', bpm: 156, swing: .5, trim: .8, mix: { rev: 1.2, revWet: .12, dly: .75, fb: .22, dw: .16, drum: 1 }, play: rockPlay },
   { id: 'brass', icon: '📯', name: '應援號角', sub: '銅管進行曲・拍手與小鼓', tag: '熱血', bpm: 128, swing: .5, trim: .72, mix: { rev: 1.8, revWet: .2, dly: .5, fb: .2, dw: .15, drum: .95 }, play: brassPlay },
   { id: 'sun', icon: '🌴', name: '夏日海風', sub: '輕快烏克麗麗・彈跳木琴', tag: '輕鬆', bpm: 116, swing: .56, trim: 1.05, mix: { rev: .9, revWet: .14, dly: .75, fb: .25, dw: .22, drum: .7 }, play: sunPlay },
-  { id: 'chip', icon: '🕹', name: '街機全壘打', sub: '8-bit 電玩・復古亢奮', tag: '趣味', bpm: 144, swing: .5, trim: .62, mix: { rev: .5, revWet: .06, dly: .75, fb: .3, dw: .2, drum: .7 }, play: chipPlay }
+  { id: 'chip', icon: '🕹', name: '街機全壘打', sub: '8-bit 電玩・復古亢奮', tag: '趣味', bpm: 144, swing: .5, trim: .62, mix: { rev: .5, revWet: .06, dly: .75, fb: .3, dw: .2, drum: .7 }, play: chipPlay },
+  { id: 'clutch', icon: '⚡', name: '逆轉關鍵', sub: '緊張追分・弦樂切分與銅管', tag: '緊張', bpm: 138, swing: .5, trim: .78, mix: { rev: 1.6, revWet: .16, dly: .75, fb: .22, dw: .14, drum: 1 }, play: clutchPlay },
+  { id: 'ace', icon: '🧢', name: '王牌登板', sub: '電影感重鼓・低音銅管', tag: '氣勢', bpm: 104, swing: .5, trim: .78, mix: { rev: 2.4, revWet: .24, dly: .75, fb: .2, dw: .12, drum: 1 }, play: acePlay },
+  { id: 'bases', icon: '🚨', name: '滿壘危機', sub: '高速電子脈衝・超鋸齒主奏', tag: '刺激', bpm: 150, swing: .5, trim: .7, mix: { rev: 1, revWet: .1, dly: .75, fb: .3, dw: .22, drum: 1 }, play: basesPlay },
+  { id: 'victory', icon: '🏆', name: '冠軍之夜', sub: '凱旋進行曲・管絃與定音鼓', tag: '榮耀', bpm: 122, swing: .5, trim: .74, mix: { rev: 2.2, revWet: .24, dly: .5, fb: .2, dw: .12, drum: 1 }, play: victoryPlay },
+  { id: 'night', icon: '🌙', name: '夜場燈下', sub: '質感夜曲・電鋼琴與顫音琴', tag: '質感', bpm: 96, swing: .56, trim: 1, mix: { rev: 2.8, revWet: .3, dly: .75, fb: .3, dw: .28, drum: .75 }, play: nightPlay }
 ];
 document.addEventListener('visibilitychange', () => { const c = SND.ctx; if (!c) return; if (document.hidden) c.suspend(); else c.resume(); });
 /* ===== 現代棒球音效改版：以噪音塑形取代電子音（擊球木棒聲、皮手套、觀眾掌聲／歡呼／嘆息） ===== */
