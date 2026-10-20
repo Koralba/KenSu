@@ -8,7 +8,8 @@
 2. 函式只在「執行時」才呼叫其他檔的函式，所以新增函式放哪個檔都能被呼叫；但**頂層立即執行的語句**只能用「編號較小的檔」裡的東西。
 3. `14-bullpen-loop-boot.js` 結尾的 `boot()` 會啟動遊戲 → **新增檔案（例如生涯模式）請插在 13b 與 14 之間**，在 baseball.html 加一行 `<script src="js/13c-career-xxx.js"></script>`，並在檔頭加 `'use strict';`。
 4. `mkRng`（653 起的 03 檔與 04 檔各有一份）、`practiceSwing`（11 與 13 檔各有一份）是原檔就有的**同名重複**，後載入者生效，**不要改動或刪除**（保持行為與原版一致）。
-5. CSS 是「補丁式堆疊」，後面的規則會覆蓋前面的；要覆蓋既有樣式，新規則放在最後（04）或新建 `css/05-xxx.css` 並接在 04 之後載入。
+5. **新增任何 css/js/images 檔，必做三件事**：①`baseball.html` 加載入標籤；②`sw.js` 的 `LOCAL` 清單加路徑；③`sw.js` 的 `VERSION` 數字 +1（否則已安裝的玩家拿不到新檔，離線時還可能缺檔）。
+6. CSS 是「補丁式堆疊」，後面的規則會覆蓋前面的；要覆蓋既有樣式，新規則放在最後（04）或新建 `css/0N-xxx.css` 並接在最後一個 css 之後載入。
 
 ## JS（依載入順序）
 | 檔案 | 內容 | 修改時機 |
@@ -37,6 +38,7 @@
 | `03-menu-lineup-result.css` | v3~v5 選單、賽前編成、結算、主畫面按鈕、開場動畫、離開、投球準度條、ABS 面板 |
 | `04-game-buttons-patches.css` | 比賽按鈕主題、ABS 置中、全壘打特效、牛棚、觸控版、能力等級色、「更多」選單、修正補丁 |
 | `05-save-system.css` | 存檔／讀取視窗（`#saveDlg`）、主選單「讀取存檔」鈕 |
+| `06-transition.css` | **黑幕轉場 `#curtain`**（全螢幕上下百葉窗＋金線＋文字）。`#curtain` 位於 `<body>` 最外層（不在 `#hud` 內），由 `11-game-flow.js` 的 `foulCurtain()` 加／移除 `.on` |
 
 ## 生涯模式接入點（目前）
 - 主畫面按鈕：`14-…boot.js` 的 `$('tmCareer').onclick`（現在只開「開發中」的 `#careerDlg`）。
@@ -49,6 +51,39 @@
 - localStorage 鍵：`cpbl2027.save.<normal|career>.<1~3>`；匯出檔格式 `{app:'cpbl2027', fmt:1, saves:[…]}`，內含 FNV 校驗碼。
 - 生涯模式：註冊 `SAVE.hooks.career = { active, collect, apply }` 後，存檔會一併帶上 `collect()` 的資料，讀檔後呼叫 `apply(extra)`。
 
+## PWA／離線（不是遊戲邏輯，但每次新增檔案都要連動）
+| 檔案 | 內容 | 修改時機 |
+|---|---|---|
+| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v2）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
+| `yw_manifest.json` | PWA 安裝資訊（名稱、圖示、全螢幕、橫向、主題色）。`baseball.html` 以 `<link rel="manifest">` 引用 | 改 App 名稱、圖示、顯示方式 |
+
+> 注意：`sw.js` 的 `LOCAL` 目前**尚未**列入 `js/13c-*.js`（生涯模式）。新增 13c 時務必一併補上。
+
+## 任務 → 需要上傳的檔案（給下一個 AI／使用者）
+**任何任務都先傳 `FILE_MAP.md`。** 其餘依任務挑選（不確定時多傳 `baseball.html`）。
+| 任務 | 請上傳 |
+|---|---|
+| 轉場／黑幕（半局、就位、換球） | `css/06-transition.css`、`js/11-game-flow.js`、`baseball.html`（若動 DOM） |
+| 開場介紹／球場介紹動畫 | `css/02-mobile-layout.css`、`js/11-game-flow.js` |
+| 主畫面／標題特效 | `css/03-menu-lineup-result.css`、`js/14-bullpen-loop-boot.js` |
+| 賽前選單／編成／戰術面板 | `css/03`、`js/13-ui-input-menu.js` |
+| 比賽中按鈕／HUD 版面 | `css/04`、`css/02`（手機）、`js/09-hud-commentary.js` |
+| 球員／球隊／能力 | `js/01-core-data.js` |
+| 球場外觀、夜間燈光 | `js/02-stadium-scene.js` |
+| 球員模型、鏡頭、特效 | `js/03-players-ball-camera.js` |
+| 投打手感、物理 | `js/04-pitch-swing-physics.js` |
+| 守備／跑壘／判決 | `js/05-…`、`js/06-…` |
+| 電腦 AI | `js/07-cpu-ai.js` |
+| 音樂音效 | `js/08-audio.js` |
+| 實況播報 | `js/09-hud-commentary.js` |
+| ABS、驅逐、傷退等事件 | `js/10-events.js` |
+| 比賽流程／結算 | `js/11-game-flow.js` |
+| 天氣／傷病／心情 | `js/12-systems.js` |
+| 存檔／讀檔 | `js/13b-save-system.js`、`css/05-save-system.css` |
+| 生涯模式（新增 13c） | `js/11`、`js/13`、`js/13b`、`js/14`、`baseball.html`、`sw.js` |
+| 新增任何檔案 | `baseball.html`、`sw.js`（＋要改的檔） |
+| PWA／離線／安裝 | `sw.js`、`yw_manifest.json`、`baseball.html` |
+| 不確定原因的樣式問題 | 對應 `css/*.css` 全部（`01` 含最基礎的 `#hud`、`#curtain` 舊規則） |
+
 ## 其他
 - 搜尋技巧：用 `grep -n "函式名" js/*.js` 找到檔案後，只讀該檔（或用 `sed -n 'a,bp'` 讀區段），不要整包讀。
-- 若有 Service Worker／快取清單（`yw_manifest.json` 等），請把舊的 `script.js`、`style.css` 換成上面的新檔名。
