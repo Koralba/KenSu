@@ -63,7 +63,7 @@ const SAVE = (function () {
   const hooks = {};
   const el = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const G_KEYS = ['inning', 'half', 'score', 'line', 'hits', 'errs', 'bi', 'innings', 'lv', 'easy', 'human', 'homeIdx', 'fancy', 'absOn', 'evt', 'wxOn', 'abs', 'coachOut', 'tilt', 'day', 'umpSkill', 'injQ', 'absStat', 'errPl', 'visits', 'hbpN', 'brawlN', 'forfeit', 'log', 'coach', 'stormHalves', 'batHist', 'pmodel', 'pickCount'];
+  const G_KEYS = ['roleCall', 'inning', 'half', 'score', 'line', 'hits', 'errs', 'bi', 'innings', 'lv', 'easy', 'human', 'homeIdx', 'fancy', 'absOn', 'evt', 'wxOn', 'abs', 'coachOut', 'tilt', 'day', 'umpSkill', 'injQ', 'absStat', 'errPl', 'visits', 'hbpN', 'brawlN', 'forfeit', 'log', 'coach', 'stormHalves', 'batHist', 'pmodel', 'pickCount'];
 
   /* ---------- 半局開始時的進度快照（只在記憶體，按下存入才寫進欄位） ---------- */
   function capture() {
