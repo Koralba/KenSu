@@ -85,6 +85,7 @@ const CSEASON = (function () {
     return B(p.name, p.pos, base.hand, .268, .338, .405, 6, 8, 14, 8, 64 + fw, 64);
   }
   function inject(teams, cfg) {
+    if (SS && SS.pro && SS.pro.active) return CPRO.inject(teams, cfg);      // 職業賽季：板凳候補起步
     const p = prof(); if (!p) return; const t = teams[cfg.side]; let me;
     if (p.pos === 'P') {
       me = mkPitcher(myRow(p)); me.isMe = true; me.num = String(p.num); me.mood = 62;
@@ -142,6 +143,11 @@ const CSEASON = (function () {
   /* ---------- 流程 ---------- */
   function begin(profile, slot) {
     ensureDom(); const old = readSeason(profile.id);
+    if (old && old.pro && old.pro.active) {      // 職業賽季進行中
+      if (confirm(`「${profile.name}」正在打職業賽季（${old.pro.done ? '例行賽已結束' : '已完成 ' + old.pro.log.length + ' 場'}）。\n按「確定」繼續；按「取消」放棄職業賽季、重新開始生涯。`)) {
+        SS = old; SS.profile = profile; saveSeason(); if (G.mode === 'title') { try { sndInit(); } catch (e) { } G.mode = 'menu'; $('title').classList.add('hide'); CAMC.mode = 'title'; } CPRO.showIntro(); return;
+      }
+    }
     if (old && old.idx < old.games.length) {
       if (confirm(`找到「${profile.name}」進行中的生涯（${(old.year > 0 ? '上班族第 ' + old.year + ' 年' : '社會甲組')}，已完成 ${old.idx}／${old.games.length} 場）。\n按「確定」繼續；按「取消」重新開始（舊進度會被覆蓋）。`)) { SS = old; SS.profile = profile; }
       else SS = newSeason(profile, slot);
@@ -183,15 +189,18 @@ ${n > 1 ? gamesTable() : ''}<div class="btns"><button id="csBack">返回主畫�
   }
 
   /* ---------- 比賽結束：記錄成績、接下一場或選秀 ---------- */
+  function buildRec() {      // 從目前（剛結束的）比賽整理出你的角色這一場的成績
+    const me = findMe(), side = G.human, my = G.score[side], op = G.score[1 - side], p = prof(), isP = p.pos === 'P', st = (me && me.st) || {};
+    const w = G.forfeit >= 0 ? 1 - G.forfeit : (my === op ? -1 : (my > op ? side : 1 - side)), res = w < 0 ? 'T' : (w === side ? 'W' : 'L');
+    const e = G.errPl && me && typeof G.errPl[me.name] === 'number' ? G.errPl[me.name] : 0, oppT = G.teams[1 - side];
+    return { pos: p.pos, my, op, res, oppName: oppT ? oppT.name : '對手', ab: st.ab || 0, h: st.h || 0, hr: st.hr || 0, rbi: st.rbi || 0, bb: isP ? (me ? (me.bbA || 0) : 0) : (st.bb || 0), k: isP ? (me ? (me.kA || 0) : 0) : (st.k || 0), e,
+      outs: isP && me ? (me.outs || 0) : 0, r: isP && me ? (me.er || 0) : 0, hA: isP && me ? (me.hA || 0) : 0 };
+  }
   function afterEnd(rs) {
+    if (SS && SS.pro && SS.pro.active && G.role) return CPRO.afterEnd(rs);      // 職業賽季（js/13e-career-pro.js）
     if (!SS || !G.role || !rs) return; const g = SS.games[SS.idx]; if (!g) return;
-    const me = findMe(), side = G.human, my = G.score[side], op = G.score[1 - side];
     if (!g.rec) {
-      const w = G.forfeit >= 0 ? 1 - G.forfeit : (my === op ? -1 : (my > op ? side : 1 - side)), res = w < 0 ? 'T' : (w === side ? 'W' : 'L'), p = prof(), st = (me && me.st) || {};
-      const e = G.errPl && me && typeof G.errPl[me.name] === 'number' ? G.errPl[me.name] : 0, oppT = G.teams[1 - side];
-      g.rec = { pos: p.pos, my, op, res, oppName: oppT ? oppT.name : '對手', ab: st.ab || 0, h: st.h || 0, hr: st.hr || 0, rbi: st.rbi || 0, bb: st.bb || 0, k: st.k || 0, e,
-        outs: me && me.kind === 'P' ? (me.outs || 0) : 0, r: me && me.kind === 'P' ? (me.er || 0) : 0, hA: me && me.kind === 'P' ? (me.hA || 0) : 0 };
-      if (p.pos === 'P') { g.rec.bb = me ? (me.bbA || 0) : 0; g.rec.k = me ? (me.kA || 0) : 0; }
+      g.rec = buildRec();
       SS.idx++; if (SS.idx >= NG()) SS.draft = doDraft(); saveSeason();
     }
     const rec = g.rec, p = prof();
@@ -253,11 +262,12 @@ ${n > 1 ? gamesTable() : ''}<div class="btns"><button id="csBack">返回主畫�
 <div class="row2"><div>${card}</div><div><table><tr><th style="text-align:left">項目</th><th>分數</th></tr>${bars}</table><div class="big">${d.sc} 分・評價 ${d.grade}</div></div></div>
 ${gamesTable()}<div class="reveal"><div class="pk" style="animation-delay:.3s">本屆選秀順位（每輪順序）：${d.order.map(i => esc(TEAMS[i].short)).join(' → ')}</div>
 <div class="pk" style="animation-delay:1.2s">${line}</div><div class="pk" style="animation-delay:2s">${fx}</div></div>
-${d.undrafted ? `<div class="task">😢 你成了<b>平凡的上班族</b>。白天被主管追著跑、假日才有時間打球……<br>但夢想還沒結束：接下來要度過<b>一整年（${N_YEAR} 個月，每月一場隨機社會組比賽）</b>，才有機會再參加選秀。</div>` : `<div class="task">🎉 你踏上了職業之路！<br><small>選秀之後的劇情之後再補上。</small></div>`}
-<div class="btns"><button id="csAgain">重新開始新的一輪</button>${d.undrafted ? '<button id="csWork" class="pri">▶ 回到社會組，度過這一年</button>' : ''}<button id="csHome"${d.undrafted ? '' : ' class="pri"'}>返回主畫面</button></div></div>`);
+${d.undrafted ? `<div class="task">😢 你成了<b>平凡的上班族</b>。白天被主管追著跑、假日才有時間打球……<br>但夢想還沒結束：接下來要度過<b>一整年（${N_YEAR} 個月，每月一場隨機社會組比賽）</b>，才有機會再參加選秀。</div>` : `<div class="task">🎉 你踏上了職業之路！你將加入<b>${esc(T.name)}</b>，從<b>${p.pos === 'P' ? '牛棚候補' : '板凳候補'}</b>開始，靠表現爭取先發。</div>`}
+<div class="btns"><button id="csAgain">重新開始新的一輪</button>${d.undrafted ? '<button id="csWork" class="pri">▶ 回到社會組，度過這一年</button>' : '<button id="csPro" class="pri">▶ 加入球隊，開始職業賽季</button>'}<button id="csHome">返回主畫面</button></div></div>`);
     saveSeason();
     el('csHome').onclick = () => { hide(); leave(); G.mode = 'title'; $('menu').classList.add('hide'); $('title').classList.remove('hide'); CAMC.mode = 'title'; };
     if (el('csWork')) el('csWork').onclick = startWorkerYear;
+    if (el('csPro')) el('csPro').onclick = () => CPRO.start();
     el('csAgain').onclick = () => { if (!confirm('要重新開始嗎？這一輪的紀錄會被覆蓋。')) return; SS = newSeason(prof(), SS.slot); saveSeason(); showIntro(); };
   }
 
@@ -268,7 +278,7 @@ ${d.undrafted ? `<div class="task">😢 你成了<b>平凡的上班族</b>。白
       SAVE.hooks.career = {
         active: () => !!(typeof CAREER !== 'undefined' && CAREER.session),
         collect: () => ({ profile: CAREER.session ? CAREER.session.profile : CAREER.cur, season: SS }),
-        prepare: x => { if (x && x.season) { SS = x.season; if (SS.profile) { const g = SS.games[Math.min(SS.idx, NG() - 1)]; if (g) register(g); } } },      // 在 13b 驗證球隊資料前先重建臨時球隊
+        prepare: x => { if (x && x.season) { SS = x.season; if (SS.profile && !(SS.pro && SS.pro.active)) { const g = SS.games[Math.min(SS.idx, NG() - 1)]; if (g) register(g); } } },      // 在 13b 驗證球隊資料前先重建臨時球隊
         apply: x => {
           if (old.apply) old.apply(x);
           if (x && x.season) { SS = x.season; if (CAREER.session) CAREER.session.profile = SS.profile; const me = findMe(); G.role = { pos: SS.profile.pos }; G.career = true; if (CAREER.session) CAREER.session.player = me; }
@@ -286,5 +296,6 @@ ${d.undrafted ? `<div class="task">😢 你成了<b>平凡的上班族</b>。白
     const _mk = makeChibi; makeChibi = function (o) { try { if (o && o.pl && o.pl.isMe && !o.vis && SS && SS.profile) o = Object.assign({}, o, { vis: CAREER.vis(SS.profile) }); } catch (e) { } return _mk.call(this, o); };      // 你的角色用建立角色時的外觀（若 makeChibi 不是可重新指定的 function 宣告，這段會安靜略過）
   } catch (e) { console.warn('makeChibi 無法包裝，角色外觀將使用預設', e); }
 
-  return { begin, inject, mine, afterEnd, get season() { return SS; }, scoreOf, N_GAMES, N_YEAR };
+  const setCfg = o => { if (!CFG0) CFG0 = Object.assign({}, CFG); Object.assign(CFG, o); syncCfg(); };
+  return { core: { ss: () => SS, save: saveSeason, show, hide, leave, findMe, myRow, buildRec, recLine, setCfg }, begin, inject, mine, afterEnd, get season() { return SS; }, scoreOf, N_GAMES, N_YEAR };
 })();
