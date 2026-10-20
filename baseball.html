@@ -1041,6 +1041,27 @@ body.mob #absPanel.abs-pop{right:calc(2px + env(safe-area-inset-right))!importan
 body.touch #pitchPanel{max-height:min(50dvh,calc(100dvh - (clamp(54px,9.5vh,92px) + 1.2vh + var(--bs,90px) + 10px) - var(--abstop,110px) - 40px))}
 body.mob #pitchPanel{max-height:min(50dvh,calc(100dvh - (var(--cap,38px) + 8px + var(--bs,76px) + 8px) - var(--abstop,110px) - 40px))}
 </style>
+<style>
+/* ===== 牛棚熱身 ===== */
+#warmBox{background:linear-gradient(rgba(70,28,8,.62),rgba(34,12,4,.55))!important;border:1.5px solid rgba(255,170,90,.75);border-radius:9px;padding:3px 9px;font-size:12px;font-weight:700;color:#ffe6cf;box-shadow:0 2px 6px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#warmBox .wr1{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;overflow:hidden}#warmBox .wr1 span{overflow:hidden;text-overflow:ellipsis}#warmBox .wr1.sm{font-size:10.5px;opacity:.9;font-weight:600}
+#warmBox .wbar{display:block;height:7px;margin:3px 0 2px;background:#0008;border-radius:4px;overflow:hidden}#warmBox .wbar u{display:block;height:100%;width:0;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a)}
+#warmBox.rdy{border-color:#7dff7d}#warmBox .wrw+.wrw{margin-top:4px;padding-top:3px;border-top:1px solid #fff3}#warmBox .wrw.rdy .wbar u{background:linear-gradient(90deg,#4fd35f,#b6ff7a)}
+#warmBox.hot{border-color:#ffa23a}#warmBox .wrw.hot .wbar u{background:linear-gradient(90deg,#ffb23a,#ff7a3a)}
+#warmBox.bad{border-color:#ff4a3a;animation:wbPulse .9s infinite}#warmBox .wrw.bad .wbar u{background:linear-gradient(90deg,#ff7a3a,#ff3a3a)}
+@keyframes wbPulse{50%{box-shadow:0 0 12px #f43}}
+body.mob #warmBox{padding:2px 7px;font-size:10px;border-width:1px}
+.pbtn .wu{flex:1 0 100%;display:flex;align-items:center;gap:8px;font-size:.82em;margin-top:3px}
+.pbtn .wu .wb{flex:1;min-width:40px;height:6px;background:#0008;border-radius:3px;overflow:hidden;display:block}.pbtn .wu .wb u{display:block;height:100%;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a)}
+.pbtn .wu em{font-style:normal;white-space:nowrap;opacity:.9}
+.wubtn{font:inherit;font-weight:900;font-size:.95em;padding:3px 9px;border-radius:8px;border:2px solid #ffb23a;background:#3a1c08;color:#ffd9a8;cursor:pointer;white-space:nowrap}.wubtn.on{background:#a33;border-color:#fff;color:#fff}
+#penUI{position:absolute;left:50%;top:2.2vh;transform:translateX(-50%);z-index:34;width:min(92vw,470px);background:rgba(8,16,30,.9);border:3px solid #ffb23a;border-radius:14px;padding:8px 14px 10px;text-align:center;color:#fff;pointer-events:auto;box-shadow:0 4px 18px #000a}
+#penUI .pn-t{font-weight:900;letter-spacing:.1em;color:#ffb23a;font-size:clamp(13px,2vh,16px)}#penUI .pn-n{font-weight:900;font-size:clamp(16px,2.8vh,22px);margin:2px 0 5px}
+#penUI .pn-m{display:flex;align-items:center;gap:8px;font-size:12px}#penUI .pn-b{flex:1;height:12px;background:#0009;border-radius:6px;overflow:hidden;display:block}#penUI .pn-b u{display:block;height:100%;width:0;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a,#ff6a3a);transition:width .25s}
+#penUI .pn-s{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:5px;opacity:.95}
+#penSkip{margin-top:7px;padding:6px 18px;font-weight:900;border-radius:9px;border:2px solid #fff;background:#10243a;color:#fff;cursor:pointer;font-size:13px}
+body.mob #penUI{top:1vh;padding:5px 10px 7px}
+</style>
 </head>
 <body>
 <div id="wrap">
@@ -1124,11 +1145,12 @@ body.mob #pitchPanel{max-height:min(50dvh,calc(100dvh - (var(--cap,38px) + 8px +
   <div id="touchBtns"><div class="pwRow"><button id="btnBuntT">短打</button><button id="btnPow">強打</button></div><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
   <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
-  <div id="leftCol"><div id="windBox"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
+  <div id="leftCol"><div id="windBox"></div><div id="warmBox" class="hide"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
   <div id="hawk" class="hide"></div>
   <div id="rp" class="hide"></div>
  <div id="brawlBanner" class="hide">⚾ 觸身球！雙方球員衝出休息室！ ⚾</div>
+  <div id="penUI" class="hide"><div class="pn-t">🔥 牛棚熱身 BULLPEN</div><div class="pn-n" id="penName">-</div><div class="pn-m"><span>熱身準備值</span><i class="pn-b"><u id="penBar"></u></i><b id="penVal">0%</b></div><div class="pn-s"><span id="penCnt">練投 0/8</span><span id="penGun">— km/h</span><span id="penMsg"></span></div><button type="button" id="penSkip">跳過 ▶</button></div>
   <div id="injOv" class="hide"><div id="injI">🚑</div><div id="injT"></div><div id="injD"></div></div>
   <style>#rainDelay{position:fixed;left:50%;top:27%;transform:translate(-50%,-50%);z-index:36;width:min(88vw,400px);background:rgba(8,20,40,.93);border:3px solid #6ab;border-radius:14px;padding:12px 16px;text-align:center;color:#fff;pointer-events:auto;box-shadow:0 4px 20px #000a}#rainDelay.hide{display:none!important}#rdTitle{font-weight:900;font-size:clamp(16px,2.6vh,20px);color:#8cf;margin-bottom:4px}#rdTx{font-size:clamp(12px,1.8vh,14px);opacity:.95;margin-bottom:8px;line-height:1.55}.rdlab{font-size:12px;opacity:.85;margin:6px 0 2px;text-align:left}#rdWait{background:linear-gradient(90deg,#4af,#8ef)!important}#rdBtn{margin-top:10px;width:100%;padding:12px;font-size:16px;background:#a33!important;user-select:none;-webkit-user-select:none}#rdBtn:active{background:#d44!important;transform:scale(.97)}
 /* ===== 觸控版：球種選單移到「投球／揮棒」鈕正上方（半透明）、左側方向區再往左 ===== */
@@ -1288,7 +1310,12 @@ const ZW = 0.55, ZC = 1.35, ZH = 0.72;      // strike zone half width / centre y
 const BALL_R = 0.16;
 const ZCM = 43 / (2 * ZW);      // 1 單位 ≈ 幾公分（好球帶寬 43cm 對應 2×ZW）
 let WALL_H = 5.4;
-const WALL_PTS = [[0, 80], [45, 74], [90, 36], [135, 24], [180, 22]];
+const FIELD_SCALE = 1.05;      // 界內外野牆整體放大 5%：外野更寬敞
+function buildWallPts(cf, gap, ln) {      // 界內：中外野→左右外野線；界外：外牆緊貼著邊線外側慢慢收攏，不再大幅內縮（界外區縮小、界內相對變大）
+  const R0 = (ln + 3) * FIELD_SCALE;
+  return [[0, cf * FIELD_SCALE], [22.5, (gap + 2) * FIELD_SCALE], [45, R0], [50, R0 * .91], [57, R0 * .70], [66, R0 * .57], [78, 36], [95, 30], [115, 26.5], [140, 25], [180, 24]];
+}
+const WALL_PTS = buildWallPts(80, 75.5, 71);
 function wallRadius(phi) {                // phi deg from centre field (0), either sign
   let a = Math.abs(phi); a = a > 180 ? 360 - a : a;
   for (let i = 0; i < WALL_PTS.length - 1; i++) {
@@ -1299,7 +1326,7 @@ function wallRadius(phi) {                // phi deg from centre field (0), eith
 }
 const DEFAULT_POS = {   // fielder default positions (x,z)
   P: { x: 0, z: -15 }, C: { x: 0, z: 4.0 }, '1B': { x: 12.2, z: -14.5 }, '2B': { x: 6.8, z: -23 },
-  SS: { x: -6.8, z: -23 }, '3B': { x: -12.2, z: -14.5 }, LF: { x: -34, z: -54 }, CF: { x: 0, z: -61 }, RF: { x: 34, z: -54 }
+  SS: { x: -6.8, z: -23 }, '3B': { x: -12.2, z: -14.5 }, LF: { x: -36, z: -57 }, CF: { x: 0, z: -64 }, RF: { x: 36, z: -57 }
 };
 const POS_LIST = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
 const POS_JP = { P: '投', C: '捕', '1B': '一', '2B': '二', '3B': '三', SS: '遊', LF: '左', CF: '中', RF: '右' };
@@ -1767,8 +1794,8 @@ const px = x => (x - SK.x0) / SK.S * SK.N, pz = z => (z - SK.z0) / SK.S * SK.N;
 const skinTex = canvasTex(SK.N, SK.N, (g) => {
   const dirt = '#c98b57';
   g.fillStyle = dirt;
-  g.beginPath(); g.arc(px(0), pz(-16), 29 / SK.S * SK.N, 0, TAU); g.fill();       // infield arc
-  g.beginPath(); g.arc(px(0), pz(1.5), 8.5 / SK.S * SK.N, 0, TAU); g.fill();         // home circle
+  g.beginPath(); g.arc(px(0), pz(-16), 23.5 / SK.S * SK.N, 0, TAU); g.fill();       // infield arc（紅土縮小到接近實際比例，草地外野變大）
+  g.beginPath(); g.arc(px(0), pz(1.5), 6.8 / SK.S * SK.N, 0, TAU); g.fill();         // home circle
   // grass diamond inside
   const gr = '#5cc760', inset = 2.0;
   const v = [[0, -inset * 1.7 - 2.5], [H - inset * 1.4, -H], [0, -2 * H + inset * 1.4], [-H + inset * 1.4, -H]];
@@ -1789,8 +1816,8 @@ const moundMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.9, 0.4, 24), 
 moundMesh.position.set(MOUND.x, 0.18, MOUND.z); scene.add(moundMesh);
 const rosinBag = new THREE.Mesh(new THREE.SphereGeometry(.13, 12, 10), new THREE.MeshLambertMaterial({ color: 0xf3f0e4 })); rosinBag.scale.set(1, .75, 1); rosinBag.position.set(MOUND.x + 1.05, .47, MOUND.z - .15); scene.add(rosinBag);      // 投手丘上的止滑粉袋
 for (const s of [-1, 1]) {            // foul lines
-  const l = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 112), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-  l.rotation.x = -Math.PI / 2; l.rotation.z = s * Math.PI / 4 * -1; l.position.set(s * 39.6, 0.035, -39.6); scene.add(l);
+  const l = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 104), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  l.rotation.x = -Math.PI / 2; l.rotation.z = s * Math.PI / 4 * -1; l.position.set(s * 36.8, 0.035, -36.8); scene.add(l);
 }
 const baseMeshes = BASES.slice(1).map(b => { const m = new THREE.Mesh(new THREE.BoxGeometry(1.5, .25, 1.5), new THREE.MeshLambertMaterial({ color: 0xffffff })); m.position.set(b.x, .15, b.z); m.rotation.y = Math.PI / 4; scene.add(m); return m; });
 
@@ -1889,7 +1916,7 @@ function updateNight(dt) {                 // 夜空、星月、光暈與看台�
 /* 套用球場：重設外野牆形狀／高度，重建牆面、看台與燈塔位置 */
 function applyPark(name) {
   const k = PARKS[name] || PARKS['洲際棒球場'];
-  WALL_PTS.length = 0; WALL_PTS.push([0, k.cf], [22.5, k.gap + 2], [45, k.ln + 3], [90, 36], [135, 24], [180, 22]);   // 界內加寬、本壘後方界外收窄 WALL_H = k.h;
+  WALL_PTS.length = 0; WALL_PTS.push(...buildWallPts(k.cf, k.gap, k.ln));   // 界內加寬、本壘後方界外收窄 WALL_H = k.h;
   const sw = (m, g) => { m.geometry.dispose(); m.geometry = g; };
   sw(wall, ringGeom(wallRadius, 0, wallRadius, WALL_H * .78, 220, 74));
   sw(wallTop, ringGeom(wallRadius, WALL_H * .78, wallRadius, WALL_H, 220, 74)); wallTop.material.color.set(k.wc);
@@ -2253,6 +2280,7 @@ function rigStep(r, dt) {
       if (h > 0) { pose.arx = tx; pose.alx = gx; } else { pose.alx = tx; pose.arx = gx; }
       setRigPose(r, pose); break;
     }
+    case 'pcatch': { const k = Math.sin(Math.PI * clamp(u, 0, 1)); setRigPose(r, { bx: .35 - .12 * k, alx: -1.1 - .5 * k, arx: -.4 - .2 * k, llx: -.9, lrx: -.9, y: -.45 + .05 * k, hx: .12 * k }); break; }      // 蹲捕：接球時手套前伸、身體微微後仰
     case 'catch': setRigPose(r, { alx: -2.4 * Math.sin(Math.min(u * 1.6, 1) * Math.PI / 2), bx: .1, llx: -.2, lrx: -.2 }); break;
     case 'dive': setRigPose(r, { bx: 1.3 * sstep(u), alx: -2.6, arx: -2.6, llx: .8, lrx: .6, y: -.3 * u }); r.root.position.y = .0; break;
     case 'pickup': setRigPose(r, { bx: .95 * Math.sin(Math.min(1, u * 1.15) * Math.PI) + .1, alx: .2 - 1.0 * sstep(u), arx: .2 - 1.0 * sstep(u), llx: -.5 * Math.sin(u * Math.PI), lrx: .4 * Math.sin(u * Math.PI), y: -.25 * Math.sin(u * Math.PI) }); break;
@@ -2498,6 +2526,8 @@ function updateCamera(dt, focus) {
     const R = 54 - 5 * sw, H = 42 - 6 * sw;
     CAMC.tpos.set(Math.sin(a) * R, H, -30 + Math.cos(a) * R); CAMC.tlook.set(Math.sin(a + 1.2) * 4, 2, -30 + Math.cos(a + 1.2) * 4); CAMC.tfov = 60 * (VP.fk || 1); CAMC.k = 6;
     if (VENUE.t >= VENUE.dur) venueEnd();
+  } else if (CAMC.mode === 'pen' && BP.shotCur) {
+    CAMC.tpos.copy(BP.shotCur.pos); CAMC.tlook.copy(BP.shotCur.look); CAMC.tfov = BP.shotCur.fov * (VP.fk || 1); CAMC.k = 5;
   } else if (CAMC.mode === 'title') {
     CAMC.orbit += dt * .08; const a = CAMC.orbit, r = 62;
     CAMC.tpos.set(Math.sin(a) * 12, 40, 38 + Math.cos(a) * 3); CAMC.tlook.set(Math.sin(a * 1.3) * 6, 0, -27); CAMC.tfov = 58 * (VP.fk || 1); CAMC.k = 1.2;
@@ -6346,6 +6376,7 @@ function updateTweens(dt) {
   }
 }
 function newGame(cfg) {
+  try { bpReset(); } catch (e) { }
   G.teams = [buildTeam(TEAMS[cfg.away], cfg, 0), buildTeam(TEAMS[cfg.home], cfg, 1)]; if (cfg.ace) { G.teams.forEach(t => { }); }
   G.human = cfg.side === 2 ? -1 : cfg.side; G.lv = cfg.lv; G.easy = !!cfg.easy; G.innings = cfg.inn;
   G.score = [0, 0]; G.line = [[], []]; G.hits = [0, 0]; G.errs = [0, 0]; G.fancy = 0; G.inning = 1; G.half = 0; G.bi = [0, 0]; G.pmodel = {}; G.batHist = {};
@@ -7059,13 +7090,13 @@ function endHalf() {
 }
 function changePitcher(side, idx, forced, why) {
   const t = G.teams[side]; const np = t.pitchers[idx]; if (!np || idx === t.cur || np.out) return;
-  const old = t.pitchers[t.cur]; old.used = true; t.cur = idx; t.lastChg = G.inning * 2 + G.half; np.pc = 0; np.fl = 0; np.pkLoad = 0; np.fatigue = 0; np.tilt = clamp((60 - moodOf(np)) * .7, 0, 40);
+  const old = t.pitchers[t.cur]; old.used = true; t.cur = idx; t.lastChg = G.inning * 2 + G.half; np.pc = 0; np.fl = 0; np.pkLoad = 0; np.fatigue = 0; np.tilt = clamp((60 - moodOf(np)) * .7, 0, 40); try { warmApply(np, side); } catch (e) { console.error(e); }
   if (!t.dh) { const pb = genBatter(1, 'P', np.num, 8); pb.name = np.name; pb.isPitcherBat = true; pb.nat = 'P'; pb.out = false; pb.pos = 'P'; t.lineup[8] = pb; }
   if (side === 1 - G.half && E.F.P) {
     const f = E.F.P, st = teamStyle(side); disposeRig(f.rig);
     const rig = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl: np, catcher: f.pos === 'C' }); scene.add(rig.root); rig.root.position.set(f.x, 0, f.z); f.rig = rig; f.pl = np; rig.ready = true; faceRig(rig, 0, 0);
   }
-  if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}${why ? '（' + why + '）' : ''}`);
+  if (!forced) say(`換投。${sideName(side)}由 <em>${np.name}</em>(${np.hand === 'R' ? '右' : '左'})走上投手丘接替 ${old.name}${why ? '（' + why + '）' : ''}${np._wn || ''}`);
   toast('換投', '#fff', '#39f'); updatePlayerBoxes(); introPitcher(side, np, old);
 }
 /* ---------------- hooks called by the play engine ---------------- */
@@ -8253,9 +8284,9 @@ function openQuitDlg() { if (G.mode !== 'play') return; QUIT_OPEN = true; $('qui
 function closeQuitDlg() { QUIT_OPEN = false; $('quitDlg').classList.add('hide'); }
 /* 比賽中開著「更多」選單／戰術／守備／換投／代打／音樂設定面板時，遊戲暫停（關閉後才繼續），避免邊設定邊偷跑 */
 const _hSub = $('sub'), _hAud = $('audioPanel'), _hActs = $('acts');
-function uiHold() { return G.mode === 'play' && (!_hSub.classList.contains('hide') || !_hAud.classList.contains('hide') || _hActs.classList.contains('open')); }
+function uiHold() { return G.mode === 'play' && (!_hSub.classList.contains('hide') || !_hAud.classList.contains('hide') || _hActs.classList.contains('open') || BP.cut); }
 function quitToMenu() {
-  closeQuitDlg();
+  closeQuitDlg(); try { bpReset(); } catch (e) { }
   TIMERS = []; tweens.length = 0; INTRO.q.length = 0; INTRO.busy = false; INTRO.gen = (INTRO.gen || 0) + 1; HS = 0;
   try { clearPlay(); } catch (e) { }
   G.freeze = false; G.judgeTok = (G.judgeTok || 0) + 1; rpHide(); pmCancel(); PT = null; G.over = true; try { resetRainDelay(); } catch (e) { } G.mode = 'menu'; G.phase = 'over'; G.pending = null; G.walking = false; G.absPend = null; G.cpuBusy = false; G.ts = 1;
@@ -8276,14 +8307,29 @@ const syncHintBtn = () => { $('btnHint').textContent = '🎯 投球落點提示 
 $('btnHint').onclick = () => { HINT.on = !HINT.on; if (!HINT.on) HINT.pt = null; try { localStorage.setItem('cpbl_hint', HINT.on ? '1' : '0'); } catch (e) { } syncHintBtn(); };
 syncHintBtn();
 $('btnSpeed').onclick = () => { G.ts = G.ts === 1 ? 2 : G.ts === 2 ? 4 : 1; $('btnSpeed').textContent = '⏩ 遊戲速度 x' + G.ts; };
-$('btnSub').onclick = () => {
-  const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
-  if (G.phase !== 'pre') { say('投球前才能換投'); return; }
-  if (G.human < 0 || !humanPitches()) { say('只有自己守備（投球）時才能換投'); return; }
-  const side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'p'; sub.innerHTML = '<h3>換投<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
-  t.pitchers.forEach((p, i) => { if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : ''); d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h・控球${gr(p.ctl)}<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`; d.onclick = () => { if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); }; sub.appendChild(d); });
+function openSubP(refresh) {
+  const sub = $('sub'); if (!refresh && !sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
+  if (G.phase !== 'pre') { say('投球前才能換投／熱身'); return; }
+  if (G.human < 0 || G.human > 1) { say('只有自己守備（投球）時才能換投'); return; }
+  const side = G.human, t = G.teams[side], canSwap = humanPitches(); sub.classList.remove('hide'); sub.dataset.k = 'p';
+  sub.innerHTML = '<h3>' + (canSwap ? '換投／場下熱身' : '場下熱身（進攻中只能熱身）') + '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
+  const tip = document.createElement('div'); tip.style.cssText = 'font-size:11.5px;opacity:.88;margin:-2px 0 6px;line-height:1.5;color:#ffd9a8'; tip.innerHTML = '🔥 讓預備投手提早在牛棚熱身：手感與心情會變好；熱身太久（過熱）登板時體力會大幅下降，還可能受傷。最多可同時熱身兩名。'; sub.appendChild(tip);
+  t.pitchers.forEach((p, i) => {
+    if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : '');
+    d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h・控球${gr(p.ctl)}<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`;
+    d.onclick = () => { if (!canSwap) { say('目前是進攻局，無法換投；可以先按「場下熱身」讓投手提早準備'); return; } if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); };
+    if (i !== t.cur) {
+      const w = document.createElement('div'); w.className = 'wu'; const wv = Math.round(p.warm || 0), fe = warmFatEst(p);
+      w.innerHTML = `<i class="wb"><u style="width:${wv}%"></u></i><em>${p.warming || wv > 0 ? '熱身 ' + wv + '%・' + warmTxt(p) + (fe ? '・體力-' + fe : '') : '尚未熱身'}</em>`;
+      const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'wubtn' + (p.warming ? ' on' : ''); bt.textContent = p.warming ? '■ 停止熱身' : '🔥 場下熱身';
+      bt.onclick = e => { e.stopPropagation(); if (p.warming) { p.warming = false; bpSync(); openSubP(true); } else { bpStart(side, i); } };
+      w.appendChild(bt); d.appendChild(w); d.style.flexWrap = 'wrap';
+    }
+    sub.appendChild(d);
+  });
   const c = document.createElement('div'); c.className = 'pbtn'; c.textContent = '關閉'; c.onclick = () => sub.classList.add('hide'); sub.appendChild(c);
-};
+}
+$('btnSub').onclick = () => openSubP(false);
 /* ---------------- 代打／代跑 ---------------- */
 $('btnBench').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
@@ -8659,6 +8705,171 @@ document.addEventListener('pointerdown', e => {
   const wake = () => { try { if (!SND.ctx) sndInit(); else if (SND.ctx.state !== 'running') SND.ctx.resume(); } catch (e) { } };
   ['pointerdown', 'pointerup', 'keydown', 'touchstart', 'touchend', 'click'].forEach(ev => window.addEventListener(ev, wake, { capture: true, passive: true }));
 })();
+/* ===================== 牛棚熱身：熱身準備值、教練陪練動畫 ===================== */
+// 熱身值 0～100：每遊戲秒 +1.25（約 180 秒滿）。滿了之後再繼續熱身＝「過熱」：超過 20 秒登板體力開始被扣；超過 60 秒起每秒有機率受傷
+const WARM = { rate: 100 / 180, over0: 20, hurt0: 60, fatSpan: 60, fatMax: .8, maxWarm: 2 };
+const BP = { seq: 0, on: false, cut: false, side: 0, p: null, g: null, pen: null, lanes: [], L: null, layoutSide: -9, th: null, lt: 2, cst: '', ct: 0, k: 0, N: 8, shotCur: null, hudT: 0, startW: 0 };
+const BPI = [{ dur: 1.2, fly: .3, arc: .8, gain: 2, v: .72 }, { dur: 1.05, fly: .26, arc: .4, gain: 2.5, v: .88 }, { dur: .9, fly: .2, arc: .14, gain: 3.5, v: 1 }];
+const BP_SHOTS = [0, 2, 1, 0, 3, 2, 1, 0];
+const _bv = new V3(), _bv2 = new V3();
+function warmTxt(p) { const o = p.warmOver || 0, w = p.warm || 0; return o > WARM.hurt0 ? '疲勞・受傷風險高' : o > WARM.over0 ? '過度熱身' : w >= 99.5 ? '已就緒' : w >= 70 ? '手感良好' : w >= 35 ? '熱身中' : w > 0 ? '剛開始' : '未熱身'; }
+function warmFatEst(p) { const o = p.warmOver || 0; if (o <= WARM.over0) return 0; const ph = clamp((o - WARM.over0) / WARM.fatSpan, 0, 1), ex = (p.role || 'SP') === 'SP' ? 1.15 : p.role === 'CL' ? 1.55 : 1.3; return Math.round(80 * Math.pow(ph * WARM.fatMax, ex)); }
+function warmingList(side) { const t = G.teams && G.teams[side], L = []; if (!t) return L; for (let i = 0; i < t.pitchers.length; i++) { const p = t.pitchers[i]; if (p.warming && i !== t.cur && !p.out) L.push({ p, i }); } return L.sort((a, b) => (a.p.warmAt || 0) - (b.p.warmAt || 0)); }
+const BP_LX = (L, i) => (i === 0 ? 1 : -1) * L.sx * 3;      // 兩條練投道的側向位置：第一條靠球場內側（鏡頭這邊）
+function bpLayout(side) {      // 牛棚放在自家休息區那一側的界外區，練投道與邊線平行
+  const sx = side === 1 ? 1 : -1, a = new V3(.7071 * sx, 0, -.7071), n = new V3(.7071 * sx, 0, .7071);
+  const O = a.clone().multiplyScalar(30).addScaledVector(n, 9.5), M = O.clone().addScaledVector(a, 15);
+  return { sx, a, n, O, M };
+}
+function bpBuildProps(side) {      // 兩條並排的練投道（每條有自己的投手丘、本壘板、教練與球）
+  if (BP.g) scene.remove(BP.g);
+  const L = bpLayout(side); BP.L = L; BP.layoutSide = side;
+  const g = new THREE.Group(); BP.g = g; const pen = new THREE.Group(); const mid = L.O.clone().add(L.M).multiplyScalar(.5);
+  pen.position.set(mid.x, 0, mid.z); pen.rotation.y = Math.atan2(L.a.x, L.a.z); g.add(pen); BP.pen = pen;
+  const wx = -L.sx, dirt = new THREE.MeshLambertMaterial({ color: 0xc98b57 }), dirt2 = new THREE.MeshLambertMaterial({ color: 0xb87a48 }), white = new THREE.MeshLambertMaterial({ color: 0xffffff }), moundM = new THREE.MeshLambertMaterial({ color: 0xd49a66 });
+  const flat = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.rotation.x = -Math.PI / 2; o.position.set(x, y, z); pen.add(o); return o; };
+  BP.lanes = [];
+  for (let i = 0; i < 2; i++) {
+    const lx = BP_LX(L, i);
+    flat(new THREE.PlaneGeometry(4.2, 19), dirt2, lx, .036, .1); flat(new THREE.CircleGeometry(2.9, 28), dirt, lx, .04, -7.5); flat(new THREE.CircleGeometry(3.5, 28), dirt, lx, .04, 7.5);
+    const mound = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.8, .4, 24), moundM); mound.position.set(lx, .18, 7.5); pen.add(mound);
+    const rub = new THREE.Mesh(new THREE.BoxGeometry(1.2, .06, .3), white); rub.position.set(lx, .4, 7.35); pen.add(rub);
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .05, 5), white); plate.rotation.y = Math.PI; plate.position.set(lx, .07, -7.5); pen.add(plate);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R * 1.1, 12, 8), new THREE.MeshPhongMaterial({ color: 0xffffff, map: seamTex, shininess: 60 })); ball.visible = false; g.add(ball);
+    BP.lanes.push({ i, lx, p: null, rigP: null, rigC: null, th: null, lt: 1 + i * 1.8, ball });
+  }
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(13, 4.6), new THREE.MeshBasicMaterial({ color: 0x0a1020, transparent: true, opacity: .32, side: THREE.DoubleSide })); net.position.set(0, 2.3, -10.6); pen.add(net);
+  const pm = new THREE.MeshLambertMaterial({ color: 0x3a3f50 }); for (const s of [-1, 0, 1]) { const pl = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 4.8, 6), pm); pl.position.set(s * 6.5, 2.4, -10.6); pen.add(pl); }
+  const ban = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 1.1), new THREE.MeshBasicMaterial({ map: canvasTex(512, 108, (c, w, h) => { c.fillStyle = '#12306a'; c.fillRect(0, 0, w, h); c.strokeStyle = '#ffb23a'; c.lineWidth = 6; c.strokeRect(4, 4, w - 8, h - 8); c.fillStyle = '#fff'; c.font = "900 54px 'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('BULLPEN 牛棚', w / 2, h / 2 + 3); }) })); ban.position.set(0, 5.35, -10.55); pen.add(ban);
+  const fence = new THREE.Mesh(new THREE.BoxGeometry(.18, 1.25, 20), new THREE.MeshLambertMaterial({ color: 0x1b3d7a })); fence.position.set(wx * 8.2, .62, 0); pen.add(fence);
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(.8, .45, 3.4), new THREE.MeshLambertMaterial({ color: 0x6b4a2a })); bench.position.set(wx * 7, .3, 1.2); pen.add(bench);
+  const cool = new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, .8, 12), new THREE.MeshLambertMaterial({ color: 0xff8a2a })); cool.position.set(wx * 7, .4, 3.6); pen.add(cool);
+  const bag = new THREE.Mesh(new THREE.BoxGeometry(.7, .5, .7), new THREE.MeshLambertMaterial({ color: 0xe6e6ea })); bag.position.set(wx * 7, .25, -3.2); pen.add(bag);
+  g.visible = false; scene.add(g); BP.p = null;
+}
+function bpLaneOff(ln) { ln.p = null; ln.th = null; ln.ball.visible = false; if (ln.rigP) { ln.rigP.root.parent && ln.rigP.root.parent.remove(ln.rigP.root); ln.rigP = null; } if (ln.rigC) ln.rigC.root.visible = false; }
+function bpLaneSet(ln, side, p) {
+  const st = teamStyle(side), pen = BP.pen;
+  if (ln.rigP) pen.remove(ln.rigP.root);
+  const rp = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, pl: p }); pen.add(rp.root); rp.root.position.set(ln.lx, .38, 7.5); rp.root.rotation.y = Math.PI; rp.stride = 0; ln.rigP = rp; ln.p = p;
+  if (!ln.rigC) { const rc = makeChibi({ jersey: st.jersey, pants: st.pants, cap: st.cap, belt: st.belt, glove: true, catcher: true }); pen.add(rc.root); rc.root.position.set(ln.lx, 0, -8.8); ln.rigC = rc; }
+  ln.rigC.root.visible = true; rigPlay(ln.rigC, 'crouch', 1e9, { hold: true }); ln.th = null; ln.ball.visible = true;
+}
+function bpAssign(side, first) {      // 把正在熱身的投手（最多兩名）分到兩條練投道；first 一定排在靠近鏡頭的第一條
+  const want = warmingList(side).map(o => o.p); let order = [];
+  if (first && want.includes(first)) order = [first, ...want.filter(p => p !== first)];
+  else { BP.lanes.forEach((ln, i) => { if (ln.p && want.includes(ln.p)) order[i] = ln.p; }); for (const p of want) if (!order.includes(p)) { let k = 0; while (order[k]) k++; order[k] = p; } }
+  BP.lanes.forEach((ln, i) => { const p = order[i]; if (!p) bpLaneOff(ln); else if (ln.p !== p) bpLaneSet(ln, side, p); });
+  BP.on = want.length > 0; BP.g.visible = BP.on; BP.g.updateMatrixWorld(true);
+}
+function bpStage(side, p) { if (!BP.g || BP.layoutSide !== side) bpBuildProps(side); bpAssign(side, p); }
+function bpClear() { BP.on = false; if (BP.g) { BP.g.visible = false; for (const ln of BP.lanes) { ln.th = null; } } }
+function bpReset() { bpClear(); BP.cut = false; BP.p = null; if (BP.lanes) for (const ln of BP.lanes) bpLaneOff(ln); const u = $('penUI'); if (u) u.classList.add('hide'); const w = $('warmBox'); if (w) w.classList.add('hide'); }
+function bpSync() { const L = (G.human === 0 || G.human === 1) ? warmingList(G.human) : []; if (!L.length) { bpClear(); if (BP.lanes) for (const ln of BP.lanes) bpLaneOff(ln); } else { if (!BP.g || BP.layoutSide !== G.human) bpBuildProps(G.human); bpAssign(G.human); } bpHud(0, true); }
+function bpShot(i, snap) {
+  const pen = BP.pen, fx = BP.L.sx, lx = fx * 3; pen.updateMatrixWorld(true);      // fx＝球場內側方向、lx＝第一條練投道位置
+  const S = [{ p: [fx * 18, 4.4, -9], l: [0, 1.2, 1], f: 46 }, { p: [lx + fx * .8, 2.3, -14], l: [lx, 1.5, 7.5], f: 26 }, { p: [lx + fx * 7, 2.2, 1.5], l: [lx, 1.3, 6.2], f: 36 }, { p: [lx + fx * 6, 1.8, -2.5], l: [lx, 1.0, -7.8], f: 36 }][i];
+  BP.shotCur = { pos: pen.localToWorld(new V3(S.p[0], S.p[1], S.p[2])), look: pen.localToWorld(new V3(S.l[0], S.l[1], S.l[2])), fov: S.f };
+  if (snap) { CAMC.tpos.copy(BP.shotCur.pos); CAMC.tlook.copy(BP.shotCur.look); CAMC.tfov = BP.shotCur.fov * (VP.fk || 1); camSnap(); }
+}
+function bpStart(side, idx) {
+  const t = G.teams[side], p = t.pitchers[idx]; if (!p || p.out || p.used || idx === t.cur) return;
+  if (G.phase !== 'pre') { say('投球前才能安排熱身'); return; }
+  { const cur = warmingList(side).filter(o => o.p !== p); while (cur.length >= WARM.maxWarm) cur.shift().p.warming = false; }      // 最多同時熱身兩名，超過就停掉最早熱身的那位
+  p.warming = true; p.warmAt = ++BP.seq; p.warm = p.warm || 0; p.warmOver = p.warmOver || 0; BP.startW = p.warm;
+  $('sub').classList.add('hide'); $('acts').classList.remove('open'); $('pitchPanel').classList.add('hide');
+  bpStage(side, p); BP.p = p; BP.cut = true; BP.prevPhase = G.phase; G.phase = 'bullpen'; BP.cst = 'intro'; BP.ct = 0; BP.k = 0; BP.n = 0; BP.i1 = false; BP.gun = 0; BP.lanes[0].th = null; BP.t0 = performance.now();
+  const hand = p.hand === 'R' ? 1 : -1; rigPlay(BP.lanes[0].rigP, 'armshake', .8, { hand });
+  CAMC.mode = 'pen'; bpShot(0, true); $('penUI').classList.remove('hide'); bpOverlay();
+  say(`${sideName(side)}請 <em>${p.name}</em> 到牛棚熱身，教練蹲下來陪練`); flowSfx('whistle', .6); bpHud(0, true);
+}
+function bpEnd() {
+  if (!BP.cut) return; BP.cut = false; $('penUI').classList.add('hide'); G.phase = BP.prevPhase || 'pre'; BP.cst = '';
+  const ln = BP.lanes[0]; ln.th = null; if (ln.rigP) { ln.rigP.anim = null; ln.rigP.stride = 0; } if (ln.rigC) rigPlay(ln.rigC, 'crouch', 1e9, { hold: true });
+  setCamBat(true); updatePlayerBoxes(); updateActs(); buildPitchPanel(); bpHud(0, true);
+  const p = BP.p; if (p) say(`<em>${p.name}</em>的熱身準備值 ${Math.round(p.warm || 0)}%，繼續在牛棚保持手感（別熱身太久，體力會下降、也容易受傷）`);
+}
+function bpSkip() { if (!BP.cut) return; const p = BP.p; if (p && BP.cst !== 'finish') { for (let k = BP.n; k < BP.N; k++) p.warm = Math.min(100, (p.warm || 0) + BPI[k < 3 ? 0 : k < 6 ? 1 : 2].gain); } bpEnd(); }
+function bpOverlay() {
+  const p = BP.p; if (!p) return; $('penName').textContent = `#${p.num || ''} ${p.name}（${p.hand === 'R' ? '右' : '左'}投）`;
+  const w = Math.round(p.warm || 0); $('penBar').style.width = w + '%'; $('penVal').textContent = w + '%';
+  $('penCnt').textContent = `練投 ${Math.min(BP.n, BP.N)}/${BP.N}`; $('penGun').textContent = BP.gun ? `🎯 ${BP.gun} km/h` : '— km/h';
+  $('penMsg').textContent = BP.cst === 'intro' ? '活動肩膀、踩投手板…' : BP.cst === 'finish' ? '熱身完成！' : BP.n < 3 ? '輕鬆傳接' : BP.n < 6 ? '加快節奏' : '全力投球';
+}
+function bpThrow(ln, k) {
+  const lv = BPI[k], hand = ln.p.hand === 'R' ? 1 : -1;
+  rigPlay(ln.rigP, 'pitch', lv.dur, { hand, hold: false }); ln.th = { ph: 'wind', t: 0, lv, k, rel: lv.dur * .62, p0: new V3(), p1: new V3() };
+}
+function bpFrame(dt) {
+  if (!BP.on || !BP.g || !BP.g.visible) return;
+  if (BP.cut && performance.now() - BP.t0 >= 10000) { bpSkip(); return; }      // 練投畫面最多 10 秒，時間到自動跳過（剩餘球數照樣補上熱身值）
+  for (const ln of BP.lanes) {
+    if (!ln.p || !ln.rigP) continue; const rp = ln.rigP, rc = ln.rigC;
+    if (rp.stride && (!rp.anim || rp.anim.name !== 'pitch')) rp.stride = Math.max(0, rp.stride - dt * 2.2);
+    rp.root.position.set(ln.lx, .38 - Math.min(.3, (rp.stride || 0) * .28), 7.5 - (rp.stride || 0));
+    rigStep(rp, dt); rigStep(rc, dt); if (!rc.anim) rigPlay(rc, 'crouch', 1e9, { hold: true });
+  }
+  BP.g.updateMatrixWorld(true);
+  const l0 = BP.lanes[0];
+  if (BP.cut && l0.p && l0.rigP) {      // 第一條練投道：熱身動畫流程（暖身 → 輕鬆傳接 → 加快 → 全力投球 → 完成）
+    const rp = l0.rigP, rc = l0.rigC, p = l0.p; BP.ct += dt;
+    if (BP.cst === 'intro') { if (BP.ct > .8 && !BP.i1) { BP.i1 = true; rigPlay(rp, 'legkick', .7, { leg: 1 }); } if (BP.ct > 1.5) { BP.cst = 'throw'; BP.k = 0; bpThrow(l0, 0); bpShot(BP_SHOTS[0], true); bpOverlay(); } }
+    else if (BP.cst === 'throw' && !l0.th) { BP.k++; if (BP.k >= BP.N) { BP.cst = 'finish'; BP.ct = 0; rigPlay(rc, 'cheer', 1.2, {}); rigPlay(rp, 'fistpump', 1.1, { hand: p.hand === 'R' ? 1 : -1 }); bpShot(0, true); bpOverlay(); } else { bpThrow(l0, BP.k < 3 ? 0 : BP.k < 6 ? 1 : 2); bpShot(BP_SHOTS[BP.k], true); bpOverlay(); } }
+    else if (BP.cst === 'finish') { if (BP.ct > .9 && rc.anim && rc.anim.name === 'cheer') rc.anim = null; if (BP.ct > 1.1) bpEnd(); }
+  }
+  for (const ln of BP.lanes) {
+    if (!ln.p || !ln.rigP) continue; const rp = ln.rigP, rc = ln.rigC, p = ln.p, cut = BP.cut && ln === l0;
+    if (!cut && !ln.th) { ln.lt -= dt; if (ln.lt <= 0) { ln.lt = 3.5 + Math.random() * 3; bpThrow(ln, 1); } }      // 其餘練投道（或比賽進行中）：隔一陣子傳一顆球
+    const th = ln.th; if (!th) continue; th.t += dt; const ball = ln.ball;
+    if (th.ph === 'wind') { const arm = p.hand === 'R' ? rp.armR : rp.armL; arm.localToWorld(_bv.set(0, -.58, .1)); ball.position.copy(_bv); if (th.t >= th.rel) { th.p0.copy(_bv); rc.glove.getWorldPosition(th.p1); th.ph = 'fly'; th.t = 0; flowSfx('throw', .5); } }
+    else if (th.ph === 'fly') {
+      const u = clamp(th.t / th.lv.fly, 0, 1); ball.position.lerpVectors(th.p0, th.p1, u); ball.position.y += th.lv.arc * Math.sin(Math.PI * u);
+      if (u >= 1) { th.ph = 'ret'; th.t = 0; rigPlay(rc, 'pcatch', .4, {}); flowSfx('mitt', .45 + th.k * .06); if (cut) { spawnBurst(th.p1.x, th.p1.y, th.p1.z, .7); BP.n++; BP.gun = Math.round(p.kmh * (th.lv.v * .86 + .14 * Math.random())); p.warm = Math.min(100, (p.warm || 0) + th.lv.gain); bpOverlay(); } }
+    } else if (th.ph === 'ret') {
+      const u = clamp((th.t - .1) / .3, 0, 1); rp.armL.localToWorld(_bv2.set(0, -.58, .1)); ball.position.lerpVectors(th.p1, _bv2, u); ball.position.y += 1.1 * Math.sin(Math.PI * u);
+      if (u >= 1) { th.ph = 'wait'; th.t = 0; rigPlay(rp, 'catch', .3, {}); flowSfx('mitt', .3); }
+    } else if (th.ph === 'wait') { if (th.t > .12) ln.th = null; }
+  }
+}
+function warmApply(np, side) {      // 登板：依熱身值給手感／心情加成；過熱則體力先掉
+  const w = clamp(np.warm || 0, 0, 100), o = np.warmOver || 0; np._wn = '';
+  if (w > 3) {
+    adjustMood(np, w / 100 * 16); np._wn = `（場下熱身 ${Math.round(w)}%，手感與心情變好）`;
+    if (o > WARM.over0) { const ph = clamp((o - WARM.over0) / WARM.fatSpan, 0, 1); np.pkLoad = (np.pkLoad || 0) + ph * WARM.fatMax * fatCap(np); np.fatigue = calcFatigue(np); np._wn = `（熱身過度，登板體力已先掉 ${Math.round(np.fatigue)}%）`; }
+  }
+  np.warming = false; np.warm = 0; np.warmOver = 0; if (side === G.human) bpSync();
+}
+function warmHurt(side, i) {
+  const p = G.teams[side].pitchers[i]; p.out = true; p.warming = false; p.warm = 0; p.warmOver = 0; bpSync();
+  toast('熱身受傷！', '#fff', '#e33'); say(`<em>${p.name}</em>在牛棚熱身過度，拉傷退下，無法登板！`); flowSfx('whistle', .6);
+}
+function warmTick(dt) {
+  if (G.over || G.forfeit >= 0 || !G.teams) return;
+  for (const side of [0, 1]) {
+    const t = G.teams[side]; if (!t || !t.pitchers) continue;
+    for (let i = 0; i < t.pitchers.length; i++) {
+      const p = t.pitchers[i]; if (!p.warm && !p.warming) continue;
+      if (p.warming && i !== t.cur && !p.out) {
+        if (p.warm < 100) p.warm = Math.min(100, p.warm + WARM.rate * dt);
+        else { p.warmOver = (p.warmOver || 0) + dt; const o = p.warmOver; if (o > WARM.hurt0 && !BP.cut) { const hz = clamp((o - WARM.hurt0) / 90, 0, 1.5) * .006; if (Math.random() < hz * dt) { warmHurt(side, i); return; } } }
+      } else if (!p.warming && p.warm > 0) { p.warm = Math.max(0, p.warm - .6 * dt); p.warmOver = Math.max(0, (p.warmOver || 0) - 2 * dt); }
+    }
+  }
+  bpHud(dt);
+}
+function bpHud(dt, force) {      // 天氣面板下方的熱身準備值（簡易，最多兩名）
+  BP.hudT -= dt || 0; if (BP.hudT > 0 && !force) return; BP.hudT = .25;
+  const e = $('warmBox'); if (!e) return; const L = (G.mode === 'play' && (G.human === 0 || G.human === 1)) ? warmingList(G.human) : [];
+  if (!L.length) { e.classList.add('hide'); return; }
+  let worst = 0;
+  e.innerHTML = L.map(({ p }) => {
+    const v = Math.round(p.warm || 0), o = p.warmOver || 0, fe = warmFatEst(p), lv = o > WARM.hurt0 ? 3 : o > WARM.over0 ? 2 : v >= 99 ? 1 : 0; worst = Math.max(worst, lv);
+    return `<div class="wrw ${['', 'rdy', 'hot', 'bad'][lv]}"><div class="wr1"><span>🔥 ${p.name}</span><b>${v}%</b></div><i class="wbar"><u style="width:${v}%"></u></i><div class="wr1 sm"><span>${warmTxt(p)}</span><span>${fe ? '登板體力 -' + fe : ''}</span></div></div>`;
+  }).join('');
+  e.className = ['', 'rdy', 'hot', 'bad'][worst];
+}
+$('penSkip').onclick = bpSkip;
+
 /* ---------------- main loop ---------------- */
 G.ts = 1; let lastT = performance.now(); let lastFocus = new V3(0, 0, -20);
 window.__viol = []; let _ph = '', _phT = 0;
@@ -8676,7 +8887,7 @@ function step(dt) {
   if (G.mode === 'play' && E.bat && E.bat.rig && E.bat.rig.anim && E.bat.rig.anim.name === 'bunt' && !G.callBunt && !(PT && PT.sw) && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) batterStance();      // 觸擊取消後不再卡在觸擊姿勢
   if (HS > 0) { HS -= dt; updateBursts(dt); sqStep(dt * .5); return; }
   sqStep(dt);
-  updateBursts(dt); updateFireworks(dt); updateBatPieces(dt); updateFlyBat(dt); updateBatBoy(dt); updateTrash(dt); stepTimers(dt); updateEvents(dt); updateCoach(dt); if (G.mode === 'play') updateWeather(dt); try { updatePuddles(dt); updateRainDelay(dt); } catch (e) { console.error(e); } if (window.__dbg) checkInv(); if (window.__hook) window.__hook(dt);
+  updateBursts(dt); updateFireworks(dt); updateBatPieces(dt); updateFlyBat(dt); updateBatBoy(dt); updateTrash(dt); stepTimers(dt); updateEvents(dt); updateCoach(dt); if (G.mode === 'play') { updateWeather(dt); try { warmTick(dt); } catch (e) { console.error(e); } } try { updatePuddles(dt); updateRainDelay(dt); } catch (e) { console.error(e); } if (window.__dbg) checkInv(); if (window.__hook) window.__hook(dt);
   pmTick(dt);
   if (G.freeze && G.mode !== 'play') G.freeze = false;
   if (G.freeze) return;
@@ -8706,7 +8917,8 @@ function frame(now) {
   else if (CAMC.mode === 'batfollow') { if (!CAMC._pm && !ballMesh.visible) lastFocus.set(0, 1.2, -1); if (ballMesh.visible) lastFocus.copy(ballMesh.position); focus = lastFocus; }
   else if (CAMC.mode === 'hrtrot') { focus = hrFocus(); }
   // 保險：沒有進行中的球賽動作（準備投球／投球中）時，鏡頭一定回到擊球視角，超過 0.6 秒仍在遠景就強制切回
-  if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
+  if (G.mode === 'play' && !PL && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && CAMC.mode !== 'bat' && CAMC.mode !== 'title' && CAMC.mode !== 'pen') { G._camBad = (G._camBad || 0) + real; if (G._camBad > .6) { setCamBat(); G._camBad = 0; } } else G._camBad = 0;
+  try { bpFrame(real); } catch (e) { console.error(e); }
   updateCamera(real, focus); camera.updateMatrixWorld(true);
   if (G.mode === 'play' && aim.need && CAMC.mode === 'bat' && CAMC.pos.distanceTo(CAMC.tpos) < .4) { const a = w2s(0, ZC, 0), dp = ov.width / VW(); if (isFinite(a.x)) { aim.cx = a.x / dp; aim.cy = a.y / dp; aim.has = true; aim.need = false; } }      // 開賽／換半局：準心先置於好球帶中央，不必等第一球
   if (PAD.v && G.mode === 'play') { const sp = 1.4 * Math.min(VW(), VH()) * real; aim.cx = clamp(aim.cx + PAD.v.vx * sp, 0, VW()); aim.cy = clamp(aim.cy + PAD.v.vy * sp, 0, VH()); aim.has = true; }
