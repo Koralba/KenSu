@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/03-menu-lineup-result.css">
 <link rel="stylesheet" href="css/04-game-buttons-patches.css">
 <link rel="stylesheet" href="css/05-save-system.css">
+<link rel="stylesheet" href="css/06-transition.css">
 </head>
 <body>
 <div id="wrap">
@@ -120,7 +121,6 @@
     <div id="rainDelay" class="hide"><div id="rdTitle">⛈ 暴雨・主審暫停比賽</div><div id="rdTx"></div><div class="rdlab">雨勢減弱中…</div><div class="bar big"><i id="rdWait" style="width:0%"></i></div><div id="rdProt"><div class="rdlab">抗議值（全滿＝激烈抗議成功）</div><div class="bar big"><i id="rdMeter" style="width:0%"></i></div><button class="abtn" id="rdBtn" type="button">🧑‍🏫 教練抗議！（連點／空白鍵）</button></div></div>
   <div id="mashUi" class="hide"><div id="mashTx"></div><div class="bar big"><i id="mashBar" style="width:0%"></i></div></div>
   <div id="flash"></div>
-  <div id="curtain"><span></span></div>
   <div id="sub" class="hide"></div>
 </div>
 <div id="result" class="hide"></div>
@@ -157,4 +157,5 @@
 <script src="js/13-ui-input-menu.js"></script>
 <script src="js/13b-save-system.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
+<div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></body></html>
