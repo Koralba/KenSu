@@ -4,7 +4,7 @@
 /* =====================================================================
    ABS 擴充：跑壘 close play 判決＋全壘打（界外／場地規則二壘安打／全壘打）判決
    ===================================================================== */
-const CLOSE_T = .26;      // 球與跑者到壘時間差在 0.16 秒內＝close play，主審可能誤判、雙方可挑戰
+const CLOSE_T = .16;      // 球與跑者到壘時間差在 0.16 秒內＝close play，主審可能誤判、雙方可挑戰
 const TAGVALS = { out: { r: 0 }, safe: { r: 1 } }, HRVALS = { foul: { r: 0 }, grd: { r: 1 }, hr: { r: 2 } };
 const BASE_NM = ['本壘', '一壘', '二壘', '三壘'];
 let RPT = [], RPA = 0;
@@ -51,7 +51,7 @@ function tagCall(f, r, how) {          // 球先到、跑者還沒踩到壘（�
 function safeCheck(f, b4) {            // 跑者剛踩到壘、球才到：差距極小時主審可能誤判出局
   if (b4 >= 4) return; const r = G.on[b4 - 1];
   if (!r || r.state !== 'on' || r.reviewed || r.arrT == null) return;
-  const dt = (G.clk || 0) - r.arrT; if (dt < 0 || dt > CLOSE_T) return;
+  const dt = (G.rclk || 0) - r.arrT; if (dt < 0 || dt > CLOSE_T) return;
   tagReview(f, r, 'tag', -dt, false);
 }
 function tagReview(f, r, how, m, truthOut) {      // m：球比跑者早到的秒數（正＝球先到→出局；負＝跑者先到→安全）
