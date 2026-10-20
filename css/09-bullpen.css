@@ -1,0 +1,22 @@
+/* 09-bullpen.css — 區塊4：牛棚熱身（原 style.css 第 1025-1045 行） */
+/* ===== 樣式區塊 4 ===== */
+/* ===== 牛棚熱身 ===== */
+#warmBox{background:linear-gradient(rgba(70,28,8,.62),rgba(34,12,4,.55))!important;border:1.5px solid rgba(255,170,90,.75);border-radius:9px;padding:3px 9px;font-size:12px;font-weight:700;color:#ffe6cf;box-shadow:0 2px 6px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#warmBox .wr1{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;overflow:hidden}#warmBox .wr1 span{overflow:hidden;text-overflow:ellipsis}#warmBox .wr1.sm{font-size:10.5px;opacity:.9;font-weight:600}
+#warmBox .wbar{display:block;height:7px;margin:3px 0 2px;background:#0008;border-radius:4px;overflow:hidden}#warmBox .wbar u{display:block;height:100%;width:0;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a)}
+#warmBox.rdy{border-color:#7dff7d}#warmBox .wrw+.wrw{margin-top:4px;padding-top:3px;border-top:1px solid #fff3}#warmBox .wrw.rdy .wbar u{background:linear-gradient(90deg,#4fd35f,#b6ff7a)}
+#warmBox.hot{border-color:#ffa23a}#warmBox .wrw.hot .wbar u{background:linear-gradient(90deg,#ffb23a,#ff7a3a)}
+#warmBox.bad{border-color:#ff4a3a;animation:wbPulse .9s infinite}#warmBox .wrw.bad .wbar u{background:linear-gradient(90deg,#ff7a3a,#ff3a3a)}
+@keyframes wbPulse{50%{box-shadow:0 0 12px #f43}}
+body.mob #warmBox{padding:2px 7px;font-size:10px;border-width:1px}
+.pbtn .wu{flex:1 0 100%;display:flex;align-items:center;gap:8px;font-size:.82em;margin-top:3px}
+.pbtn .wu .wb{flex:1;min-width:40px;height:6px;background:#0008;border-radius:3px;overflow:hidden;display:block}.pbtn .wu .wb u{display:block;height:100%;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a)}
+.pbtn .wu em{font-style:normal;white-space:nowrap;opacity:.9}
+.wubtn{font:inherit;font-weight:900;font-size:.95em;padding:3px 9px;border-radius:8px;border:2px solid #ffb23a;background:#3a1c08;color:#ffd9a8;cursor:pointer;white-space:nowrap}.wubtn.on{background:#a33;border-color:#fff;color:#fff}
+#penUI{position:absolute;left:50%;top:2.2vh;transform:translateX(-50%);z-index:34;width:min(92vw,470px);background:rgba(8,16,30,.9);border:3px solid #ffb23a;border-radius:14px;padding:8px 14px 10px;text-align:center;color:#fff;pointer-events:auto;box-shadow:0 4px 18px #000a}
+#penUI .pn-t{font-weight:900;letter-spacing:.1em;color:#ffb23a;font-size:clamp(13px,2vh,16px)}#penUI .pn-n{font-weight:900;font-size:clamp(16px,2.8vh,22px);margin:2px 0 5px}
+#penUI .pn-m{display:flex;align-items:center;gap:8px;font-size:12px}#penUI .pn-b{flex:1;height:12px;background:#0009;border-radius:6px;overflow:hidden;display:block}#penUI .pn-b u{display:block;height:100%;width:0;text-decoration:none;background:linear-gradient(90deg,#4af,#ffb23a,#ff6a3a);transition:width .25s}
+#penUI .pn-s{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:5px;opacity:.95}
+#penSkip{margin-top:7px;padding:6px 18px;font-weight:900;border-radius:9px;border:2px solid #fff;background:#10243a;color:#fff;cursor:pointer;font-size:13px}
+body.mob #penUI{top:1vh;padding:5px 10px 7px}
+

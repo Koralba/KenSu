@@ -1,0 +1,93 @@
+/* 06-title-menu.css — 主畫面選項（一般／生涯／離開）（原 style.css 第 692-783 行） */
+/* ===== 主畫面選項（一般／生涯／離開） ===== */
+#title{cursor:default}
+#title .tmenu{position:absolute;bottom:11vh;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:clamp(8px,1.5vh,15px);width:min(80vw,360px);z-index:2}
+/* 按鈕：球場看板 + 棒球縫線 */
+#title .tmb{--a:#ffd24a;--bg1:#14703f;--bg2:#083522;--glow:rgba(255,210,74,.55);--rim:linear-gradient(180deg,#fff2b0,#d9961c 55%,#fff0a0);
+  position:relative;display:flex;align-items:center;gap:.9em;width:100%;min-height:clamp(44px,7.4vh,62px);padding:0 1.2em 0 .75em;
+  border:2px solid transparent;border-radius:16px;overflow:hidden;text-align:left;color:#fff;font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(17px,2.3vw,23px);
+  background:linear-gradient(105deg,var(--bg1),var(--bg2)) padding-box,var(--rim) border-box;
+  box-shadow:0 5px 0 rgba(0,0,0,.6),0 12px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.28);
+  cursor:pointer;touch-action:manipulation;transition:transform .15s,box-shadow .15s,filter .15s}
+#title .tmb::before{content:'';position:absolute;inset:4px;border-radius:11px;border:1.5px dashed rgba(255,96,96,.55);pointer-events:none}
+#title .tmb::after{content:'';position:absolute;top:-10%;bottom:-10%;left:-45%;width:28%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);pointer-events:none;animation:tmIdle 5.2s ease-in-out infinite}
+#title .tmb:nth-child(1)::after{animation-delay:2.6s}#title .tmb:nth-child(2)::after{animation-delay:3.5s}#title .tmb:nth-child(3)::after{animation:none}
+#title .tmb .tt{flex:1;display:flex;flex-direction:column;align-items:center;margin-right:2.2em;min-width:0}
+#title .tmb b{font-weight:900;letter-spacing:.32em;margin-right:-.32em;text-shadow:0 2px 0 rgba(0,0,0,.55);white-space:nowrap}
+#title .tmb small{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.46em;letter-spacing:.38em;margin:.2em -.38em 0 0;color:var(--a);opacity:.92;text-shadow:0 1px 3px #000}
+#title .ico{flex:none;position:relative;display:grid;place-items:center;width:1.9em;height:1.9em;border-radius:50%;font-style:normal;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 -3px 5px rgba(0,0,0,.28)}
+#title .ball{background:radial-gradient(circle at 35% 28%,#fff,#ece7d8 58%,#b8ae96)}
+#title .ball::before,#title .ball::after{content:'';position:absolute;top:-12%;bottom:-12%;width:70%;border:2px dashed #d3202a;border-radius:50%}
+#title .ball::before{left:-48%}#title .ball::after{right:-48%}
+#title .star{background:radial-gradient(circle at 35% 28%,#fff4b8,#f2b92a 55%,#a86a08);color:#5a3300;font-size:1.05em;font-weight:900;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+#title .pwr{background:radial-gradient(circle at 35% 28%,#5b636f,#1d2128);color:#ffb0b0;font-size:1.02em;font-weight:900;line-height:1;border:2px solid rgba(220,228,238,.6)}
+#title .tm-n{--a:#9ff0c2}
+#title .tm-c{--bg1:#2150b0;--bg2:#0a1a48}
+#title .tm-c b{color:#ffeaa6}
+#title .tmx{--a:#ff9a9a;--bg1:#3a404a;--bg2:#15181e;--glow:rgba(255,120,120,.5);--rim:linear-gradient(180deg,#e2e8ef,#6b7480 55%,#cfd6de)}
+#title .tmx b{color:#e8edf3}
+#title .tmb:hover,#title .tmb:focus-visible{filter:brightness(1.13);transform:translateY(-2px);box-shadow:0 7px 0 rgba(0,0,0,.6),0 0 0 1px var(--a),0 0 26px var(--glow),0 14px 28px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+#title .tmb:hover::after,#title .tmb:focus-visible::after{animation:tmSweep .75s ease-out}
+#title .tmb:hover .ball,#title .tmb:focus-visible .ball{animation:tmRoll .8s linear infinite}
+#title .tmb:hover .star,#title .tmb:focus-visible .star{animation:tmPop .7s ease-in-out infinite}
+#title .tmb:hover .pwr,#title .tmb:focus-visible .pwr{box-shadow:0 0 12px rgba(255,100,100,.8),inset 0 -3px 5px rgba(0,0,0,.28)}
+#title .tmb:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#title .tmb:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.6),0 4px 10px rgba(0,0,0,.5);filter:brightness(.97)}
+@keyframes tmIdle{0%,68%{left:-45%}100%{left:135%}}
+@keyframes tmSweep{0%{left:-45%}100%{left:135%}}
+@keyframes tmRoll{to{transform:rotate(360deg)}}
+@keyframes tmPop{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.12) rotate(14deg)}}
+/* 開場動畫：預備 → 擊中 → 登場 */
+#title .fxc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#title .flash{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 30%,#fff,#fff8dc 55%,#ffd070)}
+#title .flash.go{animation:tFlash .8s ease-out forwards}
+@keyframes tFlash{0%{opacity:.96}100%{opacity:0}}
+#title.shk{animation:tShake .5s linear}
+@keyframes tShake{0%{transform:translate(0,0)}12%{transform:translate(-9px,5px)}26%{transform:translate(8px,-6px)}40%{transform:translate(-6px,-4px)}56%{transform:translate(5px,4px)}74%{transform:translate(-3px,2px)}100%{transform:translate(0,0)}}
+#title .kicker,#title .en{position:relative;z-index:1}
+#title .logo::before{content:'';position:absolute;inset:-34% -14%;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(255,128,32,.5),rgba(255,64,12,.16) 56%,transparent 76%);filter:blur(10px);animation:tHeat 2.6s ease-in-out infinite}
+@keyframes tHeat{0%,100%{opacity:.62;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+#title.armed .logo,#title.armed .kicker,#title.armed .en,#title.armed .tmb,#title.armed .made{visibility:hidden;animation:tFb 0s linear 4s forwards!important}
+@keyframes tFb{to{visibility:visible}}
+#title.hit .logo{animation:tSlam .95s cubic-bezier(.2,.8,.2,1) backwards}
+#title.hit .kicker{animation:tReveal .7s ease-out .45s backwards,kfade 4s ease-in-out infinite}
+#title.hit .en{animation:tReveal .7s ease-out .6s backwards}
+#title.hit .made{animation:tReveal .8s ease-out 1.15s backwards}
+#title.hit .tmb:nth-child(1){animation:tmInL .6s cubic-bezier(.2,1.4,.4,1) .8s backwards}
+#title.hit .tmb:nth-child(2){animation:tmInR .6s cubic-bezier(.2,1.4,.4,1) .95s backwards}
+#title.hit .tmb:nth-child(3){animation:tmInL .6s cubic-bezier(.2,1.4,.4,1) 1.1s backwards}
+@keyframes tSlam{0%{opacity:0;transform:scale(2.9)}45%{opacity:1;transform:scale(.93)}70%{transform:scale(1.035)}100%{transform:scale(1)}}
+@keyframes tReveal{from{clip-path:inset(0 50% 0 50%);transform:translateY(10px)}to{clip-path:inset(0 0 0 0);transform:none}}
+@keyframes tmInL{from{opacity:0;transform:translateX(-70px) skewX(-14deg)}to{opacity:1;transform:none}}
+@keyframes tmInR{from{opacity:0;transform:translateX(70px) skewX(14deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#title .tmb::after,#title .logo::before{animation:none}#title.hit *{animation:none!important}}
+body.mob #title .tmenu{bottom:5vh;width:min(74vw,310px);gap:7px}
+body.mob #title .tmb{min-height:42px;font-size:16px;border-radius:13px}
+body.mob #title .tmb::before{border-radius:8px}
+/* 離開遊戲：確認視窗與道別畫面 */
+#exitDlg{position:absolute;inset:0;z-index:75;display:flex;align-items:center;justify-content:center;background:rgba(2,8,16,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#exitDlg.hide{display:none}
+#exitDlg .xbox{position:relative;width:min(86vw,400px);padding:22px 20px 18px;border-radius:18px;text-align:center;color:#fff;border:2px solid transparent;background:linear-gradient(#142633,#08111a) padding-box,linear-gradient(180deg,#e2e8ef,#6b7480 55%,#cfd6de) border-box;box-shadow:0 18px 44px rgba(0,0,0,.7);animation:xIn .28s cubic-bezier(.2,1.4,.4,1)}
+#exitDlg .xbox::before{content:'';position:absolute;inset:5px;border-radius:13px;border:1.5px dashed rgba(255,96,96,.45);pointer-events:none}
+#exitDlg .xt{font-size:clamp(20px,3vw,25px);font-weight:900;color:#ffe27a;margin-bottom:8px}
+#exitDlg .xs{font-size:15px;line-height:1.7;opacity:.92;margin-bottom:16px}
+#exitDlg .xb{position:relative;display:flex;gap:10px}
+#exitDlg .xb button{flex:1;min-height:46px;border-radius:12px;font-family:inherit;font-weight:900;font-size:16px;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.55);background:linear-gradient(#4a5565,#2a323d);touch-action:manipulation}
+#exitDlg .xb #exitYes{background:linear-gradient(#ff7a7a,#c81818)}
+#exitDlg .xb button:active{transform:translateY(2px)}
+#exitDlg .xb button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@keyframes xIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+#bye{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,#10283a,#02060b 75%);color:#fff;animation:byeIn .6s ease-out}
+#bye.hide{display:none}
+#bye .bt{font-size:clamp(24px,5vw,40px);font-weight:900;letter-spacing:.2em;margin-right:-.2em;color:#ffe27a;text-shadow:0 3px 0 #6b3300}
+#bye .bs{font-size:clamp(14px,2.2vw,17px);line-height:1.8;opacity:.85;max-width:420px}
+#bye .bh{font-size:13px;line-height:1.7;opacity:.7;max-width:420px}
+#bye button{margin-top:6px;min-height:46px;padding:0 30px;border-radius:12px;border:2px solid rgba(255,255,255,.7);background:linear-gradient(#5fd98f,#1f9150);color:#fff;font-family:inherit;font-weight:900;font-size:16px;cursor:pointer}
+@keyframes byeIn{from{opacity:0}to{opacity:1}}
+#careerDlg{position:absolute;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+#careerDlg.hide{display:none}
+#careerDlg .cbox{width:min(86vw,420px);padding:22px 20px;border-radius:18px;text-align:center;background:linear-gradient(#16313a,#0b1a22);border:1px solid rgba(255,255,255,.25);box-shadow:0 14px 40px rgba(0,0,0,.6);color:#fff}
+#careerDlg .ct{font-size:22px;font-weight:900;color:#ffe27a;margin-bottom:10px}
+#careerDlg .cs{font-size:16px;line-height:1.7;margin-bottom:16px}
+#careerDlg button{min-height:46px;padding:0 28px;border-radius:12px;border:2px solid #fff9;background:linear-gradient(#5fd98f,#1f9150);color:#fff;font-weight:900;font-size:16px;cursor:pointer}
+
