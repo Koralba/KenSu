@@ -449,6 +449,7 @@ function aiManagePitcher(sideIdx) {
   //  1) 體力見底／被打爆（緊急）  2) 體力下降、表現不佳、長時間不穩（至少面對 3 名打者後）
   //  3) 關鍵局面針對特定打者（右投對強力左打 → 換左投）  4) 最後一局領先 1~3 分 → 終結者
   //  換投後同半局不再換、新投手至少面對 2 名打者；牛棚只剩 1 人時除非緊急否則保留
+  if (G.role && typeof CPRO !== 'undefined' && CPRO.bullpenCall(sideIdx)) return;      // 職業賽季：牛棚新人登板
   const t = G.teams[sideIdx]; if ((G.human === sideIdx && !G.role) || G.over || G.forfeit >= 0) return;
   const p = t.pitchers[t.cur]; if (!p || p.out) return;
   const pool = availPitchers(sideIdx); if (!pool.length) return;
@@ -485,6 +486,7 @@ function aiManagePitcher(sideIdx) {
   if (i >= 0) changePitcher(sideIdx, i, false, why);
 }
 function aiPinch() {
+  if (G.role && typeof CPRO !== 'undefined' && CPRO.benchCall(G.half)) return;      // 職業賽季：板凳候補被叫上場（js/13e-career-pro.js）
   const side = G.half; if ((G.human === side && !G.role) || !lvl().learn || G.over) return; const t = battingTeam(); if (!t.bench || !t.bench.length) return;
   const b = curBatter(); if (b.slot === undefined || b.isPitcherBat) return;
   const lev = ((G.on[1] || G.on[2]) && G.outs < 2 ? 1 : 0) + (Math.abs(runDiff(side)) <= 2 ? .6 : 0);
