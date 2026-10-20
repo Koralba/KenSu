@@ -1,6 +1,13 @@
 {
+  "id": "./baseball.html",
   "name": "中職野球2027 Cam.Su",
   "short_name": "中職野球2027 Cam.Su",
+  "description": "中職野球2027：可離線遊玩的棒球遊戲",
+  "lang": "zh-TW",
+  "categories": [
+    "games",
+    "sports"
+  ],
   "start_url": "./baseball.html",
   "scope": "./",
   "display": "fullscreen",
