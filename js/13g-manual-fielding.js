@@ -157,9 +157,9 @@ const FM = (function () {
   window.addEventListener('blur', () => { for (const k of Object.keys(keys)) keys[k] = false; });
   document.querySelectorAll('.pill[data-k="assist"]').forEach(p => p.classList.toggle('sel', +p.dataset.v === (typeof CFG !== 'undefined' && CFG.assist ? 1 : 0)));
   document.querySelectorAll('.pill[data-k="assist"]').forEach(p => p.addEventListener('click', () => { try { localStorage.setItem(LS, p.dataset.v); } catch (e) { } }));      // 賽前選單的選擇也記住
-  /* 「更多」選單裡的輔助防守開關：點一下切換手動／輔助，按鈕文字跟著目前狀態；點完選單會由 13 自動收起 */
+  /* 「更多」旁邊（#acts 列，和止滑粉同一排）的輔助守備開關：點一下切換手動／輔助，按鈕文字與亮燈跟著目前狀態 */
   const abtn = document.getElementById('btnAssist');
-  const syncAssistBtn = () => { if (!abtn) return; const t = G.assist ? '🤝 輔助防守：開（電腦撿球）' : '🎮 輔助防守：關（手動走位撿球）'; if (abtn.textContent !== t) abtn.textContent = t; };
+  const syncAssistBtn = () => { if (!abtn) return; const t = G.assist ? '🤝 輔助守備：開' : '🎮 輔助守備：關'; if (abtn.textContent !== t) abtn.textContent = t; abtn.classList.toggle('on', !!G.assist); const show = G.mode === 'play' && G.human >= 0 && G.human === 1 - G.half && !G.easy; if (abtn.style.display !== (show ? '' : 'none')) abtn.style.display = show ? '' : 'none'; };      // 按鈕放在「更多」旁邊（和止滑粉同一排）：只有玩家守備（非簡易模式）時顯示；開啟輔助時亮橘色
   if (abtn) abtn.onclick = () => setAssist(!G.assist);
   requestAnimationFrame(drawUI);
   try { const _up = updatePlay; updatePlay = function (dt) { try { pre(dt); } catch (e) { console.error(e); } return _up.call(this, dt); }; } catch (e) { console.warn('FM：無法包裝 updatePlay', e); }
