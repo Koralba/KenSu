@@ -15,7 +15,7 @@
 | 檔案 | 內容 | 修改時機 |
 |---|---|---|
 | `01-core-data.js` | 工具函式(clamp/rnd/pick…)、球場尺寸、`PITCHES` 球種、`TEAMS` 球隊球員資料、能力值換算(F～S)、心情值 | 改球員／球隊／能力值 |
-| `02-stadium-scene.js` | three.js 場景：草皮、內野、全壘打牆看板、觀眾、夜間燈光 | 改球場外觀 |
+| `02-stadium-scene.js` | three.js 場景：草皮、內野、全壘打牆看板、觀眾、夜間燈光（`lightPool` 場地光池、燈塔 `halo` 光暈、`BEAM_MAT`、`RIM`、燈頭顏色都是「加法混色」的疊加光，太亮會把畫面洗成死白，目前已調低偏暖；**場景主光 `hemi`／`sun`／`flood1~3` 的強度不在這個檔**，是別的檔在執行時設定，夜間整體亮度要去那裡調） | 改球場外觀 |
 | `03-players-ball-camera.js` | Q版球員外觀／打擊投球姿勢／落地修正／球／擊球特效／煙火／止滑粉／鏡頭 | 改球員模型、鏡頭 |
 | `04-pitch-swing-physics.js` | **`G` 遊戲狀態**、實體、投球模型、揮棒／擊球判定、球的物理、擊球軌跡 | 改投打手感 |
 | `05-play-fielding-runners.js` | 球進場內：守備計畫、傳球、跑者、觸殺、出局 | 改守備／跑壘 |
@@ -69,11 +69,12 @@
 - **手機方向盤（已修）**：原本 13g 讀 `PAD.v`，但全部已上傳的檔案中**沒有任何程式設定 `PAD.v`**（`13` 的觸控拖曳只移動畫面上的方向盤圖示並移動瞄準準心），所以手機拖左邊方向鍵一直無效。現在 `13` 的觸控拖曳在 `FM.padNeeded()` 為真時設定 `PAD.f`（拖曳量 ÷40，上＝`vy` 負），13g 的 `inputDir()` 讀 `PAD.f`（`PAD.v` 仍保留相容，目前無人設定）。`14` 的 `frame()` 讀 `PAD.v` 移動準心，所以**不要把方向盤資料放進 `PAD.v`**，會同時拖動準心。
 - **快轉中停用（已修）**：`baseOK()` 加 `!window.__ff`。自動模擬快轉時由電腦追球，不再讓被標記 `manual` 的野手站著不動；快轉遇到傳球詢問（`PL.ask`）會自動停下來。
 - 生涯模式刻意只能操控「你的角色」（`allowed()`）；球離你超過 16 公尺時**不會**幫你選別的野手，這是設計不是故障。
-- 啟用條件：`baseOK()`＝玩家守備、非簡易、`G.assist` 為假、非界外球／全壘打。輔助防守設定：賽前「更多設定」的 pill（`CFG.assist`）、比賽中「☰ 更多」選單裡的「輔助防守」按鈕（`baseball.html` 的 `#btnAssist`，由 13g 綁定點擊與文字；原本左上角的小按鈕 `#fmAssist` 已隱藏，13g 的 `SHOW_CHIP` 改 true 可還原）；偏好存 `localStorage: cpbl2027.assistDef`；`11` 的 `newGame()` 把 `CFG.assist` 轉成 `G.assist`。
+- 啟用條件：`baseOK()`＝玩家守備、非簡易、`G.assist` 為假、非界外球／全壘打。輔助防守設定：賽前「更多設定」的 pill（`CFG.assist`）、比賽中「☰ 更多」旁邊（`#acts` 列，和止滑粉同一排）的「輔助守備」按鈕（`baseball.html` 的 `#btnAssist`，由 13g 綁定點擊、文字、亮燈（開＝橘色 `.on`），並只在玩家守備且非簡易模式時顯示；原本左上角的小按鈕 `#fmAssist` 已隱藏，13g 的 `SHOW_CHIP` 改 true 可還原）；偏好存 `localStorage: cpbl2027.assistDef`；`11` 的 `newGame()` 把 `CFG.assist` 轉成 `G.assist`。
 - 做法：13g 包裝全域 `updatePlay()`，每幀先跑 `FM.pre(dt)`：自動選取、依輸入設定被選野手的 `tx/tz`、搶先撿球（滾地球 1 公尺內、接殺 1.5 公尺內且球高 <2.3 公尺）、差一點點的「手套範圍」拉近（接殺 2.9 公尺／滾地 2.2 公尺）。被操控的野手有 `f.manual=true`：`06` 的 `steerChaser()` 會略過他，`05` 的 `rechaseBall()` 先問 `FM.rechase()`（沒接到就繼續由玩家追）。
 - 換人＝把 `PL.plan.f` 與補位表 `PL.cover` 對調；換人後 `locked` 到這一球結束，不再自動選取。
 - 球的軌跡、落點與接球／漏接判定仍是引擎預先算好的（`planFielding`），手動只是改成「看你人有沒有在那裡」。
 - 外野手手感（比原本快）：`04` 的 `FIELDK_OF` 1.08、`05` 的 `planFielding` 反應 .29／`assignRoles` 起步等待 .1、`06` 的 `steerChaser` 看球時間縮短、落點估計更準、不再放慢腳步等球。要再調快慢，改這幾個數字。
+- **玩家操控野手的速度（`13g` 的 `MANUAL_K`，目前 1.2）**：只乘在 `pre()` 裡「被你操控的那一位」的走動速度（含持球跑動），方向盤／方向鍵輕推時最低速為 70%（原 55%）。**刻意不動 `MOVEK`／`FIELDK_OF`／`fspeed()`**：那些同時被電腦野手與 `planFielding`（安打／接殺判定）使用，改了會讓安打變少。想再快或慢，只改 `MANUAL_K`。
 
 ## 引擎接點一覽（為生涯／手動守備而改過的既有檔案，改這些地方時要小心別弄壞）
 | 檔案 | 位置 | 做什麼 |
@@ -88,7 +89,7 @@
 | `13c` | 角色欄位按鈕 | 「▶ 開始生涯」→ `CSEASON.begin()` |
 | `14` | `frame()` | `if (!window.__ff)` 兩處（快轉不繪製、不調畫質）；`step()` 迴圈內 `if (window.__ff && AUTOSIM.needMe()) break`（輪到你立刻停） |
 | `08` | 檔尾 | `AUTOSIM_FF_GUARD`：快轉時發聲函式不建立節點 |
-| `baseball.html`／`sw.js` | script 標籤、`LOCAL`、`VERSION` | 13c～13g；「輔助防守」設定選項、`#actMore` 裡的 `#btnAssist`；v11 |
+| `baseball.html`／`sw.js` | script 標籤、`LOCAL`、`VERSION` | 13c～13g；「輔助防守」設定選項、`#acts` 列的 `#btnAssist`（「更多」旁）；v13 |
 
 ## 已驗證／尚未驗證
 - 已對照原始碼確認：`humanBats/humanPitches/humanDef` 是玩家操控的集中判斷點；`subInto(side, old, sub)` 回傳新球員；`makeChibi` 可包裝；`08` 的 `SND.mute／BGM.mute` 可用來靜音；`12` 的電腦教練換人對玩家隊略過；`availPitchers(side)` 回傳 `{p, i}`。
@@ -107,7 +108,7 @@
 ## PWA／離線（不是遊戲邏輯，但每次新增檔案都要連動）
 | 檔案 | 內容 | 修改時機 |
 |---|---|---|
-| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v11）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
+| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v13）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
 | `yw_manifest.json` | PWA 安裝資訊（名稱、圖示、全螢幕、橫向、主題色）。`baseball.html` 以 `<link rel="manifest">` 引用 | 改 App 名稱、圖示、顯示方式 |
 
 > `sw.js` 的 `LOCAL` 已列入 `13c`、`13d`、`13e`、`13f`、`13g`；之後新增 13h 等檔案時務必一併補上，並把 `VERSION` +1。
@@ -144,6 +145,7 @@
 | 不確定原因的樣式問題 | 對應 `css/*.css` 全部（`01` 含最基礎的 `#hud`、`#curtain` 舊規則） |
 
 ## 手感數值速查（常被要求調整）
+- **甜蜜點擊球強度（`04` 的 `resolveSwing`，`solid` 係數）**：`cz`（球在棒上的位置）算出後定義 `solid`（0～1）＝甜蜜點 × 時機準（`Q` 由 .6 起算、.9 滿）× 球不在棒子上下緣（`|v|`＜.3～.6 漸減）；擦邊（`marginal`）、壞球造成 `Q` 下降、短打時為 0。`solid` 的效果：①初速 ×(1＋solid×.03×…) 並有保底 `25 + solid×(3.5＋1.5×pwk)` m/s（力量普通約 28.5、力量型約 30；在 `ev>30` 壓縮之前；原本 .07／6／5 的版本全壘打太多，已調低）；②初速隨機抖動 −60%、仰角隨機抖動 −35%、上下偏移對仰角的影響 −30%、球種下沉影響 −40%、`luck` −35%；③黃金仰角拉力 ×(1＋solid×.15)（上限 .85；加太多會把球全拉進全壘打仰角）。要調強弱：改保底數字 `25`／`3.5`／`1.5` 與 `.03`；全壘打還是多就先降 `.15`（仰角拉力）；要調「多容易算紮實」：改 `(Q - .6) / .3`。
 - 跑動速度：`04-…js` 的 `MOVEK`（跑者＋內野手 .78）、`FIELDK_OF`（外野手 1.08；原 .95，已調快）、`fspeed0()`（個人公式）；跑者速度在 `05-…js` 的 `makeRunnerFromRig`。
 - 傳球：`04-…js` 的 `armSpeed()`；彈地／滾地／外野回傳係數在 `05-…js` 的 `throwTo()`。
 - 跑壘判決：`06-…js` 的 `CLOSE_T`（close play 視窗）、`safeCheck`／`tagReview`；跑者踩壘時間用 `G.rclk`（由 `updateRunners` 累加，**不要改回 `G.clk`，它沒有人遞增**）。
