@@ -2,6 +2,7 @@
    載入順序：13h 之後、14 之前。本檔不碰任何其他檔的全域；由 13e 透過 CECON.* 呼叫，狀態直接存在 SS.pro（P）上，跟著 13d 的 saveSeason() 整包存。
    所有數字都是「虛構、待調整」的起始值（單位：萬元），不是真實中職薪資。
    欄位（P = SS.pro）：money 存款、fit 體能 0～fitCap、mood 心情 0～100、gear 設備等級 0～5、shop {meal,date} 本季已用次數、econ 最近一次休賽季結算。
+   A2 追加（合約／市場）：P.contract {team,years,left,salary,since}、P.pending（下一年生效的簽約／轉隊）、P.moves（轉隊紀錄）、P.market（休賽季市場畫面狀態）。沒有 contract 的舊存檔由 ensureContract() 補；沒有 contract 時 settle() 仍照舊用表現分數計薪。
    設計原則：花錢只影響「訓練效果倍率（trainMult）」與體能／心情，有上限；不直接改寫比賽結果、不能買先發。 */
 'use strict';
 const CECON = (function () {
@@ -48,10 +49,54 @@ const CECON = (function () {
   }
   const salaryFor = (P, perf) => Math.round((BASE + perf * PERF_RATE) * (P && P.level === 'farm' ? .6 : 1) / 10) * 10;
   function settle(P, S) {      // 休賽季結算：領年薪、扣生活費、恢復體能、心情回穩、重置本季商店次數
-    ensure(P); const perf = perfScore(S), salary = salaryFor(P, perf), living = LIVING;
+    ensure(P); const perf = perfScore(S), living = LIVING; let salary = salaryFor(P, perf);
+    const c = P.contract; if (c && typeof c.salary === 'number' && isFinite(c.salary)) { salary = Math.round(c.salary * (P.level === 'farm' ? .6 : 1) / 10) * 10; c.left = Math.max(0, (c.left | 0) - 1); }      // 有合約：領合約年薪（二軍 6 折），剩餘年數 −1
     P.money = Math.max(0, Math.round(P.money + salary - living)); P.fit = fitCap(P); P.mood = Math.round(cl(P.mood * .5 + 30, 0, 100)); P.shop = { meal: 0, date: 0 };
-    return { perf, salary, living, money: P.money };
+    return { perf, salary, living, money: P.money, left: c ? c.left : null };
   }
-  return { ensure, trainMult, afterGame, status, buy, perfScore, salaryFor, settle, fitCap, ITEMS, GEAR_COST };
+
+  /* ---------- A2：合約／自由球員／交易／釋出（純邏輯；rnd 可注入，Node 測試用固定亂數） ---------- */
+  const SAL_FLOOR = 150, TRUST_KEEP = .85;
+  const roundTen = v => Math.max(SAL_FLOOR, Math.round(v / 10) * 10);
+  function ensureContract(P) {      // 舊存檔／新角色：沒有合約就補一份 2 年約，年薪依目前表現估算
+    if (!P) return P; const c = P.contract;
+    if (c && typeof c === 'object' && isFinite(c.salary)) { c.years = Math.max(1, c.years | 0 || 1); c.left = cl(c.left | 0, 0, c.years); if (c.team == null) c.team = P.team; return c; }
+    return (P.contract = { team: P.team, years: 2, left: 2, salary: roundTen(salaryFor({}, perfScore({ trust: P.trust, starter: P.starter }))), since: P.year || 1 });
+  }
+  const yearsFor = perf => (perf >= 70 ? 3 : perf >= 40 ? 2 : 1);
+  const roleFor = (S, perf) => (((S && S.starter) && perf >= 55) || perf >= 70 ? 'starter' : 'bench');      // 只有「實際表現夠好」才可能談到先發，不能用錢買
+  function offerFor(P, S, team, rnd, kind) {      // kind：own 本隊續約（不浮動）／fa 自由市場（0.9～1.15）／low 被釋出後的低薪約（0.7～0.9、1 年、一律板凳）
+    const perf = perfScore(S), r = (rnd || Math.random)(), f = kind === 'own' ? 1 : kind === 'low' ? .7 + .2 * r : .9 + .25 * r;
+    return { team, years: kind === 'low' ? 1 : yearsFor(perf), salary: roundTen(salaryFor({}, perf) * f), role: kind === 'low' ? 'bench' : roleFor(S, perf), kind };
+  }
+  const ownOffer = (P, S) => (perfScore(S) >= 18 ? offerFor(P, S, P.team, null, 'own') : null);      // 表現太差，本隊不續約
+  function pickTeams(P, n, rnd) {      // 從其他球隊（共 6 隊）隨機取 n 隊
+    const pool = [0, 1, 2, 3, 4, 5].filter(i => i !== P.team), out = []; rnd = rnd || Math.random;
+    while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]); return out;
+  }
+  function faOffers(P, S, rnd, released) { const n = released ? 1 + Math.floor((rnd || Math.random)() * 2) : 3; return pickTeams(P, n, rnd).map(t => offerFor(P, S, t, rnd, released ? 'low' : 'fa')); }
+  function tradeTry(P, S, rnd) {      // 要求交易：成功率 30～90%（依表現）；成功給 2 個去處，失敗心情 −8
+    const perf = perfScore(S), p = cl(.3 + perf / 120, .3, .9), ok = (rnd || Math.random)() < p, c = ensureContract(P);
+    if (!ok) { P.mood = cl(P.mood - 8, 0, 100); return { ok: false, p }; }
+    const keep = c.left > 0;      // 合約還沒到期：帶著剩餘年數與年薪轉隊；到期：重簽新約
+    return { ok: true, p, offers: pickTeams(P, 2, rnd).map(t => keep ? { team: t, years: c.left, salary: c.salary, role: perf >= 70 ? 'starter' : 'bench', kind: 'trade', keep: true } : offerFor(P, S, t, rnd, 'fa')) };
+  }
+  function evalFate(P, S, rnd) {      // 表現差：球團可能交易或釋出（機率；第 1 年減半；二軍加重）。釋出限「合約到期」或信賴度 <20（買斷）；其餘改為交易
+    const c = ensureContract(P), tr = S.trust | 0, farm = P.level === 'farm'; let p = tr < 15 ? .6 : tr < 25 ? .35 : (tr < 35 && !S.starter) ? .15 : 0;
+    if (p > 0 && farm) p += .1; if ((S.year || P.year || 1) <= 1) p /= 2;
+    if (p <= 0 || (rnd || Math.random)() >= p) return { kind: 'none', p };
+    const rel = (rnd || Math.random)() < .4, canRel = c.left <= 0 || tr < 20;
+    return { kind: rel && canRel ? 'release' : 'trade', p, why: `本季信賴度 ${tr}${S.starter ? '' : '、未能站穩先發'}${farm ? '、待在二軍' : ''}，球團決定重新安排你的去向。` };
+  }
+  function moveEffect(P, role) {      // 換隊：信賴度打折；先發身分只在談到 starter 時保留（信賴度至少 55），否則從板凳開始
+    P.trust = Math.round(cl(P.trust, 0, 100) * TRUST_KEEP); P.level = 'first'; P.lowStreak = 0; P.farmG = 0;
+    if (role === 'starter') { P.starter = true; P.trust = Math.max(P.trust, 55); } else { P.starter = false; }
+  }
+  function applyPending(P) {      // 13e nextYear() 在存好本季摘要之後呼叫：換隊／換約生效，合約從下一年起算
+    const d = P && P.pending; if (!d) return null; const from = P.team, y = P.year || 1;
+    if (d.team != null && d.team !== P.team) { P.team = d.team; moveEffect(P, d.role); (P.moves = P.moves || []).push({ year: y, from, to: d.team, how: d.how }); }
+    P.contract = { team: P.team, years: d.years, left: d.years, salary: d.salary, since: y + 1 }; P.pending = null; return P.contract;
+  }
+  return { ensureContract, yearsFor, roleFor, offerFor, ownOffer, pickTeams, faOffers, tradeTry, evalFate, moveEffect, applyPending, ensure, trainMult, afterGame, status, buy, perfScore, salaryFor, settle, fitCap, ITEMS, GEAR_COST };
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = CECON;
