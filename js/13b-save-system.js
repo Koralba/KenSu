@@ -201,18 +201,23 @@ const SAVE = (function () {
       if (!S.cp) return say('目前沒有可存的進度', true);
       if (readSlot(S.mode, i) && !confirm(`欄位 ${i} 已有存檔，要覆蓋嗎？`)) return;
       const ok = writeSlot(S.mode, i, makeSlot(S.mode, i, S.cp));
-      say(ok ? `已存入欄位 ${i}：${S.cp.info.inn}局${S.cp.info.half ? '下' : '上'}開始` : '瀏覽器儲存空間不足或被停用，無法存檔（可試著刪除舊存檔）', !ok); render();
+      if (ok) {      // 存檔成功：直接關閉視窗回到比賽，只在畫面上輕輕提示一次（不再跳出需要按確認的訊息、也不再把存檔選單重新打開）
+        close(); try { toast(`已儲存（欄位 ${i}）`, '#fff', '#2a9a5a'); } catch (e) { }
+        return;
+      }
+      say('瀏覽器儲存空間不足或被停用，無法存檔（可試著刪除舊存檔）', true); render();
     } else if (a === 'load') loadSlot(i);
     else if (a === 'exp') { const o = readSlot(S.mode, i); if (o) doExport([o], `cpbl2027-${S.mode}-slot${i}-${stamp()}.json`); }
     else if (a === 'del') { if (confirm(`確定刪除欄位 ${i} 的存檔嗎？`)) { try { localStorage.removeItem(key(S.mode, i)); } catch (e) { } say(`已刪除欄位 ${i}`); render(); } }
   }
   function open(kind, mode) {
+    if (S.open || performance.now() - (S.closedAt || 0) < 600) return;      // 已經開著、或剛關閉不到 0.6 秒：忽略（避免同一次點擊／殘留的觸控事件又把視窗打開）
     S.kind = kind; S.mode = mode || 'normal'; S.msg = ''; S.err = false;
     if (kind === 'save') { try { S.cp = S.cp || capture(); } catch (e) { } }
     let first = 1; for (let i = 1; i <= N; i++) if (!readSlot(S.mode, i)) { first = i; break; }
     S.sel = first; S.open = true; dlg().classList.remove('hide'); render();
   }
-  function close() { S.open = false; const d = dlg(); if (d) d.classList.add('hide'); }
+  function close() { S.open = false; S.closedAt = performance.now(); const d = dlg(); if (d) d.classList.add('hide'); }
 
   /* ---------- 綁定 ---------- */
   const _uh = uiHold; window.uiHold = () => _uh() || (S.open && G.mode === 'play');        // 存檔視窗開著時，遊戲暫停
