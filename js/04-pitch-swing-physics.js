@@ -373,6 +373,8 @@ function resolveSwing(pt, sw, b) {
   const bp = clamp(base + bpu + inK * (sR > 0 ? sR * .30 * hand * (.7 + press * .5) : sR * .14) + outK * (sR < 0 ? sR * .22 * (.8 + OA * 2) : 0) + gauss() * .07 * mv, -1.25, 1.25);
   // 球棒擊球位置 bp：<0 球頭、>0 握把。內角：偏晚＝握把被壓制，偏早＝球頭拉打；外角：偏早＝球頭（出棒過早、滾地／拉偏），偏晚＝推向反方向
   const cz = bp > .62 ? 'handle' : bp > .32 ? 'near' : bp < -.58 ? 'end' : bp < -.30 ? 'tip' : 'sweet';
+  // 紮實擊球係數 solid（0～1）：時機準（Q 高）＋打在甜蜜點＋球不在棒子上下緣 → 球出去要明顯比較強勁、比較穩（初速加成／下限、仰角與隨機抖動縮小）；擦邊、壞球、短打一律為 0
+  const solid = (sw.bunt || marginal || cz !== 'sweet') ? 0 : clamp((Q - .6) / .3, 0, 1) * clamp(1 - (Math.abs(v) - .3) / .3, 0, 1);
   // 初速：球棒速度(力量)×擊球效率(Q、甜蜜點)＋來球速度，再乘心情加成與投手壓制力
   const pw = b.pow * 0.005, w0 = G.wx || { temp: 26 };
   let ev = 15 + 25 * (.25 + .75 * Q) * (0.48 + pw * 0.92) * (sw.power ? 1 + .09 * clamp((b.pow - 30) / 55, .1, 1.15) : 1) + (Q > .85 ? (sw.power ? 1.6 + 1.4 * clamp((b.pow - 35) / 55, 0, 1) : 1.8) : 0);   // 降低初速：只有甜蜜點＋高力量＋適當仰角才會出牆
@@ -388,23 +390,24 @@ function resolveSwing(pt, sw, b) {
   if (sw.power && Q > .6) ev *= 1 + (Q - .6) * .10 * (.5 + pskill * .6);   // 強打＋紮實擊球：力量好的打者飛得更遠
   const sweetP = sw.power ? clamp(1 - (Math.abs(bp) - .1) / .35, 0, 1) * clamp((Q - .5) / .4, 0, 1) : 0;      // 強打且球落在棒子甜蜜點：額外加成
   if (sweetP > 0) { ev *= 1 + sweetP * .045 * (.6 + pskill * .5); ev += sweetP * .6 * (.4 + pwk * .8); }
+  if (solid > 0) { ev *= 1 + solid * .03 * (.7 + pskill * .4); ev = Math.max(ev, 25 + solid * (3.5 + 1.5 * pwk)); }      // 甜蜜點＋好時機：小幅初速加成與保底（力量普通約 28.5 m/s、力量型約 30 m/s）：只確保不會軟弱，不額外增加全壘打
   if (ev > 30) ev = 30 + (ev - 30) * 0.85;
-  
+
         // 高初速區壓縮：非力量型打者就算打到甜蜜點也不容易出牆，力量型才飛得遠
   ev *= 1 + clamp((w0.temp - 24) * .0009, -.017, .017);                      // 氣溫：天熱球彈性好、天冷偏悶
-  ev *= (1 + gauss() * 0.07 * mv) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）
-  let ang = 3.0 + b.traj * 2.6 + v * 26 + clamp(Q - .7, 0, .3) * 12 * (.5 + b.pow * .006) + gauss() * (8 + 10 * (1 - Q)) * (.6 + .4 * mv) * clamp(1.3 - b.con * .006, .75, 1.2);      // 打擊技巧好：仰角穩定
+  ev *= (1 + gauss() * 0.07 * mv * (1 - solid * .6)) * (1 - rainBK() * .05);                 // 雨天：球濕滑、衝擊力減弱（大雨／暴雨更明顯）；紮實擊球的初速隨機抖動較小
+  let ang = 3.0 + b.traj * 2.6 + v * 26 * (1 - solid * .3) + clamp(Q - .7, 0, .3) * 12 * (.5 + b.pow * .006) + gauss() * (8 + 10 * (1 - Q)) * (1 - solid * .35) * (.6 + .4 * mv) * clamp(1.3 - b.con * .006, .75, 1.2);      // 打擊技巧好：仰角穩定
   if (sw.power) ang += 1.8 + Q * 1.4 + sweetP * .8;                                      // 強打：揮棒上揚、擊球仰角較高（甜蜜點時更明顯）→ 容易飛得夠遠
   // 球種特性：沉球／指叉／曲球容易打出滾地球，直球上飄容易打成飛球
   const BRK = { SK: -4.5, TS: -2.2, SH: -2, CH: -2.4, FK: -5, CU: -3.2, SL: -1.4, SV: -2.2, ST: 1.6, CT: -.4 };
-  ang += (BRK[pt.id] || 0) * (.6 + pt.lv * .07) * (1.15 - Q * .55);
+  ang += (BRK[pt.id] || 0) * (.6 + pt.lv * .07) * (1.15 - Q * .55) * (1 - solid * .4);      // 紮實擊中：下沉球種也較不容易被壓成滾地球
   if (bp > .32) { const j = bp - .32; ang += j * (10 + press * 10) * (1 + inK * .5); ev *= 1 - j * .2 * (.8 + press * .5); }    // 被壓制（球靠握把）：仰角變高、力道變弱
   if (bp < -.3 && outK > .15) ang -= (-bp - .3) * 8 * outK * (1 + OA * 3);      // 外角打在球頭：球棒蓋過球，打成滾地球
   if (outK > .2 && sR > .35) ang += (sR - .35) * 5 * outK * (1.1 - skill * .5);  // 外角偏晚、推向反方向：容易變成淺飛球
   if (v > .5) { const k = clamp((v - .5) / .7, 0, 1); ang += k * k * (36 + Math.random() * 16); ev *= 1 - .4 * k; }      // 棒子打到球的下緣：愈靠邊緣愈往上飛，邊緣甚至是飛得極高、力道很弱的「沖天炮」
   else if (v < -.5) { const k = clamp((-v - .5) / .7, 0, 1); ang -= k * k * (24 + Math.random() * 8); ev *= 1 - .22 * k; }      // 棒子打到球的上緣：往下壓成滾地球／彈地球
   if (ang < 14 && Q > .6) ev *= 1 + (Q - .6) * .2 * (.85 + b.con * .003);                       // 紮實擊中的低仰角球：強勁滾地球／平飛球
-  if (cz === 'sweet' && Q > .6 && !sw.bunt) { const pull = clamp((Q - .6) / .4, 0, 1) * (.2 + skill * .25); ang += (clamp(ang, 7 + pwk * 2, 22 + pwk * 4) - ang) * pull; ev *= 1 + pull * .06 * (.6 + pskill * .6); }      // 甜蜜點＋好時機：球被打成「黃金仰角」的強勁平飛／長打，能力越強越明顯
+  if (cz === 'sweet' && Q > .6 && !sw.bunt) { const pull = Math.min(.85, clamp((Q - .6) / .4, 0, 1) * (.2 + skill * .25) * (1 + solid * .15)); ang += (clamp(ang, 7 + pwk * 2, 22 + pwk * 4) - ang) * pull; ev *= 1 + pull * .06 * (.6 + pskill * .6); }      // 甜蜜點＋好時機：球被打成「黃金仰角」的強勁平飛／長打，能力越強越明顯
   if (G.hitAndRun && !sw.bunt && ang > 4 && ang < 32) ang -= Math.min(ang - 3, 3.5 + Math.random() * 3.5);      // 打帶跑：打者壓低球路、盡量打成滾地球，配合起跑的跑者
   if (G.offCall === 'sacfly' && !sw.bunt && G.on[2] && ang < 20) ang += Math.min(20 - ang, 5 + Math.random() * 5);      // 犧牲高飛：打者刻意把球打高，讓三壘跑者有機會觸壘跑回
   ang = clamp(ang, -26, 78);
@@ -431,7 +434,7 @@ function resolveSwing(pt, sw, b) {
   // 旋轉：打球下緣→後旋（飄得遠）；打上緣→前旋（急墜）。握把壓制減少後旋、外角打球頭增加前旋
   const spinB = clamp(1 + v * .95 + (ang - 18) * .012 - Math.max(0, bp - .4) * .5 - outK * Math.max(0, -bp - .3) * .6 + gauss() * .12 * mv, -.8, 2.1);
   const spinS = clamp(bp * .22 * side + gauss() * .12 * mv, -.55, .55);
-  const luck = gauss() * (.9 + .5 * mv) * clamp(1.32 - skill * .4, .85, 1.3) * Math.pow(G.day || 1, .5) * (1 + windK() * .3 + Math.max(0, rainBK() - .8) * .35);              // 不可控因素：陣風、擊中縫線、地面彈跳…（風大時更不穩定）
+  const luck = gauss() * (1 - solid * .35) * (.9 + .5 * mv) * clamp(1.32 - skill * .4, .85, 1.3) * Math.pow(G.day || 1, .5) * (1 + windK() * .3 + Math.max(0, rainBK() - .8) * .35);              // 不可控因素：陣風、擊中縫線、地面彈跳…（風大時更不穩定）
   return { kind: 'hit', broken, tip, tipKind, tipText, foulTip, ev, ang, th, Q, dt, d, R: R0, power: sw.power, marginal, s, sR, v, hz, bp, cz, inside, press, spinB, spinS, luck, W: Wd, mv, px: bxp, py: byp, pz: bq.z };
 }
 function resolveBunt(pt, sw, b, dt, d, R0, Q) {
