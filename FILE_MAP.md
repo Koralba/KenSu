@@ -191,3 +191,10 @@
 - **結局 E**：`careerCtx` 新增 `heavy`（高出賽／高投球量球季數，打者 ab≥400、投手 outs≥450）與 `lowYears`（信賴度<35 且非先發的球季數）。`heavy≥7`→`PRO_RETIRE_HEALTH`（health）；`lowYears≥2`→`PRO_RETIRE_DECLINE`（decline）；兩者都保留「再戰一年」。`RETIRE_CHOICE` 值：ceremony／quiet／lastdance／health／decline／again。
 - **退役流程**：`goNext()`→`showRetire(kind)`（逐年成績表、季後賽累積、榮譽、全程文字故事 `buildStory`）→按「✅ 確認，告別球場」→`showCivilian()`（回歸平凡、幸福平淡的日子；可回看回顧）。`P.retired`／`P.civil` 存檔；之後 `showIntro()` 直接回到對應畫面。
 - 測試：story 45／economy 12／integration 82（RETIRE_AT=10／14／20×6 隊×3 種子共 54 次 0 失敗）。環境變數 `RETIRE_AT=<年>` 控制測試在第幾年選退役。
+
+## 合約／市場／二軍（A2＋A3；13i 純邏輯＋13e 介面）
+- **13i（`CECON`）新增**：`ensureContract`（舊存檔補 2 年約）、`offerFor／ownOffer／faOffers／tradeTry／evalFate／moveEffect／applyPending`；`settle()` 有合約時領**合約年薪**（二軍 6 折）並把剩餘年數 −1，沒有合約仍用舊算法。欄位：`P.contract{team,years,left,salary,since}`、`P.pending`（選好、下一年才生效的簽約／轉隊）、`P.moves[]`、`P.market`（本休賽季市場畫面狀態）。
+- **13e 休賽季流程**：續約談話事件（13h `PRO_RENEW`，只改文案，仍每年一次）→ `settleYear()`（領薪、合約 −1）→ **`showMarket()`**（stage：`stay` 合約未到期／`expiry` 到期／`fa` 自由市場／`tradePick` 要求交易成功／`traded` 球團主動交易／`done`）→ 商店 → `nextYear()`（先存本季摘要＝舊球隊，再 `applyPending()` 換隊）。市場內容存 `P.market`，重進不重算、不重複領薪。
+- **規則（皆為起始值，可調）**：本隊續約需表現分數 ≥18；自由市場 3 個報價（薪水 ×0.9～1.15）；先發報價只在「本季是先發且分數 ≥55，或分數 ≥70」才有；換隊信賴度 ×0.85、層級回一軍；表現差（信賴度 <15／<25／<35 且非先發，第 1 年減半、二軍 +0.1）可能被交易或釋出，釋出限「合約到期或信賴度 <20」，被釋出只有 1～2 個低薪 1 年板凳約；要求交易成功率 30～90%，失敗心情 −8、每年一次。
+- **A3 二軍（13e `farmStep／FARM`）**：一軍板凳信賴度 <15 連續 6 場 → `P.level='farm'`（信賴度改 28）；二軍：`plan()` 一律不出賽、賽前畫面只有「直接出結果／快轉 10 場」、每 5 場依 `trainMult` 加信賴度、≥45 且滿 10 場有 60% 召回（回板凳）；新球季若信賴度 ≥40 自動召回。
+- 測試：`tests/test-career-economy.js`（純邏輯 20 項）、`tests/test-career-market.js`（市場與二軍流程 37 項，假環境）、`test-career-story.js`／`test-career-integration.js`（回歸；integration 加 `mkt()` 處理新的市場畫面）。
