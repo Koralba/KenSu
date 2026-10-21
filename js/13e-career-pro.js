@@ -103,8 +103,11 @@ const CPRO = (function () {
     S.pro = { active: true, team: d.teamIdx, seed: Math.floor(Math.random() * 0x7fffffff) + 1, res: [], apps: 0, trust: cl(Math.round(50 - d.overall), 18, 48), starter: false, log: [], plan: null, spTurn: 0, role: bench, done: false };
     K().save(); showIntro();
   }
+  const FARM = { demote: 15, streak: 6, reset: 28, recall: 45, minGames: 10, tick: 5 };      // A3 二軍：板凳信賴度 <15 連續 6 場下放（信賴度改 28）；二軍每 5 場訓練加信賴度；≥45 且滿 10 場有 60% 機率召回
+  const isFarm = () => PR().level === 'farm';
   function plan(g) {      // 今天教練的安排（決定後存起來，重新載入也一樣）
     const P = PR(); if (P.plan && P.plan.gid === g.id) return P.plan;
+    if (isFarm()) return (P.plan = { gid: g.id, use: false, type: 'PH', inn: 9 });      // 二軍：不出賽
     const p = prof(); let use, type = 'PH', inn = rint(6, 9);
     if (P.starter) { use = p.pos === 'P' ? (P.spTurn % 5 === 0) : true; type = 'START'; inn = 1; }
     else { use = Math.random() < cl(.2 + P.trust / 160, .2, .8); if (p.pos === 'P') type = 'RP'; else type = Math.random() < .3 ? 'PR' : 'PH'; }
@@ -152,7 +155,7 @@ const CPRO = (function () {
      只在 showIntro／showEnd 這種「選單畫面」才檢查（不在比賽中、不在快轉中），所以事件不會被自動模擬衝掉，快速模擬本場也一樣會走到。
      檢查點存在 PR() 裡（storyStart／storyChk／storyEnd），事件狀態存 PR().story，跟著 13d 的 saveSeason() 一起存。 */
   let storyCnt = 0;      // 同一個時間點最多連續顯示 3 個事件（防呆）
-  const storyCtx0 = () => { const P = PR(), last = P.log[P.log.length - 1], po = P.po, inPO = !!(po && P.field && P.field.qualified.indexOf(P.team) >= 0), c = { year: P.year || 1, gameNo: P.log.length, starter: !!P.starter, apps: P.apps, trust: P.trust, lastGame: { played: !!(last && last.played) }, econ: { money: P.money || 0, fit: P.fit == null ? 80 : P.fit, mood: P.mood == null ? 60 : P.mood, gear: P.gear || 0 }, team: seasonOver() ? { playoffQualified: playoffField().qualified.indexOf(P.team) >= 0 } : {} }; if (inPO) { if (po.active && !po.out && po.ser && (po.ser.a === P.team || po.ser.b === P.team)) c.po = { stage: po.ser.stage }; else if (po.done) { c.po = { stage: 'done' }; if (po.out) c.po.out = po.out; c.team.champion = po.champ === P.team; } } return c; };      // po.stage／po.out／team.champion 只在季後賽期間提供（劇情事件 po_series／po_end 用）；例行賽打完才提供 team.playoffQualified（依 114 年賽制判定）；沒打完時不提供 → 不會誤播季後賽／檢討事件
+  const storyCtx0 = () => { const P = PR(), last = P.log[P.log.length - 1], po = P.po, inPO = !!(po && P.field && P.field.qualified.indexOf(P.team) >= 0), c = { level: P.level === 'farm' ? 'farm' : 'first', year: P.year || 1, gameNo: P.log.length, starter: !!P.starter, apps: P.apps, trust: P.trust, lastGame: { played: !!(last && last.played) }, econ: { money: P.money || 0, fit: P.fit == null ? 80 : P.fit, mood: P.mood == null ? 60 : P.mood, gear: P.gear || 0 }, team: seasonOver() ? { playoffQualified: playoffField().qualified.indexOf(P.team) >= 0 } : {} }; if (inPO) { if (po.active && !po.out && po.ser && (po.ser.a === P.team || po.ser.b === P.team)) c.po = { stage: po.ser.stage }; else if (po.done) { c.po = { stage: 'done' }; if (po.out) c.po.out = po.out; c.team.champion = po.champ === P.team; } } return c; };      // po.stage／po.out／team.champion 只在季後賽期間提供（劇情事件 po_series／po_end 用）；例行賽打完才提供 team.playoffQualified（依 114 年賽制判定）；沒打完時不提供 → 不會誤播季後賽／檢討事件
   function careerCtx() {      // 生涯累積摘要（含「已打完、尚未存進 hist」的本季；退役事件／主線事件條件用）
     const P = PR(), H = (P.hist || []).slice(); if (!P.retired && canNext()) H.push(seasonSummary());
     return { years: H.length, titles: H.filter(h => h.champ).length, playoffs: H.filter(h => h.qual).length, starterYears: H.filter(h => h.starter).length, heavy: H.filter(h => h.st && (prof().pos === 'P' ? h.st.outs >= 450 : h.st.ab >= 400)).length, lowYears: H.filter(h => h.trust < 35 && !h.starter).length };
@@ -251,14 +254,14 @@ const CPRO = (function () {
     K().show(`<div class="csb"><h2>🏆 ${STG[g.stage]}・第 ${g.no} 戰</h2><div class="sub">${esc(p.name)} #${p.num}・${esc(p.pos)}　｜　${my.name}・${roleTx()}　｜　信賴度 ${P.trust}</div>
 <div class="vs"><div class="tm" style="background:linear-gradient(135deg,${meHome ? my.c1 : opp.c1},#0006);color:#fff">${esc((meHome ? opp : my).short)}<br><small>客</small></div><span>＠</span><div class="tm" style="background:linear-gradient(135deg,${meHome ? my.c1 : opp.c1},#0006);color:#fff">${esc((meHome ? my : opp).short)}<br><small>主</small></div></div>
 <div class="sub" style="text-align:center">${serTx(s)}</div><div class="task">📋 ${tx}<br><small>季後賽每場都要分出勝負（和局不計、重打）。</small></div>
-<div class="btns"><button id="cpHome">返回主畫面</button><button id="poSim">⏭ 直接出結果</button><button id="poGoW">👁 全程觀看</button><button id="poGo" class="pri">⏩ 自動模擬（快轉到我上場）</button></div></div>`);
+<div class="btns"><button id="cpHome">返回主畫面</button><button id="poSim"${isFarm() ? ' class="pri"' : ''}>⏭ 直接出結果</button>${isFarm() ? '' : '<button id="poGoW">👁 全程觀看</button><button id="poGo" class="pri">⏩ 自動模擬（快轉到我上場）</button>'}</div></div>`);
     $e('cpHome').onclick = () => { K().hide(); K().leave(); G.mode = 'title'; $('menu').classList.add('hide'); $('title').classList.remove('hide'); CAMC.mode = 'title'; };
-    $e('poSim').onclick = () => quick(g); $e('poGo').onclick = () => { AUTOSIM.arm(true); launch(g); }; $e('poGoW').onclick = () => { AUTOSIM.arm(false); launch(g); };
+    $e('poSim').onclick = () => quick(g); if (!isFarm()) { $e('poGo').onclick = () => { AUTOSIM.arm(true); launch(g); }; $e('poGoW').onclick = () => { AUTOSIM.arm(false); launch(g); }; }
   }
 
   /* ---------- 經濟（13i-career-economy.js；沒載入時整段略過）：薪水／存款／體能／心情／設備、商店畫面 ---------- */
   const ECO = () => (typeof CECON !== 'undefined' ? CECON : null);
-  const ecoP = () => { const E = ECO(); if (E) E.ensure(PR()); return E; };
+  const ecoP = () => { const E = ECO(); if (E) { E.ensure(PR()); if (E.ensureContract) E.ensureContract(PR()); } return E; };
   function settleYear() {
     const E = ecoP(), P = PR(); if (!E) return null; if (P.econ && P.econ.settled === (P.year || 1)) return P.econ;
     P.econ = Object.assign({ settled: P.year || 1 }, E.settle(P, seasonSummary())); K().save(); return P.econ;
@@ -266,10 +269,47 @@ const CPRO = (function () {
   function showShop(back, off, msg) {      // back：離開商店後回哪裡（賽季中）；off＝休賽季版（含結算與「進入下一年」）
     const E = ecoP(), P = PR(); if (!E) return off ? nextYear() : back();
     const st = E.status(P), ec = P.econ, $e = id => document.getElementById(id);
-    const head = off && ec ? `<div class="task">📊 第 ${ec.settled} 年結算：表現分數 <b>${ec.perf}</b>　年薪 <b>${ec.salary}</b> 萬　生活開銷 −${ec.living} 萬</div>` : '';
+    const HOW = { resign: '續約', fa: '自由球員簽約', trade: '交易', release: '被釋出後簽約' }, pd = off && P.pending, head = (off && ec ? `<div class="task">📊 第 ${ec.settled} 年結算：表現分數 <b>${ec.perf}</b>　年薪 <b>${ec.salary}</b> 萬　生活開銷 −${ec.living} 萬</div>` : '') + (pd ? `<div class="task">📑 下一年：<b>${esc(TEAMS[pd.team].name)}</b>（${HOW[pd.how] || ''}・${pd.years} 年約・年薪 ${pd.salary} 萬${pd.team !== P.team ? '・' + (pd.role === 'starter' ? '以先發身分加入' : '從板凳開始') : ''}）</div>` : (off && P.contract ? `<div class="task">📑 合約：${esc(TEAMS[P.contract.team].short)}・剩 ${P.contract.left} 年・年薪 ${P.contract.salary} 萬</div>` : ''));
     K().show(`<div class="csb"><h2>🛍 ${off ? '休賽季' : ''}商店</h2><div class="sub">💰 存款 <b>${st.money}</b> 萬　｜　體能 ${st.fit}/${st.fitCap}　心情 ${st.mood}　設備 Lv${st.gear}　｜　訓練效果 ×${st.mult}</div>${head}${msg ? `<div class="task" id="ecMsg">${esc(msg)}</div>` : ''}<div class="btns" style="flex-direction:column;align-items:stretch">${st.items.map(it => `<button id="ec_${it.id}"${it.can ? '' : ' disabled'}>${esc(it.label)}　${it.cost ? it.cost + ' 萬' : ''}<br><small style="opacity:.7">${esc(it.hint)}${it.limit && it.id !== 'gear' ? `（${it.used}/${it.limit}）` : ''}${it.why ? '・' + esc(it.why) : ''}</small></button>`).join('')}</div><div class="btns">${off ? `<button id="ecNext" class="pri">▶ 進入第 ${(P.year || 1) + 1} 年</button>` : '<button id="ecBack" class="pri">返回</button>'}</div></div>`);
     st.items.forEach(it => { const b = $e('ec_' + it.id); if (b) b.onclick = () => { const r = E.buy(P, it.id); K().save(); showShop(back, off, r.msg); }; });
     if (off) $e('ecNext').onclick = nextYear; else $e('ecBack').onclick = back;
+  }
+
+
+  /* ---------- A2：休賽季市場（合約續約／自由球員／交易／被釋出）；狀態存 P.market（stage：stay／expiry／fa／tradePick／traded／done），選定後存 P.pending，在 nextYear() 才生效 ---------- */
+  const offerTx = o => `${esc(TEAMS[o.team].name)}　${o.years} 年約・年薪 <b>${o.salary}</b> 萬・${o.role === 'starter' ? '以先發身分加入' : '從板凳開始'}${o.keep ? '（沿用現有合約）' : ''}`;
+  function showMarket() {
+    const E = ecoP(), P = PR(); if (!E || !E.evalFate) return showShop(null, true);
+    const y = P.year || 1, S = seasonSummary(), perf = E.perfScore(S), c = P.contract, $e = id => document.getElementById(id);
+    let M = P.market; if (!M || M.year !== y) M = P.market = { year: y, stage: null, tried: false };
+    if (M.stage === 'done') return showShop(null, true);
+    if (!M.stage) {
+      const f = E.evalFate(P, S); M.why = f.why || '';
+      if (f.kind === 'release') { M.stage = 'fa'; M.released = true; M.offers = E.faOffers(P, S, null, true); }
+      else if (f.kind === 'trade') { const t = E.pickTeams(P, 1)[0], keep = c.left > 0, o = keep ? { team: t, years: c.left, salary: c.salary, role: 'bench', kind: 'trade', keep: true } : E.offerFor(P, S, t, null, 'fa'); o.role = 'bench'; M.stage = 'traded'; M.offers = [o]; }
+      else if (c.left <= 0) { M.stage = 'expiry'; M.own = E.ownOffer(P, S); }
+      else M.stage = 'stay';
+      K().save();
+    }
+    const go = (o, how) => { P.pending = { team: o.team, years: o.years, salary: o.salary, role: o.role, how }; M.stage = 'done'; K().save(); showShop(null, true); };
+    const head = `<div class="sub">📑 現有合約：${esc(TEAMS[c.team == null ? P.team : c.team].short)}・剩 ${c.left} 年・年薪 ${c.salary} 萬　｜　本季表現分數 ${perf}　信賴度 ${P.trust}${isFarm() ? '　（二軍）' : ''}</div>`;
+    let body = '', btns = [];
+    const msg = M.msg ? `<div class="task">${esc(M.msg)}</div>` : '';
+    if (M.stage === 'traded') { body = `<div class="task">🔁 <b>你被交易了。</b>${esc(M.why)}<br>去向：${offerTx(M.offers[0])}</div>`; btns = [{ id: 'mk0', t: '接受，前往新球隊', pri: 1, f: () => go(M.offers[0], 'trade') }]; }
+    else if (M.stage === 'fa') {
+      body = `<div class="task">${M.released ? `✂️ <b>球團決定不再與你續約，把你放到自由市場。</b>${esc(M.why)}<br>只有少數球隊願意給機會（低薪、1 年約、從板凳開始）：` : '🕊 <b>自由球員市場</b>：三支球隊開出了條件：'}</div>`;
+      btns = M.offers.map((o, i) => ({ id: 'mk' + i, t: offerTx(o), f: () => go(o, M.released ? 'release' : 'fa') }));
+      if (!M.released && M.own) btns.push({ id: 'mkBack', t: '↩ 回頭跟本隊談：' + offerTx(M.own), f: () => go(M.own, 'resign') });
+    } else if (M.stage === 'tradePick') {
+      body = `<div class="task">🔁 球團同意了你的交易要求，有兩個去處：</div>`; btns = M.offers.map((o, i) => ({ id: 'mk' + i, t: offerTx(o), f: () => go(o, 'trade') })); btns.push({ id: 'mkCancel', t: '↩ 改變主意，留在原球隊', f: () => { M.stage = M.prev; M.offers = null; K().save(); showMarket(); } });
+    } else if (M.stage === 'expiry') {
+      body = `<div class="task">📝 <b>合約到期。</b>${M.own ? '本隊願意續約：' + offerTx(M.own) : '本隊評估後<b>不打算續約</b>（本季表現不足），你只能到自由市場或要求交易。'}</div>`;
+      if (M.own) btns.push({ id: 'mkOwn', t: '✍ 續約：' + offerTx(M.own), pri: 1, f: () => go(M.own, 'resign') });
+      btns.push({ id: 'mkFA', t: '🕊 成為自由球員（看其他球隊的報價）', f: () => { M.stage = 'fa'; M.offers = E.faOffers(P, S, null, false); K().save(); showMarket(); } });
+    } else { body = `<div class="task">合約還有 <b>${c.left}</b> 年，今年不需要簽約。你可以安心留隊，或向球團<b>要求交易</b>。</div>`; btns.push({ id: 'mkStay', t: '▶ 留在球隊（繼續履行合約）', pri: 1, f: () => { M.stage = 'done'; K().save(); showShop(null, true); } }); }
+    if ((M.stage === 'stay' || M.stage === 'expiry') && !M.tried) btns.push({ id: 'mkTrade', t: '🔁 要求交易（成功率依表現；失敗心情 −8）', f: () => { const r = E.tradeTry(P, S); M.tried = true; if (r.ok) { M.prev = M.stage; M.stage = 'tradePick'; M.offers = r.offers; M.msg = ''; } else M.msg = '球團婉拒了你的交易要求，心情 −8。'; K().save(); showMarket(); } });
+    K().show(`<div class="csb"><h2>📑 休賽季：合約與去留</h2>${head}${msg}${body}<div class="btns" style="flex-direction:column;align-items:stretch">${btns.map(b => `<button id="${b.id}"${b.pri ? ' class="pri"' : ''}>${b.t}</button>`).join('')}</div></div>`);
+    btns.forEach(b => { const e = $e(b.id); if (e) e.onclick = b.f; });
   }
 
   /* ---------- 多年度：續約 → 下一個球季（同一支球隊；重置賽程／出場／季後賽，保留信賴度、先發身分、劇情狀態，並把本季摘要存進 P.hist） ---------- */
@@ -306,34 +346,37 @@ const CPRO = (function () {
   function nextYear() {
     const P = PR(); if (!canNext()) return showEnd();
     const sum = seasonSummary(); if (P.econ && P.econ.settled === (P.year || 1)) Object.assign(sum, { salary: P.econ.salary, perf: P.econ.perf, money: P.econ.money }); (P.hist = P.hist || []).push(sum);
+    { const E = ECO(), t0 = P.team; if (E && E.applyPending && P.pending) { E.applyPending(P); if (P.team !== t0) P.farmMsg = `🔁 你加入了 <b>${esc(TEAMS[P.team].name)}</b>，${P.starter ? '以先發身分' : '從板凳'}重新開始（信賴度 ${P.trust}）。`; } }      // 簽約／轉隊在存好本季摘要之後才生效
     P.year = (P.year || 1) + 1; P.seed = Math.floor(Math.random() * 0x7fffffff) + 1; P.res = []; P.apps = 0; P.log = []; P.plan = null; P.spTurn = 0; P.done = false; P.po = null; P.poLog = []; P.field = null; P.justPromoted = P.justDemoted = false;
-    ['storyStart', 'storyChk', 'storyEnd', 'storyPo', 'storyPoEnd', 'storyOff'].forEach(k => { delete P[k]; });
+    ['storyStart', 'storyChk', 'storyEnd', 'storyPo', 'storyPoEnd', 'storyOff', 'market', 'pending'].forEach(k => { delete P[k]; });
+    P.lowStreak = 0; if (P.level === 'farm' && P.trust >= FARM.recall - 5) { P.level = 'first'; P.farmG = 0; P.farmMsg = (P.farmMsg ? P.farmMsg + '<br>' : '') + '📈 休賽季後，你被召回一軍（從板凳開始）。'; }
     K().save(); showIntro();
   }
-  function goNext() { if (storyGate('offseason')) return; const k = (PR().story && PR().story.flags || {}).RETIRE_CHOICE; if (['ceremony', 'quiet', 'lastdance', 'health', 'decline'].indexOf(k) >= 0) return showRetire(k); if (!ecoP()) return nextYear(); settleYear(); showShop(null, true); }      // 先看休賽季（續約）事件，再進入下一年
+  function goNext() { if (storyGate('offseason')) return; const k = (PR().story && PR().story.flags || {}).RETIRE_CHOICE; if (['ceremony', 'quiet', 'lastdance', 'health', 'decline'].indexOf(k) >= 0) return showRetire(k); if (!ecoP()) return nextYear(); settleYear(); showMarket(); }      // 先看休賽季（續約）談話事件 → 結算年薪 → 合約／自由球員／交易市場 → 商店 → 下一年
   const nextBtn = () => (canNext() ? `<button id="cpNY" class="pri">📝 續約，進入第 ${(PR().year || 1) + 1} 年</button>` : '');
   const bindNext = () => { const b = document.getElementById('cpNY'); if (b) b.onclick = goNext; };
-  const histHtml = () => { const H = PR().hist || []; return H.length ? `<table><tr><th>年</th><th>名次</th><th>勝-敗-和</th><th>季後賽</th></tr>${H.map(h => `<tr><td>${h.year}</td><td>${h.rank}</td><td>${h.w}-${h.l}-${h.t}</td><td>${h.champ ? '🏆 冠軍' : h.qual ? (h.out === 'final' ? '台灣大賽' : '挑戰賽') : '—'}</td></tr>`).join('')}</table>` : ''; };
+  const histHtml = () => { const H = PR().hist || []; return H.length ? `<table><tr><th>年</th><th>球隊</th><th>名次</th><th>勝-敗-和</th><th>季後賽</th></tr>${H.map(h => `<tr><td>${h.year}</td><td>${h.team != null && TEAMS[h.team] ? esc(TEAMS[h.team].short) : ''}</td><td>${h.rank}</td><td>${h.w}-${h.l}-${h.t}</td><td>${h.champ ? '🏆 冠軍' : h.qual ? (h.out === 'final' ? '台灣大賽' : '挑戰賽') : '—'}</td></tr>`).join('')}</table>` : ''; };
 
   /* ---------- 介面 ---------- */
   const monthStat = g => { const L = myGames(), same = L.filter(x => x.y === g.y && x.m === g.m); return [L.filter(x => x.date <= g.date && x.y === g.y && x.m === g.m).length, same.length]; };
-  const roleTx = () => PR().starter ? '先發球員' : (prof().pos === 'P' ? '牛棚候補' : '板凳候補');
+  const roleTx = () => PR().level === 'farm' ? '二軍' : PR().starter ? '先發球員' : (prof().pos === 'P' ? '牛棚候補' : '板凳候補');
   function showIntro() {
     if (PR().retired) return PR().civil ? showCivilian() : showRetire(PR().retired);      // 已退役：永遠回到生涯回顧
     const P = PR(), p = prof(), g = nextGame(); if (!g) return (poOn() ? showPO() : showEnd());
     if (storyGate('pro_start') || storyGate('after_game')) return;      // 劇情事件（13h）：有到期的事件就先顯示，看完會回到這裡
     const meHome = g.home === P.team, opp = TEAMS[meHome ? g.away : g.home], my = TEAMS[P.team], pl = plan(g), [mi, mn] = monthStat(g), played = myGames().filter(x => P.res[x.id] != null).length, all = myGames().length;
     const prev = myGames().filter(x => x.ser === g.ser && x.id < g.id).length;
-    const tx = P.starter ? (pl.use ? (p.pos === 'P' ? '今天輪到你<b>先發登板</b>！' : '今天你是<b>先發球員</b>！') : '今天不是你的輪值日，在牛棚待命。')
+    const farm = isFarm(), fm = takeMsg(), tx = farm ? `你在<b>二軍</b>，一軍比賽自動模擬、你不出賽。每 ${FARM.tick} 場依訓練成果提升信賴度；信賴度達 ${FARM.recall} 且滿 ${FARM.minGames} 場後有機會被召回（目前第 ${P.farmG | 0} 場）。` : P.starter ? (pl.use ? (p.pos === 'P' ? '今天輪到你<b>先發登板</b>！' : '今天你是<b>先發球員</b>！') : '今天不是你的輪值日，在牛棚待命。')
       : (pl.use ? '教練今天<b>有機會用你</b>：待命，被叫到就要上場！' : '今天看起來<b>只是待命</b>，不太會輪到你。');
-    K().show(`<div class="csb"><h2>${my.name}・${roleTx()}</h2><div class="sub">${esc(p.name)} #${p.num}・${esc(p.pos)}　｜　第 ${played + 1} / ${all} 場　｜　信賴度 ${P.trust}${ECO() ? `　｜　💰 ${Math.round(ecoP() && P.money)} 萬　體能 ${P.fit}` : ''}</div>
+    K().show(`<div class="csb"><h2>${my.name}・${roleTx()}</h2><div class="sub">${esc(p.name)} #${p.num}・${esc(p.pos)}　｜　第 ${played + 1} / ${all} 場　｜　信賴度 ${P.trust}${ECO() ? `　｜　💰 ${Math.round(ecoP() && P.money)} 萬　體能 ${P.fit}${P.contract ? `　📑 剩 ${P.contract.left} 年・年薪 ${P.contract.salary} 萬` : ''}` : ''}</div>
 <div class="vs"><div class="tm" style="background:linear-gradient(135deg,${meHome ? my.c1 : opp.c1},#0006);color:#fff">${esc((meHome ? opp : my).short)}<br><small>客</small></div><span>＠</span><div class="tm" style="background:linear-gradient(135deg,${meHome ? my.c1 : opp.c1},#0006);color:#fff">${esc((meHome ? my : opp).short)}<br><small>主</small></div></div>
 <div class="sub" style="text-align:center">${dateTx(g)}　｜　對${esc(opp.name)}系列戰第 ${prev + 1} / 3 場　｜　${g.m} 月第 ${mi} / ${mn} 場</div>
-<div class="task">📋 ${tx}<br><small>被教練叫上場時才由你操作（代打／代跑／登板）；其餘時間由電腦進行。想看整場請選「全程觀看」；比賽中也能隨時切換自動模擬，或用「直接出結果」跳過整場。</small></div>
-<div class="btns"><button id="cpHome">返回主畫面</button><button id="cpSch">🗓 賽程</button><button id="cpStd">📊 戰績</button>${ECO() ? '<button id="cpShop">🛍 商店</button>' : ''}<button id="cpSim">⏭ 直接出結果</button><button id="cpGoW">👁 全程觀看</button><button id="cpGo" class="pri">⏩ 自動模擬（快轉到我上場）</button></div></div>`);
+${fm ? `<div class="task">${fm}</div>` : ''}<div class="task">📋 ${tx}<br><small>${farm ? '二軍期間不能進場；可以逛商店提升體能與訓練效果。' : '被教練叫上場時才由你操作（代打／代跑／登板）；其餘時間由電腦進行。想看整場請選「全程觀看」；比賽中也能隨時切換自動模擬，或用「直接出結果」跳過整場。'}</small></div>
+<div class="btns"><button id="cpHome">返回主畫面</button><button id="cpSch">🗓 賽程</button><button id="cpStd">📊 戰績</button>${ECO() ? '<button id="cpShop">🛍 商店</button>' : ''}<button id="cpSim">⏭ 直接出結果</button>${farm ? '<button id="cpSim10" class="pri">⏩ 快轉 10 場</button>' : '<button id="cpGoW">👁 全程觀看</button><button id="cpGo" class="pri">⏩ 自動模擬（快轉到我上場）</button>'}</div></div>`);
     const $e = id => document.getElementById(id);
     $e('cpHome').onclick = () => { K().hide(); K().leave(); G.mode = 'title'; $('menu').classList.add('hide'); $('title').classList.remove('hide'); CAMC.mode = 'title'; };
-    $e('cpSch').onclick = () => showSchedule(g.m); $e('cpStd').onclick = showStandings; if ($e('cpShop')) $e('cpShop').onclick = () => showShop(showIntro); $e('cpSim').onclick = () => quick(g); $e('cpGo').onclick = () => { AUTOSIM.arm(true); launch(g); }; $e('cpGoW').onclick = () => { AUTOSIM.arm(false); launch(g); };
+    $e('cpSch').onclick = () => showSchedule(g.m); $e('cpStd').onclick = showStandings; if ($e('cpShop')) $e('cpShop').onclick = () => showShop(showIntro); $e('cpSim').onclick = () => quick(g);
+    if (farm) $e('cpSim10').onclick = () => { for (let i = 0; i < 10; i++) { const g2 = nextGame(); if (!g2) break; quick(g2, true); if (!isFarm()) break; } showIntro(); }; else { $e('cpGo').onclick = () => { AUTOSIM.arm(true); launch(g); }; $e('cpGoW').onclick = () => { AUTOSIM.arm(false); launch(g); }; }
   }
   function launch(g) {
     const P = PR(), meHome = g.home === P.team; K().hide();
@@ -341,7 +384,7 @@ const CPRO = (function () {
     CAREER.session = { profile: prof(), player: null }; try { sndInit(); } catch (e) { } $('lineup').classList.add('hide');
     newGame(Object.assign({}, CFG, { career: true, edit: [null, null], ace: 0 }));
   }
-  function quick(g) {      // 不進場：模擬本場結果＋（若有安排）你的登場成績
+  function quick(g, silent) {      // 不進場：模擬本場結果＋（若有安排）你的登場成績
     const P = PR(), p = prof(), pl = plan(g), s = g.po ? simNoTie(g) : simGame(g), meHome = g.home === P.team, my = meHome ? s[0] : s[1], op = meHome ? s[1] : s[0];
     const rec = { pos: p.pos, my, op, res: my === op ? 'T' : my > op ? 'W' : 'L', oppName: TEAMS[meHome ? g.away : g.home].name, ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0, e: 0, outs: 0, r: 0, hA: 0, played: false, quick: true };
     if (pl.use) {
@@ -349,8 +392,20 @@ const CPRO = (function () {
       if (p.pos === 'P') { rec.outs = 3 * rint(1, 2); rec.r = Math.random() < .25 ? 1 : 0; rec.hA = rint(0, 2); rec.k = rint(0, 3); rec.bb = rint(0, 1); }
       else if (pl.type !== 'PR') { rec.ab = 1; if (Math.random() < .08) { rec.ab = 0; rec.bb = 1; } else if (Math.random() < .27) { rec.h = 1; if (Math.random() < .12) { rec.hr = 1; rec.rbi = 1; } else if (Math.random() < .3) rec.rbi = 1; } else if (Math.random() < .22) rec.k = 1; }
     }
-    if (g.po) { poFinish(g, s, rec); showPO(); } else { finish(g, s, rec); showIntro(); }
+    if (g.po) { poFinish(g, s, rec); if (!silent) showPO(); } else { finish(g, s, rec); if (!silent) showIntro(); }
   }
+  function farmStep() {      // A3：一軍板凳持續低信賴度 → 下放二軍；二軍期間依訓練成果加信賴度，達標召回（召回後從板凳開始）
+    const P = PR(); if (!P) return;
+    if (isFarm()) {
+      P.farmG = (P.farmG | 0) + 1;
+      if (P.farmG % FARM.tick === 0) { const E = ecoP(); let g = rint(0, 3); if (E) g = Math.round(g * E.trainMult(P)); P.trust = cl(P.trust + g, 0, 100); }
+      if (P.farmG >= FARM.minGames && P.trust >= FARM.recall && Math.random() < .6) { P.level = 'first'; P.farmG = 0; P.lowStreak = 0; P.farmMsg = '📈 二軍訓練有成，球團把你<b>召回一軍</b>（從板凳開始）。'; }
+    } else if (!P.starter) {
+      P.lowStreak = P.trust < FARM.demote ? (P.lowStreak | 0) + 1 : 0;
+      if (P.lowStreak >= FARM.streak) { P.level = 'farm'; P.farmG = 0; P.lowStreak = 0; P.trust = FARM.reset; P.farmMsg = '📉 長期沒有表現，球團把你<b>下放二軍</b>。二軍不出賽，靠訓練把信賴度練回來。'; }
+    } else P.lowStreak = 0;
+  }
+  const takeMsg = () => { const P = PR(), m = P.farmMsg || ''; P.farmMsg = ''; return m; };
   function growth(rec, tag) {      // 依這場表現更新出場數／信賴度／先發資格（例行賽與季後賽共用）
     const P = PR(), p = prof();
     if (rec.played) {
@@ -359,7 +414,8 @@ const CPRO = (function () {
       const dd = cl(d * 1.2 - (rec.ab + rec.outs / 3 > 0 ? 0 : 0), -4, 6), E = ecoP(); P.trust = cl(Math.round(P.trust + (E && dd > 0 ? dd * E.trainMult(P) : dd)), 0, 100); if (E) E.afterGame(P, { played: true, isP: p.pos === 'P', d });
     } else { const E = ecoP(); if (E) E.afterGame(P, { played: false }); }
     if (p.pos === 'P' && P.starter) P.spTurn++;
-    if (!P.starter && P.trust >= 70 && P.apps >= 10) { P.starter = true; P.trust = 55; P.promoted = tag; P.justPromoted = true; }
+    farmStep();
+    if (!P.starter && !isFarm() && P.trust >= 70 && P.apps >= 10) { P.starter = true; P.trust = 55; P.promoted = tag; P.justPromoted = true; }
     else if (P.starter && P.trust < 30) { P.starter = false; P.trust = 40; P.justDemoted = true; }
   }
   function finish(g, s, rec) {      // 記錄這一場、模擬同日其他比賽、更新信賴度與先發資格
@@ -374,7 +430,7 @@ const CPRO = (function () {
     CAREER.session = CAREER.session || { profile: p }; CAREER.session.stats = p.pos === 'P' ? [['投球局數', (r2.outs / 3).toFixed(1)], ['失分', r2.r], ['被安打', r2.hA], ['三振', r2.k]] : [['打數', r2.ab], ['安打', r2.h], ['全壘打', r2.hr], ['打點', r2.rbi]];
     try { CAREER.attachResult(rs); } catch (e) { }
     const bt = rs.querySelector('.rbtns'), box = rs.querySelector('.rbox') || rs, sum = document.createElement('div'); sum.className = 'cs-sum';
-    sum.innerHTML = `${r2.played ? `<b>你的表現</b>　${esc(K().recLine(r2))}` : '你今天沒有上場'}<br>信賴度 ${P.trust}${P.justPromoted ? '<br>🎉 教練決定讓你<b>升為先發</b>！' : ''}${P.justDemoted ? '<br>😥 表現不穩，被調回板凳。' : ''}`; P.justPromoted = P.justDemoted = false;
+    sum.innerHTML = `${r2.played ? `<b>你的表現</b>　${esc(K().recLine(r2))}` : '你今天沒有上場'}<br>信賴度 ${P.trust}${P.justPromoted ? '<br>🎉 教練決定讓你<b>升為先發</b>！' : ''}${P.justDemoted ? '<br>😥 表現不穩，被調回板凳。' : ''}${P.farmMsg ? '<br>' + takeMsg() : ''}`; P.justPromoted = P.justDemoted = false;
     if (bt) box.insertBefore(sum, bt); else box.appendChild(sum);
     if (bt) { const ag = bt.querySelector('#againBtn'); if (ag) ag.remove(); const nb = document.createElement('button'); nb.className = 'b-again'; nb.textContent = poOn() ? '🏆 季後賽' : (nextGame() ? '▶ 下一場' : '📋 賽季結算'); bt.insertBefore(nb, bt.firstChild); nb.onclick = () => { rs.classList.add('hide'); try { quitToMenu(); } catch (e) { } G.role = null; G.career = false; (poOn() ? showPO : showIntro)(); }; }
   }
@@ -407,14 +463,15 @@ const CPRO = (function () {
     return `<div style="overflow-x:auto"><table>${head}${H.map(h => row(h.year, h.apps, h.st || sumSt([], 'x'))).join('')}${row('<b>生涯</b>', T.g, T)}</table></div><div class="sub">季後賽累積：${isP ? `${PT.g} 登板・${PT.w}-${PT.l}-${PT.sv}・${fmtIp(PT.outs)} 局・防禦率 ${fmtEra(PT.r, PT.outs)}・${PT.k} 三振` : `${PT.g} 場・${PT.ab} 打數 ${PT.h} 安打・打擊率 ${fmtAvg(PT.h, PT.ab)}・${PT.hr} 轟 ${PT.rbi} 打點`}<br>勝敗救為依比分與投球內容的簡化推定（遊戲沒有官方決勝投手記錄）；防禦率＝自責分×27÷出局數。</div>`;
   }
   function buildStory(kind, H) {      // 生涯故事（文字敘述）：全部取自 hist／劇情旗標／關係值，沒有捏造
-    const P = PR(), p = prof(), isP = p.pos === 'P', fl = (P.story && P.story.flags) || {}, rel = (P.story && P.story.rel) || {}, tm = TEAMS[P.team].name, T = sumSt(H, 'st'), out = [];
+    const P = PR(), p = prof(), isP = p.pos === 'P', fl = (P.story && P.story.flags) || {}, rel = (P.story && P.story.rel) || {}, tm = TEAMS[(H[0] && H[0].team != null ? H[0].team : P.team)].name, T = sumSt(H, 'st'), out = [];
     out.push(`${p.name}，背號 ${p.num}，一位${isP ? '投手' : '野手'}。你從${tm}的板凳起步，在中職走過 ${H.length} 個球季。`);
     H.forEach(h => {
-      const st = h.st || {}; let t = `第 ${h.year} 年，${tm}戰績 ${h.w}勝${h.l}敗${h.t ? h.t + '和' : ''}（第 ${h.rank} 名）${h.champ ? '，並奪得總冠軍' : h.qual ? (h.out === 'final' ? '，打進台灣大賽' : '，打進季後賽') : ''}。`;
+      const st = h.st || {}; let t = `第 ${h.year} 年，${h.team != null && TEAMS[h.team] ? TEAMS[h.team].name : tm}戰績 ${h.w}勝${h.l}敗${h.t ? h.t + '和' : ''}（第 ${h.rank} 名）${h.champ ? '，並奪得總冠軍' : h.qual ? (h.out === 'final' ? '，打進台灣大賽' : '，打進季後賽') : ''}。`;
       if (!h.apps) t += '這一年你大多在板凳上等待機會。';
       else t += isP ? `你登板 ${h.apps} 場，${st.w || 0} 勝 ${st.l || 0} 敗${st.sv ? ' ' + st.sv + ' 救援' : ''}，防禦率 ${fmtEra(st.r || 0, st.outs || 0)}，三振 ${st.k || 0}。` : `你出賽 ${h.apps} 場，打擊率 ${fmtAvg(st.h || 0, st.ab || 0)}，${st.hr || 0} 轟、${st.rbi || 0} 打點。`;
       if (h.aw && h.aw.length) t += `這一年的榮譽：${h.aw.join('、')}。`; out.push(t);
     });
+    if ((P.moves || []).length) out.push(`你換過 ${P.moves.length} 次球隊：${P.moves.map(m => `第 ${m.year} 年後 ${TEAMS[m.from].short}→${TEAMS[m.to].short}（${{ trade: '交易', fa: '自由球員', release: '被釋出', resign: '續約' }[m.how] || ''}）`).join('、')}。`);
     const bits = []; if (fl.WON_TITLE) bits.push('你親手捧起過總冠軍獎盃'); if (fl.FAN_FAVORITE) bits.push('球迷把你當成自己人'); if (fl.CAPTAIN_VOICE) bits.push('在球隊低潮時，你站出來說話'); if (fl.MENTOR_ROOKIE) bits.push('你把經驗毫無保留地教給了新人');
     if (fl.REHAB_FAITHFUL || fl.REHAB_PATIENT) bits.push('你走過一段復健的路，一格一格回到了球場'); if (fl.BODYCARE_PLAN) bits.push('你很早就開始照顧自己的身體'); if (fl.LIFE_BALANCE) bits.push('再忙，你也留時間給家人'); if (fl.COACH_PATH) bits.push('你曾和教練聊過退役後站在場邊的樣子');
     if ((rel.coach || 0) >= 10) bits.push('教練是最信任你的人之一'); if ((rel.team || 0) >= 15) bits.push('隊友把你當成球隊的核心'); if ((rel.veteran || 0) >= 8) bits.push('前輩把他們的經驗傳給了你');
