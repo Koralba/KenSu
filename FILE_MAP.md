@@ -89,7 +89,7 @@
 | `13c` | 角色欄位按鈕 | 「▶ 開始生涯」→ `CSEASON.begin()` |
 | `14` | `frame()` | `if (!window.__ff)` 兩處（快轉不繪製、不調畫質）；`step()` 迴圈內 `if (window.__ff && AUTOSIM.needMe()) break`（輪到你立刻停） |
 | `08` | 檔尾 | `AUTOSIM_FF_GUARD`：快轉時發聲函式不建立節點 |
-| `baseball.html`／`sw.js` | script 標籤、`LOCAL`、`VERSION` | 13c～13g；「輔助防守」設定選項、`#acts` 列的 `#btnAssist`（「更多」旁）；v13 |
+| `baseball.html`／`sw.js` | script 標籤、`LOCAL`、`VERSION` | 13c～13g；「輔助防守」設定選項、`#acts` 列的 `#btnAssist`（「更多」旁）；v14 |
 
 ## 已驗證／尚未驗證
 - 已對照原始碼確認：`humanBats/humanPitches/humanDef` 是玩家操控的集中判斷點；`subInto(side, old, sub)` 回傳新球員；`makeChibi` 可包裝；`08` 的 `SND.mute／BGM.mute` 可用來靜音；`12` 的電腦教練換人對玩家隊略過；`availPitchers(side)` 回傳 `{p, i}`。
@@ -101,6 +101,7 @@
 
 ## 存檔系統（13b）
 - 存的是「半局開始」的乾淨狀態；`G.teams` 以圖形序列化（保留共用參照，略過 `def`／THREE／DOM），再配合 `G_KEYS` 列的 `G` 欄位。**新增會跨半局保留的 `G` 欄位，請加進 `13b` 的 `G_KEYS`。**
+- **存檔流程（`act('save')`）**：成功就 `close()` 關閉視窗並用 `toast('已儲存（欄位 N）')` 提示一次，不再留在視窗裡；失敗才顯示錯誤訊息並留在視窗。`open()` 有防重入：視窗已開、或剛 `close()` 不到 600 ms 就忽略（`S.closedAt`），避免殘留點擊再次打開。若還有「需要按確認的已儲存訊息」，來源不在 13b（13b 只用 `confirm` 問覆蓋／刪除／中斷比賽），請搜尋其他檔的 `alert(`／`已儲存`。
 - 讀檔＝`newGame()` 重建場景與天氣（同球場、日夜）→ 覆蓋球隊與 `G` → 再跑一次 `startHalf()`。
 - localStorage 鍵：`cpbl2027.save.<normal|career>.<1~3>`；匯出檔格式 `{app:'cpbl2027', fmt:1, saves:[…]}`，內含 FNV 校驗碼。
 - 生涯模式：註冊 `SAVE.hooks.career = { active, collect, apply }` 後，存檔會一併帶上 `collect()` 的資料，讀檔後呼叫 `apply(extra)`。
@@ -108,7 +109,7 @@
 ## PWA／離線（不是遊戲邏輯，但每次新增檔案都要連動）
 | 檔案 | 內容 | 修改時機 |
 |---|---|---|
-| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v13）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
+| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v14）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
 | `yw_manifest.json` | PWA 安裝資訊（名稱、圖示、全螢幕、橫向、主題色）。`baseball.html` 以 `<link rel="manifest">` 引用 | 改 App 名稱、圖示、顯示方式 |
 
 > `sw.js` 的 `LOCAL` 已列入 `13c`、`13d`、`13e`、`13f`、`13g`；之後新增 13h 等檔案時務必一併補上，並把 `VERSION` +1。
