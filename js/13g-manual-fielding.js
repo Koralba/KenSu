@@ -15,7 +15,8 @@
 'use strict';
 const FM = (function () {
   const LS = 'cpbl2027.assistDef', keys = {}, _fv = new THREE.Vector3(), _pv = new THREE.Vector3();
-  const SHOW_CHIP = false;      // 左上角的小按鈕已改放到「更多」選單（#btnAssist）；要還原左上角按鈕，改成 true
+  const MANUAL_K = 1.2;      // 玩家手動操控的野手走路／跑步速度倍率（只套用在 pre() 裡「被你操控的那一位」；不動 MOVEK／FIELDK_OF／fspeed，所以電腦守備與 planFielding 的安打／接殺判定完全不變）
+  const SHOW_CHIP = false;     // 左上角的小按鈕已改放到「更多」選單（#btnAssist）；要還原左上角按鈕，改成 true
   let sel = null, locked = false, lastPlan = null, lastPick = 0, mv = false, layer = null, chip = null; const btns = {};
   try { if (typeof CFG !== 'undefined') CFG.assist = localStorage.getItem(LS) === '1' ? 1 : 0; } catch (e) { }
 
@@ -99,8 +100,8 @@ const FM = (function () {
     if (canMove) {
       f.wait = 0; if (st !== 'held') f.hold = 0;
       if (dir) {
-        const spd = st === 'held' ? selfRunSpeed(f) : fspeed(f) * (plan && plan.air && plan.kind === 'catch' ? AIR_SPD : 1.04), c = clampField(f.x + dir.x * 5, f.z + dir.z * 5);
-        f.tx = c.x; f.tz = c.z; f.sp = spd * (.55 + .45 * dir.m); f.chaser = st !== 'held';
+        const spd = (st === 'held' ? selfRunSpeed(f) : fspeed(f) * (plan && plan.air && plan.kind === 'catch' ? AIR_SPD : 1.04)) * MANUAL_K, c = clampField(f.x + dir.x * 5, f.z + dir.z * 5);
+        f.tx = c.x; f.tz = c.z; f.sp = spd * (.7 + .3 * dir.m); f.chaser = st !== 'held';
       } else { f.tx = f.x; f.tz = f.z; if (st !== 'held') f.chaser = true; }
     }
   }
