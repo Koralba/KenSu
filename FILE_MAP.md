@@ -33,12 +33,37 @@
 | `13e-career-pro.js` | **生涯模式 第三階段**：`CPRO` 物件。選上中職後的職業賽季：仿中職 120 場賽程產生器（系列戰、輪轉法）、其他隊比賽模擬與戰績表、板凳候補起步＋信賴度／升先發、比賽中叫上場（`benchCall`／`bullpenCall`）、賽程／戰績畫面 | 改職業賽季、賽程規則、出場機制 |
 | `13f-career-autosim.js` | **生涯模式：自動模擬**。`AUTOSIM` 物件：偏好為開時，「不是輪到你」就用 `window.__ts` 快轉並顯示計分板／壘包／出局數特殊畫面（`#asPanel`），輪到你（`humanBats/humanPitches/PL.ask`）自動恢復，隨時可用「👁 恢復觀看」／右上角「⏩ 自動模擬」切換；快轉時 `window.__ff=true`，14 的 `frame()` 不繪製、不調畫質 | 改自動模擬、快轉速度、特殊畫面 |
 | `13g-manual-fielding.js` | **手動守備**：`FM` 物件。玩家守備時，球打出後自動選取離球最近的守備員，方向鍵／手機方向盤走位撿球（相對畫面方向）、其他守備員頭上有半透明按鈕可換人、撿到球後可繼續走動再用傳球面板選壘；「輔助防守」開＝維持原本電腦自動追球。生涯模式只能操控自己的角色 | 改手動守備手感、換人按鈕、輔助防守 |
+| `13h-career-story.js` | **生涯劇情事件引擎**：`CSTORY`（資料驅動：條件／選項／效果／旗標／防重複／存讀檔）＋40 個事件（賽季／季後賽／例行賽中段／多年度／第 3～15 年主線／退役選擇，phase：pro_start／after_game／season_end／po_series／po_end／offseason）。**只靠 ctx／adapter，不碰其他檔的全域**；由 `13e` 的 `storyGate()` 在 `showIntro()`／`showEnd()`（選單畫面，不在比賽／快轉中）呼叫，事件狀態存 `SS.pro.story`（跟 13d `saveSeason()` 整包存）。可在 Node 單獨測：`node tests/test-career-story.js` | 改劇情事件、觸發條件、選項效果 |
+| `13i-career-economy.js` | **生涯經濟（A1）**：`CECON` 純邏輯。薪水／存款／體能／心情／運動設備（0～5 級）／商店（吃飯、約會、設備升級，有次數與等級上限）／休賽季結算（領年薪、扣生活費）／`trainMult()` 訓練效果倍率（0.85～1.45，只乘在信賴度的「正向」成長上）。狀態存 `SS.pro.money／fit／mood／gear／shop／econ`；舊存檔缺欄位由 `ensure()` 補預設。**13e 沒載入 13i 時整段略過**。Node 測試：`node tests/test-career-economy.js` | 改薪水公式、商店項目與價格、訓練倍率 |
 | `14-bullpen-loop-boot.js` | 牛棚熱身、主迴圈 `frame/step`（快轉時不繪製、且 `step` 迴圈內一輪到玩家就中斷）、`boot()`、全螢幕、**主畫面（一般／生涯／離開，`#tmCareer`）**、標題特效 | 改主畫面入口、主迴圈 |
 
-## 待接入檔案（尚未載入，不要當成已生效）
-| 檔案 | 內容 | 狀態 |
-|---|---|---|
-| `13h-career-story.js` | `CSTORY`：資料驅動劇情事件引擎（條件／選項／效果／旗標／防重複／存讀檔）＋6 個示範事件（職業賽季用） | **未列入 `baseball.html` 與 `sw.js`**；只靠 ctx／adapter 運作，不碰其他檔的全域；Node 測試 `test-career-story.js` 27 項通過（不代表遊戲內已驗證）。接入步驟與缺的檔案見 `HANDOVER_CAREER_STORY.md`。接入時：加 script 標籤、`sw.js` `LOCAL` 加路徑、`VERSION` +1，並把本列移進上面的 JS 表 |
+## 生涯劇情事件（13h＋13e 的 storyGate）
+- **載入**：已列入 `baseball.html`（13g 後、14 前）與 `sw.js`（`VERSION` v15）。13e 若沒載入 13h（`typeof CSTORY==='undefined'`）整段略過，不影響賽季。
+- **觸發點（皆在 13e）**：`showIntro()` 開頭 → `pro_start`（賽季第一場前）、`after_game`（每場結束後，含「直接出結果」與正常打完回到選單）；`showEnd()` 開頭 → `after_game`（最後一場）、`season_end`。**只在選單畫面檢查，所以不會被自動模擬／快轉衝掉**。
+- **檢查點存在 `SS.pro`**：`storyStart`（開季事件已檢查）、`storyChk`（上次檢查時的已打場數）、`storyEnd`；`SS.pro.story`＝`CSTORY` 狀態（flags／seen／rel／log）。事件看完前就離開（返回主畫面），下次進賽前畫面會再出現同一事件。
+- **ctx（13e 的 `storyCtx()`）**：`year`＝`P.year||1`（多年度；`po`／`team.champion` 只在季後賽期間提供）、`gameNo`＝`P.log.length`、`starter`、`apps`、`trust`、`lastGame.played`、`team:{}`。**刻意不提供 `team.playoffQualified`**：季後賽賽制未實作前，季後賽／球季檢討事件不會出現。
+- **adapter**：只有 `trust`（0～100）。引擎遇到遊戲沒有的數值（疲勞、士氣…）會略過，不新增欄位；關係值（coach／veteran／team）與旗標存在 `story` 狀態裡，目前只存不影響比賽。
+- **新增事件**：在 13h 用 `register({ id, phase, title, text[], conditions[{field,operator,value}], once_per_career／once_per_season／cooldown_games, priority, choices[{id,label,hint,effects[],result[]}] })`；文字可用 `{team}`、`{name}`。同一時間點一次只彈一個、最多連續 3 個。
+- **`team.playoffQualified` 已提供**：13e 的 `storyCtx()` 在例行賽全部打完時才給（`playoffField().qualified` 含我方球隊＝true），所以 `PRO_PLAYOFF_PUSH`（晉級）與 `PRO_SEASON_REVIEW`（未晉級）依 114 年賽制自動啟用；沒打完時不提供 → 不誤播。`year` 仍固定 1（多年度時再改）。
+- 驗證：`tests/test-career-story.js` 27 項（引擎邏輯）；另有假環境載入真正 13e 的整合測試（開季事件→選擇→存檔→120 場快速模擬）通過；**尚未在瀏覽器實機驗證**。
+
+## 114 年（中職 36 年）賽制（13e：`tally`／`decideField`／`playoffField`／`fieldHtml`）
+- **半季**：每隊第 1～60 場＝上半季、第 61～120 場＝下半季（`HALF=60`；以每隊場次序號切分，非日期；半季場數是由 120 場推得，**未逐條查證官方規章**）。
+- **名單判定（依 2025 年網路報導，非官方規章原文）**：①上下半季冠軍不同隊 → 全年勝率較高者直通台灣大賽（7 戰 4 勝、5 場主場）；較低者＋「兩半季冠軍以外全年勝率最高」者打季後挑戰賽（5 戰 3 勝，半季冠軍先取 1 勝、G1/G3/G4 主場）。②同隊包辦 → 該隊直通；全年第 2 對第 3 打挑戰賽，第 2 名 3 場主場（**報導未提保送 1 勝，程式設 0，待確認**）。
+- **同勝率排序**：官方規則未查到，簡化為「得失分差 → 球隊編號」。
+- **已做（名單）**：賽季結算畫面（`showEnd`）顯示賽制結果；`SS.pro.field` 存名單；晉級才觸發季後賽劇情事件。
+- **已做（季後賽實際比賽，13e 的 `poBegin／showPO／poAdvance／poRecord／poSettle／poFinish`）**：結算畫面晉級球隊有「🏆 前往季後賽」→ 季後挑戰賽 → 台灣大賽。狀態 `SS.pro.po = {active,done,stage,ser,chWinner,champ,out,hist[]}`，你的出賽紀錄在 `SS.pro.poLog`（**不混進**例行賽 `log`／`apps`）；比賽 id 為字串 `po-<stage>-<第幾戰>-<已打場數>`，物件帶 `po:true`。`curGame()`＝季後賽期間回傳季後賽下一場（13e 的 `inject`／`afterEnd` 都改用它）；季後賽期間 `SS.pro.active` 保持 true，所以 13d 仍把 `inject`／`afterEnd` 轉給 13e（**13d 沒改**）。你沒參賽或被淘汰後，其餘場次由 `simGame()` 自動模擬（和局重抽；你打出的和局不計、重打）。`finish()` 拆出 `growth()`（信賴度／先發升降），例行賽與季後賽共用。
+- **主客場（依 2025 年報導）**：挑戰賽有保送勝：半季冠軍 G1/G3/G4、外卡 G2（4 場內決勝，先取 3 勝含保送 1 勝）；台灣大賽 7 戰 4 勝：直通隊 G1/G2/G5/G6/G7、挑戰賽勝者 G3/G4。**同隊包辦（無保送勝）的 5 戰主場順序未查到，暫設 第2名 G1/G2/G5**。
+- **多年度（第五版）**：賽季（含季後賽）結束後出現「📝 續約，進入第 N 年」→ 先播 `offseason` 續約事件 → `CPRO.nextYear()`：`P.hist` 存本季摘要、`P.year`+1、新 seed、清空 res／log／apps／po／field 與劇情檢查點，保留球隊／信賴度／先發身分／`P.story`。**未做**：球隊異動／選秀重抽、年齡與退役結局、15 年主線事件、獎項、合約系統。
+- 測試：`tests/test-career-integration.js`（TEAM／SEED 環境變數可換隊伍與種子；晉級 39 項、未晉級 25 項；6 隊×3 種子共 18 個整季皆通過）。**只用「直接出結果」（quick）跑過季後賽；真的進場比賽（launch→afterEnd）的路徑沒在瀏覽器驗證**。
+- 測試：`tests/test-career-integration.js`（假環境載入真 13e＋13h；含 114 年賽制單元測試與整季模擬，6 隊×2 種子皆通過）。
+
+## 測試腳本（`tests/` 資料夾）
+- **不屬於遊戲**：`baseball.html` 不載入、`sw.js` 不快取，玩家用不到；只給開發者在電腦上用 Node.js 檢查邏輯。不上傳 GitHub 也不影響遊戲運作（建議一起放進去，方便之後重跑）。
+- 檔案：`tests/test-career-story.js`（劇情引擎 13h，27 項）、`tests/test-career-integration.js`（用假環境載入真正的 13e＋13h：開季事件、整季 120 場、114 年賽制、季後賽流程、存讀；晉級 39 項／未晉級 25 項）。
+- 路徑：兩個檔案都用「測試檔自己的位置」找 `../js/`，所以**在專案根目錄或 `tests/` 內執行都可以**；若搬到別處要改檔頭的 `../js/` 路徑。
+- 執行（專案根目錄）：`node tests/test-career-story.js`、`node tests/test-career-integration.js`；換隊伍／種子：`TEAM=3 SEED=222 node tests/test-career-integration.js`（Windows PowerShell：`$env:TEAM=3; $env:SEED=222; node tests/test-career-integration.js`）。
+- 注意：這些是邏輯測試，**不代表瀏覽器實機已驗證**。`test-manual-fielding.js`（手動守備）不是本次整理的檔案，位置請以專案實際為準。
 
 ## CSS（依載入順序，後者覆蓋前者）
 | 檔案 | 內容 |
@@ -50,7 +75,7 @@
 | `05-save-system.css` | 存檔／讀取視窗（`#saveDlg`）、主選單「讀取存檔」鈕 |
 | `06-transition.css` | **黑幕轉場 `#curtain`**（全螢幕上下百葉窗＋金線＋文字）。`#curtain` 位於 `<body>` 最外層（不在 `#hud` 內），由 `11-game-flow.js` 的 `foulCurtain()` 加／移除 `.on` |
 
-## 生涯模式（13c＋13d＋13e＋13f，已做到：社會甲組三場 → 選秀 → 落選則上班族一年／選上則進入職業賽季；季後賽與下一年度尚未做）
+## 生涯模式（13c＋13d＋13e＋13f，已做到：社會甲組三場 → 選秀 → 落選則上班族一年／選上則進入職業賽季；季後賽已實作（114 年賽制，見該段）；續約與下一年度尚未做）
 **流程**：主畫面「生涯模式」→ `CAREER.open()`（13c 角色欄位）→「▶ 開始生涯」→ `CSEASON.begin(profile, slot)`（13d）→ 賽前介紹 → `launch()` → `newGame()` → 比賽 → `endGame()` → `CSEASON.afterEnd()` 記錄成績 → 下一場／選秀。
 - 階段：`SS.year===0` ＝甲組三場（`N_GAMES`）；`SS.year>0` ＝上班族第 N 年（`N_YEAR`＝12 場，每月一場）。每階段結束都會 `doDraft()`；落選就 `startWorkerYear()`，選上則停在「之後劇情待補」。
 - 比賽設定（`13d` 的 `launch()`）：`INNINGS`＝9 局、普通難度、ABS 關、特殊事件（evt）關、天氣開。
@@ -109,10 +134,10 @@
 ## PWA／離線（不是遊戲邏輯，但每次新增檔案都要連動）
 | 檔案 | 內容 | 修改時機 |
 |---|---|---|
-| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v14）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
+| `sw.js` | Service Worker。`LOCAL` ＝離線快取清單、`VERSION` ＝快取版本（目前 v20）。本站檔案「先用快取、背景更新」，改版後下次開啟才生效 | **新增／改名／刪除任何 css、js、images 檔**；或想讓所有人立刻換新版（`VERSION` +1） |
 | `yw_manifest.json` | PWA 安裝資訊（名稱、圖示、全螢幕、橫向、主題色）。`baseball.html` 以 `<link rel="manifest">` 引用 | 改 App 名稱、圖示、顯示方式 |
 
-> `sw.js` 的 `LOCAL` 已列入 `13c`、`13d`、`13e`、`13f`、`13g`；之後新增 13h 等檔案時務必一併補上，並把 `VERSION` +1。
+> `sw.js` 的 `LOCAL` 已列入 `13c`～`13h`；之後新增 13h 等檔案時務必一併補上，並把 `VERSION` +1。
 
 ## 任務 → 需要上傳的檔案（給下一個 AI／使用者）
 **任何任務都先傳 `FILE_MAP.md`。** 其餘依任務挑選（不確定時多傳 `baseball.html`）。
@@ -140,7 +165,7 @@
 | 生涯模式（職業賽季／賽程／板凳出場） | `js/13e-career-pro.js`、`js/13d`、`js/07`（兩個 hook）、`js/10`（`subInto`／`availPitchers`） |
 | 自動模擬（快轉／計分板畫面） | `js/13f-career-autosim.js`、`js/14-bullpen-loop-boot.js`（`frame()`）、`js/08-audio.js`（靜音） |
 | 手動守備／輔助防守／外野手手感 | `test-manual-fielding.js`（Node 邏輯測試，用假引擎載入 13g）、`js/13g-manual-fielding.js`、`js/05`、`js/06`、`js/04`（數值）、`js/13`（方向盤／設定）、`baseball.html`（設定選項） |
-| 生涯劇情事件（職業賽季） | `HANDOVER_CAREER_STORY.md`、`js/13h-career-story.js`、`test-career-story.js`、`js/13e`、`js/13d`、`js/13b`、`js/11` |
+| 生涯劇情事件（職業賽季） | `HANDOVER_CAREER_STORY.md`、`js/13h-career-story.js`、`tests/test-career-story.js`、`js/13e`、`js/13d`、`js/13b`、`js/11` |
 | 新增任何檔案 | `baseball.html`、`sw.js`（＋要改的檔） |
 | PWA／離線／安裝 | `sw.js`、`yw_manifest.json`、`baseball.html` |
 | 不確定原因的樣式問題 | 對應 `css/*.css` 全部（`01` 含最基礎的 `#hud`、`#curtain` 舊規則） |
@@ -153,3 +178,16 @@
 
 ## 其他
 - 搜尋技巧：用 `grep -n "函式名" js/*.js` 找到檔案後，只讀該檔（或用 `sed -n 'a,bp'` 讀區段），不要整包讀。
+
+## 第 3～15 年主線與退役（第七版，13h＋13e）
+- **13h**：`PRO_Y3…Y15` 每年一個 `pro_start` 開幕主線（第 8 年依 `econ.mood` 分 `PRO_Y8_COMEBACK`／`PRO_Y8_BODYCARE`）；`PRO_YN_OPENING` 改為第 16 年起；`PRO_RENEW` 只在第 1～14 年。退役事件（`offseason`，第 15 年起）：`PRO_RETIRE_CHAMP`（奪冠才有「最後一舞」）、`PRO_RETIRE`（告別賽／低調／再戰一年）、`PRO_RETIRE_FORCED`（第 20 年起，無「再戰」）。選項把旗標 `RETIRE_CHOICE` 設為 `ceremony／quiet／lastdance／again`。新增事件可用 `Ev(id, phase, title, 條件[], 正文[], [[id,標籤,{t,coach,veteran,team,flag,fv},結果[]]], 額外)` 縮寫。
+- **13e**：`seasonSummary()` 多 `st`（本季例行賽累積：ab h hr rbi bb k e outs r hA）；`storyCtx()` 多 `career:{years,titles,playoffs,starterYears}`，並在例行賽／季後賽結束後補 `team.champion`（沒奪冠＝false）；`goNext()` 在劇情後檢查 `RETIRE_CHOICE`，是退役就 `showRetire(kind)`（生涯回顧，設 `P.retired`；之後 `showIntro()` 一律回到回顧畫面）。
+- 測試：`test-career-story.js` 44 項、`test-career-integration.js` 83 項（含年 1→年 15 退役；6 隊×3 種子 18 次 0 失敗）、`test-career-economy.js` 12 項。
+
+## 第八版：紀錄／獎項／結局 E／退役故事（13e＋13h）
+- **自願退役改為第 10 年起，第 20 年強制**：`PRO_RENEW` 只在第 1～9 年；`PRO_RETIRE_CHAMP`／`PRO_RETIRE`／`PRO_RETIRE_HEALTH`／`PRO_RETIRE_DECLINE`（第 10～19 年，彼此互斥）／`PRO_RETIRE_FORCED`（第 20 年起，無「再戰」）。
+- **紀錄（13e）**：每場 `rec.dec`＝勝敗救**簡化推定**（`decide()`；引擎沒有官方決勝投手，規則寫在函式註解與回顧畫面）。`statSum(LG)` 累積 `g w l sv ab h hr rbi bb k e outs r hA`（`r`＝投手自責分，防禦率＝r×27÷outs）。`seasonSummary()` 每年存 `st`（例行賽）、`pst`（季後賽）、`aw`（榮譽），進 `P.hist`；全在 `SS.pro`，所以隨賽季存檔與比賽中存檔（`collect()` 整包 `SS`）一起儲存。
+- **榮譽（`awardsFor`）**：球團表彰，只用個人成績門檻判定（聯盟沒有其他球員的個人數據，不是聯盟投票）。不保證每年都有。
+- **結局 E**：`careerCtx` 新增 `heavy`（高出賽／高投球量球季數，打者 ab≥400、投手 outs≥450）與 `lowYears`（信賴度<35 且非先發的球季數）。`heavy≥7`→`PRO_RETIRE_HEALTH`（health）；`lowYears≥2`→`PRO_RETIRE_DECLINE`（decline）；兩者都保留「再戰一年」。`RETIRE_CHOICE` 值：ceremony／quiet／lastdance／health／decline／again。
+- **退役流程**：`goNext()`→`showRetire(kind)`（逐年成績表、季後賽累積、榮譽、全程文字故事 `buildStory`）→按「✅ 確認，告別球場」→`showCivilian()`（回歸平凡、幸福平淡的日子；可回看回顧）。`P.retired`／`P.civil` 存檔；之後 `showIntro()` 直接回到對應畫面。
+- 測試：story 45／economy 12／integration 82（RETIRE_AT=10／14／20×6 隊×3 種子共 54 次 0 失敗）。環境變數 `RETIRE_AT=<年>` 控制測試在第幾年選退役。
