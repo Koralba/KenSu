@@ -315,11 +315,11 @@ const CSTORY = (function () {
   register({
     id: 'PRO_RENEW', phase: 'offseason', title: '休賽季的續約談話', once_per_season: true, priority: 10,
     conditions: [E('year', 'gte', 1), E('year', 'lt', 10)],
-    text: ['球季落幕，{team}的管理層找你談下一年的安排。', '桌上沒有誇張的數字，只有一份寫著球隊期待與你需要面對的課題的文件。你想用什麼心態簽下這一年？'],
+    text: ['球季落幕，{team}的管理層找你談下一年的安排。', '桌上沒有誇張的數字，只有一份寫著球隊期待與你需要面對的課題的文件。你想用什麼心態面對接下來的合約與去留？'],
     choices: [
-      { id: 'sign', label: '樂意續約，專心準備明年', hint: '教練關係 +2・信賴度 +1', effects: [{ type: 'relationship_delta', target: 'coach', value: 2 }, { type: 'stat_delta', target: 'trust', value: 1 }, { type: 'flag_set', flag: 'RENEW_SIGNED' }], result: ['你在文件末頁簽下名字，沒有多餘的條件。', '「明年見，」對方說，「好好休息。」'] },
+      { id: 'sign', label: '好好談，專心準備明年', hint: '教練關係 +2・信賴度 +1', effects: [{ type: 'relationship_delta', target: 'coach', value: 2 }, { type: 'stat_delta', target: 'trust', value: 1 }, { type: 'flag_set', flag: 'RENEW_SIGNED' }], result: ['你把想法說得清清楚楚，沒有多餘的條件。', '「明年見，」對方說，「好好休息。」'] },
       { id: 'ask_role', label: '希望爭取更多上場機會', hint: '教練關係 +1・信賴度 -1（說出口也有壓力）', effects: [{ type: 'relationship_delta', target: 'coach', value: 1 }, { type: 'stat_delta', target: 'trust', value: -1 }, { type: 'flag_set', flag: 'RENEW_ASKED_ROLE' }], result: ['你把自己的想法一條一條說清楚，管理層沒有當場回應。', '離開時，你不確定這樣算不算好事——但至少，你說出口了。'] },
-      { id: 'quiet', label: '低調簽下，把焦點留給球隊', hint: '隊友關係 +2', effects: [{ type: 'relationship_delta', target: 'team', value: 2 }, { type: 'flag_set', flag: 'RENEW_SIGNED' }], result: ['你簽完名，把筆放回桌上。', '沒有人特別提起這件事，但球隊的人慢慢都知道了。'] }
+      { id: 'quiet', label: '低調談完，把焦點留給球隊', hint: '隊友關係 +2', effects: [{ type: 'relationship_delta', target: 'team', value: 2 }, { type: 'flag_set', flag: 'RENEW_SIGNED' }], result: ['你說完想說的，把文件放回桌上。', '沒有人特別提起這件事，但球隊的人慢慢都知道了。'] }
     ]
   });
 
