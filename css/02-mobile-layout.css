@@ -1,0 +1,295 @@
+/* ===== 02-mobile-layout.css ｜ 手機／平板精簡版面（body.mob）／背景音面板／OUT 提示／觸控方向區 =====
+   ★ 後面的規則會覆蓋前面的（補丁式堆疊），載入順序 2/4 不可調換 ===== */
+/* =====================================================================
+   簡化選單 + 手機／平板精簡版面（僅 body.mob 生效，電腦版維持原樣）
+   ===================================================================== */
+.d-mob{display:none}
+.vs{justify-content:center;font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei';font-size:40px;color:#ffd84a}
+.adv{max-width:900px;margin:0 auto}
+.adv summary{cursor:pointer;text-align:center;font-weight:900;color:#9ff;padding:4px;list-style:none;font-size:14px;touch-action:manipulation}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary::after{content:' ▾'}.adv[open] summary::after{content:' ▴'}
+.how div{margin:2px 0}
+#actMore{display:none;position:absolute;right:0;bottom:calc(100% + 6px);flex-direction:column;gap:6px;padding:6px;background:#06101cf2;border:2px solid #fff6;border-radius:12px;box-shadow:0 4px 14px #000a;z-index:40}#btnMore{display:block}#acts.open #btnMore{background:#ff7a1a}#acts.open #actMore{display:flex}#acts:not(.open) .sec{display:none!important}#actMore .abtn{white-space:nowrap;text-align:left}
+.k{font-style:normal}
+.sx{display:none}
+.pbtn .pn{font-weight:inherit}.pbtn em{font-style:normal}.pbtn em.sh{display:none}
+
+body.mob{--cap:38px}
+body.mob .d-mob{display:inline}body.mob .d-pc{display:none}body.mob .k{display:none}
+body.mob #hud{inset:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+
+/* --- 選單頁 --- */
+body.mob #menu{padding:6px calc(10px + env(safe-area-inset-right)) calc(66px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+body.mob #menu h2{font-size:18px;margin:0 0 2px;text-shadow:0 2px 0 #7a3b00}
+body.mob .teams{flex-wrap:nowrap!important;gap:4px!important;margin:4px 0!important;align-items:flex-start}
+body.mob .teams .col{flex:1;min-width:0;gap:4px}
+body.mob .teams .col.vs{flex:none;font-size:16px;align-self:center;padding-top:14px}
+body.mob .col .lab{font-size:11px;letter-spacing:.1em}
+body.mob .cards{grid-template-columns:repeat(3,1fr);gap:4px;width:100%}
+body.mob .card{padding:6px 2px;font-size:12px;border-width:2px;border-radius:9px}
+body.mob .card .sw{height:5px;margin-bottom:3px}
+body.mob .card.sel{transform:none;box-shadow:0 0 10px #ffe14a88}
+body.mob .opts{flex-direction:column;align-items:stretch;gap:5px;margin:6px 0}
+body.mob .opt{justify-content:flex-start;gap:5px}
+body.mob .opt b{flex:none;width:4.6em;font-size:12px;margin:0}
+body.mob .pill{padding:7px 12px;font-size:12px;border-width:1.5px}
+body.mob .adv summary{font-size:12px;padding:6px;border:1px dashed #fff4;border-radius:8px;margin-top:4px}
+body.mob .how{font-size:11px;line-height:1.45;padding:6px 10px;margin:6px auto 0;border-radius:8px}
+body.mob #startBtn{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:calc(8px + env(safe-area-inset-bottom));padding:8px 40px;font-size:18px;border-width:3px;border-radius:14px;box-shadow:0 4px 0 #7a0000,0 6px 14px #000a;z-index:5}
+body.mob #startBtn:active{transform:translateY(3px)}
+body.mob #menu::after{content:'';position:fixed;left:0;right:0;bottom:0;height:calc(64px + env(safe-area-inset-bottom));background:linear-gradient(#0a1a1400,#0a1a14 55%);z-index:4;pointer-events:none}
+
+/* --- 標題 / 結果 --- */
+body.mob #title{padding-top:4vh}
+body.mob #title .made{font-size:20px;bottom:3vh}
+body.mob #title .press{bottom:12vh;font-size:16px}
+body.mob #result{gap:6px;padding:8px}
+body.mob #result h2{font-size:30px}
+body.mob #result .sc{font-size:16px;line-height:1.4}
+body.mob #result .st{font-size:11px;line-height:1.5;max-width:92vw}
+body.mob #result button{padding:8px 26px;font-size:16px;border-width:2px}
+
+/* --- 上方資訊列：比分(左) / 投打(中) / 局數BSO(右) --- */
+body.mob #sb{left:2px;top:2px;bottom:auto;transform:none;padding:3px 6px;border-width:1.5px;border-radius:8px;pointer-events:auto;cursor:pointer;z-index:31}
+body.mob #sb table{font-size:12px}
+body.mob #sb td,body.mob #sb th{padding:0 4px;min-width:0}
+body.mob #sb th{font-size:10px;line-height:1.1}
+body.mob #sb:not(.open) .in,body.mob #sb:not(.open) .x{display:none}
+body.mob #sb th:first-child::after{content:'▾';color:#9cf}
+body.mob #sb.open th:first-child::after{content:'▴'}
+body.mob #bso{right:2px;top:2px;transform:none;padding:3px 8px;gap:8px;border-width:1.5px;border-radius:8px}
+body.mob #inn{font-size:18px;min-width:2.4em}
+body.mob #dia{width:34px;height:34px}
+body.mob #bso .lamps div{font-size:11px;height:1.35em}
+body.mob #pinfo{left:100px;right:176px;transform:none;top:2px;gap:4px;pointer-events:auto;cursor:pointer;align-items:flex-start}
+body.mob .pbox{flex:1;min-width:0;width:auto;padding:2px 7px;border-width:1.5px;border-radius:8px;overflow:hidden}
+body.mob .pbox .t,body.mob .pbox .s{display:none}
+body.mob .pbox .n{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+body.mob .pbox .n small{font-size:.8em;opacity:.8}
+body.mob .pbox .bar{height:3px;margin-top:2px}
+body.mob #pinfo.open{z-index:31}
+body.mob #pinfo.open .pbox .s{display:block;font-size:10px;line-height:1.35;white-space:normal;margin-top:2px}
+body.mob #pinfo.open .pbox .n{white-space:normal}
+body.mob #spd{font-size:11px;padding:2px 8px}
+
+/* --- 左側小資訊：風向 / ABS 次數 / 擊球資訊 --- */
+body.mob #leftCol{left:2px;top:62px;width:auto;max-width:34vw;gap:3px}
+body.mob #windBox{padding:2px 7px;font-size:10px;gap:5px;flex-wrap:wrap;border-width:1px}
+body.mob #windBox .warr{font-size:13px}
+body.mob #absInfo{padding:2px 7px;font-size:10px;border-width:1px}
+body.mob #hitInfo{padding:3px 7px;text-align:left;border-width:1.5px}
+body.mob #hitInfo .hbar,body.mob #hitInfo .hb{display:none}
+body.mob #hitInfo .hrow{justify-content:flex-start}
+body.mob #hitInfo .hq{font-size:13px}
+body.mob #hitInfo .hq small{font-size:.75em}
+body.mob #hitInfo .ha{font-size:12px;margin:0}
+body.mob #hitInfo .ha small{display:inline;font-size:.85em;margin-left:4px}
+body.mob #hitInfo .hs{font-size:11px;margin:0}
+
+/* --- ABS 挑戰：左側中間，兩顆大按鈕 --- */
+body.mob #absPanel{position:fixed!important;left:50%!important;top:auto!important;bottom:calc(var(--cap) + 62px)!important;transform:translateX(-50%)!important;flex-direction:row;align-items:center;flex-wrap:nowrap;gap:6px;padding:4px 8px!important;background:#06182af0!important;border:1.5px solid #4cf!important;border-radius:999px;max-width:78vw;z-index:30;box-shadow:0 2px 8px #000a}
+body.mob #absRem{flex:none;font-size:11px;text-align:center;white-space:nowrap}
+body.mob #absPanel .bar{display:none}
+body.mob #absPanel .absBtns{flex-direction:row;gap:4px}
+body.mob #absPanel .absBtns .abtn{padding:4px 10px!important;font-size:12px!important;min-height:28px;border-width:1.5px!important;border-radius:999px!important}
+
+/* --- 底部：字幕 / 左下操作 / 右下大按鈕 --- */
+body.mob #caption{height:var(--cap);padding:0 10px 0 8px;background:none}
+body.mob #caption .tx{border-left-width:3px;padding:.15em .55em .15em .5em}
+body.mob #caption .tx{font-size:13px;line-height:1.2;max-height:2.4em;overflow:hidden}
+body.mob #caption .sm{display:none}
+body.mob #touchBtns{right:10px;bottom:calc(var(--cap) + 8px);gap:8px}
+body.mob #btnAct{width:80px;height:80px;border-width:3px}
+body.mob #btnPow{padding:6px 10px;font-size:12px;border-width:2px;border-radius:10px}
+body.mob #acts{left:8px;right:auto;bottom:calc(var(--cap) + 8px);max-width:none;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+body.mob .abtn{padding:7px 11px;font-size:12px;min-height:34px;border-width:2px;border-radius:9px;white-space:nowrap}
+body.mob #actMore{left:0;right:auto}
+body.mob #pitchPanel{left:8px;right:auto;top:auto;bottom:calc(var(--cap) + 52px);transform:none;display:flex;flex-direction:column-reverse;flex-wrap:nowrap;align-items:flex-start;gap:4px;max-width:calc(100vw - 130px)}
+body.mob #pitchPanel .pbtn{min-width:0;padding:6px 9px;font-size:12px;border-width:2px;border-radius:9px;gap:4px}
+body.mob #pitchPanel .pbtn span{display:inline;font-size:9px}
+body.mob .pbtn em.lg{display:none}body.mob .pbtn em.sh{display:inline}
+body.mob #throwPanel{left:auto;right:10px;transform:none;bottom:calc(var(--cap) + 12px);width:176px;height:176px}
+body.mob #throwPanel .tt{top:-20px;font-size:12px}
+body.mob .tb{width:29%;height:29%;font-size:12px;border-width:2px;border-radius:50%}
+
+/* --- 換投／代打：右側抽屜 --- */
+body.mob #sub{left:auto;right:0;top:0;bottom:0;transform:none;max-height:none;width:min(64vw,380px);min-width:0;border-radius:14px 0 0 14px;border-width:2px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));touch-action:pan-y;overflow-y:auto;-webkit-overflow-scrolling:touch}
+body.mob #sub h3{position:sticky;top:0;z-index:1;background:#0b1a2c;margin:-8px -10px 10px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:15px}
+body.mob #sub .sx{display:inline-block;padding:2px 10px;font-size:18px;color:#fff}
+body.mob #sub .pbtn{padding:9px 10px;font-size:13px;flex-wrap:wrap;margin:4px 0;min-width:0}
+
+/* --- 其他浮層 --- */
+body.mob #visitBox{top:12vh;min-width:0;width:min(70vw,360px);padding:6px 12px;border-width:2px}
+body.mob #visitBox .vl{font-size:13px;margin:3px 0}
+body.mob #visitBox .vm{font-size:18px}
+body.mob #mashUi{top:52%;width:min(70vw,320px);padding:6px 10px}
+body.mob #brawlBanner{top:46px;font-size:13px;padding:5px}
+body.mob #hawk{top:46%;transform:translate(-50%,-50%) scale(.62);padding:8px 12px}
+body.mob #toast{font-size:clamp(28px,8vw,56px);top:34%}
+body.mob #injI{font-size:44px}body.mob #injT{font-size:22px}body.mob #injD{font-size:13px}
+body.mob #rot{top:auto;bottom:calc(var(--cap) + 100px);font-size:12px;padding:5px 10px}
+
+/* --- 直向：資訊列分兩排，底部控制往上疊 --- */
+@media (orientation:portrait){
+ body.mob #pinfo{left:2px;right:2px;top:64px}
+ body.mob #leftCol{top:106px}
+ body.mob #throwPanel{width:160px;height:160px}
+}
+/* --- 平板：放大一點 --- */
+@media (min-width:900px) and (min-height:600px){
+ body.mob{--cap:48px}
+ body.mob #caption .tx{font-size:17px}
+ body.mob #btnAct{width:100px;height:100px}
+ body.mob .abtn{font-size:14px;padding:9px 14px}
+ body.mob .pbox .n{font-size:14px}
+ body.mob #sb table{font-size:14px}
+ body.mob #pinfo{left:124px;right:200px}
+ body.mob #pitchPanel .pbtn{font-size:14px;padding:8px 12px}
+ body.mob #pitchPanel{bottom:calc(var(--cap) + 62px)}
+}
+
+/* =====================================================================
+   手機／平板：上方資訊列 = 打者 | 投手 | 比分（打者與比分位置對調）＋ 精簡但完整的球員資訊
+   ===================================================================== */
+#topbar{display:none}
+.cp{display:none}
+body.mob #pinfo{display:none}
+body.mob #topbar{display:flex;position:absolute;left:2px;top:2px;right:calc(var(--bsow,130px) + 8px);gap:4px;align-items:flex-start;pointer-events:none;z-index:21}
+body.mob #topbar>*{pointer-events:auto}
+body.mob #topbar .pbox{flex:1 1 0;min-width:0;padding:3px 7px 4px;border-width:1.5px;border-radius:8px;overflow:hidden;width:auto}
+body.mob #bBox{border-color:#ffd35a}
+body.mob #pBox{border-color:#7ab8ff}
+body.mob .pbox .t,body.mob .pbox .s,body.mob .pbox>.bar{display:none}
+body.mob .pbox .n{font-size:12.5px;line-height:1.35}
+body.mob .pbox .n::before{display:inline-block;width:1.4em;height:1.4em;line-height:1.4em;border-radius:50%;text-align:center;font-size:.78em;margin-right:4px;font-weight:900;vertical-align:1px}
+body.mob #pBox .n::before{content:'投';background:#2a7bff;color:#fff}
+body.mob #bBox .n::before{content:'打';background:#ffc21a;color:#3a2000}
+body.mob .cp{display:block;font-size:10.5px;line-height:1.4;margin-top:1px;color:#dbe9ff;font-weight:700}
+body.mob .cp .ln{display:flex;flex-wrap:wrap;align-items:center;gap:0 7px}
+body.mob .cp .ln+.ln{margin-top:1px;opacity:.95}
+body.mob .cp b{font-weight:900;color:#fff;margin:0 1px}
+body.mob .cp b.hi{color:#ffe14a}body.mob .cp b.mid{color:#7dff7d}body.mob .cp b.lo{color:#ff9a8a}
+body.mob .cp .fat{display:inline-flex;align-items:center;gap:3px}
+body.mob .cp .fat i{display:inline-block;width:30px;height:5px;border-radius:3px;background:#0009;overflow:hidden;font-style:normal}
+body.mob .cp .fat u{display:block;height:100%;text-decoration:none}
+body.mob .cp .pt{color:#bfe0ff}
+body.mob .cp .md{font-weight:900;white-space:nowrap}
+body.mob #sb{position:relative;left:auto;top:auto;bottom:auto;flex:none}
+body.mob #sb.open{position:absolute;right:0;top:0;z-index:32;max-width:calc(100vw - var(--bsow,130px) - 16px);overflow-x:auto}
+@media (orientation:portrait){
+ body.mob #topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(var(--bsoh,52px),auto) auto;right:2px;row-gap:4px}
+ body.mob #bBox{grid-column:1/-1;grid-row:1;margin-right:calc(var(--bsow,130px) + 6px);align-self:start}
+ body.mob #pBox{grid-column:1;grid-row:2}
+ body.mob #sb{grid-column:2;grid-row:2;align-self:start}
+ body.mob #sb.open{right:calc(var(--bsow,130px) + 6px)}
+}
+@media (min-width:900px) and (min-height:600px){
+ body.mob .cp{font-size:12.5px}
+ body.mob .pbox .n{font-size:14px}
+ body.mob .cp .fat i{width:44px}
+}
+/* ---------- 背景音設定面板（從「更多」開啟） ---------- */
+#audioPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:95;background:#0b1a2cf8;border:3px solid #fff;border-radius:14px;padding:10px 14px 12px;width:min(88vw,330px);box-shadow:0 8px 28px #000c;touch-action:manipulation}
+#audioPanel .ap-h{display:flex;justify-content:space-between;align-items:center;font-weight:900;color:#ffe14a;font-size:15px;letter-spacing:.08em;margin-bottom:8px}
+#audioClose{width:30px;height:30px;border-radius:50%;border:2px solid #fff6;background:#142a46;color:#fff;font-size:14px;cursor:pointer;touch-action:manipulation}
+#audioPanel .ap-sw{display:block;width:100%;padding:9px 10px;border-radius:10px;border:2px solid #fff;background:#4a1a1a;color:#fff;font-weight:900;font-size:15px;cursor:pointer;touch-action:manipulation}
+#audioPanel .ap-sw:disabled{opacity:.5;cursor:default}
+#audioPanel .ap-sw.on{background:linear-gradient(#ffe56a,#ff9d1a);color:#3a1a00}
+#audioPanel .ap-r{display:flex;align-items:center;gap:8px;margin-top:10px}
+#audioPanel .ap-ic{font-size:14px}
+#audioVol,#sfxVol{flex:1;min-width:0;height:30px;accent-color:#ffb02e;cursor:pointer;touch-action:none}
+#audioNum,#sfxNum{font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;min-width:2.3em;text-align:right}
+#audioPanel .ap-s{font-size:10.5px;opacity:.7;margin-top:8px;line-height:1.4}
+#audioPanel{max-height:92vh;overflow-y:auto;width:min(92vw,370px)}
+#audioPanel .ap-t{font-size:12px;font-weight:900;letter-spacing:.12em;color:#9cf;margin:12px 0 6px}
+#audioTracks{display:flex;flex-direction:column;gap:6px}
+#audioTracks .trk{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:7px 9px;border-radius:10px;border:2px solid #fff3;background:#12243c;color:#fff;cursor:pointer;touch-action:manipulation}
+#audioTracks .trk .ti{font-size:22px;width:28px;text-align:center}
+#audioTracks .trk .tn{flex:1;min-width:0;display:flex;flex-direction:column}
+#audioTracks .trk .tn b{font-size:14px;font-weight:900}
+#audioTracks .trk .tn i{font-style:normal;font-size:10.5px;opacity:.7;margin-top:1px}
+#audioTracks .trk em{font-style:normal;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:99px;background:#345;color:#cde}
+#audioTracks .trk em.hot{background:#c4281f;color:#fff}#audioTracks .trk em.chill{background:#1f8f6a;color:#fff}#audioTracks .trk em.fun{background:#7a46d0;color:#fff}
+#audioTracks .trk.on{border-color:#ffd24a;background:linear-gradient(#3a2d10,#1d1a0c);box-shadow:0 0 0 1px #ffd24a66 inset}
+#audioTracks .trk.on .tn b::before{content:'▶ ';color:#ffd24a}
+#titleBgm{position:absolute;right:14px;top:12px;z-index:60;font-size:13px}
+.pillb{padding:8px 16px;border-radius:999px;border:2px solid #fff4;background:#0007;font-weight:900;cursor:pointer;font-size:14px;color:#fff;touch-action:manipulation}
+body.mob .pillb{padding:7px 12px;font-size:12px;border-width:1.5px}
+/* ---------- OUT 提示 ---------- */
+body.touch #btnPowPc,body.mob #btnPowPc{display:none!important}
+#quitDlg{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);pointer-events:auto}#quitDlg.hide{display:none!important}
+#quitDlg .qbox{width:min(88vw,400px);padding:20px 22px 18px;border:2px solid #fff6;border-radius:16px;background:#06101cf5;box-shadow:0 10px 36px #000c;text-align:center;color:#fff}
+#quitDlg .qt{font-size:clamp(18px,3vw,24px);font-weight:900;color:#ffe14a;margin-bottom:8px}
+#quitDlg .qs{font-size:clamp(13px,2vw,15px);line-height:1.6;opacity:.92;margin-bottom:16px}
+#quitDlg .qb{display:flex;gap:10px;justify-content:center}
+#quitDlg .qb button{flex:1;padding:10px 12px;font-size:15px;font-weight:900;border-radius:10px;border:2px solid #fff8;color:#fff;cursor:pointer;background:#2a3a55;font-family:inherit}
+#quitDlg .qb #quitYes{background:linear-gradient(#ff7a7a,#c81818)}
+#intro{position:absolute;left:0;right:0;top:27%;z-index:27;pointer-events:none;overflow:hidden}
+#intro .in-card{--tc:#2a5adf;display:block;width:fit-content;max-width:min(92vw,720px);box-sizing:border-box;margin-left:0;padding:10px 26px 10px 16px;border-left:8px solid var(--tc);border-radius:0 12px 12px 0;background:rgba(6,16,32,.78);animation:introIn 2.1s cubic-bezier(.2,.8,.2,1) forwards;text-shadow:0 2px 4px #000}
+body.venuing #hud>*:not(#venueIntro){visibility:hidden!important}
+body.venuing #ov{visibility:hidden!important}
+#venueIntro{position:absolute;inset:0;z-index:40;pointer-events:auto;cursor:pointer;overflow:hidden}
+#venueIntro .vi-bar{position:absolute;left:0;right:0;height:9vh;background:#000;animation:viBar .8s ease-out both}
+#venueIntro .vi-top{top:0}#venueIntro .vi-bot{bottom:0;--d:1}
+#venueIntro .vi-card{--tc:#2a5adf;position:absolute;left:0;bottom:14%;width:fit-content;max-width:min(94vw,780px);box-sizing:border-box;padding:12px 30px 12px 18px;border-left:10px solid var(--tc);border-radius:0 14px 14px 0;background:rgba(6,16,32,.84);color:#fff;text-shadow:0 1px 3px #000a;animation:viIn .9s .25s cubic-bezier(.2,.8,.2,1) both}
+#venueIntro .vi-tag{font-weight:900;font-size:clamp(11px,1.5vw,15px);letter-spacing:.3em;color:#ffe14a}
+#venueIntro .vi-name{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(28px,5.6vw,58px);line-height:1.15}
+#venueIntro .vi-loc{font-size:clamp(12px,1.7vw,17px);opacity:.92;margin-top:2px}
+#venueIntro .vi-home{margin-top:7px;padding-top:6px;border-top:1px solid #fff3;font-weight:800;font-size:clamp(14px,2.1vw,22px);color:#bfe}
+#venueIntro .vi-home b{color:var(--tc);filter:brightness(1.7)}
+#venueIntro .vi-wx{margin-top:4px;font-size:clamp(12px,1.6vw,16px);opacity:.9}
+#venueIntro .vi-skip{position:absolute;right:14px;bottom:calc(9vh + 8px);font-size:12px;opacity:.7;color:#fff;text-shadow:0 1px 3px #000}
+@keyframes viIn{from{transform:translateX(-105%);opacity:0}to{transform:none;opacity:1}}
+@keyframes viBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+#venueIntro .vi-top{transform-origin:top}#venueIntro .vi-bot{transform-origin:bottom}
+#intro .in-tag{font-weight:900;font-size:clamp(11px,1.5vw,15px);letter-spacing:.25em;color:#ffe14a}
+#intro .in-name{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(26px,5vw,52px);line-height:1.15;color:#fff}
+#intro .in-name i{font-style:normal;color:var(--tc);filter:brightness(1.6);margin-right:.35em;font-size:.7em}
+#intro .in-sub{font-size:clamp(11px,1.5vw,15px);opacity:.9;margin-top:2px}
+#intro .in-next{margin-top:6px;padding-top:5px;border-top:1px solid #fff3;font-weight:700;font-size:clamp(12px,1.7vw,17px);color:#bfe;opacity:0;animation:introNx .5s .55s forwards}
+@keyframes introIn{0%{transform:translateX(-110%);opacity:0}14%{transform:translateX(0);opacity:1}86%{transform:translateX(0);opacity:1}100%{transform:translateX(105%);opacity:0}}
+@keyframes introNx{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+#outBanner{left:50%;top:58%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:28}
+#outBanner .ob-t{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(46px,10vw,112px);line-height:1;color:#fff;-webkit-text-stroke:.08em #d01818;paint-order:stroke fill;letter-spacing:.06em;text-shadow:0 .05em 0 #6a0000,0 0 26px #f338}
+#outBanner .ob-s{margin-top:6px;font-weight:900;font-size:clamp(14px,2.4vw,26px);color:#fff;text-shadow:0 2px 6px #000;letter-spacing:.12em}
+#outBanner.show{animation:outPop 1.75s ease-out forwards}
+@keyframes outPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}22%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-56%) scale(1)}}
+body.mob #outBanner{top:54%}
+#ejectBanner{left:0;right:0;top:34%;text-align:center;pointer-events:none;z-index:46;display:flex;flex-direction:column;align-items:center;gap:6px}
+#ejectBanner .ej-bar{width:100%;padding:clamp(8px,2vh,18px) 0;background:linear-gradient(90deg,rgba(120,0,0,0),rgba(200,10,10,.92) 18%,rgba(200,10,10,.92) 82%,rgba(120,0,0,0));display:flex;align-items:center;justify-content:center;gap:.4em}
+#ejectBanner .ej-card{display:inline-block;width:.62em;height:.86em;border-radius:.07em;background:linear-gradient(145deg,#ff5a5a,#c80000);border:.04em solid #fff;box-shadow:0 .05em .12em #0008;transform:rotate(-12deg);font-size:clamp(34px,8vw,84px)}
+#ejectBanner .ej-t{font-family:'Mochiy Pop One','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;font-size:clamp(40px,9vw,100px);line-height:1;color:#fff;letter-spacing:.1em;text-shadow:0 .05em 0 #5a0000,0 0 22px #000a}
+#ejectBanner .ej-e{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(12px,2vw,22px);letter-spacing:.5em;color:#ffd0d0;text-shadow:0 2px 6px #000}
+#ejectBanner .ej-s{max-width:92vw;padding:6px 16px;border-radius:10px;background:#000b;font-weight:900;font-size:clamp(14px,2.4vw,26px);color:#fff;letter-spacing:.06em;text-shadow:0 2px 6px #000}
+#ejectBanner.show{animation:ejPop 2.7s ease-out forwards}
+@keyframes ejPop{0%{opacity:0;transform:scale(.35)}10%{opacity:1;transform:scale(1.15)}18%{transform:scale(1)}86%{opacity:1}100%{opacity:0;transform:translateY(-8%)}}
+body.mob #ejectBanner{top:30%}
+body.mob #ejectBanner .ej-t{font-size:clamp(30px,8vw,56px)}
+body.mob #ejectBanner .ej-s{font-size:12px}
+body.mob #outBanner .ob-t{font-size:clamp(36px,9vw,64px)}
+body.mob #outBanner .ob-s{font-size:13px}
+
+/* ABS 挑戰提示：固定在右上角（局數／BSO 下方），半透明，不遮擋擊球框 */
+#absPanel,body.mob #absPanel{position:fixed!important;left:auto!important;right:calc(1.4vw + env(safe-area-inset-right))!important;top:calc(1.8vh + 96px)!important;bottom:auto!important;transform:none!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;gap:6px;padding:4px 8px!important;max-width:min(60vw,300px)!important;background:rgba(6,24,42,.5)!important;border:1px solid rgba(68,204,255,.55)!important;border-radius:999px!important;box-shadow:0 2px 8px rgba(0,0,0,.35)!important;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:30}
+#absPanel #absRem,body.mob #absPanel #absRem{flex:none;white-space:nowrap;font-size:11px;text-align:center}
+#absPanel .bar,body.mob #absPanel .bar{display:none!important}
+#absPanel .absBtns,body.mob #absPanel .absBtns{flex-direction:row!important;gap:4px;margin:0}
+#absPanel .absBtns .abtn,body.mob #absPanel .absBtns .abtn{padding:3px 10px!important;font-size:12px!important;min-height:26px;border-width:1px!important;border-radius:999px!important;background:rgba(18,56,95,.7)!important}
+body.mob #absPanel{top:calc(var(--bsoh,56px) + 10px)!important;right:calc(4px + env(safe-area-inset-right))!important}
+
+/* 左側半透明方向區：拖曳控制準心上下左右 */
+#movePad{display:none;left:calc(env(safe-area-inset-left, 0px) + clamp(6px,1.6vw,18px));bottom:calc(clamp(54px,9.5vh,92px) + 3vh);top:auto;width:min(24vh,118px);height:min(24vh,118px);border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:radial-gradient(circle,rgba(255,255,255,.09),rgba(255,255,255,.03) 70%);pointer-events:none;touch-action:none;z-index:21;opacity:.5;transition:opacity .2s}
+body.mob #movePad{bottom:calc(var(--cap) + 50px + 1vh);width:min(22vh,92px);height:min(22vh,92px)}
+body.touch #movePad.on{display:block}
+@media (min-width:700px) and (min-height:480px) and (pointer:coarse){
+  body.touch #movePad{width:min(17vh,96px);height:min(17vh,96px);bottom:calc(var(--cap,38px) + 52px);opacity:.28;z-index:5}      /* 平板：縮小、貼近左下角、更淡，避開左欄資訊與投球／操作面板 */
+  body.touch #movePad.act{opacity:.6}
+}
+body.touch #movePad{left:calc(env(safe-area-inset-left, 0px) + clamp(2px, .6vw, 8px))}      /* 手機／平板：往左靠，但保留瀏海／圓角安全區，不會被遮住 */
+#movePad.act{opacity:.85}
+#movePad i{position:absolute;font-style:normal;font-size:11px;line-height:1;color:rgba(255,255,255,.55);pointer-events:none}
+#movePad .u{left:50%;top:7%;transform:translateX(-50%)}#movePad .d{left:50%;bottom:7%;transform:translateX(-50%)}#movePad .l{left:8%;top:50%;transform:translateY(-50%)}#movePad .r{right:8%;top:50%;transform:translateY(-50%)}
+#movePad b{position:absolute;left:50%;top:50%;width:38%;height:38%;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);transform:translate(-50%,-50%);pointer-events:none}
+#movePad span{position:absolute;left:50%;transform:translateX(-50%);top:-17px;text-align:center;font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.65);pointer-events:none;white-space:nowrap;text-shadow:0 1px 3px #000}
+
