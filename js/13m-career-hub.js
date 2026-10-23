@@ -6,7 +6,7 @@
    純函式（可在 Node 測）：calendarCells／monthsOf／contractView／awardRows／gameResult／lastPlayedKey／offDaysBefore／dayKey／dayInfo。 */
 'use strict';
 const CHUB = (function () {
-  const TABS = [['home', '總覽'], ['sched', '🗓 賽程'], ['train', '🏋 訓練休息'], ['friend', '🤝 交友'], ['trade', '🔁 交易合約'], ['shop', '🛍 消費'], ['rec', '📈 戰績']];
+  const TABS = [['home', '🏠 主畫面'], ['sched', '🗓 賽程'], ['train', '🏋 訓練休息'], ['friend', '🤝 交友'], ['trade', '🔁 交易合約'], ['shop', '🛍 消費'], ['rec', '📈 戰績']];
   const BANNER = { home: 'HUB_OVERVIEW', sched: 'HUB_SCHEDULE', train: 'HUB_TRAIN', friend: 'HUB_FRIEND', trade: 'HUB_CONTRACT', shop: 'HUB_SHOP', rec: 'HUB_RECORD' };
   const HOW = { resign: '續約', fa: '自由球員簽約', trade: '交易', release: '被釋出後簽約' };
   const ACT_TX = { train: '🏋 專項訓練', rehab: '🩹 復健', rest: '💤 休息', date: '💞 約會', coach: '🤝 找總教練', veteran: '🤝 找前輩', mate: '🤝 找好友', pmeet: '🧢 結識投手前輩' };
@@ -83,7 +83,44 @@ const CHUB = (function () {
 #csDlg .hub .acts button[disabled]{opacity:.5}
 #csDlg .hub .acts small{display:block;opacity:.75}
 #csDlg .hub .bar{height:8px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}
-#csDlg .hub .bar i{display:block;height:100%;background:#ffd166}`;
+#csDlg .hub .bar i{display:block;height:100%;background:#ffd166}
+#csDlg .csb.hub{width:min(96vw,980px);max-width:96vw}
+#csDlg .hub .homeWrap{display:flex;flex-direction:column;gap:10px}
+#csDlg .hub .hero{position:relative;overflow:hidden;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,var(--c1),#0b1020 70%);border:1px solid rgba(255,255,255,.25);box-shadow:0 6px 20px rgba(0,0,0,.45)}
+#csDlg .hub .hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 20%,rgba(255,255,255,.18),transparent 45%);pointer-events:none}
+#csDlg .hub .heroNum{font-size:clamp(46px,9vw,80px);font-weight:900;line-height:1;color:#fff;opacity:.92;text-shadow:0 3px 0 rgba(0,0,0,.45);min-width:1.3em;text-align:center;font-style:italic}
+#csDlg .hub .heroTx small{opacity:.85;letter-spacing:.08em}
+#csDlg .hub .heroTx h3{margin:2px 0 6px;font-size:clamp(22px,4.4vw,34px);letter-spacing:.04em}
+#csDlg .hub .heroTags{display:flex;gap:6px;flex-wrap:wrap}
+#csDlg .hub .heroTags span{padding:3px 11px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.35);font-size:12px;font-weight:700}
+#csDlg .hub .homeGrid{display:grid;grid-template-columns:1.15fr 1fr;gap:10px}
+@media(max-width:620px){#csDlg .hub .homeGrid{grid-template-columns:1fr}}
+#csDlg .hub .card{border-radius:14px;padding:12px 14px;background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.2)}
+#csDlg .hub .card h4{margin:0 0 8px;font-size:12px;letter-spacing:.2em;color:#ffd166}
+#csDlg .hub .nxDate{font-size:13px;opacity:.85;text-align:center}
+#csDlg .hub .nxVs{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}
+#csDlg .hub .nxVs>span{font-weight:900;opacity:.7}
+#csDlg .hub .nxTm{flex:1;padding:10px 6px;border-radius:12px;text-align:center;font-weight:900;font-size:clamp(15px,3vw,20px);border:1px solid rgba(255,255,255,.3)}
+#csDlg .hub .nxTm small{display:block;font-size:11px;font-weight:500;opacity:.8}
+#csDlg .hub .nxSub{text-align:center;font-size:13px;opacity:.85;margin-bottom:8px}
+#csDlg .hub .nxEmpty{padding:18px 0;text-align:center;opacity:.8}
+#csDlg .hub .hubBig{display:block;width:100%;padding:12px;border-radius:12px;border:2px solid #fff;font-size:18px;font-weight:900;background:linear-gradient(#ffd84a,#e08a00);color:#3a1d00;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#csDlg .hub .hubBig:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.45)}
+#csDlg .hub .stB{display:grid;grid-template-columns:3.6em 1fr 2.4em;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+#csDlg .hub .stB b{text-align:right}
+#csDlg .hub .prog{margin-top:10px;font-size:12px;opacity:.9}
+#csDlg .hub .prog .bar{margin-top:4px}
+#csDlg .hub .hubNote{font-size:11px;opacity:.75;margin-top:6px}
+#csDlg .hub .hubInj{margin-top:8px;padding:6px 10px;border-radius:8px;background:rgba(214,60,60,.3);border:1px solid rgba(255,120,120,.6);font-size:13px}
+#csDlg .hub .chips2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+#csDlg .hub .chip2{padding:9px 12px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.15);display:flex;flex-direction:column;gap:2px}
+#csDlg .hub .chip2 small{opacity:.7;font-size:11px}#csDlg .hub .chip2 b{font-size:18px}#csDlg .hub .chip2 em{font-style:normal;font-size:11px;opacity:.75}
+#csDlg .hub .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:520px){#csDlg .hub .tiles{grid-template-columns:repeat(2,1fr)}}
+#csDlg .hub .tile{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 6px;border-radius:14px;border:1px solid rgba(255,255,255,.28);background:linear-gradient(160deg,rgba(60,110,200,.55),rgba(14,24,48,.85));color:#fff;cursor:pointer;transition:transform .12s,box-shadow .12s}
+#csDlg .hub .tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.5)}
+#csDlg .hub .tile i{font-style:normal;font-size:28px}
+#csDlg .hub .tile b{font-size:15px}#csDlg .hub .tile small{font-size:11px;opacity:.75}`;
   let styled = false;
   function addStyle() { if (styled || typeof document === 'undefined') return; styled = true; try { const st = document.createElement('style'); st.id = 'cHubCss'; st.textContent = STYLE; document.head.appendChild(st); } catch (e) { } }
   function banner(tab) { try { if (typeof CSCENE !== 'undefined' && CSCENE.html) return CSCENE.html({ id: BANNER[tab] }, 'pro_start'); } catch (e) { } return ''; }
@@ -107,18 +144,34 @@ const CHUB = (function () {
     const acts = a.E.hubActs(a.P);
     return `<div class="task">📅 <b>${title}</b>　休兵日：選一件事來做（一天只能一個，選了不能改）</div><div class="acts">${acts.map(x => `<button data-do="${x.id}"${x.can ? '' : ' disabled'}>${x.label}<small>${x.hint}${x.why ? '・' + x.why : ''}</small></button>`).join('')}</div>`;
   }
-  function pageHome(a) {
-    const P = a.P, p = a.prof, g = a.next, teams = a.teams, esc = a.esc, cv = a.contract, r = myRow(a);
-    const played = a.games.filter(x => P.res[x.id] != null).length, all = a.games.length;
-    let nx = '賽季已打完。'; if (g) { const home = g.home === P.team, opp = teams[home ? g.away : g.home]; nx = `${g.m}/${g.d}（${a.wd[g.wd]}）${home ? '主場' : '客場'}對 ${esc(opp.name)}（系列 ${g.g}/3）`; }
-    const rows = [['球隊', esc(teams[P.team].name)], ['角色', `${esc(p.name)} #${p.num}・${esc(p.pos === 'TWP' ? '二刀流' : p.pos)}`], ['身分', esc(a.roleTx)], ['年度／進度', `第 ${P.year || 1} 年・${played} / ${all} 場`]];
-    if (r) rows.push(['球隊戰績', `${r.w} 勝 ${r.l} 敗 ${r.t} 和　勝率 ${r.pct.toFixed(3).replace(/^0/, '')}　第 ${r.rank} 名`]);
-    rows.push(['信賴度', P.trust], ['下一場', nx]);
-    if (a.E && a.E.injured && a.E.injured(P)) rows.push(['傷勢', `🚑 ${esc(P.injury.name)}（${esc(P.injury.why)}）・還要缺陣 ${P.injury.games} 場`]);
-    if (a.eco) rows.push(['存款', `${Math.round(P.money || 0)} 萬`], ['體能／心情', `${P.fit} ／ ${P.mood}`], ['運動設備', `Lv${P.gear | 0}`]);
-    if (a.E && a.E.gameMood) { const gm = a.E.gameMood(P), pc = (gm - 50) / 50 * 4.5; rows.push(['開賽狀態', `${gm}（約 ${pc >= 0 ? '+' : ''}${pc.toFixed(1)}% 能力；體能、心情、設備都會影響）`]); }
-    if (cv) rows.push(['合約', `剩 ${cv.left} 年・年薪 ${cv.salary} 萬`]);
-    return kv(rows) + `<div class="task">👉 到「🗓 賽程」點下一場比賽的日期就能開打；比賽之間的空檔可以到「🏋 訓練休息」安排。</div><div class="btns"><button id="hubTitle">返回主畫面</button></div>`;
+  function pageHome(a) {      // 主畫面：球員卡＋下一場＋狀態＋功能磚（類似野球魂／實況野球的生涯首頁）
+    const P = a.P, p = a.prof, g = a.next, teams = a.teams, esc = a.esc, cv = a.contract, r = myRow(a), my = teams[P.team];
+    const played = a.games.filter(x => P.res[x.id] != null).length, all = a.games.length, pct = all ? Math.round(played / all * 100) : 0;
+    let nx = '<div class="nxEmpty">賽季已打完</div>', btn = '';
+    if (g) {
+      const home = g.home === P.team, opp = teams[home ? g.away : g.home], L = home ? opp : my, R = home ? my : opp;
+      nx = `<div class="nxDate">${g.m}/${g.d}（${a.wd[g.wd]}）・系列戰第 ${g.g} / 3 場</div><div class="nxVs"><div class="nxTm" style="background:linear-gradient(135deg,${L.c1},#000a)">${esc(L.short)}<small>客</small></div><span>VS</span><div class="nxTm" style="background:linear-gradient(135deg,${R.c1},#000a)">${esc(R.short)}<small>主</small></div></div><div class="nxSub">${home ? '主場' : '客場'}對 ${esc(opp.name)}</div>`;
+      btn = '<button id="hubGo" class="hubBig">⚾ 前往比賽日</button>';
+    }
+    const bar = (lab, v, col) => `<div class="stB"><span>${lab}</span><div class="bar"><i style="width:${Math.max(2, Math.min(100, v | 0))}%;background:${col}"></i></div><b>${v | 0}</b></div>`;
+    const st = [bar('信賴度', P.trust, '#7fd1ff')]; if (a.eco) st.push(bar('體能', P.fit, '#7dff9a'), bar('心情', P.mood, '#ffd166'));
+    const chips = [];
+    chips.push(`<div class="chip2"><small>球隊戰績</small><b>${r ? `${r.w} 勝 ${r.l} 敗 ${r.t} 和` : '—'}</b><em>${r ? `勝率 ${r.pct.toFixed(3).replace(/^0/, '')}・第 ${r.rank} 名` : ''}</em></div>`);
+    if (a.eco) chips.push(`<div class="chip2"><small>存款</small><b>💰 ${Math.round(P.money || 0)} 萬</b><em>運動設備 Lv${P.gear | 0}</em></div>`);
+    if (cv) chips.push(`<div class="chip2"><small>合約</small><b>${cv.salary} 萬</b><em>剩 ${cv.left} 年</em></div>`);
+    let gmTx = ''; if (a.E && a.E.gameMood) { const gm = a.E.gameMood(P), pc = (gm - 50) / 50 * 4.5; gmTx = `<div class="hubNote">開賽狀態 ${gm}（約 ${pc >= 0 ? '+' : ''}${pc.toFixed(1)}% 能力；體能、心情、設備都會影響）</div>`; }
+    const inj = a.E && a.E.injured && a.E.injured(P) ? `<div class="hubInj">🚑 ${esc(P.injury.name)}（${esc(P.injury.why)}）・還要缺陣 ${P.injury.games} 場</div>` : '';
+    const tiles = [['sched', '🗓', '賽程', '月曆・下一場'], ['train', '🏋', '訓練休息', '練球・復健・休息'], ['friend', '🤝', '交友', '前輩・好友・約會'], ['trade', '🔁', '交易合約', '續約・交易'], ['shop', '🛍', '消費', '設備・補給'], ['rec', '📈', '戰績', '成績・紀錄']]
+      .map(t => `<button class="tile" data-hub="${t[0]}"><i>${t[1]}</i><b>${t[2]}</b><small>${t[3]}</small></button>`).join('');
+    return `<div class="homeWrap">
+<div class="hero" style="--c1:${my.c1};--c2:${my.c2 || '#222'}"><div class="heroNum">${esc(String(p.num))}</div><div class="heroTx"><small>${esc(my.name)}・第 ${P.year || 1} 年</small><h3>${esc(p.name)}</h3><div class="heroTags"><span>${esc(p.pos === 'TWP' ? '二刀流' : p.pos)}</span><span>${esc(a.roleTx)}</span></div></div></div>
+<div class="homeGrid">
+<div class="card nxt"><h4>NEXT GAME</h4>${nx}${btn}</div>
+<div class="card sts"><h4>狀態</h4>${st.join('')}${gmTx}${inj}<div class="prog"><span>本季進度 ${played} / ${all} 場</span><div class="bar"><i style="width:${pct}%;background:#ffd166"></i></div></div></div>
+</div>
+<div class="chips2">${chips.join('')}</div>
+<div class="tiles">${tiles}</div>
+<div class="btns"><button id="hubTitle">返回主畫面</button></div></div>`;
   }
   function pageSched(a) {
     const P = a.P, games = a.games, ms = monthsOf(games), teams = a.teams, esc = a.esc;
@@ -193,7 +246,7 @@ const CHUB = (function () {
   function render(api, back) {
     addStyle(); const a = api(); if (!PAGES[S.tab]) S.tab = 'home'; if (a.E) a.E.ensureHub(a.P);
     const msg = S.msg ? `<div class="task">${a.esc(S.msg)}</div>` : ''; S.msg = '';
-    a.show(`<div class="csb hub"><h2>☰ 生涯總選單</h2>${banner(S.tab)}${tabsHtml(S.tab)}${msg}${PAGES[S.tab](a)}</div>`);
+    a.show(`<div class="csb hub"><h2>${S.tab === 'home' ? '⚾ 生涯總選單・主畫面' : '☰ 生涯總選單'}</h2>${S.tab === 'home' ? '' : banner(S.tab)}${tabsHtml(S.tab)}${msg}${PAGES[S.tab](a)}</div>`);
     const $ = id => document.getElementById(id), on = (id, f) => { const e = $(id); if (e) e.onclick = f; }, again = () => render(api, back), all = sel => document.querySelectorAll('#csDlg ' + sel);
     all('[data-hub]').forEach(b => { b.onclick = () => { S.tab = b.dataset.hub; S.sel = null; again(); }; });
     all('[data-m]').forEach(b => { b.onclick = () => { S.month = +b.dataset.m; again(); }; });
