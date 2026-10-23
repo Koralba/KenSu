@@ -494,7 +494,7 @@ ${fm ? `<div class="task">${fm}</div>` : ''}<div class="task">📋 ${tx}<br><sma
     const bt = rs.querySelector('.rbtns'), box = rs.querySelector('.rbox') || rs, sum = document.createElement('div'); sum.className = 'cs-sum';
     sum.innerHTML = `${r2.played ? `<b>你的表現</b>　${esc(K().recLine(r2))}` : '你今天沒有上場'}<br>信賴度 ${P.trust}${P.justPromoted ? '<br>🎉 教練決定讓你<b>升為先發</b>！' : ''}${P.justDemoted ? '<br>😥 表現不穩，被調回板凳。' : ''}${P.farmMsg ? '<br>' + takeMsg() : ''}`; P.justPromoted = P.justDemoted = false;
     if (bt) box.insertBefore(sum, bt); else box.appendChild(sum);
-    if (bt) { const ag = bt.querySelector('#againBtn'); if (ag) ag.remove(); const nb = document.createElement('button'); nb.className = 'b-again'; nb.textContent = poOn() ? '🏆 季後賽' : (nextGame() ? '▶ 下一場' : '📋 賽季結算'); bt.insertBefore(nb, bt.firstChild); nb.onclick = () => { rs.classList.add('hide'); try { quitToMenu(); } catch (e) { } G.role = null; G.career = false; (poOn() ? showPO : showIntro)(); }; }
+    if (bt) { const ag = bt.querySelector('#againBtn'); if (ag) ag.remove(); const nb = document.createElement('button'); nb.className = 'b-again'; nb.textContent = poOn() ? '🏆 季後賽' : (nextGame() ? (typeof CHUB !== 'undefined' ? '☰ 回生涯主選單' : '▶ 下一場') : '📋 賽季結算'); bt.insertBefore(nb, bt.firstChild); nb.onclick = () => { rs.classList.add('hide'); try { quitToMenu(); } catch (e) { } G.role = null; G.career = false; (poOn() ? showPO : showIntro)(); }; }
   }
   function showSchedule(m0) {
     const P = PR(), L = myGames(), months = Array.from(new Set(L.map(g => g.m))); m0 = months.indexOf(m0) >= 0 ? m0 : months[0];
