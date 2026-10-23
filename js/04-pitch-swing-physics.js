@@ -308,7 +308,7 @@ function resolveSwing(pt, sw, b) {
   const sideB = E.bat.side, insA = sw.bunt ? 0 : clamp(-(pt.fx * sideB) / ZW, -1.4, 1.4);          // >0 內角（靠近身體）、<0 外角
   const inK = Math.min(Math.max(insA, 0), 1.2), outK = Math.min(Math.max(-insA, 0), 1.2);
   const idealS = 0;                                    // 最佳出手時機：內角略早（要在身體前方打）、外角偏晚（讓球多飛一點再打）
-  const W = WIN * (sw.human ? 1.3 : 1) * (sw.power ? 0.90 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03) * (G.hitAndRun && !sw.bunt ? 1.08 : 1), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
+  const W = WIN * (sw.human ? 1.3 : 1) * (sw.power ? 0.90 : 1) * (1 - rainBK() * .04) * (sw.bunt ? 1.25 : 1) * (sw.bunt ? 1 : 1 - inK * .08 + outK * .03) * (G.hitAndRun && !sw.bunt ? 1.08 : 1) * (sw.human ? clamp(1 + (b.con - 60) * .0022, .92, 1.08) : 1), R0 = sw.R || batterR(b, pt, sw.power) * (sw.bunt ? 1.25 : 1);
   let dt = sw.auto ? clamp((sw.bz + .45) / .5, -1.2, 1.2) * WIN : sw.tc - (sw.human && pt.Tv ? pt.Tv : pt.T);      // 時機＝揮棒接觸瞬間與球到達本壘板時刻的差，無隨機誤差
   let dtE = dt - idealS * W, Wd = W * (dtE < 0 ? 1 - outK * .12 + inK * .04 : 1 + outK * .12 - inK * .10), adt = Math.abs(dtE);   // 相對最佳時機的偏差；內角晚側窗口窄、外角晚側窗口寬／早側窗口窄
   const jx = sw.human ? 0 : gauss() * .012 * Math.max(0, mv - .7), jy = sw.human ? 0 : gauss() * .012 * Math.max(0, mv - .7);      // 玩家揮棒不加隨機偏移：位置與時機對了就不會被「隱形誤差」判成揮空
@@ -339,6 +339,7 @@ function resolveSwing(pt, sw, b) {
   const fr = Math.min(1, d / (bc.rr + BALL_R * .85)), endC = bc.t < BG.tb - .01 || bc.t > BG.th + .01, eOff = clamp(bc.w / (bc.rr + BALL_R * .85), -1, 1);      // fr：球邊緣與棒邊緣的重疊程度（1＝只剛好擦到邊）；eOff：球相對棒軸的上下偏移（真實幾何）；endC：球打在棒子最前端／握把末端      // 上下偏移用「標準棒寬」正規化：棒子變細不會讓邊緣擊球變得更極端（否則滿場滾地球／內野小飛球）                                  // 球在棒上的位置：un<0 球頭、0 甜蜜點、>0 握把；wn>0 球在棒上方（打到球下緣）
   const dn = clamp((Math.hypot(un < 0 ? -un * .9 : un * .5, Math.abs(wn) * .8) - .2) / .8, 0, 1), qs = 1 - dn * dn * (3 - 2 * dn);   // 甜蜜點＝最佳，往球頭／握把／上下緣越來越差
   let Q = 0.5 * qs + 0.5 * (1 - Math.pow(clamp(adt / (Wd * 1.15 * (humanA ? .86 : 1)), 0, 1), 1.5));
+  if (sw.human) Q += clamp((b.con - 60) * .003 + (b.eye - 60) * .0012, -.13, .1);      // 擊球框改為固定大小後，打擊能力改反映在擊球品質：同樣的瞄準與時機，高能力打者打得更紮實、低能力打者更容易打成弱擊球
   Q = clamp(Q + gauss() * 0.06 * (.6 + .4 * mv), 0, 1);      // 擊球品質隨機抖動：同樣的揮棒也會有「打得比預期好／差」的感覺
   const side = sideB;
   let chase = 0, far = false;                                               // 壞球程度：0＝好球帶內，1＝勉強碰得到的極限
