@@ -82,7 +82,7 @@ function drawOverlay() {
   if (hp && G.phase === 'pre' && !G.intWalk) {
     const p = curPitcher(), spec = PITCHES[G.selPitch = G.pm ? G.pm.id : G.selPitch], lv = pitchLv(p, G.selPitch) || 4, sg = ctlSigma(p, G.selPitch, lv);
     const pax = G.pm ? G.pm.x : aim.x, pay = G.pm ? G.pm.y : aim.y;
-    const r = drawRing(pax, pay, .26, spec.col, 2.5 * dpr);      // 球圈固定大小（控球差只影響實際落點偏差，不放大圈）
+    const r = drawRing(pax, pay, .3, spec.col, 2.5 * dpr);      // 球圈固定大小（控球差只影響實際落點偏差，不放大圈）
     c.beginPath(); c.arc(r.a.x, r.a.y, 2.2 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     const hs = p.hand === 'R' ? 1 : -1, br2 = Math.pow(lv / 7, .85) * brkVis(lv), e = w2s(pax + spec.bx * br2 * hs * .55, pay + spec.by * br2 * .55, 0);
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
