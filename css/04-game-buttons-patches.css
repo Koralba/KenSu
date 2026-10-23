@@ -300,3 +300,8 @@ body.mob #penSkip{margin-top:3px;padding:3px 12px;font-size:11px}
 /* 球種選單再往右靠 */
 #pitchPanel{right:.4vw}
 body.mob #pitchPanel,body.touch #pitchPanel{right:2px}
+
+/* 結算畫面：蓋過左側選手卡／HUD，內容完整可捲動 */
+#result{z-index:9000!important}
+body:has(#result:not(.hide)) #hud,body:has(#result:not(.hide)) #leftCol,body:has(#result:not(.hide)) #pitchPanel,body:has(#result:not(.hide)) #bso{visibility:hidden!important}
+#result .rbox{max-height:none}
