@@ -82,7 +82,7 @@ function drawOverlay() {
   if (hp && G.phase === 'pre' && !G.intWalk) {
     const p = curPitcher(), spec = PITCHES[G.selPitch = G.pm ? G.pm.id : G.selPitch], lv = pitchLv(p, G.selPitch) || 4, sg = ctlSigma(p, G.selPitch, lv);
     const pax = G.pm ? G.pm.x : aim.x, pay = G.pm ? G.pm.y : aim.y;
-    const r = drawRing(pax, pay, .3, spec.col, 2.5 * dpr);      // 球圈固定大小（控球差只影響實際落點偏差，不放大圈）
+    const r = drawRing(pax, pay, fitR(.3, pax, pay), spec.col, 2.5 * dpr);      // 球圈固定大小（控球差只影響實際落點偏差，不放大圈）
     c.beginPath(); c.arc(r.a.x, r.a.y, 2.2 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
     const hs = p.hand === 'R' ? 1 : -1, br2 = Math.pow(lv / 7, .85) * brkVis(lv), e = w2s(pax + spec.bx * br2 * hs * .55, pay + spec.by * br2 * .55, 0);
     c.beginPath(); c.moveTo(r.a.x, r.a.y); c.lineTo(e.x, e.y); c.strokeStyle = spec.col; c.lineWidth = 3 * dpr; c.stroke(); c.beginPath(); c.arc(e.x, e.y, 5 * dpr, 0, TAU); c.fillStyle = spec.col; c.fill();
@@ -123,7 +123,7 @@ function humanAction() {
   if (humanPitches() && G.phase === 'pre' && !G.intWalk) { if (G.rosinBusy || G.batFetch) return; if (G.pm) { if (!G.pm.ret) pmStop(false); } else if ((G.preT || 0) > .3) { updateAim(); pmStart(); } }
   else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
     updateAim(); const pTc = Math.max(PT.t + .002, PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts - (_evTouch ? touchLat() : dispLat())); let R = cursorR(), cx = aim.x, cy = aim.y;      // 補償顯示延遲：視覺上球進點的瞬間按下＝擊球瞬間
-    if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n * .35; cy = _pj.y + gauss() * n * .35; R = batFrameR(false) * 1.1; }      // 簡易模式：自動對準來球，結果只看時機與選手能力
+    if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n * .35; cy = _pj.y + gauss() * n * .35; R = fitR(batFrameR(false) * 1.1, aim.x, aim.y); }      // 簡易模式：自動對準來球，結果只看時機與選手能力
     const kLock = G.easy ? undefined : cursorK();      // 揮棒瞬間鎖定畫面上看到的球棒粗細
     startSwing(PT, { human: true, tc: pTc, cx, cy, power: powOn() && !G.callBunt, bunt: !!G.callBunt, R, k: kLock });
   }
