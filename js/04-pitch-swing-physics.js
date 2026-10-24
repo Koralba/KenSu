@@ -237,6 +237,14 @@ function batterR(b, pt, power) {
 const BAT_TILT = 16 * Math.PI / 180;
 const BAT_K = { normal: .26, power: .22, bunt: .29 };      // 球棒半寬（相對 R0）：一般＝標準、強打略細但不再像鉛筆、短打＝短而寬的「接球面」
 const BAT_SHAPE = { normal: [-.6, 1.5], power: [-.6, 1.5], bunt: [-.5, 1.2] };      // 球頭端／握把端位置（相對 R0）：短打棒身略短而寬（棒身 1.7R0，但 R0 本身放大 1.25 倍，實際長度與一般棒相近），一般與強打 2.1R0
+function fitR(R, ax, ay) {      // 依「畫面上實際大小」校正圈／擊球框半徑：手機小螢幕不會小到看不清、大螢幕也不會大得誇張（約為短邊的 5%～10%），框的大小＝判定大小，所以只調整一次、與球員能力無關
+  try {
+    const a = w2s(ax, ay, 0), b = w2s(ax + 1, ay, 0), dp = ov.width / VW(), ppu = Math.abs(b.x - a.x) / dp;
+    if (!isFinite(ppu) || !(ppu > 0)) return R;
+    const sm = Math.min(VW(), VH()), lo = clamp(sm * .052, 17, 44), hi = Math.max(lo * 1.6, sm * .10);
+    return clamp(clamp(R * ppu, lo, hi) / ppu, R * .8, R * 1.7);
+  } catch (e) { return R; }
+}
 function batMinK(R, k, ax, ay) {      // 依「畫面上實際大小」保底球棒粗細：小螢幕（手機）上棒子不會細成一條線，電腦與平板維持原比例；最多加粗 35%
   try {
     const a = w2s(ax, ay, 0), b = w2s(ax + 1, ay, 0), dp = ov.width / VW();
@@ -258,7 +266,7 @@ function batZoneK(b, x, y) {      // 球棒移到打者的熱區略放大、冷�
 const BATV = { R: 0, k: 0, ok: false, t: 0 };
 function batTarget(b, ax, ay) {
   const fake = PT || { kmh: 140, id: 'ST', lv: 0, fx: aim.x, fy: aim.y, p: curPitcher() }, bunt = !!G.callBunt, pw = powOn() && !bunt;
-  const R = batFrameR(pw) * (bunt ? 1.25 : 1) * ((IS_TOUCH || MOB) ? 1.1 : 1);
+  const R = fitR(batFrameR(pw) * (bunt ? 1.25 : 1), ax, ay);
   const k = batMinK(R, (bunt ? BAT_K.bunt : pw ? BAT_K.power : BAT_K.normal) * batZoneK(b, ax, ay), ax, ay);
   const minHalf = bunt ? .14 : pw ? .12 : .14;      // 球棒最粗處（半寬）下限：整支粗細約等於九宮格一格寬（一格≈.37）
   return { R, k: Math.max(k, minHalf / R) };
