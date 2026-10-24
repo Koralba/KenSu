@@ -45,6 +45,8 @@ const grassTex = canvasTex(256, 256, (g, w, h) => {
   g.fillStyle = '#59be59'; g.fillRect(0, 0, w, h); g.fillStyle = '#4cae50';
   g.fillRect(0, 0, w / 2, h / 2); g.fillRect(w / 2, h / 2, w / 2, h / 2);
   g.globalAlpha = .06; for (let i = 0; i < 1600; i++) { g.fillStyle = Math.random() < .5 ? '#fff' : '#000'; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+  g.globalAlpha = .10; for (let i = 0; i < 900; i++) { g.fillStyle = Math.random() < .5 ? '#2f8a3a' : '#8fe08a'; g.fillRect(Math.random() * w, Math.random() * h, 1, 4 + Math.random() * 3); }   // 草葉細紋
+  g.globalAlpha = 1;
 }, true);
 grassTex.repeat.set(13, 13); grassTex.center.set(.5, .5); grassTex.rotation = Math.PI / 4;
 const grass = new THREE.Mesh(new THREE.PlaneGeometry(260, 260), new THREE.MeshLambertMaterial({ map: grassTex }));
@@ -64,9 +66,14 @@ const skinTex = canvasTex(SK.N, SK.N, (g) => {
   const gr = '#5cc760', inset = 2.0;
   const v = [[0, -inset * 1.7 - 2.5], [H - inset * 1.4, -H], [0, -2 * H + inset * 1.4], [-H + inset * 1.4, -H]];
   g.fillStyle = gr; g.beginPath(); v.forEach((p, i) => i ? g.lineTo(px(p[0]), pz(p[1])) : g.moveTo(px(p[0]), pz(p[1]))); g.closePath(); g.fill();
+  g.strokeStyle = '#c98b57'; g.lineWidth = 1.5 / SK.S * SK.N; g.lineCap = 'round'; g.beginPath();          // 壘間跑道（紅土帶）
+  for (let i = 0; i < 4; i++) { const a = BASES[i], b = BASES[(i + 1) % 4]; g.moveTo(px(a.x), pz(a.z)); g.lineTo(px(b.x), pz(b.z)); } g.stroke();
   g.fillStyle = dirt; for (const b of BASES.slice(1)) { g.beginPath(); g.arc(px(b.x), pz(b.z), 3.4 / SK.S * SK.N, 0, TAU); g.fill(); }
   g.beginPath(); g.arc(px(0), pz(-15), 3.6 / SK.S * SK.N, 0, TAU); g.fill();
   g.fillStyle = '#d8a06a'; g.beginPath(); g.arc(px(0), pz(-15), 2.5 / SK.S * SK.N, 0, TAU); g.fill();
+  g.save(); g.globalCompositeOperation = 'source-atop';        // 紅土顆粒（僅畫在已有內容上）
+  for (let i = 0; i < 5200; i++) { g.globalAlpha = .10 + Math.random() * .10; g.fillStyle = Math.random() < .5 ? '#a8693a' : '#e3b585'; const r = (.5 + Math.random() * 1.4); g.fillRect(Math.random() * SK.N, Math.random() * SK.N, r, r); }
+  g.restore(); g.globalAlpha = 1;
   // rubber & boxes
   g.fillStyle = '#fff'; g.fillRect(px(-.6), pz(-15.15), 1.2 / SK.S * SK.N, .3 / SK.S * SK.N);
   g.strokeStyle = '#fff'; g.lineWidth = .16 / SK.S * SK.N;
@@ -113,6 +120,12 @@ function ringGeom(r0f, y0, r1f, y1, seg, uvLen, vFlip) {
 const wallMat = new THREE.MeshBasicMaterial({ map: adTex, side: THREE.DoubleSide });
 const wall = new THREE.Mesh(ringGeom(wallRadius, 0, wallRadius, WALL_H * .78, 220, 74), wallMat); scene.add(wall);
 const wallTop = new THREE.Mesh(ringGeom(wallRadius, WALL_H * .78, wallRadius, WALL_H, 220, 74), new THREE.MeshLambertMaterial({ color: 0x1d7a45, side: THREE.DoubleSide })); scene.add(wallTop);
+const trackMat = new THREE.MeshLambertMaterial({ color: 0xb07a4c, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+const track = new THREE.Mesh(ringGeom(p => wallRadius(p) - 5, .03, wallRadius, .03, 220, 40), trackMat); scene.add(track);      // 警戒區（外野牆前紅土帶）
+const wallPad = new THREE.Mesh(ringGeom(p => wallRadius(p) - .08, 0, p => wallRadius(p) - .08, 1.0, 220, 74), new THREE.MeshLambertMaterial({ color: 0x14301c, side: THREE.DoubleSide })); scene.add(wallPad);   // 牆底護墊
+const POLES = [-45, 45].map(phi => { const m = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, 1, 8), new THREE.MeshBasicMaterial({ color: 0xffd21a })); scene.add(m); return { m, phi }; });
+function placePoles() { for (const o of POLES) { const a = o.phi * Math.PI / 180, R = wallRadius(o.phi), h = WALL_H + 7; o.m.scale.y = h; o.m.position.set(R * Math.sin(a), h / 2, -R * Math.cos(a)); } }
+placePoles();
 const crowdPal = ['#d33', '#36c', '#fff', '#fd3', '#2a6', '#e83', '#c4c', '#6cf', '#222', '#f9a'];
 const crowdTex = canvasTex(1024, 256, (g, w, h) => {
   g.fillStyle = '#2a2d3a'; g.fillRect(0, 0, w, h);
@@ -121,6 +134,7 @@ const crowdTex = canvasTex(1024, 256, (g, w, h) => {
     g.fillStyle = c; g.beginPath(); g.arc(x + 3 + (y % 2) * 2, y, 2.4, 0, TAU); g.fill();
     g.fillStyle = '#e9c9a0'; g.beginPath(); g.arc(x + 3 + (y % 2) * 2, y - 3.2, 1.6, 0, TAU); g.fill();
   }
+  g.fillStyle = 'rgba(10,12,20,.45)'; for (let y = 0; y < h; y += 28) g.fillRect(0, y + 5, w, 2);   // 看台階梯
   const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.35)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
 }, true);
 const stand = new THREE.Mesh(ringGeom(p => wallRadius(p), WALL_H, p => wallRadius(p) + 34, WALL_H + 24, 220, 90), new THREE.MeshBasicMaterial({ map: crowdTex, side: THREE.DoubleSide })); scene.add(stand);
@@ -189,9 +203,12 @@ function updateNight(dt) {                 // 夜空、星月、光暈與看台�
 /* 套用球場：重設外野牆形狀／高度，重建牆面、看台與燈塔位置 */
 function applyPark(name) {
   const k = PARKS[name] || PARKS['洲際棒球場'];
-  WALL_PTS.length = 0; WALL_PTS.push(...buildWallPts(k.cf, k.gap, k.ln));   // 界內加寬、本壘後方界外收窄 WALL_H = k.h;
+  WALL_PTS.length = 0; WALL_PTS.push(...buildWallPts(k.cf, k.gap, k.ln));   // 界內加寬、本壘後方界外收窄
+  WALL_H = k.h;
   const sw = (m, g) => { m.geometry.dispose(); m.geometry = g; };
   sw(wall, ringGeom(wallRadius, 0, wallRadius, WALL_H * .78, 220, 74));
+  sw(track, ringGeom(p => wallRadius(p) - 5, .03, wallRadius, .03, 220, 40));
+  sw(wallPad, ringGeom(p => wallRadius(p) - .08, 0, p => wallRadius(p) - .08, 1.0, 220, 74)); placePoles();
   sw(wallTop, ringGeom(wallRadius, WALL_H * .78, wallRadius, WALL_H, 220, 74)); wallTop.material.color.set(k.wc);
   sw(stand, ringGeom(p => wallRadius(p), WALL_H, p => wallRadius(p) + 34, WALL_H + 24, 220, 90));
   sw(roof, ringGeom(p => wallRadius(p) + 34, WALL_H + 24, p => wallRadius(p) + 40, WALL_H + 30, 120, 60));
