@@ -434,9 +434,10 @@ ${fm ? `<div class="task">${fm}</div>` : ''}<div class="task">📋 ${tx}<br><sma
   function lvOf() { try { const v = PR().lv; return v === 0 || v === 1 || v === 2 || v === 3 ? v : 1; } catch (e) { return 1; } }      // 生涯電腦難度（0弱 1普通 2強 3宗師），存在 pro 裡，預設普通
   function launch(g) {
     const P = PR(), meHome = g.home === P.team; K().hide();
-    K().setCfg({ H: g.home, A: g.away, ctl: meHome ? 0 : 1, ord: meHome ? 1 : 0, inn: 9, lv: lvOf(), abs: 0, evt: 0, ace: 0, pn: 0, easy: 0, park: '', night: -1, wx: 1 });
+    K().setCfg({ H: g.home, A: g.away, ctl: meHome ? 0 : 1, ord: meHome ? 1 : 0, inn: 9, lv: lvOf(), abs: 1, evt: 0, ace: 0, pn: 0, easy: 0, park: '', night: -1, wx: 1 });
     CAREER.session = { profile: prof(), player: null }; try { sndInit(); } catch (e) { } $('lineup').classList.add('hide');
     newGame(Object.assign({}, CFG, { career: true, edit: [null, null], ace: 0 }));
+    try { if (Array.isArray(G.abs) && G.human >= 0) G.abs[G.human] = 3; } catch (e) { }      // 生涯模式：玩家這一隊每場最多可申請 3 次 ABS 輔助判定（電腦隊依原規則使用）
   }
   function quick(g, silent) {      // 不進場：模擬本場結果＋（若有安排）你的登場成績
     const P = PR(), p = prof(), pl = plan(g), s = g.po ? simNoTie(g) : simGame(g), meHome = g.home === P.team, my = meHome ? s[0] : s[1], op = meHome ? s[1] : s[0];
