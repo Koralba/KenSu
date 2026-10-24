@@ -299,6 +299,18 @@ function ballGuess(f, spd, air, lf) {
   else lead = clamp(dist2(f.x, f.z, _gb.x, _gb.z) / Math.max(spd, 1), .2, 1.8) * .85;                                                    // 滾地球：追球的「現在位置＋前進方向」，球滾到哪就跟到哪
   return { x: _gb.x + vx * lead, z: _gb.z + vz * lead };
 }
+function smartInterceptor(S, t0) {      // 找出「最快能攔到球」的野手與攔截點（考慮球之後會滾到哪、每個人的速度與起步）；球貼牆時目標點拉回牆內
+  const last = S[S.length - 1]; let best = null;
+  for (const f of Object.values(E.F)) {
+    if ((f.pos === 'C' || f.pos === 'P') && Math.hypot(last.x, last.z) > 28) continue;
+    const spd = fspeed(f) * 1.1; let pick = null;
+    for (let i = 0; i < S.length; i += 3) { const q = S[i]; if (q.t < t0 || q.y > 1.6) continue; if (.2 + dist2(f.x, f.z, q.x, q.z) / spd <= q.t - t0) { pick = { x: q.x, z: q.z, t: q.t }; break; } }
+    if (!pick) pick = { x: last.x, z: last.z, t: Math.max(last.t, t0 + .2 + dist2(f.x, f.z, last.x, last.z) / spd) };
+    const wr = wallRadius(Math.atan2(pick.x, -pick.z) * 180 / Math.PI) - 1.0, rd = Math.hypot(pick.x, pick.z); if (rd > wr) { pick.x *= wr / rd; pick.z *= wr / rd; }
+    if (!best || pick.t < best.t) best = { f, x: pick.x, z: pick.z, t: pick.t };
+  }
+  return best;
+}
 function steerChaser() {
   const plan = PL && PL.plan; if (!plan || !plan.f || (plan.kind !== 'catch' && plan.kind !== 'field' && plan.kind !== 'chase')) return;
   const f = plan.f; if (f.hasBall || f.manual || PL.done || (PL.foul && plan.kind !== 'catch')) return;      // f.manual：玩家手動操控（js/13g-manual-fielding.js）
@@ -345,16 +357,16 @@ function updatePlay(dt) {
         if (plan.kind === 'catch' && PL.t >= plan.t) { const ff = plan.f; if (dist2(ff.x, ff.z, plan.x, plan.z) < (plan.dive ? 3.2 : 2.4)) { onFielded(ff); return; } else if (PL.t > plan.t + .15) { plan.kind = 'field'; plan.air = false; plan.dive = false; } }
       }
       if (plan.kind !== 'catch') {
-        const last = sim.S[sim.S.length - 1], oob = Math.hypot(last.x, last.z) > wallRadius(Math.atan2(last.x, -last.z) * 180 / Math.PI) - 1 || Math.hypot(last.x, last.z) > 60;
+        const last = sim.S[sim.S.length - 1], oob = !!sim.over || Math.hypot(last.x, last.z) > 60;      // 只有球真的越過牆頂（飛進看台）才算出場外；滾到牆邊停住的球要由野手去撿，不再空等好幾秒才黑畫面轉場
         if (oob) { const bp = PL.ballPos, gone = bp && Math.hypot(bp.x, bp.z) > wallRadius(Math.atan2(bp.x, -bp.z) * 180 / Math.PI) + 1.5;
           if ((gone && PL.t > .8) || PL.t >= Math.min(tEnd, 9)) { PL.lostBall = true; PL.state = 'dead'; toast('飛進看台！', '#fff', '#a5f'); flowSfx('cheer', .7); say('<em>球飛出場外、撿不回來了！</em>', 2200); after(.9, () => endPlay()); return; } }
         if (!oob && (PL.t >= Math.min((sim.first ? sim.first.t + .12 : tEnd), tEnd, 9) || PL.t >= tEnd)) {      // 球一落地就動身，不等球完全停下
           if (PL.tAge > 14) { PL.state = 'dead'; after(.6, () => endPlay()); return; }
-          if (!PL.fchase) { PL.fchase = true; const f = nearestFielderTo(last.x, last.z, null); PL.ff = f; f.chaser = true; f.wait = 0; f.hold = 0; f.sp = fspeed(f) * 1.25; }
+          if (!PL.fchase) { PL.fchase = true; const pk = smartInterceptor(sim.S, PL.t), f = (pk && pk.f) || nearestFielderTo(last.x, last.z, null); PL.ff = f; PL.ffPick = pk; f.chaser = true; f.wait = 0; f.hold = 0; f.sp = fspeed(f) * 1.25; }      // 挑「最快能攔到球」的野手（不只是離球最近的人），朝預測攔截點移動
           const f = PL.ff, bq = sampleAt(sim.S, Math.min(PL.t, tEnd), {}), aq = sampleAt(sim.S, Math.min(PL.t + .6, tEnd), {});      // 邊跑邊預判：朝球接下來滾到的位置攔截
           PL.fchaseT = (PL.fchaseT || 0) + dt; if (PL.fchaseT > 6.0 && !PL.slowFetch) { PL.slowFetch = true; f.chaser = false; PL.state = 'dead'; after(.4, () => endPlay()); return; }
-          f.tx = lerp(bq.x, aq.x, .35); f.tz = lerp(bq.z, aq.z, .35); f.wait = 0;
-          if (dist2(f.x, f.z, bq.x, bq.z) < 1.3 && bq.y < 1.6) { f.chaser = false; f.tx = f.x; f.tz = f.z; PL.state = 'held'; PL.holder = f; f.hasBall = true; startPick(.25); f.hold = .25; f.rig.anim = { name: 'pickup', t: 0, dur: .25, opt: {} }; flowSfx('mitt', .6); after(.3, () => endPlay()); }
+          { const pk = PL.ffPick, still = Math.hypot(aq.x - bq.x, aq.z - bq.z) < .5; if (pk && pk.f === f && !still) { f.tx = lerp(pk.x, aq.x, .35); f.tz = lerp(pk.z, aq.z, .35); } else { f.tx = lerp(bq.x, aq.x, .35); f.tz = lerp(bq.z, aq.z, .35); } } f.wait = 0;
+          if (dist2(f.x, f.z, bq.x, bq.z) < (Math.hypot(bq.x, bq.z) > wallRadius(Math.atan2(bq.x, -bq.z) * 180 / Math.PI) - 2.5 ? 2.6 : 1.3) && bq.y < 1.6) { f.chaser = false; f.tx = f.x; f.tz = f.z; PL.state = 'held'; PL.holder = f; f.hasBall = true; startPick(.25); f.hold = .25; f.rig.anim = { name: 'pickup', t: 0, dur: .25, opt: {} }; flowSfx('mitt', .6); after(.3, () => endPlay()); }
         }
       } else if (PL.t >= tEnd + .3) { PL.state = 'dead'; after(.5, () => endPlay()); }
       return;
