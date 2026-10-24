@@ -38,7 +38,7 @@ function startHalf() {
     toast(`${G.inning}局${G.half ? '下' : '上'}`, '#bff', '#39f'); flowSfx('whistle');
     after(2.4, () => processInjuries(nextBatter));
   };
-  if (G.inning === 1 && G.half === 0 && !G.venueDone && G.mode === 'play' && G.wx) { G.venueDone = true; venueIntro(begin); } else begin();
+  if (G.inning === 1 && G.half === 0 && !G.venueDone && G.mode === 'play' && G.wx) { G.venueDone = true; if (typeof AUTOSIM !== 'undefined' && AUTOSIM.pref) begin(); else venueIntro(begin); } else begin();      // 自動模擬：略過球場開場動畫，直接開賽
 }
 /* ---------------- 開賽前球場介紹：顯示球場／主隊資訊，鏡頭環繞球場一圈後才正式開打（點擊或按空白鍵可略過） ---------------- */
 const PARK_LOC = { '洲際棒球場': '台中市', '亞太主球場': '台南市', '桃園棒球場': '桃園市', '新莊棒球場': '新北市', '天母棒球場': '台北市', '澄清湖棒球場': '高雄市', '台北大巨蛋': '台北市', '嘉義市立棒球場': '嘉義市', '斗六棒球場': '雲林縣', '花蓮縣立棒球場': '花蓮縣', '台東縣立棒球場': '台東縣' };
@@ -67,7 +67,7 @@ function cleanupRunners() {
 }
 const INTRO = { q: [], busy: false };
 const introBusy = () => INTRO.busy || INTRO.q.length > 0;
-function introPush(o) { INTRO.q.push(o); if (!INTRO.busy) introPlay(); }
+function introPush(o) { if (window.__ff || (typeof AUTOSIM !== 'undefined' && AUTOSIM.pref && !AUTOSIM.needMe())) return; /* 自動模擬快轉中：不排打者／換投介紹卡（它們用真實時間計時，不會被快轉加速） */ INTRO.q.push(o); if (!INTRO.busy) introPlay(); }
 function introPlay() {
   const o = INTRO.q.shift(); const el = $('intro'); if (!o) { INTRO.busy = false; el.classList.add('hide'); return; }
   INTRO.busy = true; el.innerHTML = `<div class="in-card" style="--tc:${o.c}"><div class="in-tag">${o.tag}</div><div class="in-name">${o.name}</div><div class="in-sub">${o.sub}</div><div class="in-next">${o.next}</div></div>`;
