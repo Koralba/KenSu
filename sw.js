@@ -3,7 +3,7 @@
    - 本站檔案：先用快取（秒開），同時背景更新；有改版時，下次開啟就會用到新版
    - 外部檔案（three.js、Google 字型）：第一次連網時存起來，之後離線直接使用
    改了遊戲檔案、想讓所有人立刻換新版：把下面的 VERSION 數字加 1 */
-const VERSION = 'v49';
+const VERSION = 'v51';
 const CACHE = 'cpbl2027-' + VERSION;
 const LOCAL = [
   './', 'baseball.html', 'yw_manifest.json',
