@@ -16,7 +16,7 @@ function absJudge(o) {
   const rk = k => o.vals[k].r;
   const hurt = rk(o.truth) > rk(o.call) ? G.half : rk(o.truth) < rk(o.call) ? 1 - G.half : -1;      // 這個判決對誰不利（攻方想要更高的結果，守方想要更低的）
   const can = t => A && G.abs[t] > 0 && !G.coachOut[t] && (t === G.half ? rk(o.call) < o.max : rk(o.call) > 0);
-  const hum = G.human;
+  const hum = (G.career && G.role && !(humanBats() || humanPitches())) ? -1 : G.human;      // 生涯模式：玩家沒有上場（板凳／守備不輪到你）時，這隊的挑戰由電腦決定，不跳出需要你按的挑戰面板
   const finish = k => { if (tok !== G.judgeTok) return; rpHide(); G.freeze = false; o.apply(k); };
   const challenge = team => {
     G.freeze = true; G.absStat[team].ch++; flowSfx('whistle'); toast('ABS 挑戰！', '#aef', '#07c');
@@ -504,7 +504,7 @@ function doPush() {
   for (const r of cs) {      // 每點一下：還在壘上的跑者最多多出發一位（最前面的優先）；已在跑的全部加速、改成積極進壘
     if (r.state === 'on') {
       const nb = r.from + 1; if (nb > 4 || !baseFree(nb, r)) continue;      // 壘上所有跑者「同步」起跑（由最前面的跑者開始依序騰出壘包）
-      r.goal = nb; r.state = 'run'; r.to = nb; r.s = (r.lead || 0) / BASE_LEN; r.dir = 1; r.isForce = false; r.tag = false; G.on[r.from - 1] = null; r.pre = .05; r.sliding = false; r.pushN = 1; r.pushUntil = PL.tAge + 2; const firstGo = !started; started = true;
+      r.goal = nb; r.state = 'run'; r.to = nb; r.s = (r.lead || 0) / BASE_LEN; r.dir = 1; r.isForce = false; r.tag = false; G.on[r.from - 1] = null; r.pre = 0; r.sliding = false; r.pushN = 1; r.pushUntil = PL.tAge + 2; const firstGo = !started; started = true;
       if (firstGo) toast('全壘包推進！', '#fff', '#e80'); say(`<em>${r.pl.name}</em>看準時機，積極往${BASE_NAME[nb % 4]}推進！`, 2500);
     } else {
       if (r.dir < 0) { r.dir = 1; r.goal = r.to; }
@@ -515,10 +515,16 @@ function doPush() {
   if (!started && !cs.some(r => r.state === 'run')) return false;
   PL.idleT = .28; PL.endHold = 0; return true;      // 守備方約 0.15 秒內就會重新判斷（追人／傳球）
 }
+function forcedBehind(r) {      // 真的被「後面的跑者」逼著往前跑才不能折返；打者跑過一壘後、或自己按了推進，都可以退回最近的上一個壘包
+  if (!(r.isForce && r.dir > 0) || r.pushN > 0) return false;
+  return E.runners.some(o => o !== r && (o.state === 'run' || o.state === 'on') && o.dir >= 0 && (o.to === r.from || (o.state === 'on' && o.from === r.from - 1 && o.isForce)));
+}
 function retreatCands() {      // 可以「回壘」的跑者：正在壘間跑動、已離開原壘（不含剛擊出球、還沒到一壘的打者）、不是被強迫進壘的人
   if (!PL || PL.done || G.outs >= 3 || !humanBats() || G.human < 0 || G.mode !== 'play') return [];
   if (PL.state === 'dead' || PL.state === 'hrdone' || !PL.plan || PL.plan.kind === 'hr') return [];
-  return E.runners.filter(r => r.state === 'run' && r.from >= 1 && r.from <= 3 && !(r.sliding && r.s > .9) && !(r.isForce && r.dir > 0) && !r.trot);
+  const out = E.runners.filter(r => r.state === 'run' && r.from >= 1 && r.from <= 3 && !(r.sliding && r.s > .9) && !forcedBehind(r) && !r.trot);
+  for (const r of E.runners) if (r.state === 'on' && r.from >= 2 && r.from <= 3 && !PL.caught && baseFree(r.from - 1, r) && !E.runners.some(o => o !== r && o.state === 'run' && o.dir > 0 && o.to === r.from - 1)) out.push(r);      // 站在壘包上也能退回「上一個壘包」（那一壘沒人、也沒有人正在跑過來）：隨時可進可退
+  return out;
 }
 function doRetreat() {      // 回壘：所有跑在壘間的跑者「同步」回到離自己最近的壘包（已過半就停在前面那一壘），同壘不會擠在一起
   if (G.freeze) return false;
@@ -526,12 +532,15 @@ function doRetreat() {      // 回壘：所有跑在壘間的跑者「同步」�
   cs.sort((a, b) => (b.from + b.s) - (a.from + a.s));      // 最前面的跑者先決定
   const claimed = {}; let back = 0, hold = 0;
   for (const r of cs) {
+    if (r.state === 'on') {      // 站在壘包上：轉成「從目前壘包往上一壘跑」
+      const cur = r.from; G.on[cur - 1] = null; r.state = 'run'; r.from = cur - 1; r.to = cur; r.s = 1; r.dir = -1; r.goal = cur - 1; r.isForce = false; r.ret = true; r.tag = false; r.pre = 0; r.stall = 0; r.pushN = 0; r.pushUntil = 0; r.lead = 0; back++; claimed[cur - 1] = true; continue;
+    }
     let tgt = r.from;      // 一律回到「最後一個已確定安全上壘的壘包」（r.from；還沒安全上壘的打者不在名單內，按了沒反應）
     const occ = b => b >= 1 && b <= 3 && G.on[b - 1] && G.on[b - 1] !== r;
     if (tgt === r.from && occ(r.from) && r.to <= 4 && !occ(r.to) && !claimed[r.to]) tgt = r.to;      // 原壘已被後面的跑者佔住：只能往前跑
     claimed[tgt] = true;
     if (tgt === r.from) {
-      r.dir = -1; r.goal = r.from; r.isForce = false; r.ret = true; r.tag = false; r.pre = Math.min(r.pre || 0, .05); r.pushN = 0; r.pushUntil = 0;
+      r.dir = -1; r.goal = r.from; r.isForce = false; r.ret = true; r.tag = false; r.pre = 0; r.stall = 0; r.pushN = 0; r.pushUntil = 0;
       if (r.stealer) r.accT = stealRamp(r); if (r.sliding) { r.sliding = false; r.rig.anim = null; } back++;
     } else {
       r.dir = 1; r.goal = r.to; r.pushN = 0; r.pushUntil = 0; hold++;      // 離前方壘包比較近：直接跑到前一壘就停
