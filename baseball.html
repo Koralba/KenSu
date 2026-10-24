@@ -26,7 +26,6 @@
 <link rel="stylesheet" href="css/04-game-buttons-patches.css">
 <link rel="stylesheet" href="css/05-save-system.css">
 <link rel="stylesheet" href="css/06-transition.css">
-<link rel="stylesheet" href="css/07-career.css">
 </head>
 <body>
 <div id="wrap">
@@ -72,7 +71,6 @@
   </div>
   <details id="adv" class="adv"><summary>⚙ 更多設定</summary>
     <div class="sets">
-      <div class="opt"><b>輔助防守</b><div class="pl"><span class="pill sel" data-k="assist" data-v="0">關（手動撿球）</span><span class="pill" data-k="assist" data-v="1">開（電腦撿球）</span></div></div>
       <div class="opt"><b>牛棚</b><div class="pl"><span class="pill sel" data-k="pn" data-v="0">6 人</span><span class="pill" data-k="pn" data-v="1">3 人</span></div></div>
       <div class="opt"><b>意外</b><div class="pl"><span class="pill" data-k="evt" data-v="0">關</span><span class="pill sel" data-k="evt" data-v="1">一般</span><span class="pill" data-k="evt" data-v="2">頻繁</span></div></div>
       <div class="opt"><b>天氣</b><div class="pl"><span class="pill sel" data-k="wx" data-v="1">開</span><span class="pill" data-k="wx" data-v="0">關</span></div></div>
@@ -111,7 +109,7 @@
   <button id="btnPush" class="hide">推進 <small>F</small></button><button id="btnBack" class="hide">回壘 <small>D</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><div class="pwRow"><button id="btnBuntT">短打</button><button id="btnPow">強打</button></div><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnSave">💾 存檔／讀取</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnAssist">🎮 輔助守備：關</button><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnHint">🎯 投球落點提示 OFF</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnSave">💾 存檔／讀取</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="warmBox" class="hide"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -158,17 +156,6 @@
 <script src="js/12-systems.js"></script>
 <script src="js/13-ui-input-menu.js"></script>
 <script src="js/13b-save-system.js"></script>
-<script src="js/13c-career-create.js"></script>
-<script src="js/13d-career-season.js"></script>
-<script src="js/13e-career-pro.js"></script>
-<script src="js/13f-career-autosim.js"></script>
-<script src="js/13g-manual-fielding.js"></script>
-<script src="js/13j-catcher-call.js"></script>
-<script src="js/13h-career-story.js"></script>
-<script src="js/13i-career-economy.js"></script>
-<script src="js/13k-story-scenes.js"></script>
-<script src="js/13m-career-hub.js"></script>
-<script src="js/13l-abs-camreplay.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></body></html>
