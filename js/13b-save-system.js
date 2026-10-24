@@ -136,6 +136,48 @@ const SAVE = (function () {
     try { restore(d, o); } catch (e) { console.error(e); try { backToTitle(); } catch (_) { } alert('讀取失敗，已回到主畫面：' + e.message); }
   }
 
+  /* ---------- 存檔同時寫入裝置檔案（每個欄位一個檔案）＋讀檔時自動從上次存的檔案同步 ----------
+     電腦（Chrome／Edge）：第一次存某欄位時跳出「另存新檔」選位置，之後同欄位自動更新同一個檔案；讀檔畫面開啟時自動把「比遊戲內更新」的檔案同步回來。
+     手機／平板：瀏覽器不能記住檔案位置，所以存檔時開啟分享表單（選「儲存到檔案」）或下載；讀檔用「匯入檔案」可一次選多個欄位檔。 */
+  const FSK = 'cpbl_filesave', fileOn = () => { try { return localStorage.getItem(FSK) !== '0'; } catch (e) { return true; } };
+  const FS = {
+    can: () => typeof window.showSaveFilePicker === 'function',
+    db: (mode, fn) => new Promise(res => { try { const rq = indexedDB.open('cpbl_guard', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('h'); rq.onerror = () => res(null); rq.onsuccess = () => { try { const tx = rq.result.transaction('h', mode), r = fn(tx.objectStore('h')); tx.oncomplete = () => res(r && r.result !== undefined ? r.result : null); tx.onerror = () => res(null); } catch (e) { res(null); } }; } catch (e) { res(null); } }),
+    hk: (m, i) => `slot:${m}:${i}`,
+    get(m, i) { return FS.db('readonly', st => st.get(FS.hk(m, i))); },
+    put(m, i, h) { return FS.db('readwrite', st => st.put(h, FS.hk(m, i))); },
+    async perm(h, ask) { try { const o = { mode: 'readwrite' }; if ((await h.queryPermission(o)) === 'granted') return true; if (ask && (await h.requestPermission(o)) === 'granted') return true; } catch (e) { } return false; },
+    async write(h, text) { const w = await h.createWritable(); await w.write(text); await w.close(); }
+  };
+  const slotText = o => JSON.stringify({ app: APP, fmt: FMT, exported: Date.now(), saves: [o] });
+  async function fileSave(m, i, o) {      // 存檔成功後呼叫（必須在使用者點擊後不久，才能開檔案視窗）；回傳要顯示的訊息
+    const text = slotText(o), name = `cpbl2027-${m}-slot${i}.json`;
+    if (FS.can()) {
+      try {
+        let h = await FS.get(m, i);
+        if (h && (await FS.perm(h, true))) { await FS.write(h, text); return `已更新檔案「${h.name}」`; }
+        h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: '中職野球2027 存檔', accept: { 'application/json': ['.json'] } }] });
+        await FS.write(h, text); await FS.put(m, i, h); return `已存到檔案「${h.name}」，之後存這個欄位會自動更新它`;
+      } catch (e) { return e && e.name === 'AbortError' ? '已存在遊戲內；沒有另存檔案（你取消了）' : '遊戲內已存檔；寫入檔案失敗：' + (e && e.message || e); }
+    }
+    try {
+      for (const type of ['application/json', 'text/plain']) { const f = new File([text], name, { type }); if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: '中職野球2027 存檔' }); return '請在分享表單選「儲存到檔案」'; } }
+    } catch (e) { if (e && e.name === 'AbortError') return '已存在遊戲內；沒有另存檔案（你取消了）'; }
+    try { const url = URL.createObjectURL(new Blob([text], { type: 'application/json' })), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500); return `已下載「${name}」`; } catch (e) { return '遊戲內已存檔；下載檔案失敗'; }
+  }
+  async function syncFromFiles(manual) {      // 讀檔畫面：把上次存過的檔案裡「比遊戲內新」的進度同步回遊戲（沒有遊戲內存檔時也會補回來）
+    if (!FS.can()) return 0; let n = 0, asked = 0;
+    for (let i = 1; i <= N; i++) {
+      try {
+        const h = await FS.get(S.mode, i); if (!h) continue; const loc = readSlot(S.mode, i);
+        if (!(await FS.perm(h, !!manual || !loc))) continue; if (!manual && !loc) asked++;
+        const j = JSON.parse(await (await h.getFile()).text()), o = j && j.app === APP && Array.isArray(j.saves) ? j.saves[0] : null;
+        if (!o || o.mode !== S.mode || check(o)) continue;
+        if (!loc || (o.ts || 0) > (loc.ts || 0)) { if (writeSlot(S.mode, i, Object.assign({}, o, { slot: i }))) n++; }
+      } catch (e) { }
+    }
+    if (n) { say(`已從上次存的檔案同步 ${n} 個欄位`); render(); } else if (manual) say('檔案裡沒有比遊戲內更新的進度（或還沒有存過檔案）'); return n;
+  }
   /* ---------- 匯出／匯入 ---------- */
   function stamp() { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; }
   async function exportFile(objs, name) {
@@ -154,10 +196,12 @@ const SAVE = (function () {
   }
   async function doExport(list, name) { const r = await exportFile(list, name); say(r); }
   function pickFile() {
-    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json,text/plain'; inp.style.display = 'none';
-    inp.onchange = () => {
-      const f = inp.files && inp.files[0]; inp.remove(); if (!f) return;
-      const rd = new FileReader(); rd.onload = () => importText(String(rd.result || '')); rd.onerror = () => say('檔案讀取失敗', true); rd.readAsText(f);
+    const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = '.json,application/json,text/plain'; inp.style.display = 'none';      // 可一次選多個欄位檔
+    inp.onchange = async () => {
+      const fs = Array.from(inp.files || []); inp.remove(); if (!fs.length) return;
+      const rd = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result || '')); r.onerror = () => res(null); r.readAsText(f); });
+      const all = []; for (const f of fs) { const t = await rd(f); if (t == null) return say('檔案讀取失敗', true); let j; try { j = JSON.parse(t); } catch (e) { return say('這不是有效的存檔檔案', true); } if (!j || j.app !== APP || !Array.isArray(j.saves)) return say('這不是《中職野球2027》的存檔檔案', true); all.push(...j.saves); }
+      importText(JSON.stringify({ app: APP, fmt: FMT, exported: Date.now(), saves: all }));
     };
     document.body.appendChild(inp); inp.click();
   }
@@ -201,6 +245,7 @@ const SAVE = (function () {
       if (!S.cp) return say('目前沒有可存的進度', true);
       if (readSlot(S.mode, i) && !confirm(`欄位 ${i} 已有存檔，要覆蓋嗎？`)) return;
       const ok = writeSlot(S.mode, i, makeSlot(S.mode, i, S.cp));
+      if (ok && fileOn()) { const so = readSlot(S.mode, i), sm = S.mode; fileSave(sm, i, so).then(m => { try { toast(m, '#fff', '#2a6aa8'); } catch (e) { } }); }      // 同時存到裝置檔案（跳出另存視窗／分享表單／下載）
       if (ok) {      // 存檔成功：直接關閉視窗回到比賽，只在畫面上輕輕提示一次（不再跳出需要按確認的訊息、也不再把存檔選單重新打開）
         close(); try { toast(`已儲存（欄位 ${i}）`, '#fff', '#2a9a5a'); } catch (e) { }
         return;
@@ -216,6 +261,7 @@ const SAVE = (function () {
     if (kind === 'save') { try { S.cp = S.cp || capture(); } catch (e) { } }
     let first = 1; for (let i = 1; i <= N; i++) if (!readSlot(S.mode, i)) { first = i; break; }
     S.sel = first; S.open = true; dlg().classList.remove('hide'); render();
+    if (kind === 'load' && fileOn()) syncFromFiles(false);      // 讀檔畫面開啟：自動從上次存的檔案同步
   }
   function close() { S.open = false; S.closedAt = performance.now(); const d = dlg(); if (d) d.classList.add('hide'); }
 
@@ -229,6 +275,9 @@ const SAVE = (function () {
     if (b) act(b.dataset.a, i); else { S.sel = i; render(); }
   });
   el('svImport').onclick = pickFile;
+  { const par = el('svImport').parentNode, mk = (id, txt, f) => { const b = document.createElement('button'); b.id = id; b.type = 'button'; b.textContent = txt; b.onclick = f; par.insertBefore(b, el('svImport')); return b; };
+    const tg = mk('svFileTog', '', () => { try { localStorage.setItem(FSK, fileOn() ? '0' : '1'); } catch (e) { } tg.textContent = '💾 存檔時同時存到檔案：' + (fileOn() ? '開' : '關'); }); tg.textContent = '💾 存檔時同時存到檔案：' + (fileOn() ? '開' : '關');
+    if (FS.can()) mk('svSync', '🔄 從上次存的檔案同步', () => syncFromFiles(true)); }
   el('svExpAll').onclick = () => { const l = []; for (let i = 1; i <= N; i++) { const o = readSlot(S.mode, i); if (o) l.push(o); } if (!l.length) return say('沒有可匯出的存檔', true); doExport(l, `cpbl2027-${S.mode}-all-${stamp()}.json`); };
   el('svClose').onclick = close;
   window.addEventListener('keydown', e => { if (S.open && e.key === 'Escape') { close(); e.stopPropagation(); e.preventDefault(); } }, true);
