@@ -173,9 +173,10 @@ function rechaseBall(pl) {
   const sim = pl.sim, S = sim.S, t0 = pl.t, last = S[S.length - 1], old = pl.plan; let best = null, bt = 1e9;
   for (const f of Object.values(E.F)) {
     if ((f.pos === 'C' || f.pos === 'P') && Math.hypot(last.x, last.z) > 28) continue;
-    const spd = fspeed(f) * 1.04; let pick = null;
+    const spd = fspeed(f) * 1.1; let pick = null;
     for (let i = 0; i < S.length; i += 3) { const s = S[i]; if (s.t < t0 + .05 || s.y > 1.6) continue; if (.15 + dist2(f.x, f.z, s.x, s.z) / spd <= s.t - t0) { pick = { x: s.x, z: s.z, t: s.t }; break; } }
     if (!pick) pick = { x: last.x, z: last.z, t: Math.max(sim.tEnd, t0 + dist2(f.x, f.z, last.x, last.z) / spd + .2) };
+    { const wr = wallRadius(Math.atan2(pick.x, -pick.z) * 180 / Math.PI) - 1.0, rd = Math.hypot(pick.x, pick.z); if (rd > wr) { pick.x *= wr / rd; pick.z *= wr / rd; } }      // 球貼牆停住：野手站到牆前撿，不要把目標點設在牆裡
     if (pick.t < bt) { bt = pick.t; best = { kind: 'chase', f, x: pick.x, z: pick.z, t: pick.t, air: false, dive: false, react: .05, missed: true }; }
   }
   if (!best) return; if (old && old.f) old.f.chaser = false;
