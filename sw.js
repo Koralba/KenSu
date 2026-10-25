@@ -3,14 +3,14 @@
    - 本站檔案：先用快取（秒開），同時背景更新；有改版時，下次開啟就會用到新版
    - 外部檔案（three.js、Google 字型）：第一次連網時存起來，之後離線直接使用
    改了遊戲檔案、想讓所有人立刻換新版：把下面的 VERSION 數字加 1 */
-const VERSION = 'v60';
+const VERSION = 'v61';
 const CACHE = 'cpbl2027-' + VERSION;
 const LOCAL = [
   './', 'baseball.html', 'yw_manifest.json',
   'css/01-base-title-menu-hud.css', 'css/02-mobile-layout.css', 'css/03-menu-lineup-result.css', 'css/04-game-buttons-patches.css', 'css/05-save-system.css', 'css/06-transition.css', 'css/07-career.css', 'css/08-versus.css',
   'js/01-core-data.js', 'js/02-stadium-scene.js', 'js/03-players-ball-camera.js', 'js/04-pitch-swing-physics.js', 'js/05-play-fielding-runners.js',
   'js/06-play-abs-update.js', 'js/07-cpu-ai.js', 'js/08-audio.js', 'js/09-hud-commentary.js', 'js/10-events.js', 'js/11-game-flow.js',
-  'js/12-systems.js', 'js/13-ui-input-menu.js', 'js/13b-save-system.js', 'js/13c-career-create.js', 'js/13d-career-season.js', 'js/13e-career-pro.js', 'js/13f-career-autosim.js', 'js/13g-manual-fielding.js', 'js/13h-career-story.js', 'js/13i-career-economy.js', 'js/13j-catcher-call.js', 'js/13k-story-scenes.js', 'js/13l-abs-camreplay.js', 'js/13m-career-hub.js', 'js/13n-storage-guard.js', 'js/13o-update-check.js', 'js/13p-lan-versus.js', 'js/14-bullpen-loop-boot.js',
+  'js/12-systems.js', 'js/13-ui-input-menu.js', 'js/13b-save-system.js', 'js/13c-career-create.js', 'js/13d-career-season.js', 'js/13e-career-pro.js', 'js/13f-career-autosim.js', 'js/13g-manual-fielding.js', 'js/13h-career-story.js', 'js/13i-career-economy.js', 'js/13j-catcher-call.js', 'js/13k-story-scenes.js', 'js/13l-abs-camreplay.js', 'js/13m-career-hub.js', 'js/13n-storage-guard.js', 'js/13o-update-check.js', 'js/13p-lan-versus.js', 'js/vendor/qrcode.min.js', 'js/vendor/jsqr.min.js', 'js/14-bullpen-loop-boot.js',
   'images/su.ico', 'images/su-180.png', 'images/su-192.png', 'images/su-512.png',
   'js/three.min.js'                       // 選用：把 three.js r128 下載放在這裡，第一次安裝就能完全離線（沒有這個檔案也不會出錯）
 ];
