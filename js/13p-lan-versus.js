@@ -18,18 +18,20 @@ const VS = {
   /* ---------------- 傳輸：WebRTC（手動交換邀請碼） ---------------- */
   const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
   const unb64 = t => { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; const s = atob(t), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  async function pipe(u8, S) { const cs = new S('deflate-raw'), w = cs.writable.getWriter(); w.write(u8); w.close(); return new Uint8Array(await new Response(cs.readable).arrayBuffer()); }
-  async function encode(obj) {
-    const raw = new TextEncoder().encode(JSON.stringify(obj));
-    if (typeof CompressionStream === 'function') { try { return 'CPBL1-' + b64(await pipe(raw, CompressionStream)); } catch (e) { } }
-    return 'CPBL0-' + b64(raw);
+  /* 邀請碼／回覆碼：只留 ICE 帳密、指紋與候選位址，重組成 SDP（約 150 字元，可直接做成 QR） */
+  const hex2b = h => Uint8Array.from(h.split(':').map(x => parseInt(x, 16))), b2hex = u => Array.from(u).map(x => x.toString(16).toUpperCase().padStart(2, '0')).join(':');
+  async function encode(o) {
+    const g = r => { const m = new RegExp('^a=' + r + ':(.+)$', 'm').exec(o.s); return m ? m[1].trim() : ''; };
+    const fp = g('fingerprint').split(' ')[1] || '', cs = [];
+    for (const l of o.s.split(/\r?\n/)) { const m = /^a=candidate:\S+ \d+ udp \d+ (\S+) (\d+) typ host/i.exec(l); if (m) cs.push(m[1] + '#' + m[2]); }
+    return 'CP2.' + o.k + '|' + g('ice-ufrag') + '|' + g('ice-pwd') + '|' + b64(hex2b(fp)) + '|' + cs.join(',');
   }
   async function decode(txt) {
-    txt = String(txt || '').replace(/\s+/g, ''); const m = /(CPBL[01])-([A-Za-z0-9_-]+)/.exec(txt); if (!m) throw new Error('邀請碼格式不對');
-    let u = unb64(m[2]); if (m[1] === 'CPBL1') { if (typeof DecompressionStream !== 'function') throw new Error('這支手機的瀏覽器太舊，無法讀取邀請碼'); u = await pipe(u, DecompressionStream); }
-    return JSON.parse(new TextDecoder().decode(u));
+    const m = /CP2\.([oa])\|([^|\s]+)\|([^|\s]+)\|([A-Za-z0-9_-]+)\|(\S+)/.exec(String(txt || '').replace(/\s+/g, '')); if (!m) throw new Error('邀請碼格式不對（請重新掃描或完整貼上）');
+    const cs = m[5].split(',').map((c, i) => { const [ip, port] = c.split('#'); return `a=candidate:${i + 1} 1 udp ${2122260223 - i * 1000} ${ip} ${port} typ host generation 0`; });
+    const sdp = ['v=0', 'o=- 1 2 IN IP4 127.0.0.1', 's=-', 't=0 0', 'a=group:BUNDLE 0', 'a=msid-semantic: WMS', 'm=application 9 UDP/DTLS/SCTP webrtc-datachannel', 'c=IN IP4 0.0.0.0', 'a=ice-ufrag:' + m[2], 'a=ice-pwd:' + m[3], 'a=fingerprint:sha-256 ' + b2hex(unb64(m[4])), 'a=setup:' + (m[1] === 'o' ? 'actpass' : 'active'), 'a=mid:0', 'a=sctp-port:5000', 'a=max-message-size:262144'].concat(cs, ['']).join('\r\n');
+    return { k: m[1], s: sdp };
   }
-  const cleanSdp = s => s.split('\r\n').filter(l => !(/^a=candidate/.test(l) && / tcp /i.test(l))).join('\r\n');
   function waitIce(pc) { return new Promise(res => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); }); }
   const L = { pc: null, dc: null, lastRx: 0, pingT: 0, open: false };
   VS.link = L;
@@ -45,8 +47,8 @@ const VS = {
   }
   function closeLink() { L.open = false; try { if (L.dc) { L.dc.onclose = null; L.dc.close(); } } catch (e) { } try { if (L.pc) { L.pc.onconnectionstatechange = null; L.pc.close(); } } catch (e) { } L.pc = L.dc = null; }
   VS.send = o => { try { if (L.dc && L.dc.readyState === 'open') L.dc.send(JSON.stringify(o)); } catch (e) { } };
-  async function hostOffer() { const pc = newPc(); wireDc(pc.createDataChannel('vs', { ordered: true })); await pc.setLocalDescription(await pc.createOffer()); await waitIce(pc); return encode({ k: 'o', s: cleanSdp(pc.localDescription.sdp) }); }
-  async function guestAnswer(code) { const d = await decode(code); if (d.k !== 'o') throw new Error('這不是「邀請碼」，請貼上房主給你的那一組'); const pc = newPc(); pc.ondatachannel = e => wireDc(e.channel); await pc.setRemoteDescription({ type: 'offer', sdp: d.s }); await pc.setLocalDescription(await pc.createAnswer()); await waitIce(pc); return encode({ k: 'a', s: cleanSdp(pc.localDescription.sdp) }); }
+  async function hostOffer() { const pc = newPc(); wireDc(pc.createDataChannel('vs', { ordered: true })); await pc.setLocalDescription(await pc.createOffer()); await waitIce(pc); return encode({ k: 'o', s: pc.localDescription.sdp }); }
+  async function guestAnswer(code) { const d = await decode(code); if (d.k !== 'o') throw new Error('這不是「邀請碼」，請貼上房主給你的那一組'); const pc = newPc(); pc.ondatachannel = e => wireDc(e.channel); await pc.setRemoteDescription({ type: 'offer', sdp: d.s }); await pc.setLocalDescription(await pc.createAnswer()); await waitIce(pc); return encode({ k: 'a', s: pc.localDescription.sdp }); }
   async function hostAccept(code) { const d = await decode(code); if (d.k !== 'a') throw new Error('這不是「回覆碼」，請貼上對方回傳的那一組'); await L.pc.setRemoteDescription({ type: 'answer', sdp: d.s }); }
   setInterval(() => {      // 心跳：量測延遲、偵測斷線
     if (!L.open) return; VS.send({ t: 'p', ts: performance.now() });
@@ -211,30 +213,53 @@ const VS = {
       <div class="vs-row"><button class="vs-btn big" id="vsHost">🏠 我來開房間</button><button class="vs-btn big alt" id="vsJoin">🔗 加入對方的房間</button></div><button class="vs-btn ghost" id="vsBack">← 返回主畫面</button>`);
     $$('vsHost').onclick = scrHost; $$('vsJoin').onclick = scrJoin; $$('vsBack').onclick = lobbyClose;
   }
+  /* ---- QR：顯示（qrcode-generator）與掃描（BarcodeDetector，沒有就用 jsQR） ---- */
+  const loadJs = src => new Promise((ok, no) => { const e = document.createElement('script'); e.src = src; e.onload = ok; e.onerror = () => no(new Error('載入失敗：' + src)); document.head.appendChild(e); });
+  async function qrHtml(txt) { if (typeof qrcode !== 'function') await loadJs('js/vendor/qrcode.min.js'); const q = qrcode(0, 'L'); q.addData(txt); q.make(); return q.createSvgTag({ cellSize: 6, margin: 3, scalable: true }); }
+  async function scanQr(onCode) {
+    const ov = document.createElement('div'); ov.id = 'vsScan'; ov.innerHTML = '<video playsinline muted></video><div class="vs-scanmsg">把鏡頭對準對方手機上的 QR Code</div><button class="vs-btn">取消</button>'; document.body.appendChild(ov);
+    let stop = false, stream = null; const vid = ov.querySelector('video'), done = () => { stop = true; try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e) { } ov.remove(); };
+    ov.querySelector('button').onclick = done;
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }); } catch (e) { done(); alert('無法開啟相機（需要允許相機權限，且網址要是 https）。也可以改用下方「貼上邀請碼」。'); return; }
+    vid.srcObject = stream; await vid.play().catch(() => { });
+    let det = null; try { if (window.BarcodeDetector) det = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) { }
+    if (!det && typeof jsQR !== 'function') { try { await loadJs('js/vendor/jsqr.min.js'); } catch (e) { done(); alert('掃描元件載入失敗，請改用貼上邀請碼'); return; } }
+    const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+    const tick = async () => {
+      if (stop) return; let txt = '';
+      try { if (vid.videoWidth) { if (det) { const r = await det.detect(vid); if (r.length) txt = r[0].rawValue; } else { const w = Math.min(640, vid.videoWidth), h = Math.round(w * vid.videoHeight / vid.videoWidth); cv.width = w; cv.height = h; cx.drawImage(vid, 0, 0, w, h); const r = jsQR(cx.getImageData(0, 0, w, h).data, w, h); if (r) txt = r.data; } } } catch (e) { }
+      if (txt && /CP2\./.test(txt)) { done(); onCode(txt); return; } setTimeout(tick, 120);
+    }; tick();
+  }
+  const pasteInto = async id => { try { $$(id).value = await navigator.clipboard.readText(); } catch (e) { $$('vsErr').textContent = '無法讀取剪貼簿，請長按文字框選「貼上」'; } };
   async function scrHost() {
-    VS.role = 'host'; shell('🏠 開房間（步驟 1／2）', `<p class="vs-tip">產生邀請碼中…</p>`);
-    let code; try { code = await hostOffer(); } catch (e) { shell('無法建立連線', `<p class="vs-tip">${esc(e.message || e)}<br>此瀏覽器可能不支援 WebRTC。</p><button class="vs-btn" id="vsBk">返回</button>`); $$('vsBk').onclick = scrMode; return; }
-    shell('🏠 開房間（步驟 1／2）', `<p class="vs-tip"><b>①</b> 把這串「邀請碼」傳給朋友（LINE／訊息皆可）<br><b>②</b> 朋友貼上後會產生「回覆碼」，請他傳回來，貼在下面</p>
-      <textarea class="vs-ta" readonly id="vsMyCode">${code}</textarea>
+    VS.role = 'host'; shell('🏠 開房間', `<p class="vs-tip">產生邀請碼中…</p>`);
+    let code, qr; try { code = await hostOffer(); qr = await qrHtml(code); } catch (e) { shell('無法建立連線', `<p class="vs-tip">${esc(e.message || e)}<br>此瀏覽器可能不支援 WebRTC。</p><button class="vs-btn" id="vsBk">返回</button>`); $$('vsBk').onclick = scrMode; return; }
+    shell('🏠 開房間', `<p class="vs-tip"><b>①</b> 請朋友按「加入」→「📷 掃描 QR」，掃下面的 QR Code<br><b>②</b> 朋友手機會出現回覆 QR，按下面「📷 掃描朋友的回覆」</p>
+      <div class="vs-qr">${qr}</div>
+      <div class="vs-row"><button class="vs-btn alt" id="vsScanA">📷 掃描朋友的回覆 QR</button></div>
+      <details class="vs-det"><summary>不能掃 QR？改用文字碼</summary><textarea class="vs-ta" readonly id="vsMyCode">${code}</textarea>
       <div class="vs-row"><button class="vs-btn" id="vsCp">📋 複製邀請碼</button><button class="vs-btn alt" id="vsSh">📤 分享</button></div>
-      <textarea class="vs-ta" id="vsPeerCode" placeholder="在這裡貼上朋友傳回來的「回覆碼」"></textarea>
-      <div class="vs-row"><button class="vs-btn" id="vsPaste">📥 貼上</button><button class="vs-btn big" id="vsGo">連線</button></div><div class="vs-err" id="vsErr"></div><button class="vs-btn ghost" id="vsBk">← 返回</button>`);
+      <textarea class="vs-ta" id="vsPeerCode" placeholder="貼上朋友傳回來的回覆碼"></textarea>
+      <div class="vs-row"><button class="vs-btn" id="vsPaste">📥 貼上</button><button class="vs-btn big" id="vsGo">連線</button></div></details><div class="vs-err" id="vsErr"></div><button class="vs-btn ghost" id="vsBk">← 返回</button>`);
+    const go = async txt => { $$('vsErr').textContent = '連線中…（約需數秒）'; try { await hostAccept(txt); } catch (e) { $$('vsErr').textContent = '❌ ' + (e.message || e); } };
     $$('vsCp').onclick = e => copyTxt(code, e.target); $$('vsSh').onclick = () => share(code, '棒球對戰邀請碼'); $$('vsBk').onclick = () => { closeLink(); scrMode(); };
-    $$('vsPaste').onclick = async () => { try { $$('vsPeerCode').value = await navigator.clipboard.readText(); } catch (e) { $$('vsErr').textContent = '無法讀取剪貼簿，請長按文字框選「貼上」'; } };
-    $$('vsGo').onclick = async () => { $$('vsErr').textContent = '連線中…（約需數秒）'; try { await hostAccept($$('vsPeerCode').value); } catch (e) { $$('vsErr').textContent = '❌ ' + (e.message || e); } };
+    $$('vsPaste').onclick = () => pasteInto('vsPeerCode'); $$('vsGo').onclick = () => go($$('vsPeerCode').value); $$('vsScanA').onclick = () => scanQr(go);
   }
   function scrJoin() {
-    VS.role = 'guest'; shell('🔗 加入房間（步驟 1／2）', `<p class="vs-tip">把房主傳來的「邀請碼」貼在下面，按「產生回覆碼」</p>
-      <textarea class="vs-ta" id="vsPeerCode" placeholder="在這裡貼上房主的「邀請碼」"></textarea>
-      <div class="vs-row"><button class="vs-btn" id="vsPaste">📥 貼上</button><button class="vs-btn big" id="vsGo">產生回覆碼</button></div><div class="vs-err" id="vsErr"></div><button class="vs-btn ghost" id="vsBk">← 返回</button>`);
-    $$('vsBk').onclick = () => { closeLink(); scrMode(); };
-    $$('vsPaste').onclick = async () => { try { $$('vsPeerCode').value = await navigator.clipboard.readText(); } catch (e) { $$('vsErr').textContent = '無法讀取剪貼簿，請長按文字框選「貼上」'; } };
-    $$('vsGo').onclick = async () => {
-      $$('vsErr').textContent = '產生中…'; let code; try { code = await guestAnswer($$('vsPeerCode').value); } catch (e) { $$('vsErr').textContent = '❌ ' + (e.message || e); return; }
-      shell('🔗 加入房間（步驟 2／2）', `<p class="vs-tip">把這串「回覆碼」傳回給房主，等他按「連線」就會自動進入大廳</p><textarea class="vs-ta" readonly id="vsMyCode">${code}</textarea>
-        <div class="vs-row"><button class="vs-btn" id="vsCp">📋 複製回覆碼</button><button class="vs-btn alt" id="vsSh">📤 分享</button></div><div class="vs-err">等待房主連線中…</div><button class="vs-btn ghost" id="vsBk">← 取消</button>`);
+    VS.role = 'guest'; shell('🔗 加入房間', `<p class="vs-tip">請房主按「我來開房間」，然後用相機掃他螢幕上的 QR Code</p>
+      <div class="vs-row"><button class="vs-btn big" id="vsScanA">📷 掃描房主的 QR</button></div>
+      <details class="vs-det"><summary>不能掃 QR？改用文字碼</summary><textarea class="vs-ta" id="vsPeerCode" placeholder="貼上房主的邀請碼"></textarea>
+      <div class="vs-row"><button class="vs-btn" id="vsPaste">📥 貼上</button><button class="vs-btn big" id="vsGo">產生回覆</button></div></details><div class="vs-err" id="vsErr"></div><button class="vs-btn ghost" id="vsBk">← 返回</button>`);
+    $$('vsBk').onclick = () => { closeLink(); scrMode(); }; $$('vsPaste').onclick = () => pasteInto('vsPeerCode');
+    const go = async txt => {
+      $$('vsErr').textContent = '產生回覆中…'; let code, qr; try { code = await guestAnswer(txt); qr = await qrHtml(code); } catch (e) { $$('vsErr').textContent = '❌ ' + (e.message || e); return; }
+      shell('🔗 加入房間', `<p class="vs-tip">請房主按「📷 掃描朋友的回覆 QR」，掃下面這個 QR，就會自動進入大廳</p><div class="vs-qr">${qr}</div>
+        <details class="vs-det"><summary>文字碼</summary><textarea class="vs-ta" readonly id="vsMyCode">${code}</textarea><div class="vs-row"><button class="vs-btn" id="vsCp">📋 複製回覆碼</button><button class="vs-btn alt" id="vsSh">📤 分享</button></div></details>
+        <div class="vs-err">等待房主連線中…</div><button class="vs-btn ghost" id="vsBk">← 取消</button>`);
       $$('vsCp').onclick = e => copyTxt(code, e.target); $$('vsSh').onclick = () => share(code, '棒球對戰回覆碼'); $$('vsBk').onclick = () => { closeLink(); scrMode(); };
     };
+    $$('vsGo').onclick = () => go($$('vsPeerCode').value); $$('vsScanA').onclick = () => scanQr(go);
   }
   function lobbyOpen() {
     const host = VS.role === 'host', lb = VS.lobby; lb.hostTeam = -1; lb.guestTeam = -1;
