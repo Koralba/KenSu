@@ -61,7 +61,7 @@ function bpAssign(side, first) {      // 把正在熱身的投手（最多兩名
 function bpStage(side, p) { if (!BP.g || BP.layoutSide !== side) bpBuildProps(side); bpAssign(side, p); }
 function bpClear() { BP.on = false; if (BP.g) { BP.g.visible = false; for (const ln of BP.lanes) { ln.th = null; } } }
 function bpReset() { bpClear(); BP.cut = false; BP.p = null; if (BP.lanes) for (const ln of BP.lanes) bpLaneOff(ln); const u = $('penUI'); if (u) u.classList.add('hide'); const w = $('warmBox'); if (w) w.classList.add('hide'); }
-function bpSync() { const L = (G.human === 0 || G.human === 1) ? warmingList(G.human) : []; if (!L.length) { bpClear(); if (BP.lanes) for (const ln of BP.lanes) bpLaneOff(ln); } else { if (!BP.g || BP.layoutSide !== G.human) bpBuildProps(G.human); bpAssign(G.human); } bpHud(0, true); }
+function bpSync() { const L = (MYH() === 0 || MYH() === 1) ? warmingList(MYH()) : []; if (!L.length) { bpClear(); if (BP.lanes) for (const ln of BP.lanes) bpLaneOff(ln); } else { if (!BP.g || BP.layoutSide !== MYH()) bpBuildProps(MYH()); bpAssign(MYH()); } bpHud(0, true); }
 function bpShot(i, snap) {
   const pen = BP.pen, fx = BP.L.sx, lx = fx * 3; pen.updateMatrixWorld(true);      // fx＝球場內側方向、lx＝第一條練投道位置
   const S = [{ p: [fx * 18, 4.4, -9], l: [0, 1.2, 1], f: 46 }, { p: [lx + fx * .8, 2.3, -14], l: [lx, 1.5, 7.5], f: 26 }, { p: [lx + fx * 7, 2.2, 1.5], l: [lx, 1.3, 6.2], f: 36 }, { p: [lx + fx * 6, 1.8, -2.5], l: [lx, 1.0, -7.8], f: 36 }][i];
@@ -134,7 +134,7 @@ function warmApply(np, side) {      // 登板：依熱身值給手感／心情�
     adjustMood(np, w / 100 * 16); np._wn = `（場下熱身 ${Math.round(w)}%，手感與心情變好）`;
     if (o > WARM.over0) { const ph = clamp((o - WARM.over0) / WARM.fatSpan, 0, 1); np.pkLoad = (np.pkLoad || 0) + ph * WARM.fatMax * fatCap(np); np.fatigue = calcFatigue(np); np._wn = `（熱身過度，登板體力已先掉 ${Math.round(np.fatigue)}%）`; }
   }
-  np.warming = false; np.warm = 0; np.warmOver = 0; if (side === G.human) bpSync();
+  np.warming = false; np.warm = 0; np.warmOver = 0; if (side === MYH()) bpSync();
 }
 function warmHurt(side, i) {
   const p = G.teams[side].pitchers[i]; p.out = true; p.warming = false; p.warm = 0; p.warmOver = 0; bpSync();
@@ -156,7 +156,7 @@ function warmTick(dt) {
 }
 function bpHud(dt, force) {      // 天氣面板下方的熱身準備值（簡易，最多兩名）
   BP.hudT -= dt || 0; if (BP.hudT > 0 && !force) return; BP.hudT = .25;
-  const e = $('warmBox'); if (!e) return; const L = (G.mode === 'play' && (G.human === 0 || G.human === 1)) ? warmingList(G.human) : [];
+  const e = $('warmBox'); if (!e) return; const L = (G.mode === 'play' && (MYH() === 0 || MYH() === 1)) ? warmingList(MYH()) : [];
   if (!L.length) { e.classList.add('hide'); return; }
   let worst = 0;
   e.innerHTML = L.map(({ p }) => {
