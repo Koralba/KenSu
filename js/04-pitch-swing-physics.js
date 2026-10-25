@@ -17,6 +17,9 @@ const battingTeam = () => G.teams[G.half], fieldingTeam = () => G.teams[1 - G.ha
 const curPitcher = () => { const t = fieldingTeam(); return t.pitchers[t.cur]; };
 const curBatter = () => { const t = battingTeam(); return t.lineup[G.bi[G.half]]; };
 const humanBats = () => G.human === G.half && (!G.role || CSEASON.mine('bat')), humanPitches = () => G.human === 1 - G.half && (!G.role || CSEASON.mine('pit'));      // 生涯模式(G.role)：只有輪到自己的角色才由玩家操控（js/13d-career-season.js）
+const vsOn = () => typeof VS !== 'undefined' && VS.on;      // 雙人連線對戰（js/13p-lan-versus.js）：兩台手機各跑一份相同的模擬
+const engBats = () => vsOn() || humanBats(), engPitches = () => vsOn() || humanPitches();      // 引擎層：連線對戰時兩邊都視為「真人」（不走電腦 AI 的投球／揮棒／戰術）
+const MYH = () => vsOn() ? VS.me : G.human, mineBats = () => vsOn() ? VS.me === G.half : humanBats(), minePitches = () => vsOn() ? VS.me === 1 - G.half : humanPitches();      // 介面層：這支手機操控的是哪一隊
 function teamStyle(side) {
   const t = G.teams[side];
   if (side === 1) return { jersey: t.c1, pants: '#f2f2f2', cap: t.cap };
@@ -76,7 +79,7 @@ function ctlSigma(p, type, lv) {
   let sg = clamp(0.72 - c * 0.0058, 0.08, 0.6) * (1 + (moodVol(p) - 1) * .8) * (1 + rainK() * .18) * (1 + stormK() * .3) * (1 - nightK() * .035) * (1 + windK() * (.05 + Math.max(0, (G.wx.gust || 0)) * .02));
   sg *= .86;      // 好球帶縮小後，投球散佈也依比例縮小
   if (type) sg *= 1.22 - (lv || 4) * 0.035;
-  if (G.lv >= 0 && LVL[G.lv] && !humanPitches()) sg *= LVL[G.lv].ctl || 1;      // 電腦投手：難度愈低控球愈不精準
+  if (G.lv >= 0 && LVL[G.lv] && !engPitches()) sg *= LVL[G.lv].ctl || 1;      // 電腦投手：難度愈低控球愈不精準
   if (G.on[1] || G.on[2]) sg *= 1 - ((p.clt == null ? 50 : p.clt) - 50) * .0012;      // 抗壓：得點圈有人時，抗壓好的投手控球更穩
   if (p.rosin > 0) sg *= .93;      // 摸過止滑粉：手不滑、控球更穩
   if (type === 'KN') sg *= 1.5;
@@ -86,7 +89,7 @@ const FAST_T = { ST: 1, TS: 1, SK: 1, CT: 1, SH: 1 };      // 速球類（直球
 function flightT(kmh) { return clamp(.69 * Math.pow(150 / kmh, 1.6), .5, 1.5); }      // 投出到進壘的時間：快速球更「咻」一下就到、慢速球明顯飄很久（速差被放大，約為原本的 1.5 次方）
 function brkVis(lv) { return 1 + clamp(lv - 1, 0, 6) * .12; }
 function makePitch(p, id, aimX, aimY, acc) {
-  const spec = PITCHES[id], lvRaw = pitchLv(p, id) || 4, LC = (G.lv >= 0 && LVL[G.lv] && !humanPitches()) ? LVL[G.lv] : null, lv = LC ? clamp(lvRaw + (LC.lvAdj || 0), 1, 7) : lvRaw;      // 電腦投手：難度越高球種等級／球威越高
+  const spec = PITCHES[id], lvRaw = pitchLv(p, id) || 4, LC = (G.lv >= 0 && LVL[G.lv] && !engPitches()) ? LVL[G.lv] : null, lv = LC ? clamp(lvRaw + (LC.lvAdj || 0), 1, 7) : lvRaw;      // 電腦投手：難度越高球種等級／球威越高
   let sg = ctlSigma(p, id, lvRaw); const hasAcc = typeof acc === 'number';
   if (hasAcc) sg *= 1.9 - 1.12 * acc;
   if (hasAcc && acc >= .999) sg *= .7;                    // 完美出手：控球再精準一些、落點更集中                    // 準度條：按得準→落點集中；按偏→落點散
@@ -97,9 +100,9 @@ function makePitch(p, id, aimX, aimY, acc) {
   const breakK = .8 + clamp(Math.hypot(spec.bx, spec.by) / 1.6, 0, 1.1) * .7 + (spec.knuckle ? .5 : 0);
   const wildP = clamp(unrest * breakK * (hasAcc ? (1 + (1 - acc) * 1.5) * (acc >= .999 ? .25 : 1) : 1) * (LC ? LC.wild : 1), .002, .12);
   const wildPitch = !p.ultra && Math.random() < wildP; const k = wildPitch ? 2.4 : 1;
-  const perfect = !wildPitch && (hasAcc ? acc >= .999 : (!humanPitches() && Math.random() < clamp(.05 + (p.dom || 0) * .08 + (lvRaw - 4) * .012, .02, .14)));      // 完美投球：玩家＝準度條完美；電腦＝依球威偶爾投出
+  const perfect = !wildPitch && (hasAcc ? acc >= .999 : (!engPitches() && Math.random() < clamp(.05 + (p.dom || 0) * .08 + (lvRaw - 4) * .012, .02, .14)));      // 完美投球：玩家＝準度條完美；電腦＝依球威偶爾投出
   let ex = gauss() * sg * k * (spec.sx || 1), ey = gauss() * sg * .9 * k * (spec.sy || 1);
-  if (!humanPitches() && !hasAcc && !wildPitch && outsideDist(aimX, aimY) <= 0) {      // 電腦投手瞄準好球帶時會「專心投進去」：落點散佈縮小（開球、球數落後時更明顯），避免明明想投好球卻常投偏
+  if (!engPitches() && !hasAcc && !wildPitch && outsideDist(aimX, aimY) <= 0) {      // 電腦投手瞄準好球帶時會「專心投進去」：落點散佈縮小（開球、球數落後時更明顯），避免明明想投好球卻常投偏
     const kk = ((G.balls === 0 && G.strikes === 0) || G.balls > G.strikes) ? (G.lv >= 3 ? .94 : G.lv === 1 ? .8 : .88) : (G.lv >= 3 ? .97 : G.lv === 1 ? .88 : .94); ex *= kk; ey *= kk;
   }
   const m = Math.hypot(ex, ey), mx = sg * 2.4 * k; if (m > mx) { ex *= mx / m; ey *= mx / m; }
@@ -127,7 +130,7 @@ function makePitch(p, id, aimX, aimY, acc) {
   // 觸身球：球的終點落在打者身體範圍內（身體寬約 ±0.5，高 0.35~1.95）
   const bxPos = E.bat.x;
   { let part = batterHitPart(fx, fy);
-    if (part && !humanPitches() && Math.random() < .62) { const sd = E.bat.side || 1; pt.fx = fx = E.bat.x + sd * (1.15 + Math.random() * .5); pt.apx = fx - bx; part = batterHitPart(fx, fy); }      // 電腦投手多半會避開打者身體：落點被拉回好球帶邊緣（降低觸身球機率）
+    if (part && !engPitches() && Math.random() < .62) { const sd = E.bat.side || 1; pt.fx = fx = E.bat.x + sd * (1.15 + Math.random() * .5); pt.apx = fx - bx; part = batterHitPart(fx, fy); }      // 電腦投手多半會避開打者身體：落點被拉回好球帶邊緣（降低觸身球機率）
     if (part) { pt.hitBatter = true; pt.hbpPart = part; } }      // 依打者實際身體（頭盔／軀幹／手臂／手／腿／腳）在畫面上的位置判定：看起來碰到就是觸身
 
   pt.hbpHigh = pt.hitBatter && pt.hbpPart === 'head';
