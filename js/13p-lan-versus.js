@@ -6,7 +6,7 @@
 const VS = {
   on: false, role: '', me: 0, gs: 0, n: 0, acc: 0, rngOn: false, sr: null, rtt: 40, running: false,
   myReady: -1, peerReady: -1, turnOn: false, pend: null, pitching: false, snaps: {}, swings: {}, takes: {}, inbox: null,
-  lobby: { hostTeam: -1, guestTeam: -1, inn: 9, first: 'rand', park: '' }, link: null, W: [], natRand: null, mismatch: 0
+  lobby: { hostTeam: -1, guestTeam: -1, inn: 9, first: 'rand', park: '', assist: 1, hint: 0, easy: 0, wx: 1 }, wxT: 0, wxRun: false, inAdv: false, tq: {}, peerId: -1, peerSn: -1, aseq: 0, actQ: [], applying: false, fmCur: null, fmLast: '', link: null, W: [], natRand: null, mismatch: 0
 };
 (function () {
   const $$ = id => document.getElementById(id), NATIVE = Math.random.bind(Math);
@@ -73,13 +73,16 @@ const VS = {
       case 'swing': applySwing(m); break;
       case 'take': VS.takes[m.n] = 1; break;
       case 'bunt': applyBunt(m); break;
+      case 'act': if (m.n === VS.n && G.phase === 'pre' && VS.myReady === VS.n) runAct(m.id, m.k, m.a); else if (m.n >= VS.n) VS.actQ.push(m); break;
+      case 'tk': addTick(m.e); break;
+      case 'sn': VS.peerId = m.id; VS.peerSn = m.s; break;
     }
   }
   /* ---------------- 一球的同步流程 ---------------- */
   const digest = () => [G.inning, G.half, G.outs, G.balls, G.strikes, G.score[0], G.score[1], G.on.map(r => r && r.pl ? r.pl.name : '-').join('|'), (typeof curBatter === 'function' && curBatter() || {}).name, (typeof curPitcher === 'function' && curPitcher() || {}).name].join('/');
   VS.onPre = function () {      // 每次進入「準備投球」：回報自己準備好了，並附上場面摘要供對照
     VS.myReady = VS.n; VS.pitching = false; VS.turnOn = false; VS.myDig = digest();
-    VS.send({ t: 'ready', n: VS.n, d: VS.myDig, sc: { o: G.outs, b: G.balls, s: G.strikes, r: G.score.slice() } }); checkTurn();
+    VS.send({ t: 'ready', n: VS.n, d: VS.myDig, sc: { o: G.outs, b: G.balls, s: G.strikes, r: G.score.slice() } }); wxAdvance(); flushActs(); VS.fmLast = ''; checkTurn();
   };
   function onReady(m) {
     VS.peerReady = m.n; VS.peerDig = m.d; VS.peerSc = m.sc;
@@ -115,6 +118,7 @@ const VS = {
   }
   function exec(sel) {      // 兩邊同一時間點、同一個種子，執行同一球
     if (G.phase !== 'pre') { VS.pend = null; return; }
+    if (G.rosinBusy) { G.rosinBusy = false; try { curPitcher().rosin = 1; const P = E.F.P; if (P && P.rig.anim && P.rig.anim.name === 'rosin') P.rig.anim = null; } catch (e) { } }      // 對手的止滑粉動畫還沒演完也不擋投球
     VS.running = true; VS.rngOn = true; try { VS.reseed('pitch'); window.doPitch(sel); } finally { VS.rngOn = false; VS.running = false; }
     VS.n++; VS.turnOn = false; showTimer();
   }
@@ -163,31 +167,97 @@ const VS = {
   const COSM = 'spawnBurst fwSpawn powderPuff rosinBurstFx noiseBurst tone ring sweepNoise shapedNoise flowSfx crowdRoar hornSeq cheerDrums hitFanfare hrFanfare hitSfx bounceSfx applause crowdGasp crowdGroan hitFeel hitFeel2 updateBursts updateFireworks updateTrash updateBatBoy batterFidget prepAction behaviorTick practiceSwing showHitInfo vibHit flashScreen'.split(' ');
   const RESEED = 'startHalf endHalf nextBatter finishAB pitchResult takePitch'.split(' ');
   function wrap(name, make) { const o = window[name]; if (typeof o !== 'function') return; VS.W.push([name, o]); window[name] = make(o); }
+
+  /* ---------------- 動作同步（賽前：即時互傳；球進場內：依「共同步數」同一步套用） ---------------- */
+  VS.nat = () => NATIVE();
+  const LEAD = 4, DL = LEAD + 1, OFFK = ['offCall', 'squeeze', 'stealReq', 'stealSel', 'stealSet', 'leadMode', 'hitAndRun'];
+  VS.H = {      // 動作表：兩台手機用同一份函式、同一組參數執行
+    TAC: (g, v) => setTacCore(g, v), TACCLR: () => tacClr(), IBB: () => ibbCore(),
+    OFF: s => { for (const k of OFFK) if (k in s) G[k] = s[k]; },
+    ROSIN: () => { doRosin(); }, PICK: i => doPickoff(i),
+    SPICK: () => { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) stealPickoff(rr); },
+    MV: s => moundVisit(s), CP: (s, i) => actCP(s, i), BPS: (s, i) => bpStart(s, i),
+    BPX: (s, i) => { const p = G.teams[s].pitchers[i]; if (p) p.warming = false; bpSync(); },
+    PH: (s, a, b) => actPH(s, a, b), PR: (s, f, n) => actPR(s, f, n), DS: (s, a, b) => actDS(s, a, b), SW: (s, a, b) => actSW(s, a, b),
+    STEAL: i => launchEarlySteal([i]),
+    PUSH: () => doPush(), RET: () => doRetreat(), THROW: b => humanThrow(b),
+    FMSEL: pos => FM.vsSel(pos), FMV: q => { VS.fmCur = q ? { x: q[0], z: q[1], m: q[2] } : null; }
+  };
+  function runAct(id, k, a) {
+    const h = VS.H[k]; if (!h) return;
+    const pr = VS.rngOn, ps = VS.sr; VS.applying = true; VS.rngOn = true; VS.sr = mk(hashStr(VS.gs + 'act' + id));
+    try { return h.apply(null, a); } catch (e) { console.error('[VS] act', k, e); } finally { VS.applying = false; VS.rngOn = pr; VS.sr = ps; }
+  }
+  window.vsAct = function (k, a) {      // 單機：直接執行；連線：本機執行並同步給對手
+    const h = VS.H[k]; if (!vsOn() || VS.applying) return h.apply(null, a);
+    if (G.phase !== 'pre' || VS.pitching || VS.pend) { try { toast('投球前才能操作', '#fff', '#555'); } catch (e) { } return false; }
+    const id = (VS.role === 'host' ? 'h' : 'g') + (++VS.aseq);
+    VS.send({ t: 'act', n: VS.n, id, k, a }); return runAct(id, k, a);
+  };
+  window.vsOffSync = () => { if (!vsOn() || G.phase !== 'pre') return; const s = {}; for (const k of OFFK) s[k] = G[k] === undefined ? null : G[k]; vsAct('OFF', [clean(s)]); };
+  function wxAdvance() {      // 天氣只在「每球開始」這個兩台一致的時間點前進（其他時間凍結），風向／雨量才不會兩台各算各的
+    if (!G.wxOn || !G.wx || G.wx.dome || typeof updateWeather !== 'function') return;
+    const pr = VS.rngOn, ps = VS.sr; VS.rngOn = true; VS.sr = mk(hashStr(VS.gs + 'wx' + VS.n + ',' + G.inning + ',' + G.half + ',' + G.outs)); VS.wxRun = VS.inAdv = true;
+    try { for (let i = 0; i < 10; i++) { VS.wxT += 2; updateWeather(2); } } catch (e) { console.error('[VS] wx', e); } finally { VS.wxRun = VS.inAdv = false; VS.rngOn = pr; VS.sr = ps; }
+  }
+  function flushActs() { const q = VS.actQ; VS.actQ = []; for (const m of q) { if (m.n === VS.n) runAct(m.id, m.k, m.a); else if (m.n > VS.n) VS.actQ.push(m); } for (const k in VS.tq) if (+k < VS.n - 1) delete VS.tq[k]; }
+  function addTick(e) { const q = VS.tq[e.id] || (VS.tq[e.id] = {}); (q[e.tick] || (q[e.tick] = [])).push(e); }
+  VS.tickAct = function (k, a) {      // 球進場內的動作：排在「我的步數＋5」，兩台都在同一步套用
+    const pl = typeof PL !== 'undefined' ? PL : null; if (!pl || pl.done || pl.vsId === undefined) return false;
+    const e = { id: pl.vsId, tick: pl.vsSn + DL, k, a: a || [], who: VS.role === 'host' ? 0 : 1, seq: ++VS.aseq };
+    addTick(e); VS.send({ t: 'tk', e }); return true;
+  };
+  function applyTicks(pl) {
+    const q = VS.tq[pl.vsId]; if (!q) return; const ks = Object.keys(q).map(Number).filter(t => t <= pl.vsSn).sort((a, b) => a - b); if (!ks.length) return;
+    VS.applying = true;
+    try { for (const t of ks) { const ev = q[t].sort((a, b) => a.who - b.who || a.seq - b.seq); delete q[t]; for (const e of ev) { const h = VS.H[e.k]; if (h) { try { h.apply(null, e.a); } catch (x) { console.error('[VS] tick', e.k, x); } } } } } finally { VS.applying = false; }
+  }
+  setInterval(() => {      // 手動守備：把搖桿方向（量化）排進同步佇列
+    if (!VS.on || !minePitches() || typeof FM === 'undefined') return;
+    const pl = typeof PL !== 'undefined' ? PL : null;
+    if (!pl || pl.done || pl.vsId === undefined || !FM.uiOK()) { VS.fmLast = ''; return; }
+    const d = FM.rawDir(), q = d ? [Math.round(d.x * 20) / 20, Math.round(d.z * 20) / 20, Math.round(d.m * 10) / 10] : null, key = q ? q.join(',') : '';
+    if (key !== VS.fmLast) { VS.fmLast = key; VS.tickAct('FMV', [q]); }
+  }, 33);
   function install() {
     VS.W = []; VS.natRand = Math.random; Math.random = () => VS.rngOn ? VS.sr() : NATIVE();
-    wrap('step', o => function (dt) { VS.rngOn = true; try { return o.call(this, dt); } finally { VS.rngOn = false; } });
+    wrap('step', o => function (dt) {
+      const pl = typeof PL !== 'undefined' ? PL : null; let live = false; VS.rngOn = true;
+      if (pl && !pl.done) {      // 球進場內：兩台用「共同步數」鎖步（最多差 LEAD 步），盜壘／推進／傳球／手動守備才會同步
+        if (pl.vsId === undefined) { pl.vsId = VS.n; pl.vsSn = 0; }
+        const pk = VS.peerId === pl.vsId ? VS.peerSn : -1;
+        if (!pl.vsFree && pl.vsSn > pk + LEAD) { const now = performance.now(); if (!pl.vsStall) pl.vsStall = now; if (now - pl.vsStall < 1500) { VS.rngOn = false; return; } pl.vsFree = true; VS.mismatch++; }
+        pl.vsStall = 0; live = true; applyTicks(pl);
+      }
+      try { return o.call(this, dt); } finally { VS.rngOn = false; if (live && PL === pl && !pl.vsFree) { pl.vsSn++; VS.send({ t: 'sn', id: pl.vsId, s: pl.vsSn }); } else if (live && PL === pl) pl.vsSn++; }
+    });
     for (const n of COSM) wrap(n, o => function () { const p = VS.rngOn; VS.rngOn = false; try { return o.apply(this, arguments); } finally { VS.rngOn = p; } });
     for (const n of RESEED) wrap(n, o => function () { if (VS.rngOn) VS.reseed(n); return o.apply(this, arguments); });
     wrap('prePitchCore', o => function () { if (VS.rngOn) VS.reseed('pre'); const r = o.apply(this, arguments); if (G.phase === 'pre') VS.onPre(); return r; });
     wrap('doPitch', o => function (sel) { if (VS.running) return o.call(this, sel); if (!minePitches()) return; VS.submit(sel); });
     wrap('uiHold', o => function () { return false; });
-    for (const n of ['humanDef', 'doPush', 'doRetreat']) wrap(n, o => function () { return false; });
+    wrap('updateWeather', o => function (dt) { if (VS.wxRun) return o.call(this, dt); try { updateNight(dt); } catch (e) { } });      // 平時只更新夜景，不改風／雨狀態
+    wrap('updateNight', o => function (dt) { if (VS.inAdv) return; return o.call(this, dt); });
+    wrap('doPush', o => function () { if (VS.applying || VS.rngOn) return o.apply(this, arguments); if (!mineBats() || !PL || PL.done || !pushCands().length) return false; return VS.tickAct('PUSH'); });
+    wrap('doRetreat', o => function () { if (VS.applying || VS.rngOn) return o.apply(this, arguments); if (!mineBats() || !PL || PL.done || !retreatCands().length) return false; return VS.tickAct('RET'); });
+    wrap('humanThrow', o => function (b) { if (VS.applying || VS.rngOn) return o.apply(this, arguments); if (!minePitches() || !PL || !PL.ask) return; VS.tickAct('THROW', [b]); });
+    wrap('openAsk', o => function () { const r = o.apply(this, arguments); if (!minePitches()) { const tp = $$('throwPanel'); if (tp) tp.classList.add('hide'); } return r; });
     wrap('toggleBunt', o => function () { const r = o.apply(this, arguments); if (mineBats()) VS.send({ t: 'bunt', v: !!G.callBunt, s: !!G.sneak, pl: !!(PT && PT.pulled) }); return r; });
     wrap('cancelBunt', o => function () { const r = o.apply(this, arguments); if (mineBats()) VS.send({ t: 'bunt', v: false, s: false, pl: !!(PT && PT.pulled) }); return r; });
     wrap('backToTitle', o => function () { leave(true); return o.apply(this, arguments); });
     const q = $$('quitYes'); VS.qOld = q.onclick; q.onclick = () => { leave(true); VS.qOld && VS.qOld(); };
-    try { HINT.on = false; } catch (e) { } document.body.classList.add('vs');
+    document.body.classList.add('vsx');
   }
   function uninstall() {
     for (const [n, o] of VS.W.reverse()) window[n] = o; VS.W = []; if (VS.natRand) { Math.random = VS.natRand; VS.natRand = null; }
-    const q = $$('quitYes'); if (q && VS.qOld) q.onclick = VS.qOld; VS.qOld = null; document.body.classList.remove('vs');
+    const q = $$('quitYes'); if (q && VS.qOld) q.onclick = VS.qOld; VS.qOld = null; document.body.classList.remove('vsx'); try { if (VS.hintWas !== undefined) HINT.on = VS.hintWas; } catch (e) { }
     ['vsTimer', 'vsWarn'].forEach(i => { const e = $$(i); if (e) e.classList.remove('on'); });
   }
   /* ---------------- 開賽／離開 ---------------- */
   function begin(cfg) {
-    if (VS.on) return; VS.gs = cfg.seed; VS.me = VS.role === 'host' ? cfg.side : 1 - cfg.side; VS.n = 0; VS.acc = 0; VS.myReady = VS.peerReady = -1; VS.turnOn = false; VS.pend = null; VS.pitching = false; VS.inbox = null; VS.snaps = {}; VS.swings = {}; VS.takes = {}; VS.mismatch = 0;
+    if (VS.on) return; VS.gs = cfg.seed; VS.me = VS.role === 'host' ? cfg.side : 1 - cfg.side; VS.n = 0; VS.acc = 0; VS.wxT = 0; VS.tq = {}; VS.peerId = -1; VS.peerSn = -1; VS.aseq = 0; VS.actQ = []; VS.fmCur = null; VS.fmLast = ''; VS.myReady = VS.peerReady = -1; VS.turnOn = false; VS.pend = null; VS.pitching = false; VS.inbox = null; VS.snaps = {}; VS.swings = {}; VS.takes = {}; VS.mismatch = 0;
     const root = $$('vsRoot'); if (root) root.classList.add('hide');
-    try { sndInit(); } catch (e) { } install(); VS.on = true; ensureHud();
+    try { sndInit(); } catch (e) { } install(); VS.on = true; ensureHud(); try { VS.hintWas = HINT.on; HINT.on = !!cfg.hint; } catch (e) { }
     if (typeof srand === 'function') srand(cfg.seed);
     VS.sr = mk(hashStr('new' + cfg.seed)); VS.rngOn = true;
     try { newGame(cfg); } finally { VS.rngOn = false; }
@@ -270,7 +340,7 @@ const VS = {
     $$('vsBk').onclick = () => { VS.send({ t: 'bye' }); closeLink(); scrMode(); };
     $$('vsTeams').innerHTML = teams().map(([t, i]) => `<button class="vs-team" data-i="${i}" style="--c1:${t.c1 || '#2a5adf'};--c2:${t.c2 || '#fff'}">${esc(t.short || t.name)}</button>`).join('');
     $$('vsTeams').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; const i = +b.dataset.i; if (host) lb.hostTeam = i; else { lb.guestTeam = i; VS.send({ t: 'pick', team: i }); } lobbyRender(); if (host) lobbySync(); };
-    $$('vsCfg').onclick = e => { if (!host) return; const b = e.target.closest('[data-k]'); if (!b) return; lb[b.dataset.k] = b.dataset.k === 'inn' ? +b.dataset.v : b.dataset.v; lobbyRender(); lobbySync(); };
+    $$('vsCfg').onclick = e => { if (!host) return; const b = e.target.closest('[data-k]'); if (!b) return; lb[b.dataset.k] = /^(inn|assist|hint|easy|wx)$/.test(b.dataset.k) ? +b.dataset.v : b.dataset.v; lobbyRender(); lobbySync(); };
     $$('vsCfg').onchange = e => { if (host && e.target.id === 'vsPark') { lb.park = e.target.value; lobbySync(); } };
     $$('vsStart').onclick = hostStart; lobbyRender(); lobbyStat(); lobbySync();
   }
@@ -283,6 +353,7 @@ const VS = {
     const chips = (k, arr) => `<div class="vs-line"><span>${k[1]}</span>${arr.map(([v, t]) => `<button class="vs-chip${lb[k[0]] == v ? ' on' : ''}" data-k="${k[0]}" data-v="${v}" ${host ? '' : 'disabled'}>${t}</button>`).join('')}</div>`;
     const parks = (typeof STADIUMS !== 'undefined' ? STADIUMS : []).map(n => `<option value="${esc(n)}"${lb.park === n ? ' selected' : ''}>${esc(n)}</option>`).join('');
     $$('vsCfg').innerHTML = chips(['inn', '局數'], [[3, '3 局'], [5, '5 局'], [9, '9 局']]) + chips(['first', '房主打序'], [['rand', '隨機'], ['bat', '先攻'], ['field', '後攻']]) + `<div class="vs-line"><span>球場</span><select id="vsPark" ${host ? '' : 'disabled'}><option value="">隨機</option>${parks}</select></div>`;
+    $$('vsCfg').innerHTML += chips(['assist', '輔助守備（開＝電腦自動接球；關＝防守方手動走位）'], [[1, '開'], [0, '關']]) + chips(['hint', '投球提示（打者看得到落點提示）'], [[0, '關'], [1, '開']]) + chips(['easy', '簡易模式'], [[0, '關'], [1, '開']]) + chips(['wx', '天氣與風向'], [[1, '開'], [0, '關']]);      // 開賽前由房主設定，開賽後雙方都不能改
     const ok = lb.hostTeam >= 0 && lb.guestTeam >= 0 && lb.hostTeam !== lb.guestTeam, st = $$('vsStart'), er = $$('vsErr');
     if (host) { st.disabled = !ok; er.textContent = lb.hostTeam >= 0 && lb.hostTeam === lb.guestTeam ? '兩邊要選不同的球隊' : (ok ? '' : '請雙方都選好球隊'); } else er.textContent = (my >= 0 && my === op) ? '兩邊要選不同的球隊' : '';
   }
@@ -290,7 +361,7 @@ const VS = {
     const lb = VS.lobby; if (!(lb.hostTeam >= 0 && lb.guestTeam >= 0 && lb.hostTeam !== lb.guestTeam)) return;
     const seed = (NATIVE() * 4294967295) >>> 0, r = mk(seed), hostSide = lb.first === 'bat' ? 0 : lb.first === 'field' ? 1 : (r() < .5 ? 0 : 1);
     const t0 = hostSide === 0 ? lb.hostTeam : lb.guestTeam, t1 = hostSide === 0 ? lb.guestTeam : lb.hostTeam;
-    const cfg = Object.assign({}, CFG, { away: t0, home: t1, homeFirst: false, side: hostSide, inn: lb.inn, lv: 1, abs: 0, evt: 0, wx: 0, pn: 0, ace: 1, spIdx: 0, assist: 1, easy: 0, park: lb.park || '', night: r() < .5 ? 1 : 0, edit: [null, null], seed });
+    const cfg = Object.assign({}, CFG, { away: t0, home: t1, homeFirst: false, side: hostSide, inn: lb.inn, lv: 1, abs: 0, evt: 0, wx: lb.wx ? 1 : 0, pn: 0, ace: 1, spIdx: 0, assist: lb.assist ? 1 : 0, easy: lb.easy ? 1 : 0, hint: lb.hint ? 1 : 0, park: lb.park || '', night: r() < .5 ? 1 : 0, edit: [null, null], seed });
     VS.send({ t: 'start', cfg }); begin(cfg);
   }
   const tb = $$('tmVersus'); if (tb) tb.onclick = () => { try { sndInit(); } catch (e) { } if (typeof RTCPeerConnection !== 'function') { alert('這個瀏覽器不支援連線對戰（需要 WebRTC）'); return; } const t = $$('title'); if (t) t.classList.add('hide'); scrMode(); };
