@@ -58,7 +58,7 @@ function drawOverlay() {
     }
   }
   if (G.mode !== 'play' || !(G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight' || G.phase === 'result' || G.phase === 'abs')) return;
-  const hb = humanBats(), hp = humanPitches(); const trk = G.lastLoc && G.lastLoc.t < 3; if (G.human < 0 && !trk) return;
+  const hb = mineBats(), hp = minePitches(); const trk = G.lastLoc && G.lastLoc.t < 3; if (MYH() < 0 && !trk) return;
   const dpr = ov.width / VW(), c = octx;
   const tl = w2s(-ZW, ZC + ZH, 0), tr = w2s(ZW, ZC + ZH, 0), bl = w2s(-ZW, ZC - ZH, 0), br = w2s(ZW, ZC - ZH, 0);
   const b = curBatter();
@@ -78,7 +78,7 @@ function drawOverlay() {
     c.beginPath(); c.arc(a.x, a.y, Math.max(1.6 * dpr, rad * .14), 0, TAU); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill();
     c.restore();
   }
-  if (G.human < 0 || !aim.has) return;
+  if (MYH() < 0 || !aim.has) return;
   if (hp && G.phase === 'pre' && !G.intWalk) {
     const p = curPitcher(), spec = PITCHES[G.selPitch = G.pm ? G.pm.id : G.selPitch], lv = pitchLv(p, G.selPitch) || 4, sg = ctlSigma(p, G.selPitch, lv);
     const pax = G.pm ? G.pm.x : aim.x, pay = G.pm ? G.pm.y : aim.y;
@@ -99,7 +99,7 @@ function drawOverlay() {
   }
 }
 /* ---------------- input ---------------- */
-function applyBatStance() { const b = E.bat; if (!b || !humanBats() || G.human < 0 || (b.rig.anim && b.rig.anim.name === 'swing')) return; if (G.phase === 'pre' || G.phase === 'windup' || (G.phase === 'flight' && PT && !PT.sw)) { if (G.callBunt) b.rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } }; else batterStance(); } }
+function applyBatStance() { const b = E.bat; if (!b || !mineBats() || MYH() < 0 || (b.rig.anim && b.rig.anim.name === 'swing')) return; if (G.phase === 'pre' || G.phase === 'windup' || (G.phase === 'flight' && PT && !PT.sw)) { if (G.callBunt) b.rig.anim = { name: 'bunt', t: 0, dur: 1e9, opt: { hold: true } }; else batterStance(); } }
 function practiceSwing() {
   const b = E.bat; if (!b || batBusy()) return;
   if (G.callBunt) { applyBatStance(); flowSfx('swing', .4); return; }
@@ -116,12 +116,12 @@ function touchLat() { return dispLat() + .008; }      // 觸控螢幕顯示／�
 function inputNow() { const n = performance.now(); return (_evT > 0 && n - _evT >= 0 && n - _evT < 120) ? _evT : n; }      // 按下的真正時刻（比處理器跑到的時間更準）
 function humanAction() {
   if (G.mode !== 'play' || G.freeze) return;
-  if (PL && !PL.done && humanBats() && G.human >= 0 && doPush()) return;
-  if (humanBats() && G.human >= 0 && !G.callBunt && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && batBusy()) return;      // 上一次揮棒（含收棒）還沒完整做完，不能再揮
-  if (humanBats() && G.human >= 0 && G.phase === 'windup') return;      // 投手出手前的動作：不觸發試揮（避免鎖住真正的揮棒）
-  if (humanBats() && G.human >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }      // 球出手前按揮棒＝試揮（不會鎖住之後真正的揮棒）
-  if (humanPitches() && G.phase === 'pre' && !G.intWalk) { if (G.rosinBusy || G.batFetch) return; if (G.pm) { if (!G.pm.ret) pmStop(false); } else if ((G.preT || 0) > .3) { updateAim(); pmStart(); } }
-  else if (humanBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
+  if (PL && !PL.done && mineBats() && MYH() >= 0 && doPush()) return;
+  if (mineBats() && MYH() >= 0 && !G.callBunt && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && batBusy()) return;      // 上一次揮棒（含收棒）還沒完整做完，不能再揮
+  if (mineBats() && MYH() >= 0 && G.phase === 'windup') return;      // 投手出手前的動作：不觸發試揮（避免鎖住真正的揮棒）
+  if (mineBats() && MYH() >= 0 && (G.phase === 'pre' || G.phase === 'windup') && E.bat && !G.intWalk) { practiceSwing(); return; }      // 球出手前按揮棒＝試揮（不會鎖住之後真正的揮棒）
+  if (minePitches() && G.phase === 'pre' && !G.intWalk) { if (G.rosinBusy || G.batFetch) return; if (G.pm) { if (!G.pm.ret) pmStop(false); } else if ((G.preT || 0) > .3) { updateAim(); pmStart(); } }
+  else if (mineBats() && G.phase === 'flight' && PT && !PT.sw && !PT.done && !G.callBunt && PT.t < PT.T + Math.min(.08, (PT.tm || .1) * .7)) {      // 短打狀態下不需（也不能）按揮擊：球碰到棒子自動短打
     updateAim(); const pTc = Math.max(PT.t + .002, PT.t + clamp((inputNow() - lastT) / 1000, 0, .05) * G.ts - (_evTouch ? touchLat() : dispLat())); let R = cursorR(), cx = aim.x, cy = aim.y;      // 補償顯示延遲：視覺上球進點的瞬間按下＝擊球瞬間
     if (G.easy) { const eb = curBatter(), n = (.05 + (100 - eb.con) * .0016) * moodVol(eb); const bq0 = swingBallPos(PT, { tc: pTc }); projPlane(bq0.x, bq0.y, bq0.z); cx = _pj.x + gauss() * n * .35; cy = _pj.y + gauss() * n * .35; R = fitR(batFrameR(false) * 1.1, aim.x, aim.y); }      // 簡易模式：自動對準來球，結果只看時機與選手能力
     const kLock = G.easy ? undefined : cursorK();      // 揮棒瞬間鎖定畫面上看到的球棒粗細
@@ -153,7 +153,7 @@ function pmStop(auto) {
 }
 function pmTick(dt) {
   const m = G.pm; if (!m) return;
-  if (G.mode !== 'play' || G.phase !== 'pre' || !humanPitches() || G.intWalk || G.over) { pmCancel(); return; }
+  if (G.mode !== 'play' || G.phase !== 'pre' || !minePitches() || G.intWalk || G.over) { pmCancel(); return; }
   if (m.ret) { m.rt += dt / (G.ts || 1); const k = clamp(m.rt / m.rdur, 0, 1); $('pmCur').style.left = (1 - k * k * (3 - 2 * k)) * 100 + '%'; if (k >= 1) pmStop(true); return; }
   m.t += dt / (G.ts || 1); $('pmCur').style.left = clamp(m.t / m.dur, 0, 1) * 100 + '%';
   if (m.t >= m.dur) { m.ret = true; m.rt = 0; m.rdur = .3; toast('逾時！失準出手', '#fff', '#a33'); }      // 沒按停＝取消（不再自動投出）
@@ -218,7 +218,7 @@ function setActBtn(k) {
 }
 function syncTouch() {
   if (!IS_TOUCH) return;
-  const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0, ph = G.phase;
+  const hb = mineBats() && MYH() >= 0, hp = minePitches() && MYH() >= 0, ph = G.phase;
   const on = G.mode === 'play' && (hb || hp) && (ph === 'pre' || ph === 'windup' || ph === 'flight');
   const padOn = G.mode === 'play' && (hb || hp || (typeof FM !== 'undefined' && FM.padNeeded())); $('movePad').classList.toggle('on', padOn && !(hb && G.easy));
   const key = [on, hb, hp, G.mode, G.easy, !!G.pm].join(); if (key === _tsKey) return; _tsKey = key;
@@ -246,18 +246,18 @@ window.addEventListener('keydown', e => {
   if (PL && PL.ask && /^[0-4]$|^[hH]$/.test(e.key)) { humanThrow(/^[hH0]$/.test(e.key) ? 0 : +e.key === 4 ? 0 : +e.key); e.preventDefault(); return; }
   if (e.repeat && (e.code === 'Space' || /^[bBqQeEsSmMfFrRdD]$/.test(e.key))) { e.preventDefault(); return; }
   if (e.code === 'Space') { humanAction(); e.preventDefault(); }
-  else if (/^[1-8]$/.test(e.key) && humanPitches() && G.phase === 'pre' && !G.pm) { const p = curPitcher().pitches[+e.key - 1]; if (p) { G.selPitch = p.id; G.pitchOpen = false; buildPitchPanel(); } }
-  else if (e.key === 'b' || e.key === 'B') { if (humanBats()) { toggleBunt(); updateActs(); applyBatStance(); } }
-  else if (e.key === 'q' || e.key === 'Q') { if (humanBats()) toggleStealPanel(); }
+  else if (/^[1-8]$/.test(e.key) && minePitches() && G.phase === 'pre' && !G.pm) { const p = curPitcher().pitches[+e.key - 1]; if (p) { G.selPitch = p.id; G.pitchOpen = false; buildPitchPanel(); } }
+  else if (e.key === 'b' || e.key === 'B') { if (mineBats()) { toggleBunt(); updateActs(); applyBatStance(); } }
+  else if (e.key === 'q' || e.key === 'Q') { if (mineBats()) toggleStealPanel(); }
   else if (e.key === 'e' || e.key === 'E') { humanPickoff(); }
   else if (e.key === 'r' || e.key === 'R') { humanRosin(); }
   else if (e.key === 'f' || e.key === 'F') { doPush(); }
   else if (e.key === 'd' || e.key === 'D') { doRetreat(); }
-  else if (e.key === 's' || e.key === 'S') { if (humanBats()) setPow(!POW_PREF); }
-  else if (e.key === 'm' || e.key === 'M') { if (humanPitches()) { moundVisit(G.human); } }
+  else if (e.key === 's' || e.key === 'S') { if (mineBats()) setPow(!POW_PREF); }
+  else if (e.key === 'm' || e.key === 'M') { if (minePitches()) { moundVisit(MYH()); } }
 });
 window.addEventListener('keyup', e => { if (e.key === 'Shift') { keyShift = false; aim.shift = false; } });
-function humanRosin() { if (humanPitches() && G.phase === 'pre' && !G.pm && !G.intWalk && !G.rosinBusy && G.mode === 'play') { doRosin(); say('投手摸了摸止滑粉，下一球手感更穩'); } }
+function humanRosin() { if (minePitches() && G.phase === 'pre' && !G.pm && !G.intWalk && !G.rosinBusy && G.mode === 'play') { doRosin(); say('投手摸了摸止滑粉，下一球手感更穩'); } }
 /* 止滑粉：投球前摸一下，只有「下一球」控球更穩（用掉就沒了，要再摸一次）、不易手滑；出手時手上會飛出一陣白粉 */
 function doRosin(done) {
   const P = E.F.P, p = curPitcher(); if (!P || !P.rig || G.rosinBusy) return false;
@@ -278,17 +278,17 @@ function updateRosinTag(dt) {      // 粉袋：平時放在投手丘旁（依投
     rosinBag.scale.x += (1 - rosinBag.scale.x) * Math.min(1, dt * 12); rosinBag.scale.y += (.75 - rosinBag.scale.y) * Math.min(1, dt * 12); rosinBag.scale.z = rosinBag.scale.x;
   }
   if (!tag) return;
-  const hp = humanPitches() && G.human >= 0 && G.mode === 'play' && G.phase === 'pre' && !G.intWalk && !G.rosinBusy && !G.pm;
+  const hp = minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre' && !G.intWalk && !G.rosinBusy && !G.pm;
   tag.classList.remove('on');      // 場上的「粉」標籤不再使用：止滑粉按鈕已移到左下「盜壘」旁的動作列
   const bt = $('btnRosin');
-  { const hb2 = $('btnHint'); if (hb2) hb2.style.display = (humanBats() && G.human >= 0 && G.mode === 'play') ? '' : 'none'; }      // 擊球落點提示：打擊時顯示（與止滑粉同一位置，投球時換成止滑粉）
-  if (bt) { const mine = humanPitches() && G.human >= 0 && G.mode === 'play'; bt.style.display = mine ? '' : 'none'; bt.disabled = !hp; bt.style.opacity = !mine ? '' : !hp ? '.4' : (p && p.rosin > 0) ? '.6' : ''; }
+  { const hb2 = $('btnHint'); if (hb2) hb2.style.display = (mineBats() && MYH() >= 0 && G.mode === 'play') ? '' : 'none'; }      // 擊球落點提示：打擊時顯示（與止滑粉同一位置，投球時換成止滑粉）
+  if (bt) { const mine = minePitches() && MYH() >= 0 && G.mode === 'play'; bt.style.display = mine ? '' : 'none'; bt.disabled = !hp; bt.style.opacity = !mine ? '' : !hp ? '.4' : (p && p.rosin > 0) ? '.6' : ''; }
 }
 const STT = [];
 function updateStealTags() {      // 玩家進攻：每個壘上跑者旁都有「盜壘」字樣，點哪個就哪個跑者盜壘（可連點多位一起盜）
   const rt = $('rosinTag'); if (!rt || !rt.parentNode) return;
   if (!STT.length) for (let i = 0; i < 3; i++) { const b = document.createElement('button'); b.type = 'button'; b.className = 'pkTag'; b.textContent = '盜壘'; b.style.cssText = 'background:rgba(217,150,28,.45);border-color:rgba(255,232,150,.85);color:#fff6d0'; b.setAttribute('aria-label', ['一壘', '二壘', '三壘'][i] + '盜壘'); b.onpointerdown = e => e.stopPropagation(); b.onclick = e => { e.stopPropagation(); humanSteal(i); }; rt.parentNode.appendChild(b); STT.push(b); }
-  const ok = G.mode === 'play' && humanBats() && G.human >= 0 && stealWindowOpen() && !G.over;
+  const ok = G.mode === 'play' && mineBats() && MYH() >= 0 && stealWindowOpen() && !G.over;
   for (let i = 0; i < 3; i++) {
     const b = STT[i], r = ok ? G.on[i] : null; let show = false;
     if (r && r.state === 'on' && !r.stepGo) { runnerXZ(r, _rp); const sc = w2s(_rp.x, 1.6, _rp.z), pr = ov.width / Math.max(1, ov.clientWidth || ov.width), X = clamp(sc.x / pr + (i === 0 ? 40 : i === 2 ? 46 : 0), 36, ov.clientWidth - 36), Y = sc.y / pr - (i === 1 ? 26 : 8); _rv.set(_rp.x, 1.6, _rp.z).project(camera);
@@ -300,26 +300,26 @@ const PKT = [];
 function updatePickTags() {      // 「牽制」半透明字樣：貼在有跑者的壘包旁，玩家可自由選擇要牽制哪一壘
   const rt = $('rosinTag'); if (!rt || !rt.parentNode) return;
   if (!PKT.length) for (let i = 0; i < 3; i++) { const b = document.createElement('button'); b.type = 'button'; b.className = 'pkTag'; b.textContent = '牽制'; b.setAttribute('aria-label', ['一壘', '二壘', '三壘'][i] + '牽制'); b.onpointerdown = e => e.stopPropagation(); b.onclick = e => { e.stopPropagation(); humanPickoff(i); }; rt.parentNode.appendChild(b); PKT.push(b); }
-  const ok = G.mode === 'play' && humanPitches() && G.human >= 0 && G.phase === 'pre' && !G.intWalk && !G.rosinBusy && !G.over; let any = false;
+  const ok = G.mode === 'play' && minePitches() && MYH() >= 0 && G.phase === 'pre' && !G.intWalk && !G.rosinBusy && !G.over; let any = false;
   for (let i = 0; i < 3; i++) {
     const b = PKT[i], r = ok ? G.on[i] : null; let show = false;
     if (r && r.state === 'on') { runnerXZ(r, _rp); const sc = w2s(_rp.x, 1.6, _rp.z), pr = ov.width / Math.max(1, ov.clientWidth || ov.width), X0 = sc.x / pr + (i === 0 ? 40 : i === 2 ? 46 : 0), X = clamp(X0, 36, ov.clientWidth - 36), Y = sc.y / pr - (i === 1 ? 26 : 8); _rv.set(_rp.x, 1.6, _rp.z).project(camera);
       if (_rv.z < 1 && sc.x / pr > -20 && sc.x / pr < ov.clientWidth + 20 && Y > 20 && Y < ov.clientHeight - 20) { show = true; b.style.left = X + 'px'; b.style.top = Y + 'px'; } }
     b.classList.toggle('on', show); if (show) any = true;
   }
-  const bp = $('btnPick'); if (bp) bp.style.display = (humanPitches() && G.human >= 0 && !any && ok && (G.on.some(r => r && r.state === 'on') || E.runners.some(q => q.earlyGo && q.state === 'run'))) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
+  const bp = $('btnPick'); if (bp) bp.style.display = (minePitches() && MYH() >= 0 && !any && ok && (G.on.some(r => r && r.state === 'on') || E.runners.some(q => q.earlyGo && q.state === 'run'))) ? '' : 'none';      // 跑者不在畫面內才退回原本按鈕
 }
 const _rv = new V3();
 function humanPickoff(sel) {
-  if (humanPitches() && G.human >= 0 && !G.rosinBusy && stealWindowOpen()) { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) { stealPickoff(rr); return; } }
-  if (typeof sel === 'number') { if (humanPitches() && G.phase === 'pre' && !G.rosinBusy && G.on[sel] && G.on[sel].state === 'on') doPickoff(sel); return; } if (humanPitches() && G.phase === 'pre' && !G.rosinBusy) { for (const i of [2, 1, 0]) if (G.on[i] && G.on[i].state === 'on') { doPickoff(i); return; } } }
+  if (minePitches() && MYH() >= 0 && !G.rosinBusy && stealWindowOpen()) { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) { stealPickoff(rr); return; } }
+  if (typeof sel === 'number') { if (minePitches() && G.phase === 'pre' && !G.rosinBusy && G.on[sel] && G.on[sel].state === 'on') doPickoff(sel); return; } if (minePitches() && G.phase === 'pre' && !G.rosinBusy) { for (const i of [2, 1, 0]) if (G.on[i] && G.on[i].state === 'on') { doPickoff(i); return; } } }
 $('absGo').onclick = () => EV.abs ? absResolveInput(true) : runPend(); $('absSkip').onclick = () => EV.abs ? absResolveInput(false) : absClearPend();
 $('btnPowPc').onclick = () => setPow(!POW_PREF);
 $('btnBunt').onclick = $('btnBuntT').onclick = () => { toggleBunt(); updateActs(); applyBatStance(); };
 $('btnSteal').onclick = () => toggleStealPanel();
 $('btnPick').onclick = () => humanPickoff();
 { const br1 = $('btnRosin'); if (br1) br1.onclick = humanRosin; const rt = $('rosinTag'); if (rt) { rt.onpointerdown = e => { e.stopPropagation(); }; rt.onclick = e => { e.stopPropagation(); humanRosin(); }; } }
-$('btnMound').onclick = () => { if (humanPitches()) moundVisit(G.human); };
+$('btnMound').onclick = () => { if (minePitches()) moundVisit(MYH()); };
 
 /* ---------------- 返回主選單（遊戲中途離開：確認後直接中斷比賽） ---------------- */
 let QUIT_OPEN = false;
@@ -353,14 +353,14 @@ $('btnSpeed').onclick = () => { G.ts = G.ts === 1 ? 2 : G.ts === 2 ? 4 : 1; $('b
 function openSubP(refresh) {
   const sub = $('sub'); if (!refresh && !sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
   if (G.phase !== 'pre') { say('投球前才能換投／熱身'); return; }
-  if (G.human < 0 || G.human > 1) { say('只有自己守備（投球）時才能換投'); return; }
-  const side = G.human, t = G.teams[side], canSwap = humanPitches(); sub.classList.remove('hide'); sub.dataset.k = 'p';
+  if (MYH() < 0 || MYH() > 1) { say('只有自己守備（投球）時才能換投'); return; }
+  const side = MYH(), t = G.teams[side], canSwap = minePitches(); sub.classList.remove('hide'); sub.dataset.k = 'p';
   sub.innerHTML = '<h3>' + (canSwap ? '換投／場下熱身' : '場下熱身（進攻中只能熱身）') + '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
   const tip = document.createElement('div'); tip.style.cssText = 'font-size:11.5px;opacity:.88;margin:-2px 0 6px;line-height:1.5;color:#ffd9a8'; tip.innerHTML = '🔥 讓預備投手提早在牛棚熱身：手感與心情會變好；熱身太久（過熱）登板時體力會大幅下降，還可能受傷。最多可同時熱身兩名。'; sub.appendChild(tip);
   t.pitchers.forEach((p, i) => {
     if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : '');
     d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h・控球${gr(p.ctl)}<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`;
-    d.onclick = () => { if (!canSwap) { say('目前是進攻局，無法換投；可以先按「場下熱身」讓投手提早準備'); return; } if (G.human !== side || !humanPitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); };
+    d.onclick = () => { if (!canSwap) { say('目前是進攻局，無法換投；可以先按「場下熱身」讓投手提早準備'); return; } if (MYH() !== side || !minePitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); };
     if (i !== t.cur) {
       const w = document.createElement('div'); w.className = 'wu'; const wv = Math.round(p.warm || 0), fe = warmFatEst(p);
       w.innerHTML = `<i class="wb"><u style="width:${wv}%"></u></i><em>${p.warming || wv > 0 ? '熱身 ' + wv + '%・' + warmTxt(p) + (fe ? '・體力-' + fe : '') : '尚未熱身'}</em>`;
@@ -376,8 +376,8 @@ $('btnSub').onclick = () => openSubP(false);
 /* ---------------- 代打／代跑 ---------------- */
 $('btnBench').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
-  if (G.phase !== 'pre' || !humanBats()) { say('投球前才能代打／代跑'); return; }
-  const side = G.human, t = G.teams[side], b = curBatter(); const avail = t.bench.filter(x => !x.out);
+  if (G.phase !== 'pre' || !mineBats()) { say('投球前才能代打／代跑'); return; }
+  const side = MYH(), t = G.teams[side], b = curBatter(); const avail = t.bench.filter(x => !x.out);
   sub.classList.remove('hide'); sub.dataset.k = 'b'; sub.innerHTML = '<h3>代打／代跑<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
   const mk = (txt, cls, fn) => { const d = document.createElement('div'); d.className = 'pbtn' + (cls ? ' ' + cls : ''); d.innerHTML = txt; d.onclick = fn; sub.appendChild(d); return d; };
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
@@ -530,12 +530,12 @@ function renderLineup() {
 })();
 /* ---------------- 比賽中：戰術（敬遠／野手站位） ---------------- */
 function humanIBB() {
-  if (!(humanPitches() && G.human >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.rosinBusy || G.intWalk || G.over) { say('投球前、尚未開始投球時才能下達敬遠'); return false; }
+  if (!(minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.rosinBusy || G.intWalk || G.over) { say('投球前、尚未開始投球時才能下達敬遠'); return false; }
   G.intWalk = true; G.preT = 0; G.pitchDelay = .8; G.prepT = .1; const b = curBatter();
   say(castA(`戰術：<em>敬遠</em>！直接保送 ${b.name}`)); toast('敬遠', '#9fff9f', '#2a9a3a'); try { updateActs(); updatePlayerBoxes(); } catch (e) { } return true;
 }
 function setTac(group, val) {
-  if (!(humanPitches() && G.human >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.intWalk) { say('投球前才能調整戰術站位'); return; }
+  if (!(minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.intWalk) { say('投球前才能調整戰術站位'); return; }
   G.tac = G.tac || {}; G.tac[group] = (val && G.tac[group] !== val) ? val : null;
   computeShift(); resetFormation(false); const t = (group === 'inf' ? TAC_INF : TAC_OF)[val];
   say(G.tac[group] ? `戰術：<em>${t.name}</em>` : `戰術：${t.name}解除，回到標準站位`); toast(G.tac[group] ? t.name : '標準站位', '#cfe', '#07a');
@@ -598,7 +598,7 @@ function openOffPanel() {
 }
 function toggleStealPanel() {
   const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 'o' && sub.dataset.s === '1') { sub.classList.add('hide'); return; }
-  if (G.human < 0 || !humanBats()) return;
+  if (MYH() < 0 || !mineBats()) return;
   if (!canSteal()) { G.stealReq = false; G.stealSet = null; updateActs(); say('壘上沒有可以盜壘的跑者（前方壘包有人）'); return; }
   openStealPanel();
 }
@@ -621,18 +621,18 @@ function openStealPanel() {      // 盜壘選擇：全員盜壘，或自己勾�
 }
 $('btnOff').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 'o') { sub.classList.add('hide'); return; }
-  if (G.human < 0 || !humanBats()) { say('進攻戰術只能在自己打擊時使用（守備時請用「戰術（敬遠／站位）」）'); return; }
+  if (MYH() < 0 || !mineBats()) { say('進攻戰術只能在自己打擊時使用（守備時請用「戰術（敬遠／站位）」）'); return; }
   if (G.phase !== 'pre') { say('投手已經開始投球動作，請在下一球投球前下達進攻戰術'); return; }
   openOffPanel();
 };
 $('btnTac').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide') && sub.dataset.k === 't') { sub.classList.add('hide'); return; }
-  if (G.human < 0 || !humanPitches() || G.phase !== 'pre') { say('自己守備、投球前才能下達戰術'); return; }
+  if (MYH() < 0 || !minePitches() || G.phase !== 'pre') { say('自己守備、投球前才能下達戰術'); return; }
   openTacPanel();
 };
 /* ---------------- 比賽中：守備調整（代守／互換守位） ---------------- */
 function openDefPanel(a) {
-  const sub = $('sub'), side = G.human, t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'd';
+  const sub = $('sub'), side = MYH(), t = G.teams[side]; sub.classList.remove('hide'); sub.dataset.k = 'd';
   const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>';
   const mk = (txt, fn, op) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (op) d.style.opacity = op; d.onclick = fn; sub.appendChild(d); };
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
@@ -653,7 +653,7 @@ function openDefPanel(a) {
 }
 $('btnDef').onclick = () => {
   const sub = $('sub'); if (!sub.classList.contains('hide')) { sub.classList.add('hide'); return; }
-  if (G.human < 0 || !humanPitches() || G.phase !== 'pre') { say('自己守備、投球前才能調整守備'); return; }
+  if (MYH() < 0 || !minePitches() || G.phase !== 'pre') { say('自己守備、投球前才能調整守備'); return; }
   openDefPanel();
 };
 
