@@ -238,7 +238,7 @@ function aiBuntCall() {
   return Math.random() < pS;
 }
 
-const humanDefTac = k => G.human >= 0 && G.human === 1 - G.half && !!(G.tac && G.tac.inf === k);
+const humanDefTac = k => (vsOn() || (G.human >= 0 && G.human === 1 - G.half)) && !!(G.tac && G.tac.inf === k);
 function aiSqueezeCall() {                    // 擠壓短打（強迫取分）：三壘有人、不到兩出局、比數接近時，電腦依難度與打者短打能力決定要不要賭一分
   const L = lvl(), b = curBatter(), r = G.on[2]; G.squeeze = null;
   if (L.learn === 0 || !r || r.state !== 'on' || G.outs >= 2 || G.intWalk) return false;
@@ -344,15 +344,15 @@ function launchEarlySteal(idxs) {      // 點跑者＝該跑者先大步離壘�
   if (!go.length) return false;
   G.stealReq = false; G.stealSel = null; G.stealSet = null; G.earlyRun = true;
   try { coverSteal(go.filter(i => i < 2)); } catch (e) { }
-  if (humanPitches() && G.human >= 0) { say('<em>跑者大步離壘、準備盜壘！</em>投手還沒抬腿前，按 <em>E</em> 可以牽制刺殺'); toast('跑者要盜壘！按 E 牽制', '#fff', '#d9961c'); }
+  if (minePitches() && G.human >= 0) { say('<em>跑者大步離壘、準備盜壘！</em>投手還沒抬腿前，按 <em>E</em> 可以牽制刺殺'); toast('跑者要盜壘！按 E 牽制', '#fff', '#d9961c'); }
   else { say('<em>跑者大步離壘，盜壘！</em>'); toast('盜壘！', '#ffe9a0', '#c60'); }
   return true;
 }
-function humanSteal(i) { if (humanBats() && G.human >= 0) launchEarlySteal([i]); }
+function humanSteal(i) { if (mineBats() && G.human >= 0) vsAct('STEAL', [i]); }
 function updateStealWatch(dt) {
   if (G.mode !== 'play' || G.over) return;
   if (G.earlyAt >= 0) { if (!stealWindowOpen()) G.earlyAt = -1; else { G.earlyAt -= dt; if (G.earlyAt < 0) { G.earlyAt = -1; const ix = (G.earlyIdx || []).filter(i => G.on[i] && G.on[i].state === 'on'); launchEarlySteal(ix); } } }
-  if (humanBats() && G.human >= 0 && G.stealReq && G.offCall !== 'hitrun' && !G.callBunt && stealWindowOpen()) { const ix = stealIdxs(); if (ix.length) launchEarlySteal(ix); else G.stealReq = false; }
+  if (engBats() && G.human >= 0 && G.stealReq && G.offCall !== 'hitrun' && !G.callBunt && stealWindowOpen()) { const ix = stealIdxs(); if (ix.length) launchEarlySteal(ix); else G.stealReq = false; }
   for (const r of G.on.slice()) if (r && r.stepGo) { r.stepT -= dt; if (r.stepT <= 0) { r.stepGo = false; const i = G.on.indexOf(r); if (r.state === 'on' && i >= 0) startSteal([i], .05 + Math.random() * .05); } }      // 大步離壘完 → 馬上盡全力起跑
   if (!G.earlyRun) return;
   if (!E.runners.some(r => r.earlyGo && (r.state === 'run' || r.stepGo))) { if (G.phase !== 'pickoff') G.earlyRun = false; return; }
@@ -408,13 +408,13 @@ function stealPickoff(r) {      // 投手對「已起跑的盜壘跑者」牽制
 function stealIntent(r) {
   if (!r || r.state !== 'on') return false; const i = G.on.indexOf(r); if (i < 0) return false;
   if (r.stepGo || (G.runnerGo && G.runnerGo.includes(i))) return true;
-  if (humanBats() && G.stealReq) return stealIdxs().includes(i);
+  if (engBats() && G.stealReq) return stealIdxs().includes(i);
   return false;
 }
 function effLead(r) {                       // 目前想站的離壘距離：基本離壘 × 警戒心縮減；有意盜壘則再拉遠
   const base = r.leadMax || 2.2, w = r.wary || 0, it = stealIntent(r);
   let v = Math.min(4.2, Math.max(.9, base * (1 - w * .3)) * (it ? 1.22 : 1) + (it ? .4 : 0)); if (r.stepGo) v = Math.min(5, v + 1.4);      // 盜壘前先大步離壘
-  if (G.leadMode && humanBats() && G.human >= 0) return Math.min(4.8, Math.max(.5, v * (G.leadMode > 0 ? 1.3 : .65)));      // 玩家進攻：大幅離壘／保守離壘
+  if (G.leadMode && engBats() && G.human >= 0) return Math.min(4.8, Math.max(.5, v * (G.leadMode > 0 ? 1.3 : .65)));      // 玩家進攻：大幅離壘／保守離壘
   return v;
 }
 function pickAbility(i) {                   // 牽制能力：投手控球／疲勞、接牽制的壘包手守備、左投牽制一壘
