@@ -488,7 +488,7 @@ function runnersThink(dt) {
   }
 }
 function pushCands() {      // 可以「推進」的跑者：已起跑者（加速、改目標），或剛站上壘包、球還沒回傳到位的跑者
-  if (!PL || PL.done || PL.foul || G.outs >= 3 || !humanBats() || G.human < 0 || G.mode !== 'play') return [];
+  if (!PL || PL.done || PL.foul || G.outs >= 3 || !engBats() || G.human < 0 || G.mode !== 'play') return [];
   if (PL.state === 'dead' || PL.state === 'hrdone' || !PL.plan || PL.plan.kind === 'hr') return [];
   if (PL.state === 'flight' && PL.plan.air) return [];
   const out = [];
@@ -522,7 +522,7 @@ function forcedBehind(r) {      // 真的被「後面的跑者」逼著往前跑
   return E.runners.some(o => o !== r && (o.state === 'run' || o.state === 'on') && o.dir >= 0 && (o.to === r.from || (o.state === 'on' && o.from === r.from - 1 && o.isForce)));
 }
 function retreatCands() {      // 可以「回壘」的跑者：正在壘間跑動、已離開原壘（不含剛擊出球、還沒到一壘的打者）、不是被強迫進壘的人
-  if (!PL || PL.done || G.outs >= 3 || !humanBats() || G.human < 0 || G.mode !== 'play') return [];
+  if (!PL || PL.done || G.outs >= 3 || !engBats() || G.human < 0 || G.mode !== 'play') return [];
   if (PL.state === 'dead' || PL.state === 'hrdone' || !PL.plan || PL.plan.kind === 'hr') return [];
   const out = E.runners.filter(r => r.state === 'run' && r.from >= 1 && r.from <= 3 && !(r.sliding && r.s > .9) && !forcedBehind(r) && !r.trot);
   for (const r of E.runners) if (r.state === 'on' && r.from >= 2 && r.from <= 3 && !PL.caught && baseFree(r.from - 1, r) && !E.runners.some(o => o !== r && o.state === 'run' && o.dir > 0 && o.to === r.from - 1)) out.push(r);      // 站在壘包上也能退回「上一個壘包」（那一壘沒人、也沒有人正在跑過來）：隨時可進可退
@@ -553,11 +553,11 @@ function doRetreat() {      // 回壘：所有跑在壘間的跑者「同步」�
 }
 function updatePushBtn() {
   const b = $('btnPush'), c = $('btnBack');
-  if (b) { const on = pushCands().length > 0; if (on === b.classList.contains('hide')) b.classList.toggle('hide', !on); }
-  if (c) { const on = retreatCands().length > 0; if (on === c.classList.contains('hide')) c.classList.toggle('hide', !on); }
+  if (b) { const on = mineBats() && pushCands().length > 0; if (on === b.classList.contains('hide')) b.classList.toggle('hide', !on); }
+  if (c) { const on = mineBats() && retreatCands().length > 0; if (on === c.classList.contains('hide')) c.classList.toggle('hide', !on); }
 }
 function pushWindowOpen(dt) {      // 跑者剛站上壘包但球還沒回傳到位：最多多留 2.2 秒給玩家決定要不要繼續推進
-  if (!humanBats() || G.human < 0) return false;
+  if (!engBats() || G.human < 0) return false;
   const on = E.runners.filter(r => r.state === 'on' && r.from >= 1 && r.from <= 3 && baseFree(r.from + 1, r));
   if (!on.length || PL.caught || PL.state === 'dead') { PL.endHold = 0; return false; }
   const r = on.sort((a, b) => b.from - a.from)[0], nb = r.from + 1, eta = ballETA(nb >= 4 ? 0 : nb), tR = BASE_LEN / r.spd;
@@ -622,7 +622,7 @@ function returnBall(pl, cb) {
   after(.04, () => goThrow(0));
 }
 /* ---------------- human-controlled throwing ---------------- */
-const humanDef = f => !G.easy && G.human >= 0 && G.human === 1 - G.half && !G.intWalk && (!G.role || !f || !!(f.pl && f.pl.isMe));      // 生涯模式：只有球在「自己的角色」手上才問傳球
+const humanDef = f => !G.easy && (vsOn() || (G.human >= 0 && G.human === 1 - G.half)) && !G.intWalk && (!G.role || !f || !!(f.pl && f.pl.isMe));      // 生涯模式：只有球在「自己的角色」手上才問傳球
 const BASE_NAME = { 1: '一壘', 2: '二壘', 3: '三壘', 0: '本壘' };
 function openAsk(f, best, auto) {
   if (PL.directThrow === undefined) PL.directThrow = true;      // 玩家選壘包＝直接傳到該壘包（按 R 才改成經中繼員）
