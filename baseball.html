@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="css/05-save-system.css">
 <link rel="stylesheet" href="css/06-transition.css">
 <link rel="stylesheet" href="css/07-career.css">
+<link rel="stylesheet" href="css/08-versus.css">
 </head>
 <body>
 <div id="wrap">
@@ -40,7 +41,7 @@
   <div class="kicker">Cam.Su</div>
   <div class="logo"><span class="l1">中職</span><span class="l2">野球</span><span class="l1 yr">2027</span><i class="tw" style="left:-.1em;top:.05em;animation-delay:.2s">✦</i><i class="tw" style="left:44%;top:-.12em;animation-delay:1.1s;font-size:.2em">✦</i><i class="tw" style="right:-.12em;top:.55em;animation-delay:1.9s">✦</i><i class="tw" style="left:20%;bottom:-.05em;animation-delay:2.4s;font-size:.18em">✦</i><i class="tw" style="right:30%;top:.1em;animation-delay:.7s;font-size:.16em">✦</i></div>
   <div class="en">CPBL 2027 SEASON</div>
-  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span></button><button type="button" id="tmExit" class="tmb tmx"><i class="ico pwr">⏻</i><span class="tt"><b>離開遊戲</b><small>EXIT</small></span></button></div>
+  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span></button><button type="button" id="tmVersus" class="tmb tm-v"><i class="ico star">⚔</i><span class="tt"><b>連線對戰</b><small>LAN VERSUS</small></span></button><button type="button" id="tmExit" class="tmb tmx"><i class="ico pwr">⏻</i><span class="tt"><b>離開遊戲</b><small>EXIT</small></span></button></div>
   <div class="made"><small>— MADE IN CAM.SU</small>Made in Cam.Su</div>
 </div>
 
@@ -171,6 +172,7 @@
 <script src="js/13l-abs-camreplay.js"></script>
 <script src="js/13n-storage-guard.js"></script>
 <script src="js/13o-update-check.js"></script>
+<script src="js/13p-lan-versus.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){})})}</script></body></html>
