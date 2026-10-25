@@ -180,7 +180,7 @@ function checkInv() {
 }
 let HS = 0; function hitStop(t) { HS = Math.max(HS, t); }
 function step(dt) {
-  if (QUIT_OPEN || uiHold()) return;
+  if ((QUIT_OPEN && !vsOn()) || uiHold()) return;
   if (G.mode === 'play' && E.bat && E.bat.rig && E.bat.rig.anim && E.bat.rig.anim.name === 'bunt' && !G.callBunt && !(PT && PT.sw) && (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight')) batterStance();      // 觸擊取消後不再卡在觸擊姿勢
   if (HS > 0) { HS -= dt; updateBursts(dt); sqStep(dt * .5); return; }
   sqStep(dt);
@@ -209,7 +209,8 @@ function frame(now) {
   if (!window.__ff) adaptQuality(real);      // 自動模擬快轉時不調整畫質（js/13f-career-autosim.js）
   if (G.ts === 1 || G.ts === 2 || G.ts === 4 || G.ts === 0) window.__slowT = 0; else if ((window.__slowT = (window.__slowT || 0) + real) > .9) { G.ts = 1; window.__slowT = 0; }      // 保險：短暫慢動作（約 0.4 秒）以外的非標準速度超過 0.9 秒就自動恢復正常速度，避免卡在慢動作
   let rem = real * (window.__ts || 1) * (G.mode === 'play' ? G.ts : 1);
-  if (window.__ff && window.__ffBudget > 0) {      // 自動模擬快轉（13f）：不管畫面幀率，每幀在時間預算（毫秒）內盡量多跑邏輯步數、完全不繪製；一輪到你就停
+  if (vsOn()) { VS.acc = (VS.acc || 0) + rem; let vn = 0; while (VS.acc >= 1 / 60 - 1e-6 && vn < 6) { step(1 / 60); VS.acc -= 1 / 60; vn++; } if (vn >= 6) VS.acc = 0; rem = 0; }      // 連線對戰：固定 1/60 秒步長，兩台手機才會算出一樣的結果
+  else if (window.__ff && window.__ffBudget > 0) {      // 自動模擬快轉（13f）：不管畫面幀率，每幀在時間預算（毫秒）內盡量多跑邏輯步數、完全不繪製；一輪到你就停
     const t0 = performance.now(); do { step(1 / 60); if (typeof AUTOSIM !== 'undefined' && AUTOSIM.needMe()) break; } while (performance.now() - t0 < window.__ffBudget); rem = 0;
   } else
   while (rem > 1e-6) { const s = Math.min(rem, 1 / 60); step(s); rem -= s; if (window.__ff && typeof AUTOSIM !== 'undefined' && AUTOSIM.needMe()) break; }      // 自動模擬快轉：一輪到你（打擊／投球／傳球詢問）當步就停，不會一個畫面內衝過你的第一球（js/13f-career-autosim.js）
