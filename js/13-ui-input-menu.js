@@ -254,10 +254,10 @@ window.addEventListener('keydown', e => {
   else if (e.key === 'f' || e.key === 'F') { doPush(); }
   else if (e.key === 'd' || e.key === 'D') { doRetreat(); }
   else if (e.key === 's' || e.key === 'S') { if (mineBats()) setPow(!POW_PREF); }
-  else if (e.key === 'm' || e.key === 'M') { if (minePitches()) { moundVisit(MYH()); } }
+  else if (e.key === 'm' || e.key === 'M') { if (minePitches()) { vsAct('MV', [MYH()]); } }
 });
 window.addEventListener('keyup', e => { if (e.key === 'Shift') { keyShift = false; aim.shift = false; } });
-function humanRosin() { if (minePitches() && G.phase === 'pre' && !G.pm && !G.intWalk && !G.rosinBusy && G.mode === 'play') { doRosin(); say('投手摸了摸止滑粉，下一球手感更穩'); } }
+function humanRosin() { if (minePitches() && G.phase === 'pre' && !G.pm && !G.intWalk && !G.rosinBusy && G.mode === 'play') { vsAct('ROSIN', []); say('投手摸了摸止滑粉，下一球手感更穩'); } }
 /* 止滑粉：投球前摸一下，只有「下一球」控球更穩（用掉就沒了，要再摸一次）、不易手滑；出手時手上會飛出一陣白粉 */
 function doRosin(done) {
   const P = E.F.P, p = curPitcher(); if (!P || !P.rig || G.rosinBusy) return false;
@@ -281,7 +281,7 @@ function updateRosinTag(dt) {      // 粉袋：平時放在投手丘旁（依投
   const hp = minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre' && !G.intWalk && !G.rosinBusy && !G.pm;
   tag.classList.remove('on');      // 場上的「粉」標籤不再使用：止滑粉按鈕已移到左下「盜壘」旁的動作列
   const bt = $('btnRosin');
-  { const hb2 = $('btnHint'); if (hb2) hb2.style.display = (mineBats() && MYH() >= 0 && G.mode === 'play') ? '' : 'none'; }      // 擊球落點提示：打擊時顯示（與止滑粉同一位置，投球時換成止滑粉）
+  { const hb2 = $('btnHint'); if (hb2) hb2.style.display = (mineBats() && MYH() >= 0 && G.mode === 'play' && !vsOn()) ? '' : 'none'; }      // 擊球落點提示：打擊時顯示（與止滑粉同一位置，投球時換成止滑粉）
   if (bt) { const mine = minePitches() && MYH() >= 0 && G.mode === 'play'; bt.style.display = mine ? '' : 'none'; bt.disabled = !hp; bt.style.opacity = !mine ? '' : !hp ? '.4' : (p && p.rosin > 0) ? '.6' : ''; }
 }
 const STT = [];
@@ -311,15 +311,15 @@ function updatePickTags() {      // 「牽制」半透明字樣：貼在有跑�
 }
 const _rv = new V3();
 function humanPickoff(sel) {
-  if (minePitches() && MYH() >= 0 && !G.rosinBusy && stealWindowOpen()) { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) { stealPickoff(rr); return; } }
-  if (typeof sel === 'number') { if (minePitches() && G.phase === 'pre' && !G.rosinBusy && G.on[sel] && G.on[sel].state === 'on') doPickoff(sel); return; } if (minePitches() && G.phase === 'pre' && !G.rosinBusy) { for (const i of [2, 1, 0]) if (G.on[i] && G.on[i].state === 'on') { doPickoff(i); return; } } }
+  if (minePitches() && MYH() >= 0 && !G.rosinBusy && stealWindowOpen()) { const rr = E.runners.find(q => q.earlyGo && q.state === 'run' && q.dir > 0 && q.s < .8); if (rr) { vsAct('SPICK', []); return; } }
+  if (typeof sel === 'number') { if (minePitches() && G.phase === 'pre' && !G.rosinBusy && G.on[sel] && G.on[sel].state === 'on') vsAct('PICK', [sel]); return; } if (minePitches() && G.phase === 'pre' && !G.rosinBusy) { for (const i of [2, 1, 0]) if (G.on[i] && G.on[i].state === 'on') { vsAct('PICK', [i]); return; } } }
 $('absGo').onclick = () => EV.abs ? absResolveInput(true) : runPend(); $('absSkip').onclick = () => EV.abs ? absResolveInput(false) : absClearPend();
 $('btnPowPc').onclick = () => setPow(!POW_PREF);
 $('btnBunt').onclick = $('btnBuntT').onclick = () => { toggleBunt(); updateActs(); applyBatStance(); };
 $('btnSteal').onclick = () => toggleStealPanel();
 $('btnPick').onclick = () => humanPickoff();
 { const br1 = $('btnRosin'); if (br1) br1.onclick = humanRosin; const rt = $('rosinTag'); if (rt) { rt.onpointerdown = e => { e.stopPropagation(); }; rt.onclick = e => { e.stopPropagation(); humanRosin(); }; } }
-$('btnMound').onclick = () => { if (minePitches()) moundVisit(MYH()); };
+$('btnMound').onclick = () => { if (minePitches()) vsAct('MV', [MYH()]); };
 
 /* ---------------- 返回主選單（遊戲中途離開：確認後直接中斷比賽） ---------------- */
 let QUIT_OPEN = false;
@@ -360,12 +360,12 @@ function openSubP(refresh) {
   t.pitchers.forEach((p, i) => {
     if (i !== t.cur && (p.out || p.used)) return; const d = document.createElement('div'); d.className = 'pbtn' + (i === t.cur ? ' sel' : '');
     d.innerHTML = `${p.num} ${p.name} (${p.hand === 'R' ? '右' : '左'}) ${p.kmh}km/h・控球${gr(p.ctl)}<span>${p.role === 'SP' ? '先發' : p.role === 'CL' ? '終結者' : p.lr ? '長中繼' : '中繼'}${i === t.cur ? '・目前投手' : ''}</span>`;
-    d.onclick = () => { if (!canSwap) { say('目前是進攻局，無法換投；可以先按「場下熱身」讓投手提早準備'); return; } if (MYH() !== side || !minePitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { changePitcher(side, i, false, '玩家指示'); } sub.classList.add('hide'); buildPitchPanel(); };
+    d.onclick = () => { if (!canSwap) { say('目前是進攻局，無法換投；可以先按「場下熱身」讓投手提早準備'); return; } if (MYH() !== side || !minePitches() || G.phase !== 'pre') { sub.classList.add('hide'); return; } if (i !== t.cur) { vsAct('CP', [side, i]); } sub.classList.add('hide'); buildPitchPanel(); };
     if (i !== t.cur) {
       const w = document.createElement('div'); w.className = 'wu'; const wv = Math.round(p.warm || 0), fe = warmFatEst(p);
       w.innerHTML = `<i class="wb"><u style="width:${wv}%"></u></i><em>${p.warming || wv > 0 ? '熱身 ' + wv + '%・' + warmTxt(p) + (fe ? '・體力-' + fe : '') : '尚未熱身'}</em>`;
       const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'wubtn' + (p.warming ? ' on' : ''); bt.textContent = p.warming ? '■ 停止熱身' : '🔥 場下熱身';
-      bt.onclick = e => { e.stopPropagation(); if (p.warming) { p.warming = false; bpSync(); openSubP(true); } else { bpStart(side, i); } };
+      bt.onclick = e => { e.stopPropagation(); if (p.warming) { vsAct('BPX', [side, i]); openSubP(true); } else { vsAct('BPS', [side, i]); } };
       w.appendChild(bt); d.appendChild(w); d.style.flexWrap = 'wrap';
     }
     sub.appendChild(d);
@@ -386,11 +386,9 @@ $('btnBench').onclick = () => {
   if (!avail.length) { head('板凳已經沒有人了'); }
   else {
     head(b.isPitcherBat ? '代打：投手打席無法代打（請先換投）' : `代打：換下第${G.bi[side] + 1}棒 ${b.name}`);
-    if (!b.isPitcherBat) avail.forEach(x => mk(`${x.name} (${x.nat}・${x.hand === 'R' ? '右' : x.hand === 'L' ? '左' : '兩'}打)<span>巧${gr(x.con)} 力${gr(x.pow)} 速${gr(x.spd)}・${fitTx(x, b.pos)}</span>`, '', () => {
-      const s2 = subInto(side, b, x); if (!s2) return; if (E.bat) E.bat.pl = s2; setupBatter(); say(`代打！${sideName(side)}換上 <em>${s2.name}</em> 代替 ${b.name}`); toast('代打', '#fff', '#39f'); G.log.push('代打'); done(); }));
+    if (!b.isPitcherBat) avail.forEach(x => mk(`${x.name} (${x.nat}・${x.hand === 'R' ? '右' : x.hand === 'L' ? '左' : '兩'}打)<span>巧${gr(x.con)} 力${gr(x.pow)} 速${gr(x.spd)}・${fitTx(x, b.pos)}</span>`, '', () => { vsAct('PH', [side, b.name, x.name]); done(); }));
     const runners = E.runners.filter(r => r.state === 'on' && r.from >= 1 && !r.pl.isPitcherBat);
-    runners.forEach(r => { head(`代跑：${r.from}壘跑者 ${r.pl.name}（速度${grLetter(r.pl.spd)}）`); avail.forEach(x => mk(`${x.name} (${x.nat})<span>速${gr(x.spd)}・${fitTx(x, r.pl.pos)}</span>`, '', () => {
-      const old = r.pl, s2 = subInto(side, old, x); if (!s2) return; r.pl = s2; r.spd = (5.6 + s2.spd * .036) * MOVEK; r.rig.limp = 0; say(`代跑！${s2.name}代替 ${old.name} 站上${r.from}壘`); toast('代跑', '#fff', '#39f'); G.log.push('代跑'); done(); })); });
+    runners.forEach(r => { head(`代跑：${r.from}壘跑者 ${r.pl.name}（速度${grLetter(r.pl.spd)}）`); avail.forEach(x => mk(`${x.name} (${x.nat})<span>速${gr(x.spd)}・${fitTx(x, r.pl.pos)}</span>`, '', () => { vsAct('PR', [side, r.from, x.name]); done(); })); });
   }
   { const ret = t.retired || []; head('規則：退場球員本場不得再上場；代打／代跑者承接被替換者的棒次與守位');
     if (ret.length) { head('已退場名單'); ret.forEach(x => { const d = document.createElement('div'); d.className = 'pbtn'; d.style.opacity = '.5'; d.innerHTML = x.name + '<span>' + (x.nat || '') + '</span>'; sub.appendChild(d); }); } }
@@ -531,11 +529,17 @@ function renderLineup() {
 /* ---------------- 比賽中：戰術（敬遠／野手站位） ---------------- */
 function humanIBB() {
   if (!(minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.rosinBusy || G.intWalk || G.over) { say('投球前、尚未開始投球時才能下達敬遠'); return false; }
+  return vsAct('IBB', []);
+}
+function ibbCore() {
   G.intWalk = true; G.preT = 0; G.pitchDelay = .8; G.prepT = .1; const b = curBatter();
   say(castA(`戰術：<em>敬遠</em>！直接保送 ${b.name}`)); toast('敬遠', '#9fff9f', '#2a9a3a'); try { updateActs(); updatePlayerBoxes(); } catch (e) { } return true;
 }
 function setTac(group, val) {
   if (!(minePitches() && MYH() >= 0 && G.mode === 'play' && G.phase === 'pre') || G.pm || G.intWalk) { say('投球前才能調整戰術站位'); return; }
+  vsAct('TAC', [group, val]);
+}
+function setTacCore(group, val) {
   G.tac = G.tac || {}; G.tac[group] = (val && G.tac[group] !== val) ? val : null;
   computeShift(); resetFormation(false); const t = (group === 'inf' ? TAC_INF : TAC_OF)[val];
   say(G.tac[group] ? `戰術：<em>${t.name}</em>` : `戰術：${t.name}解除，回到標準站位`); toast(G.tac[group] ? t.name : '標準站位', '#cfe', '#07a');
@@ -545,7 +549,7 @@ function openTacPanel() {
   const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>'; sub.innerHTML = '<h3>🧭 戰術' + close + '</h3>';
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
   const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); sub.classList.add('hide'); }; sub.appendChild(d); };
-  mk(`${!(G.tac && (G.tac.inf || G.tac.of)) ? '✔ ' : ''}不使用任何戰術<span>取消內野、外野站位戰術，回到完全沒有使用戰術的預設站位</span>`, () => { G.tac = {}; computeShift(); resetFormation(false); say('戰術：不使用任何戰術，回到預設站位'); toast('預設站位', '#cfe', '#07a'); }, !(G.tac && (G.tac.inf || G.tac.of)));
+  mk(`${!(G.tac && (G.tac.inf || G.tac.of)) ? '✔ ' : ''}不使用任何戰術<span>取消內野、外野站位戰術，回到完全沒有使用戰術的預設站位</span>`, () => { vsAct('TACCLR', []); }, !(G.tac && (G.tac.inf || G.tac.of)));
   head('投手');
   mk(`敬遠　<span>強制讓目前打者直接保送上壘${G.on[0] && G.on[1] && G.on[2] ? '（滿壘會押回一分！）' : ''}</span>`, humanIBB, G.intWalk);
   head('內野站位（再按一次＝解除）');
@@ -559,7 +563,7 @@ function openOffPanel() {
   const sub = $('sub'); sub.classList.remove('hide'); sub.dataset.k = 'o'; sub.dataset.s = '';
   const close = '<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b>'; sub.innerHTML = '<h3>🏃 進攻戰術' + close + '</h3>';
   const head = s => { const h = document.createElement('div'); h.style.cssText = 'margin:8px 0 2px;font-weight:900;color:#9cf;font-size:13px'; h.textContent = s; sub.appendChild(h); };
-  const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } sub.classList.add('hide'); }; sub.appendChild(d); };
+  const mk = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); vsOffSync(); try { updateActs(); } catch (e) { } sub.classList.add('hide'); }; sub.appendChild(d); };
   const stopBunt = () => { if (G.callBunt) { cancelBunt(true); applyBatStance(); } };
   const none = !(G.offCall || G.leadMode || G.stealReq || G.callBunt);
   mk(`${none ? '✔ ' : ''}不使用任何戰術<span>取消短打、犧牲打、盜壘、擠壓、打帶跑，離壘回到標準，全部恢復預設進攻</span>`, () => { stopBunt(); G.offCall = null; G.squeeze = null; G.stealReq = false; G.stealSel = null; G.stealSet = null; G.leadMode = 0; G.hitAndRun = false; say('進攻：不使用任何戰術，回到預設進攻'); toast('預設進攻', '#cfe', '#07a'); }, none);
@@ -608,7 +612,7 @@ function openStealPanel() {      // 盜壘選擇：全員盜壘，或自己勾�
   const render = () => {
     sub.innerHTML = '<h3>🏃 盜壘選擇<b class="sx" onclick="this.closest(\'#sub\').classList.add(\'hide\')">✕</b></h3>';
     const cur = stealIdxs(), cand = [2, 1, 0].filter(i => G.on[i] && G.on[i].state === 'on');
-    const item = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); try { updateActs(); } catch (e) { } render(); }; sub.appendChild(d); };
+    const item = (txt, fn, on) => { const d = document.createElement('div'); d.className = 'pbtn'; d.innerHTML = txt; if (on) d.style.outline = '2px solid #ffd84a'; d.onclick = () => { fn(); vsOffSync(); try { updateActs(); } catch (e) { } render(); }; sub.appendChild(d); };
     const apply = set => { set = [...new Set(set)]; if (!set.length) { G.stealReq = false; G.stealSet = null; G.stealSel = null; say('取消盜壘指示'); return; } if (G.offCall === 'hitrun') G.offCall = null; G.stealSel = null; G.stealSet = set; G.stealReq = true; const ix = stealIdxs(); say(ix.length ? `盜壘：<em>${ix.map(i => names[i]).join('、')}</em>立即起跑` : '目前沒有可以盜壘的跑者'); };
     const all = cand;
     item(`${G.stealReq && all.length && all.every(i => cur.includes(i)) && cur.length === all.length ? '✔ ' : ''}全員盜壘<span>所有能跑的跑者一起起跑（${all.map(i => names[i]).join('、')}）</span>`, () => apply(all), G.stealReq && all.length > 0 && all.every(i => cur.includes(i)));
@@ -646,9 +650,9 @@ function openDefPanel(a) {
   sub.innerHTML = `<h3>${POS_LABEL[a.pos] || a.pos}　${a.name}${close}</h3>`;
   head('代守：換上板凳球員（原球員退場、本場不得再上）');
   const bn = t.bench.filter(x => !x.out); if (!bn.length) head('（板凳沒有人了）');
-  bn.forEach(x => mk(`${x.name}（${x.nat}）<span>${pct(x.nat, a.pos)}・巧${gr(x.con)} 守${gr(x.fld0)} 肩${gr(x.arm0)}</span>`, () => { const old = a, s2 = subInto(side, old, x); if (s2) { toast('代守', '#fff', '#39f'); fin(`代守！${sideName(side)}換上 <em>${s2.name}</em> 守${POS_LABEL[a.pos] || a.pos}，${old.name}退場`); } }));
+  bn.forEach(x => mk(`${x.name}（${x.nat}）<span>${pct(x.nat, a.pos)}・巧${gr(x.con)} 守${gr(x.fld0)} 肩${gr(x.arm0)}</span>`, () => { vsAct('DS', [side, a.name, x.name]); }));
   if (a.pos === 'DH') head('指定打擊不能與野手互換守位（規則：DH 一旦守備即失去指定打擊資格）');
-  else { head('互換守位（兩人都留在場上）'); t.lineup.forEach(b => { if (b === a || b.out || b.pos === 'DH') return; mk(`與 ${POS_LABEL[b.pos]} ${b.name} 互換<span>你守${POS_LABEL[b.pos]}：${pct(a.nat, b.pos)}　他守${POS_LABEL[a.pos]}：${pct(b.nat, a.pos)}</span>`, () => { const pa = a.pos, pb = b.pos; setPos(a, pb); setPos(b, pa); swapFielderRig(pa, b); swapFielderRig(pb, a); toast('換守位', '#fff', '#39f'); fin(`守備調整：${a.name}改守${POS_LABEL[pb]}，${b.name}改守${POS_LABEL[pa]}`); }); }); }
+  else { head('互換守位（兩人都留在場上）'); t.lineup.forEach(b => { if (b === a || b.out || b.pos === 'DH') return; mk(`與 ${POS_LABEL[b.pos]} ${b.name} 互換<span>你守${POS_LABEL[b.pos]}：${pct(a.nat, b.pos)}　他守${POS_LABEL[a.pos]}：${pct(b.nat, a.pos)}</span>`, () => { vsAct('SW', [side, a.name, b.name]); }); }); }
   mk('← 返回', () => openDefPanel()); 
 }
 $('btnDef').onclick = () => {
@@ -749,3 +753,17 @@ document.addEventListener('pointerdown', e => {
   const wake = () => { try { if (!SND.ctx) sndInit(); else if (SND.ctx.state !== 'running') SND.ctx.resume(); } catch (e) { } };
   ['pointerdown', 'pointerup', 'keydown', 'touchstart', 'touchend', 'click'].forEach(ev => window.addEventListener(ev, wake, { capture: true, passive: true }));
 })();
+
+/* ---------------- 連線對戰：可同步的動作（vsAct 在 13p；單機時 vsAct 直接執行，行為不變） ---------------- */
+function vsFind(t, n) { const L = [].concat(t.lineup || [], t.bench || [], t.pitchers || [], t.retired || []); return L.find(p => p.name === n && !p.out) || L.find(p => p.name === n) || null; }
+function vsFin(msg) { if (!(typeof VS !== 'undefined' && VS.applying)) $('sub').classList.add('hide'); say(msg); updatePlayerBoxes(); updateActs(); }
+function tacClr() { G.tac = {}; computeShift(); resetFormation(false); say('戰術：不使用任何戰術，回到預設站位'); toast('預設站位', '#cfe', '#07a'); }
+function actCP(side, i) { changePitcher(side, i, false, '玩家指示'); }
+function actPH(side, bN, xN) { const t = G.teams[side], b = vsFind(t, bN), x = vsFind(t, xN); if (!b || !x) return;
+      const s2 = subInto(side, b, x); if (!s2) return; if (E.bat) E.bat.pl = s2; setupBatter(); say(`代打！${sideName(side)}換上 <em>${s2.name}</em> 代替 ${b.name}`); toast('代打', '#fff', '#39f'); G.log.push('代打'); }
+function actPR(side, from, xN) { const t = G.teams[side], x = vsFind(t, xN), r = E.runners.find(q => q.state === 'on' && q.from === from && !q.pl.isPitcherBat); if (!r || !x) return;
+  const old = r.pl, s2 = subInto(side, old, x); if (!s2) return; r.pl = s2; r.spd = (5.6 + s2.spd * .036) * MOVEK; r.rig.limp = 0; say(`代跑！${s2.name}代替 ${old.name} 站上${r.from}壘`); toast('代跑', '#fff', '#39f'); G.log.push('代跑'); }
+function actDS(side, aN, xN) { const t = G.teams[side], a = vsFind(t, aN), x = vsFind(t, xN); if (!a || !x) return;
+  const old = a, s2 = subInto(side, old, x); if (s2) { toast('代守', '#fff', '#39f'); vsFin(`代守！${sideName(side)}換上 <em>${s2.name}</em> 守${POS_LABEL[a.pos] || a.pos}，${old.name}退場`); } }
+function actSW(side, aN, bN) { const t = G.teams[side], a = vsFind(t, aN), b = vsFind(t, bN); if (!a || !b) return;
+  const pa = a.pos, pb = b.pos; setPos(a, pb); setPos(b, pa); swapFielderRig(pa, b); swapFielderRig(pb, a); toast('換守位', '#fff', '#39f'); vsFin(`守備調整：${a.name}改守${POS_LABEL[pb]}，${b.name}改守${POS_LABEL[pa]}`); }
