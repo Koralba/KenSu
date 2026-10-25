@@ -307,7 +307,7 @@ function pitcherHandPos(out) {              // 投球手（握球的手）目前
 }
 function releasePitch(pt) {
   if (PT !== pt) return; G.phase = 'flight'; if (G.absPend) absClearPend(); pt.t = 0; const p = pt.p;
-  if (HINT.on && mineBats() && !G.easy && isFinite(pt.fx + pt.fy)) { const a = Math.random() * TAU, r = Math.sqrt(Math.random()) * .07; HINT.x = pt.fx + Math.cos(a) * r; HINT.y = pt.fy + Math.sin(a) * r; HINT.t = performance.now(); HINT.pt = pt; } else HINT.pt = null;
+  if (HINT.on && mineBats() && !G.easy && isFinite(pt.fx + pt.fy)) { const a = (vsOn() ? VS.nat() : Math.random()) * TAU, r = Math.sqrt((vsOn() ? VS.nat() : Math.random())) * .07; HINT.x = pt.fx + Math.cos(a) * r; HINT.y = pt.fy + Math.sin(a) * r; HINT.t = performance.now(); HINT.pt = pt; } else HINT.pt = null;
   { pitcherHandPos(_hp); if (isFinite(_hp.x + _hp.y + _hp.z)) pt.start.set(clamp(_hp.x, -1.6, 1.6), clamp(_hp.y, 1.1, 2.7), clamp(_hp.z, MOUND.z - .3, MOUND.z + 2.4)); }      // 球從實際出手點飛出
   if (p.rosin > 0) { const sd = p.hand === 'R' ? 1 : -1;      // 出手瞬間：指尖震落細白粉，順著手臂揮出方向拖出一道淡淡的粉霧，隨後在空中慢慢散開（不是一團大煙霧）
       powderPuff(_hp.x, _hp.y, _hp.z, 34, .34, sd * .5, .35, 3.4, .13, { op: .8, life: 1.3, grow: 3.4, sw: .6 });         // 指尖噴出的主粉霧（量更多、更白）
