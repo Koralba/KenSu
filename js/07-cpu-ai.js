@@ -356,7 +356,7 @@ function updateStealWatch(dt) {
   for (const r of G.on.slice()) if (r && r.stepGo) { r.stepT -= dt; if (r.stepT <= 0) { r.stepGo = false; const i = G.on.indexOf(r); if (r.state === 'on' && i >= 0) startSteal([i], .05 + Math.random() * .05); } }      // 大步離壘完 → 馬上盡全力起跑
   if (!G.earlyRun) return;
   if (!E.runners.some(r => r.earlyGo && (r.state === 'run' || r.stepGo))) { if (G.phase !== 'pickoff') G.earlyRun = false; return; }
-  if (!stealWindowOpen() || G.cpuBusy || G.rosinBusy || (humanPitches() && !G.intWalk)) return;      // 電腦投手才自動判斷；玩家投手自己按 E
+  if (!stealWindowOpen() || G.cpuBusy || G.rosinBusy || (engPitches() && !G.intWalk)) return;      // 電腦投手才自動判斷；玩家投手自己按 E
   const L = lvl();
   for (const r of E.runners) {
     if (!r.earlyGo || r.decided || r.bat || !(r.stepGo || (r.state === 'run' && r.dir > 0))) continue;
@@ -450,7 +450,7 @@ function aiManagePitcher(sideIdx) {
   //  3) 關鍵局面針對特定打者（右投對強力左打 → 換左投）  4) 最後一局領先 1~3 分 → 終結者
   //  換投後同半局不再換、新投手至少面對 2 名打者；牛棚只剩 1 人時除非緊急否則保留
   if (G.role && typeof CPRO !== 'undefined' && CPRO.bullpenCall(sideIdx)) return;      // 職業賽季：牛棚新人登板
-  const t = G.teams[sideIdx]; if ((G.human === sideIdx && !G.role) || G.over || G.forfeit >= 0) return;
+  const t = G.teams[sideIdx]; if ((G.human === sideIdx && !G.role && !vsOn()) || G.over || G.forfeit >= 0) return;
   const p = t.pitchers[t.cur]; if (!p || p.out) return;
   const pool = availPitchers(sideIdx).filter(o => !(G.role && o.p.isMe)); if (!pool.length) return;      // 電腦不會自己挑你的角色登板
   const nb = G.teams[1 - sideIdx].lineup[G.bi[1 - sideIdx]];
@@ -487,7 +487,7 @@ function aiManagePitcher(sideIdx) {
 }
 function aiPinch() {
   if (G.role && typeof CPRO !== 'undefined' && CPRO.benchCall(G.half)) return;      // 職業賽季：板凳候補被叫上場（js/13e-career-pro.js）
-  const side = G.half; if ((G.human === side && !G.role) || !lvl().learn || G.over) return; const t = battingTeam(); if (!t.bench || !t.bench.length) return;
+  const side = G.half; if ((G.human === side && !G.role && !vsOn()) || !lvl().learn || G.over) return; const t = battingTeam(); if (!t.bench || !t.bench.length) return;
   const b = curBatter(); if (b.slot === undefined || b.isPitcherBat || b.isMe) return;      // 生涯模式：電腦不會把你的角色換掉
   const lev = ((G.on[1] || G.on[2]) && G.outs < 2 ? 1 : 0) + (Math.abs(runDiff(side)) <= 2 ? .6 : 0);
   if (G.inning >= Math.max(3, G.innings - 2) && lev >= 1.2 && Math.random() < .5) {
@@ -507,7 +507,7 @@ function aiPinch() {
   }
 }
 function aiIntentionalWalk() {
-  if (G.intWalk) return true; if (humanPitches()) return false; const L = lvl(); if (L.learn < 1) return false;
+  if (G.intWalk) return true; if (engPitches()) return false; const L = lvl(); if (L.learn < 1) return false;
   const b = curBatter(), t = battingTeam(), nxt = t.lineup[(G.bi[G.half] + 1) % 9], out = G.outs, diff = runDiff(1 - G.half);
   if (G.on[0] || out === 2 && !G.on[1] && !G.on[2]) { if (G.on[0]) return false; }
   if (!(G.on[1] || G.on[2])) return false; if (G.on[0]) return false;
