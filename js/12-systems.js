@@ -162,14 +162,14 @@ function startRainDelay(first) {
   RD.on = true; RD.t = 0; RD.minT = 10 + Math.random() * 5; RD.meter = 0; RD.idle = 0; RD.coach = false; RD.r0 = Math.max(G.rain, .8); RD.resume = () => prePitch(first);
   G.phase = 'rain'; try { $('pitchPanel').classList.add('hide'); hideHitInfo(0); } catch (e) { }
   RD.scenWas = G.wxScen; G.rainT = .55 + Math.random() * .1; if (G.wxScen === 'storm') { G.wxScen = 'heavy'; G.windBoost = 1.4; }      // 暫停期間雨勢慢慢變小
-  const human = G.human >= 0;
+  const human = G.human >= 0 && !vsOn();      // 連線對戰：雨delay 自動結束（不做連打抗議）
   $('rdTx').innerHTML = human ? '暴雨太大，場地已經不適合比賽！<br>等雨勢變小，或用<b>連點／空白鍵</b>讓教練出面激烈抗議，把<b>抗議值</b>衝滿就能繼續比賽。' : '暴雨太大，場地已經不適合比賽，等雨勢變小再繼續…';
   $('rdProt').classList.toggle('hide', !human); $('rdWait').style.width = '0%'; $('rdMeter').style.width = '0%'; $('rainDelay').classList.remove('hide');
   toast('主審宣布：暫停比賽', '#fff', '#3a6ad8'); flowSfx('whistle'); crowdCheer(.3);
   say(`<em>暴雨太大了！</em>主審宣布暫停比賽，等雨勢變小再繼續。${human ? '教練可以出面抗議（連點把抗議值衝滿）！' : ''}`);
 }
 function rdPress() {
-  if (!RD.on || G.human < 0) return;
+  if (!RD.on || G.human < 0 || vsOn()) return;
   RD.meter = Math.min(100, RD.meter + 8); RD.idle = 0;
   if (!RD.coach) { RD.coach = true; try { argCoachIn(G.human); } catch (e) { } flowSfx('cheer', .5); }
 }
@@ -202,7 +202,7 @@ function windStep(dt) {                   // 風速／風向連續變化＋陣�
   g.cd -= dt;
   if (g.t <= 0 && g.cd <= 0) { g.t = g.dur = 2.4 + Math.random() * 5; g.amp = (.9 + Math.random() * 2.8) * gustMul() * (Math.random() < .5 ? 1 : -.55); }
   if (g.t > 0) { g.t -= dt; const u = 1 - g.t / g.dur; g.env = g.amp * Math.sin(Math.PI * clamp(u, 0, 1)) ** 2; if (g.t <= 0) { g.env = 0; g.cd = (5 + Math.random() * 12) * (G.wxScen === 'typhoon' ? .45 : 1); } }
-  const wob = Math.sin(performance.now() * .0011 + (G.windDir || 0)) * .25;                       // 細微起伏
+  const wob = Math.sin((vsOn() ? (VS.wxT || 0) * 1000 : performance.now()) * .0011 + (G.windDir || 0)) * .25;                       // 細微起伏
   w.gust = g.env; w.dir = G.windDir; w.spd = clamp(G.windMean + g.env + wob * ((G.wxScen === 'calm' || G.wxScen === 'sunny') ? .3 : 1) + G.rain * G.windBoost, 0, 11);
   const cls = windClass(); G._windNoteT = Math.max(0, (G._windNoteT || 0) - dt);
   if (cls !== G._windCls) {
@@ -512,7 +512,7 @@ function showVisitBox(c) {
   const vb = $('visitBox'); vb.classList.remove('hide'); $('vmName').textContent = `${c.p.name}　投手教練談話`; $('vmLine').textContent = '…'; $('vmBar').style.width = clamp(c.mood0, 2, 100) + '%'; $('vmBar').style.background = moodColor(c.mood0); $('vmFace').textContent = moodFace(c.mood0); $('vmNum').textContent = Math.round(c.mood0);
 }
 function aiMoundThink() {
-  const side = 1 - G.half; if (G.human === side || G.visits[side] <= 0 || !lvl().learn) return false;
+  const side = 1 - G.half; if (G.human === side || vsOn() || G.visits[side] <= 0 || !lvl().learn) return false;
   const p = curPitcher(), m = moodOf(p), risk = (G.on[1] || G.on[2] ? 1 : 0) + (lateGame() ? .6 : 0);
   if (p.lastVisitPc !== undefined && p.pc - p.lastVisitPc < 14) return false;
   if (m < 26 || (m < 38 && risk >= 1) || (m < 44 && G.on[2] && G.outs < 2 && lateGame())) { if (G.visits[side] > 1 || m < 24) return moundVisit(side, true); }
@@ -655,7 +655,7 @@ function hideHitInfo(delay) { const el = $('hitInfo'); if (!el) return; const my
 /* ---------------- CPU 教練：依表現換人 ---------------- */
 function perfBad(b) { const s = b.st; return (s.ab >= 2 && s.h === 0 && (s.k >= 2 || moodOf(b) < 38)) || moodOf(b) < 24; }
 function aiCoachBatter() {
-  const side = G.half; if (G.human === side || !lvl().learn || G.over) return false; const t = battingTeam(); if (!t.bench || !t.bench.length) return false;
+  const side = G.half; if (G.human === side || vsOn() || !lvl().learn || G.over) return false; const t = battingTeam(); if (!t.bench || !t.bench.length) return false;
   const b = curBatter(); if (b.slot === undefined || b.isPitcherBat || G.inning < 3) return false; if (!perfBad(b)) return false;
   const c = t.bench.filter(x => !x.out && fitPenalty(x.nat, b.pos) <= .13 && (b.pos !== 'C' || x.nat === 'C') && strengthOf(x) + moodOf(x) * .1 > strengthOf(b) + moodOf(b) * .1 + 1).sort((a, z) => (strengthOf(z) + moodOf(z) * .1) - (strengthOf(a) + moodOf(a) * .1));
   if (!c[0] || Math.random() > .75) return false;
@@ -663,7 +663,7 @@ function aiCoachBatter() {
   say(`${sideName(side)}教練見 <em>${old.name}</em> 狀況不佳，換上 <em>${s2.name}</em> 代打！`); toast('代打', '#fff', '#39f'); G.log.push('教練換人'); return true;
 }
 function aiCoachFielders() {            // 防守端：失誤／低迷的野手，局數後段換上守備較好的板凳
-  const side = 1 - G.half; if (G.human === side || !lvl().learn || G.over || G.inning < Math.max(3, G.innings - 3)) return;
+  const side = 1 - G.half; if (G.human === side || vsOn() || !lvl().learn || G.over || G.inning < Math.max(3, G.innings - 3)) return;
   const t = G.teams[side]; if (!t.bench || !t.bench.length) return;
   for (const f of t.lineup.slice()) {
     if (f.out || f.pos === 'DH' || f.pos === 'P' || !f.pos) continue; const errs = (G.errPl && G.errPl[f.name]) || 0;
