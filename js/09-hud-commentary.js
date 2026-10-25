@@ -46,7 +46,7 @@ function updateLamps() {
 function updateScoreboard() {
   const n = Math.max(G.innings, G.inning), t = $('sbt'); let h = '<tr><th></th>'; for (let i = 1; i <= n; i++) h += '<th class="in">' + i + '</th>'; h += '<th>計</th><th class="x">安</th><th class="x">失</th></tr>';
   for (let s = 0; s < 2; s++) {
-    const tm = G.teams[s]; h += '<tr class="' + (G.half === s ? 'on' : '') + '"><td class="nm" style="color:' + (s ? tm.c1 : '#fff') + '">' + tm.short + (G.human === s ? ' ★' : '') + '</td>';
+    const tm = G.teams[s]; h += '<tr class="' + (G.half === s ? 'on' : '') + '"><td class="nm" style="color:' + (s ? tm.c1 : '#fff') + '">' + tm.short + (MYH() === s ? ' ★' : '') + '</td>';
     for (let i = 1; i <= n; i++) { const v = G.line[s][i - 1]; const played = i < G.inning || (i === G.inning && (s <= G.half)); h += '<td class="in ' + (i === G.inning && G.half === s ? 'cur' : '') + '">' + (v !== undefined ? v : (played ? 0 : '')) + '</td>'; }
     h += '<td class="tot">' + G.score[s] + '</td><td class="x">' + G.hits[s] + '</td><td class="x">' + G.errs[1 - s === s ? s : s] + '</td></tr>';
   }
@@ -73,7 +73,7 @@ function updatePlayerBoxes() {
   }
 }
 function buildPitchPanel() {
-  const pp = $('pitchPanel'); if (!humanPitches() || !(G.phase === 'pre')) { pp.classList.add('hide'); G.pitchOpen = false; return; }
+  const pp = $('pitchPanel'); if (!minePitches() || !(G.phase === 'pre')) { pp.classList.add('hide'); G.pitchOpen = false; return; }
   const p = curPitcher(); pp.classList.remove('hide'); pp.innerHTML = '';
   if (!p.pitches.some(q => q.id === G.selPitch)) G.selPitch = (p.pitches.find(q => q.id === 'ST') || p.pitches[0]).id;      // 預設球種＝直球（投手換人後若沒有目前球種也回到直球）
   const cur = p.pitches.find(q => q.id === G.selPitch), cs = PITCHES[cur.id];
@@ -91,7 +91,7 @@ function buildPitchPanel() {
 }
 function canSteal() { return G.on.some(r => r && r.state === 'on'); }      // 一壘有人且二壘空、或二壘有人且三壘空，才能盜壘
 function updateActs() {
-  const hb = humanBats() && G.human >= 0, hp = humanPitches() && G.human >= 0;
+  const hb = mineBats() && G.human >= 0, hp = minePitches() && G.human >= 0;
   $('btnBench').style.display = hb ? '' : 'none'; $('btnBunt').style.display = hb && !G.easy ? '' : 'none'; $('btnPowPc').style.display = hb && !G.easy ? '' : 'none'; $('btnSteal').style.display = hb ? '' : 'none'; if (!canSteal()) G.stealReq = false; $('btnSteal').disabled = !canSteal(); $('btnSteal').style.opacity = canSteal() ? '' : '.4'; syncPowUI(); $('btnPick').style.display = 'none'; $('btnSub').style.display = G.human >= 0 && (hp || G.human === 1 - G.half) ? '' : 'none'; { const bm = $('btnMound'); bm.style.display = hp ? '' : 'none'; bm.innerHTML = '🧢 教練上場<i class="k"> M</i>（剩' + (G.human >= 0 ? G.visits[G.human] : 0) + '）'; }
   { const sb0 = $('sub'); if (!sb0.classList.contains('hide') && ((sb0.dataset.k === 'p' && !hp) || (sb0.dataset.k === 'b' && !hb) || (sb0.dataset.k === 'd' && !hp) || (sb0.dataset.k === 't' && !hp) || (sb0.dataset.k === 'o' && !hb))) sb0.classList.add('hide'); }
   { const bd = $('btnDef'); if (bd) bd.style.display = hp ? '' : 'none'; const bt2 = $('btnTac'); if (bt2) bt2.style.display = hp ? '' : 'none'; }
