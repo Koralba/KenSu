@@ -1,0 +1,32 @@
+/* 08-versus.css ｜ 雙人連線對戰：大廳、配對、投球倒數（js/13p-lan-versus.js） */
+#title .tm-v{--bg1:#8a2a1e;--bg2:#3a0e08;--a:#ffb38a;--glow:rgba(255,150,100,.55)}
+#title .tm-v b{color:#ffe3c8}
+#vsRoot{position:fixed;inset:0;z-index:9000;background:radial-gradient(ellipse at 50% 20%,#1b3a6b,#07101f);display:flex;align-items:center;justify-content:center;overflow:auto;padding:12px;box-sizing:border-box;color:#fff;font-family:inherit}
+#vsRoot.hide{display:none}
+.vs-box{width:min(94vw,560px);max-height:96vh;overflow:auto;background:rgba(10,20,40,.88);border:2px solid #ffd24a;border-radius:16px;padding:16px 16px 14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.vs-box h2{margin:0 0 8px;font-size:20px;color:#ffe48a;text-align:center;letter-spacing:.08em}
+.vs-box h3{margin:6px 0;font-size:13px;color:#9fc4ff}
+.vs-tip{font-size:13px;line-height:1.6;color:#dfe9ff;margin:6px 0 10px}
+.vs-row{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}.vs-row .vs-btn{flex:1}
+.vs-btn{background:#1f4fb0;color:#fff;border:1.5px solid #8fb4ff;border-radius:10px;padding:10px 12px;font-size:14px;font-weight:700;cursor:pointer;min-height:42px}
+.vs-btn.big{background:#14803f;border-color:#8ff0b0;font-size:16px}.vs-btn.alt{background:#8a4a14;border-color:#ffc88a}
+.vs-btn.ghost{background:transparent;border-color:#667;color:#bcc;width:100%;margin-top:4px}.vs-btn:disabled{opacity:.4}
+.vs-ta{width:100%;box-sizing:border-box;height:84px;margin:4px 0;background:#050c18;color:#bff;border:1px solid #4a6aa8;border-radius:8px;padding:6px;font-size:11px;font-family:monospace;word-break:break-all;resize:none}
+.vs-err{min-height:18px;font-size:12px;color:#ffb0a0;text-align:center;margin:4px 0}
+.vs-stat{text-align:center;font-size:12px;color:#8fe0a8;margin-bottom:6px}
+.vs-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vs-teams{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.vs-team{background:linear-gradient(135deg,var(--c1),#0b1426);color:#fff;border:2px solid transparent;border-radius:9px;padding:9px 4px;font-size:13px;font-weight:800;text-shadow:0 1px 2px #000;cursor:pointer;display:block;text-align:center}
+.vs-team.on{border-color:#ffe14a;box-shadow:0 0 12px #ffe14a}.vs-team.taken{opacity:.35}
+.vs-opp{font-size:13px;color:#aab}.vs-opp .vs-team{display:block}
+.vs-line{display:flex;align-items:center;gap:6px;margin:6px 0;flex-wrap:wrap;font-size:13px}.vs-line>span{width:64px;color:#9fc4ff}
+.vs-chip{background:#223b6a;color:#fff;border:1.5px solid #4a6aa8;border-radius:16px;padding:5px 12px;font-size:13px;cursor:pointer}.vs-chip.on{background:#d9961c;border-color:#ffe48a}.vs-chip:disabled{cursor:default}
+.vs-line select{background:#223b6a;color:#fff;border:1.5px solid #4a6aa8;border-radius:8px;padding:5px;font-size:13px;max-width:60%}
+#vsTimer{position:fixed;top:calc(env(safe-area-inset-top,0px) + 54px);left:50%;transform:translateX(-50%);z-index:60;display:none;align-items:center;gap:8px;background:rgba(10,20,40,.82);border:2px solid #7aa8ff;color:#fff;border-radius:22px;padding:3px 14px;pointer-events:none;font-size:12px}
+#vsTimer.on{display:flex}#vsTimer b{font-size:24px;font-family:'Orbitron',sans-serif;color:#9fe3ff}#vsTimer.mine{border-color:#ffd24a}#vsTimer.mine b{color:#ffe14a}
+#vsTimer.low{border-color:#ff5a5a;animation:vsPulse .6s infinite}#vsTimer.low b{color:#ff7a7a}
+@keyframes vsPulse{50%{background:rgba(120,20,20,.85)}}
+#vsWarn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);left:50%;transform:translateX(-50%);z-index:60;display:none;background:rgba(150,60,0,.9);color:#fff;border-radius:14px;padding:3px 12px;font-size:12px;pointer-events:none}#vsWarn.on{display:block}
+/* 連線對戰中不提供的功能（由兩邊電腦代為處理）：先隱藏，避免兩邊狀態不一致 */
+body.vs #btnBench,body.vs #btnMound,body.vs #btnSub,body.vs #btnOff,body.vs #btnTac,body.vs #btnDef,body.vs #btnSteal,body.vs #btnPick,body.vs #btnRosin,body.vs #rosinTag,body.vs #btnHint,body.vs #btnPush,body.vs #btnBack,body.vs #btnSpeed,body.vs .pkTag,body.vs #againBtn,body.vs #fmAssist{display:none!important}
+@media (max-height:420px){.vs-box{padding:8px 12px}.vs-box h2{font-size:16px;margin-bottom:4px}.vs-ta{height:56px}.vs-tip{margin:3px 0 6px}}
