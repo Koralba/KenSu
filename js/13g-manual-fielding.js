@@ -23,9 +23,10 @@ const FM = (function () {
 
   const d2 = (a, b, c, d) => Math.hypot(a - c, b - d);
   const allowed = f => !!f && !(f.pl && f.pl.out) && !(G.role && !(f.pl && f.pl.isMe));
-  const baseOK = () => !window.__ff && G.mode === 'play' && G.human >= 0 && G.human === 1 - G.half && !G.easy && !G.assist && !!PL && !PL.foul && !PL.review && !(PL.plan && PL.plan.kind === 'hr');
+  const baseOK = () => !window.__ff && G.mode === 'play' && (vsOn() || (G.human >= 0 && G.human === 1 - G.half)) && !G.easy && !G.assist && !!PL && !PL.foul && !PL.review && !(PL.plan && PL.plan.kind === 'hr');
+  const uiOK = () => baseOK() && (!vsOn() || minePitches());      // 連線：只有防守方那支手機顯示搖桿／按鈕
   const live = () => !!PL && (PL.state === 'flight' || PL.state === 'loose');
-  function padNeeded() { try { return baseOK() && !!sel && (live() || PL.state === 'held'); } catch (e) { return false; } }
+  function padNeeded() { try { return uiOK() && !!sel && (live() || PL.state === 'held'); } catch (e) { return false; } }
   function target() {
     if (PL.state === 'loose' && PL.loose) return { x: PL.loose.x, z: PL.loose.z };
     const bp = PL.ballPos; if (bp && bp.y < 2.2) return { x: bp.x, z: bp.z };
@@ -47,7 +48,7 @@ const FM = (function () {
     plan.f = g; g.chaser = true; plan.dive = false; plan.great = false;
   }
   function newPlay() {
-    if (sel) { sel.manual = false; sel._fmTook = false; } sel = null; locked = false;
+    if (sel) { sel.manual = false; sel._fmTook = false; } sel = null; locked = false; if (vsOn()) lastPick = -1;
     const plan = PL.plan; if (!plan || !plan.f) return; let c = null;
     if (allowed(plan.f)) c = plan.f;
     else if (G.role) c = Object.values(E.F).find(allowed) || null;      // 生涯：永遠選取「你自己的角色」，但不會把追球權搶走
@@ -55,7 +56,8 @@ const FM = (function () {
   }
 
   /* ---------- 輸入：方向鍵／手機方向盤 → 相對畫面的世界方向 ---------- */
-  function inputDir() {
+  function inputDir() { return vsOn() ? (VS.fmCur || null) : rawDir(); }      // 連線：用兩台同一步套用的向量
+  function rawDir() {
     let ix = 0, iy = 0; if (keys.ArrowLeft) ix -= 1; if (keys.ArrowRight) ix += 1; if (keys.ArrowUp) iy += 1; if (keys.ArrowDown) iy -= 1;
     const p = typeof PAD !== 'undefined' && (PAD.f || PAD.v); if (p) { ix += p.vx || 0; iy += -(p.vy || 0); }
     const m = Math.hypot(ix, iy); if (m < .12) return null; if (m > 1) { ix /= m; iy /= m; }
@@ -68,10 +70,10 @@ const FM = (function () {
 
   /* ---------- 每幀（在 updatePlay 之前）：自動選取、移動、搶先撿球 ---------- */
   function pre(dt) {
-    if (!PL) { if (sel) { sel.manual = false; sel = null; } lastPlan = null; locked = false; mv = false; return; }
+    if (!PL) { if (sel) { sel.manual = false; sel = null; } lastPlan = null; locked = false; mv = false; if (vsOn()) VS.fmCur = null; return; }
     if (!baseOK()) { if (sel) { sel.manual = false; sel._fmTook = false; sel = null; } lastPlan = null; mv = false; return; }
     if (PL.plan !== lastPlan) { const mc = PL.plan && PL.plan.manualChase; lastPlan = PL.plan; if (!mc) newPlay(); }
-    const st = PL.state, plan = PL.plan, now = performance.now() / 1000;
+    const st = PL.state, plan = PL.plan, now = vsOn() ? PL.tAge : performance.now() / 1000;      // 連線：用模擬時間，兩台才一致
     if (st === 'thrown' || st === 'dead' || st === 'hrdone') { if (sel) sel.manual = false; mv = false; return; }
     if (st === 'held' && PL.holder && allowed(PL.holder) && PL.holder !== sel) select(PL.holder, false);
     if (st === 'loose' && PL.looseF && allowed(PL.looseF) && PL.looseF !== sel) select(PL.looseF, false);
@@ -155,13 +157,13 @@ const FM = (function () {
     requestAnimationFrame(drawUI); ensureUI(); try { syncAssistBtn(); } catch (e) { }
     const defending = G.mode === 'play' && G.human >= 0 && G.human === 1 - G.half && !G.easy && (!G.role || true);
     chip.style.display = (SHOW_CHIP && defending) ? 'block' : 'none'; if (defending) chip.textContent = G.assist ? '🤝 輔助防守：開' : '🎮 手動防守（點此改輔助）';
-    const mark = document.getElementById('fmMark'), show = baseOK() && live() && sel, showMark = baseOK() && sel && (live() || PL.state === 'held');
+    const mark = document.getElementById('fmMark'), show = uiOK() && live() && sel, showMark = uiOK() && sel && (live() || PL.state === 'held');
     const used = new Set();
     if (show) {
       const pt = target();
       for (const f of Object.values(E.F)) {
         if (f === sel || !allowed(f) || d2(f.x, f.z, pt.x, pt.z) > 48) continue; const p = proj(f.x, 2.5, f.z); if (!p) continue;
-        let b = btns[f.pos]; if (!b) { b = btns[f.pos] = document.createElement('div'); b.className = 'fb'; layer.appendChild(b); const go = e => { e.preventDefault(); e.stopPropagation(); const g = E.F[b.dataset.pos]; if (g && baseOK() && live()) select(g, true); }; b.addEventListener('pointerdown', go); }
+        let b = btns[f.pos]; if (!b) { b = btns[f.pos] = document.createElement('div'); b.className = 'fb'; layer.appendChild(b); const go = e => { e.preventDefault(); e.stopPropagation(); const g = E.F[b.dataset.pos]; if (g && uiOK() && live()) { if (vsOn()) VS.tickAct('FMSEL', [g.pos]); else select(g, true); } }; b.addEventListener('pointerdown', go); }
         b.dataset.pos = f.pos; b.textContent = f.pos; b.style.left = p.x + 'px'; b.style.top = p.y + 'px'; b.style.display = 'block'; used.add(f.pos);
       }
     }
@@ -175,10 +177,10 @@ const FM = (function () {
   document.querySelectorAll('.pill[data-k="assist"]').forEach(p => p.addEventListener('click', () => { try { localStorage.setItem(LS, p.dataset.v); } catch (e) { } }));      // 賽前選單的選擇也記住
   /* 「更多」旁邊（#acts 列，和止滑粉同一排）的輔助守備開關：點一下切換手動／輔助，按鈕文字與亮燈跟著目前狀態 */
   const abtn = document.getElementById('btnAssist');
-  const syncAssistBtn = () => { if (!abtn) return; const t = G.assist ? '🤝 輔助守備：開' : '🎮 輔助守備：關'; if (abtn.textContent !== t) abtn.textContent = t; abtn.classList.toggle('on', !!G.assist); const show = G.mode === 'play' && G.human >= 0 && G.human === 1 - G.half && !G.easy; if (abtn.style.display !== (show ? '' : 'none')) abtn.style.display = show ? '' : 'none'; };      // 按鈕放在「更多」旁邊（和止滑粉同一排）：只有玩家守備（非簡易模式）時顯示；開啟輔助時亮橘色
+  const syncAssistBtn = () => { if (!abtn) return; const t = G.assist ? '🤝 輔助守備：開' : '🎮 輔助守備：關'; if (abtn.textContent !== t) abtn.textContent = t; abtn.classList.toggle('on', !!G.assist); const show = G.mode === 'play' && G.human >= 0 && G.human === 1 - G.half && !G.easy && !vsOn(); if (abtn.style.display !== (show ? '' : 'none')) abtn.style.display = show ? '' : 'none'; };      // 按鈕放在「更多」旁邊（和止滑粉同一排）：只有玩家守備（非簡易模式）時顯示；開啟輔助時亮橘色
   if (abtn) abtn.onclick = () => setAssist(!G.assist);
   requestAnimationFrame(drawUI);
   try { const _up = updatePlay; updatePlay = function (dt) { try { pre(dt); } catch (e) { console.error(e); } return _up.call(this, dt); }; } catch (e) { console.warn('FM：無法包裝 updatePlay', e); }
 
-  return { pre, rechase, padNeeded, select, setAssist, moving: f => !!(mv && f && f === sel), get selected() { return sel; } };
+  return { pre, rechase, padNeeded, select, rawDir, uiOK, vsSel: pos => { const g = E.F[pos]; if (g && baseOK() && live()) select(g, true); }, setAssist, moving: f => !!(mv && f && f === sel), get selected() { return sel; } };
 })();
