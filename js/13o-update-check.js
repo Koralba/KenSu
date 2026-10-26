@@ -27,7 +27,7 @@
   function say(text, reloadable) {
     css(); if (!bar) { bar = document.createElement('div'); bar.id = 'updBar'; document.body.appendChild(bar); bar.onclick = () => { if (U.pending) location.reload(); else bar.classList.remove('on'); }; }
     const t = '🔄 ' + text + '　　　' + (reloadable ? '點這裡立即重新載入　　　' : '');
-    bar.innerHTML = '<span class="tk">' + t + t + '</span>'; bar.classList.add('on');
+    bar.innerHTML = '<span class="tk">' + t + '</span>'; bar.classList.add('on');
   }
   function hideSoon(ms) { setTimeout(() => { if (bar && !U.pending) bar.classList.remove('on'); }, ms); }
   /* ---------- 版本 ---------- */
@@ -61,7 +61,7 @@
   /* ---------- 新版就緒 ---------- */
   function updated(v) {
     U.pending = true; ls.set(KEY, v || U.remote || '');
-    say('遊戲已更新至最新版本' + (v || U.remote ? ' ' + (v || U.remote) : '') + '！', true);
+    say(inGame() ? '新版本已就緒，比賽結束後會自動套用' : '新版本已就緒，正在套用…', inGame());
     if (!inGame()) setTimeout(() => { if (!inGame()) location.reload(); }, 3500);      // 標題／選單：自動套用
     else { const t = setInterval(() => { if (!inGame()) { clearInterval(t); setTimeout(() => location.reload(), 2500); } }, 4000); }      // 比賽中：等回到選單再套用
   }
@@ -82,7 +82,7 @@
   /* ---------- 重新載入後顯示「已更新」 ---------- */
   function afterReload() {
     const v = ls.get(KEY); if (!v) return; ls.del(KEY);
-    askVersion().then(mine => { say('遊戲已更新至最新版本 ' + (mine || v) + '，內容已同步！', false); hideSoon(14000); });
+    askVersion().then(mine => { say('遊戲已更新至最新版本 ' + (mine || v) + '，若有相關問題請洽 Cam.Su，LINE ID:c468116', false); hideSoon(17000); });
   }
   /* ---------- 標題畫面的手動按鈕 ---------- */
   function addBtn() {
