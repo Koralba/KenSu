@@ -387,15 +387,15 @@ function updatePlay(dt) {
     if (plan.kind === 'hr') { if (PL.t >= plan.t + 1.0) { PL.state = 'hrdone'; } }
     else if (plan.kind === 'chase') {
       const f = plan.f;
-      if (PL.t >= plan.t - .05 && (dist2(f.x, f.z, plan.x, plan.z) < 1.3 || PL.t > plan.t + 6)) onFielded(f);
-      else if (PL.t >= plan.t - .05 && PL.t < plan.t + 6) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); if (dist2(f.x, f.z, _gb.x, _gb.z) < 1.2 && _gb.y < 1.4) { plan.x = _gb.x; plan.z = _gb.z; onFielded(f); } }      // 追到球的當下位置就撿起來（球滾到哪、野手就追到哪）
+      if (PL.t >= plan.t - .05 && (dist2(f.x, f.z, plan.x, plan.z) < 1.7 || PL.t > plan.t + 6)) onFielded(f);
+      else if (PL.t >= plan.t - .05 && PL.t < plan.t + 6) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); if (dist2(f.x, f.z, _gb.x, _gb.z) < 1.6 && _gb.y < 1.6) { plan.x = _gb.x; plan.z = _gb.z; onFielded(f); } }      // 追到球的當下位置就撿起來（球滾到哪、野手就追到哪）
     } else if (PL.t >= plan.t) {
       const f = plan.f; if (plan.dive && !f.divePlayed) { f.divePlayed = true; }
-      const dd = dist2(f.x, f.z, plan.x, plan.z), thr = plan.dive || plan.robHR ? 3.2 : 2.0;
+      const dd = dist2(f.x, f.z, plan.x, plan.z), thr = plan.dive || plan.robHR ? 3.2 : 2.5;
       let nearBall = dd < thr;
-      if (!plan.air && !plan.dive && !plan.robHR) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); nearBall = dd < 1.0 || (dist2(f.x, f.z, _gb.x, _gb.z) < 1.4 && _gb.y < 1.4); }      // 滾地球：手套真的碰到球才算接到（不再球還沒到、人還在跑就判出局）
+      if (!plan.air && !plan.dive && !plan.robHR) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); nearBall = dd < 1.4 || (dist2(f.x, f.z, _gb.x, _gb.z) < 1.9 && _gb.y < 1.6); }      // 滾地球：手套真的碰到球才算接到（不再球還沒到、人還在跑就判出局）
       if (nearBall) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
-      else if (!plan.robHR && PL.t > plan.t + .15) rechaseBall(PL);      // 球早就過去、野手還沒趕到：沒接到！改成追球（不再瞬間移動接球）
+      else if (!plan.robHR && PL.t > plan.t + .3) rechaseBall(PL);      // 球早就過去、野手還沒趕到：沒接到！改成追球（不再瞬間移動接球）
       else if (PL.t > plan.t + 1.5) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
     }
     // dive animation trigger
