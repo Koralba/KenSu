@@ -175,8 +175,19 @@ function pitchBase(pt, v, out) {
 }
 const _pb0 = new V3(), _pb1 = new V3();
 const _mp0 = new V3();
+const _mp1 = new V3();
+/* 過本壘後球「真實的 3D 軌跡」：從進壘點沿最後一小段的飛行方向延伸到手套深度（u=0 在本壘板、u=1 在手套）。
+   以前是沿「鏡頭視線」移到手套深度，從正後方鏡頭看位置不變，但鏡頭在高處時世界座標會被抬高約 .5～.7 公尺，
+   換到側面／投手視角／各種回放鏡頭就看到球進了好球帶後自己往上飄去捕手手套。現在球的路徑與鏡頭無關，任何角度看都一致。 */
+function mittLerp(pt, u, out) {
+  pitchBase(pt, 1, _mp0); const m = pt.mitt, zt = m ? m.z : 3.75;
+  pitchBase(pt, .97, _mp1); const dz = Math.max(.05, _mp0.z - _mp1.z), s = zt / dz;
+  const ex = _mp0.x, ey = _mp0.y;
+  const tx = ex + clamp((ex - _mp1.x) * s, -.1, .1), ty = Math.max(.28, ey + clamp((ey - _mp1.y) * s, -.14, .1));      // 順著末段方向略微延伸（左右最多 .1、上下 -.14～+.1 公尺），最低不低於 .28（捕手手套構得到的高度）
+  out.x = ex + (tx - ex) * u; out.y = ey + (ty - ey) * u; out.z = zt * u; return out;
+}
 function mittPoint(pt, out) {      // 球「最後到達」的點（沿視線移到手套深度）：球飛行的終點、捕手手套、回放都用這一個點，三者必定一致
-  pitchBase(pt, 1, _mp0); const m = pt.mitt; return rayAtZ(_mp0.x, _mp0.y, m ? m.z : 3.75, out);
+  return mittLerp(pt, 1, out);
 }
 function visualArrivalT(pt) {      // 玩家「看到」球到達落點的時刻：球在畫面上（沿視線投影到好球帶平面）與落點重疊到一個球半徑內的最早時刻；球進壘前最後一小段主要是變大、位置幾乎不動，肉眼早就判斷「到了」
   const c = camera.position; let tv = pt.T;
@@ -204,8 +215,8 @@ function rayAtZ(x, y, zt, out) {            // 好球帶平面上的點，沿鏡
 function pitchPosEx(pt, t, out) {          // 球過本壘板後繼續飛進捕手手套
   if (t <= pt.T) return pitchBase(pt, clamp(t / pt.T, 0, 1), out);
   pitchBase(pt, 1, out); if (pt.hitBatter || !pt.tm) return out;
-  const u = clamp((t - pt.T) / pt.tm, 0, 1), m = pt.mitt;
-  return rayAtZ(out.x, out.y, m.z * u, out);        // 過本壘後沿視線飛向手套：畫面上的位置與落點完全一致（不會因透視看起來變低）
+  const u = clamp((t - pt.T) / pt.tm, 0, 1);
+  return mittLerp(pt, u, out);        // 過本壘後沿真實軌跡飛進手套（與鏡頭無關，各個回放角度看都不會憑空上飄）
 }
 const _sbp = new V3();
 function swingBallPos(pt, sw) {            // 揮棒接觸瞬間「球實際所在位置」
