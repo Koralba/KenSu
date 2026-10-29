@@ -13,6 +13,7 @@ function resetFormation(snap) {
   for (const pos of POS_LIST) { const f = E.F[pos], p = formationPos(pos); f.tx = p.x; f.tz = p.z; f.sp = 7.5; f.cover = null; f.hasBall = false; f.dive = false; f.wait = 0; if (snap) { f.x = p.x; f.z = p.z; } }
 }
 function moundY(x, z) { const d = Math.hypot(x - MOUND.x, z - MOUND.z); return d <= 2.3 ? .38 : d < 2.9 ? .38 * (2.9 - d) / .6 : 0; }      // 投手丘表面高度（圓台：頂面半徑 2.3、底部半徑 2.9）
+const EXEC_K_IF = 1.24, EXEC_K_OF = 1.1;      // 追球野手的實際跑速倍率（內野／外野）：想再快或慢只改這兩個數字
 function moveFielder(f, dt) {
   const dx = f.tx - f.x, dz = f.tz - f.z, d = Math.hypot(dx, dz), rig = f.rig;
   if (f.busy > 0) { f.busy -= dt; }
@@ -21,7 +22,11 @@ function moveFielder(f, dt) {
   f.v = f.v || 0;
   if (f.pl && f.pl.out && rig.anim && rig.anim.name === 'down' && rig.anim.opt && rig.anim.opt.hold) { f.v = 0; f.tx = f.x; f.tz = f.z; rig.run = 0; rig.root.position.x = f.x; rig.root.position.z = f.z; return; }      // 受傷倒地的野手：趴在原地不動（不再趴著滑行）
   if (d > 0.06 && !(f.hold > 0)) {
-    const sp = f.sp || 4, acc = 12 + (f.pl.fld || 55) * .05;
+    let sp = f.sp || 4, acc = 12 + (f.pl.fld || 55) * .05;
+    if (PL && PL.state === 'flight' && !f.manual && !f.hasBall) {      // 球在飛／滾時：野手實際跑動加快、起跑加速更猛（原本內野 MOVEK .78 ≈ 4.2 m/s 太慢）。只動執行不動規劃，所以安打／接殺的判定機率不變，只是少了「判定接得到、人卻慢半拍沒到」
+      const isOFm = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF';
+      if (f.chaser) { sp *= isOFm ? EXEC_K_OF : EXEC_K_IF; acc *= 1.4; } else sp *= 1.1;
+    }
     const vt = Math.min(sp, Math.sqrt(2 * acc * d) + .6);                                   // 接近目標時自然減速
     f.v += clamp(vt - f.v, -acc * 1.5 * dt, acc * dt);                                      // 加速度 → 起跑／煞車更流暢
     const st = Math.min(d, f.v * dt); f.x += dx / d * st; f.z += dz / d * st;
@@ -197,7 +202,7 @@ function chasePlan(sim, S, list, foul) {
 function assignRoles(plan) {
   const F = E.F, ch = plan.f; const cover = {};
   for (const f of Object.values(F)) { f.cover = null; f.sp = 4.6; f.hold = 0; f.assist = false; }
-  ch.tx = plan.x; ch.tz = plan.z; ch.sp = fspeed(ch) * (plan.air && plan.kind === 'catch' ? AIR_SPD : 1); ch.chaser = true; { const w0 = Math.max(0, plan.react !== undefined ? plan.react : .3); ch.wait = (plan.air && plan.kind === 'catch') ? Math.min(w0, (ch.pos === 'LF' || ch.pos === 'CF' || ch.pos === 'RF') ? .1 : .28) : Math.min(w0, .1); }      // 起步反應時間上限：不再呆站著等球經過身旁才追
+  ch.tx = plan.x; ch.tz = plan.z; ch.sp = fspeed(ch) * (plan.air && plan.kind === 'catch' ? AIR_SPD : 1); ch.chaser = true; { const w0 = Math.max(0, plan.react !== undefined ? plan.react : .3); ch.wait = (plan.air && plan.kind === 'catch') ? Math.min(w0, (ch.pos === 'LF' || ch.pos === 'CF' || ch.pos === 'RF') ? .1 : .16) : Math.min(w0, .1); }      // 起步反應時間上限：不再呆站著等球經過身旁才追
   for (const f of Object.values(F)) if (f !== ch) f.chaser = false;
   if (plan.dive) ch.dive = true;
   const infieldPlay = Math.hypot(plan.x, plan.z) < 36;
