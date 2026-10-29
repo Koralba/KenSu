@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="css/07-career.css">
 <link rel="stylesheet" href="css/08-versus.css">
 <link rel="stylesheet" href="css/09-koshien.css">
+<link rel="stylesheet" href="css/10-menu-glass.css">
 </head>
 <body>
 <div id="wrap">
@@ -55,6 +56,7 @@
 
 <div id="menu" class="hide">
   <h2><span class="ic">⚾</span><span class="tx">比賽設定</span></h2>
+  <div class="mvs" id="menuVs" aria-live="polite"></div>
   <div class="mgrid">
     <section class="mcard">
       <div class="tpick">
@@ -64,11 +66,11 @@
       </div>
     </section>
     <section class="mcard sets">
-      <div class="opt"><b>我操控</b><div class="pl"><span class="pill sel" data-k="ctl" data-v="0">主隊</span><span class="pill" data-k="ctl" data-v="1">客隊</span><span class="pill" data-k="ctl" data-v="2">只觀戰</span></div></div>
-      <div class="opt"><b>先後攻</b><div class="pl"><span class="pill sel" data-k="ord" data-v="0">先攻</span><span class="pill" data-k="ord" data-v="1">後攻</span></div></div>
-      <div class="opt"><b>局數</b><div class="pl"><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill" data-k="inn" data-v="5">5 局</span><span class="pill sel" data-k="inn" data-v="9">9 局</span></div></div>
-      <div class="opt"><b>電腦</b><div class="pl"><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div></div>
-      <div class="opt"><b>模式</b><div class="pl"><span class="pill sel" data-k="easy" data-v="0">正常</span><span class="pill" data-k="easy" data-v="1">簡易</span></div></div>
+      <div class="opt"><b>🎮 操控</b><div class="pl"><span class="pill sel" data-k="ctl" data-v="0">主隊</span><span class="pill" data-k="ctl" data-v="1">客隊</span><span class="pill" data-k="ctl" data-v="2">只觀戰</span></div></div>
+      <div class="opt"><b>⚔ 先後攻</b><div class="pl"><span class="pill sel" data-k="ord" data-v="0">先攻</span><span class="pill" data-k="ord" data-v="1">後攻</span></div></div>
+      <div class="opt"><b>⏱ 局數</b><div class="pl"><span class="pill" data-k="inn" data-v="3">3 局</span><span class="pill" data-k="inn" data-v="5">5 局</span><span class="pill sel" data-k="inn" data-v="9">9 局</span></div></div>
+      <div class="opt"><b>🤖 電腦</b><div class="pl"><span class="pill" data-k="lv" data-v="0">弱</span><span class="pill sel" data-k="lv" data-v="1">普通</span><span class="pill" data-k="lv" data-v="2">強</span><span class="pill" data-k="lv" data-v="3">宗師</span></div></div>
+      <div class="opt"><b>🎚 模式</b><div class="pl"><span class="pill sel" data-k="easy" data-v="0">正常</span><span class="pill" data-k="easy" data-v="1">簡易</span></div></div>
       <div class="lvdesc" id="lvDesc"></div>
     </section>
   </div>
@@ -176,6 +178,8 @@
 <script src="js/13p-lan-versus.js"></script>
 <script src="js/13q-strikeout-fx.js"></script>
 <script src="js/13r-koshien-skin.js"></script>
+<script src="js/13s-clay-skin.js"></script>
+<script src="js/13t-face-expression.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){})})}</script></body></html>
