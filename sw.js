@@ -5,7 +5,7 @@
    改了遊戲檔案、想讓所有人立刻換新版：把下面的 VERSION 往前進一格。
    版本號格式 v主.次.修（目前 v1.1.9）：每次改版只加最後一位；到 9 之後歸 0 並讓前一位加 1，以此類推
    例：v1.1.8 → v1.1.9 → v1.2.0 → … → v1.9.9 → v2.0.0 */
-const VERSION = 'v1.1.28';
+const VERSION = 'v1.1.30';
 const CACHE = 'cpbl2027-' + VERSION;
 const LOCAL = [
   './', 'baseball.html', 'yw_manifest.json',
