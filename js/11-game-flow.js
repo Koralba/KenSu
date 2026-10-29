@@ -221,22 +221,23 @@ function cpuDeliver() {
   doPitch(sel);
 }
 function doPickoff(i) {
-  const r = G.on[i], P = E.F.P, tgt = i === 0 ? E.F['1B'] : i === 1 ? E.F.SS : E.F['3B'];
+  const r = G.on[i], P = E.F.P, b2s = baseSpot(2), tgt = i === 0 ? E.F['1B'] : i === 1 ? (dist2(E.F.SS.x, E.F.SS.z, b2s.x, b2s.z) <= dist2(E.F['2B'].x, E.F['2B'].z, b2s.x, b2s.z) ? E.F.SS : E.F['2B']) : E.F['3B'];      // 二壘：誰離壘包近誰去
   if (!r || r.state !== 'on' || !P || !tgt || G.phase === 'pickoff') return;
   if (G.phase === 'windup') PT = null;      // 盜壘中、投球動作裡改傳壘：取消這一球
   pitcherToMound();
   r.pkIntent = stealIntent(r); r.leadAtPick = r.lead || 0; r.stepGo = false; r.earlyGo = false; G.phase = 'pickoff'; G.pickCount++;
   { const pp0 = curPitcher(); pp0.pkLoad = (pp0.pkLoad || 0) + 2.4 + 1.1 * Math.max(0, G.pickCount - 1); pp0.fatigue = calcFatigue(pp0); }      // 牽制也耗體力：連續牽制消耗愈來愈多
-  { const ab0 = pickAbility(i), w0 = r.wary || 0; r.wary = clamp(w0 + (.32 + ab0 * .3 + (r.leadAtPick > 2.6 ? .1 : 0)) * (1 - w0 * .4), 0, 1); }      // 跑者更警戒：離壘縮短、盜壘意願降低
+  { const ab0 = pickAbility(i), w0 = r.wary || 0; r.wary = clamp(w0 + (.4 + ab0 * .3 + (r.leadAtPick > 2.6 ? .14 : 0)) * (1 - w0 * .4), 0, 1); }      // 跑者更警戒：離壘縮短、盜壘意願降低
   const out = pickoffSuccess(r), tok = G.pkTok = (G.pkTok || 0) + 1;
   const alive = () => tok === G.pkTok && !G.over && G.mode === 'play' && G.phase === 'pickoff', alive2 = () => tok === G.pkTok && !G.over && G.mode === 'play';
-  const b = baseSpot(i + 1), cv = { x: b.x + (b.x > 0 ? -.5 : b.x < 0 ? .5 : 0), z: b.z + (i === 1 ? 1.2 : .6) }, hd = curPitcher().hand === 'L' ? -1 : 1;
+  const b = baseSpot(i + 1), cv = { x: b.x + (b.x > 0 ? -.5 : b.x < 0 ? .5 : (tgt.x >= 0 ? .7 : -.7)), z: b.z + (i === 1 ? 1.0 : .6) }, lead0 = r.lead || 0, hd = curPitcher().hand === 'L' ? -1 : 1;
   const clr = () => { for (const q of E.runners) { q.pkHold = false; q.pkRate = 0; } };
   const hand = () => { const h = new V3(); try { pitcherHandPos(h); } catch (e) { h.set(P.x, 1.5, P.z); } return h; };
   for (const q of E.runners) if (q.state === 'on') { q.pkHold = true; q.pkRate = 3; }      // 其他壘上跑者在牽制期間也維持原本的離壘
   // 流程：①投手站定盯著跑者、壘包手同時補位到壘包旁 → ②投手完整的傳球動作 → ③球飛到壘包、野手接球並觸殺 → ④判定 → ⑤野手把球傳回投手 → 才繼續比賽
-  faceRig(P.rig, cv.x, cv.z); P.rig.anim = { name: 'stretch', t: 0, dur: .7, opt: { hand: hd } };
-  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 1.1; tgt.wait = 0; tgt.hold = 0; if (tgt.rig.anim && (tgt.rig.anim.name === 'stance' || tgt.rig.anim.name === 'crouch')) tgt.rig.anim = null;
+  faceRig(P.rig, cv.x, cv.z); P.rig.anim = { name: 'stretch', t: 0, dur: .3, opt: { hand: hd } };
+  if (lead0 > 2.2) { try { toast('牽制！', '#ffe9a0', '#c60'); } catch (e) { } }      // 離壘大的跑者：明顯的「嚇阻」提示
+  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 2.0; tgt.wait = 0; tgt.hold = 0; tgt.v = Math.max(tgt.v || 0, 3.8);      // 壘包手一聽到就衝回壘包（真實牽制：1B／SS 早就貼在壘邊，這裡用衝刺加起跑速度模擬） if (tgt.rig.anim && (tgt.rig.anim.name === 'stance' || tgt.rig.anim.name === 'crouch')) tgt.rig.anim = null;
   const finish = () => { if (!alive2()) return; clr(); prePitch(); };
   const returnBall = () => {
     if (!alive2()) return; const h2 = hand();
@@ -253,24 +254,24 @@ function doPickoff(i) {
         after(1.1, () => { if (!alive2()) return; clr(); if (G.outs >= 3) { endHalf(); } else { cleanupRunners(); G.phase = 'pickoff'; returnBall(); } });
       } else {
         r.pkHold = false; pickCall(tgt, r, false, 'pick'); if (r.state !== 'out' && !G.freeze) say(`牽制，安全上壘！${r.wary > .35 ? '跑者變得更謹慎，離壘縮短了；' : ''}投手也消耗了一些體力。`);
-        after(.55, () => { if (r.state === 'out' && alive2()) { clr(); if (G.outs >= 3) { endHalf(); return; } cleanupRunners(); returnBall(); return; } if (!alive()) return; if (r.rig.anim && (r.rig.anim.name === 'slide' || r.rig.anim.name === 'hdive')) r.rig.anim = null; try { faceRig(r.rig, P.x, P.z); } catch (e) { } returnBall(); });
+        after(.4, () => { if (r.state === 'out' && alive2()) { clr(); if (G.outs >= 3) { endHalf(); return; } cleanupRunners(); returnBall(); return; } if (!alive()) return; if (r.rig.anim && (r.rig.anim.name === 'slide' || r.rig.anim.name === 'hdive')) r.rig.anim = null; try { faceRig(r.rig, P.x, P.z); } catch (e) { } returnBall(); });
       }
     });
   };
   const throwIt = () => {
     if (!alive()) return;
-    faceRig(P.rig, cv.x, cv.z); faceRig(tgt.rig, P.x, P.z); P.rig.anim = { name: 'throw', t: 0, dur: .36, opt: { hand: hd } };
-    after(.18, () => {
+    faceRig(P.rig, cv.x, cv.z); faceRig(tgt.rig, P.x, P.z); P.rig.anim = { name: 'throw', t: 0, dur: .3, opt: { hand: hd } };
+    after(.12, () => {
       if (!alive()) return;
-      const h = hand(); flowSfx('pick', .4);
-      r.pkHold = false; r.pkRate = out ? 1.6 : 7; try { const bs = baseSpot(r.from); faceRig(r.rig, bs.x, bs.z); } catch (e) { } if ((r.lead || 0) > 1.7) r.rig.anim = { name: 'hdive', t: 0, dur: Math.min(.7, .25 + (r.lead || 0) * .16), opt: {} }; else r.rig.anim = null; try { spawnBurst(r.rig.root.position.x, .12, r.rig.root.position.z, .5, '#c9a06a'); } catch (e) { }      // 球一出手跑者才開始撲回壘（被牽制出局者反應慢、回得慢）
-      ballTween({ x: h.x, y: h.y, z: h.z }, { x: cv.x, y: 1.15, z: cv.z }, clamp(throwDur(P, cv), .3, .75), .45, () => { if (!alive()) return; flowSfx('mitt'); tgt.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; after(.14, tagIt); });
+      const h = hand(); flowSfx('pick', .85); try { CAMC.shake = Math.max(CAMC.shake || 0, lead0 > 2.2 ? .09 : .04); } catch (e) { }
+      r.pkHold = false; r.pkRate = out ? 1.6 : 7; try { const bs = baseSpot(r.from); faceRig(r.rig, bs.x, bs.z); } catch (e) { } if ((r.lead || 0) > 1.7) r.rig.anim = { name: 'hdive', t: 0, dur: Math.min(.6, .2 + (r.lead || 0) * .13), opt: {} }; else r.rig.anim = null; try { spawnBurst(r.rig.root.position.x, .12, r.rig.root.position.z, .5 + Math.min(.6, lead0 * .15), '#c9a06a'); } catch (e) { }      // 球一出手跑者才開始撲回壘（被牽制出局者反應慢、回得慢）
+      ballTween({ x: h.x, y: h.y, z: h.z }, { x: cv.x, y: 1.15, z: cv.z }, clamp(throwDur(P, cv) * .8, .22, .6), .35, () => { if (!alive()) return; flowSfx('mitt'); tgt.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; after(.1, tagIt); });
     });
   };
   let el = 0;
   const ready = () => {
     if (!alive()) return; el += .06; faceRig(P.rig, cv.x, cv.z);
-    if ((el >= .5 && dist2(tgt.x, tgt.z, cv.x, cv.z) < .6) || el >= 1.6) { throwIt(); return; }      // 壘包手到位（或最多等 1.6 秒）才傳
+    if ((el >= .14 && dist2(tgt.x, tgt.z, cv.x, cv.z) < 2.6) || el >= .55) { throwIt(); return; }      // 投手回身看壘後立刻傳；壘包手在球飛行的 .3 秒內就會到位（不再等他慢慢走回壘）
     after(.06, ready);
   };
   after(.06, ready);
