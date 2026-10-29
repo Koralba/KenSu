@@ -365,7 +365,7 @@ function updateFlight(dt) {
   // 以前會多飛最多一個子步（≤1/60 秒，約一個球寬）才判定，畫面上的球位與判定／擊球起點會對不上。
   if (pt.sw && !pt.sw.done && pt.t >= pt.sw.tc) pt.t = Math.max(pt.t - dt, pt.sw.tc);
   else if ((!pt.sw || pt.waitCatch) && pt.t > tEnd) pt.t = tEnd;
-  if (!pt.cprep && pt.t > pt.T * .5 && E.F.C) {
+  if (!pt.cprep && pt.t > pt.T * .35 && E.F.C) {
     pt.cprep = true; const C = E.F.C;
     if (!pt.hitBatter) { try { pt.cT = mittPoint(pt, {}); pt.cg = solveCatchPose(C.rig, pt.cT); } catch (e) { pt.cg = null; } }      // 球飛到一半：捕手先算好「手套要放哪、身體要站哪」，手套提前移到球的終點等球
     C.tx = catchX(pt); C.tz = C.z; C.sp = 9; C.wait = 0;
