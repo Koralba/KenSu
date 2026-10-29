@@ -319,7 +319,7 @@ function updateRunners(dt) {
     if (r.state === 'out' || r.state === 'home') { r.fadeT = (r.fadeT || 0) + dt; if (r.fadeT > 1.2 && r.rig.root.visible) r.rig.root.visible = false; continue; }
     if (r.state === 'on') {   // lead ramp
       const live = (G.phase === 'pre' || G.phase === 'windup' || G.phase === 'flight') && !PL, hold = G.phase === 'pickoff' && r.pkHold;      // 牽制進行中：跑者維持離壘，直到投手球出手後才反應回壘（不再球一投出去就瞬間縮回壘包、卻仍被判出局）
-      const want = (live || hold) ? (r.leadMax ? effLead(r) * (1 - clamp(r.wary || 0, 0, 1) * .35) : 0) : 0, rate = G.phase === 'pickoff' && r.pkRate ? r.pkRate : 3;
+      const want = (live || hold) ? (r.leadMax ? effLead(r) * (1 - clamp(r.wary || 0, 0, 1) * .5) : 0) : 0, rate = G.phase === 'pickoff' && r.pkRate ? r.pkRate : 3;
       r.lead += clamp(want - r.lead, -rate * dt, 3 * dt);
     } else if (r.state === 'run') {
       if (r.stall > 0) { r.stall -= dt; runnerXZ(r, _rp); r.rig.root.position.set(_rp.x, 0, _rp.z); if (r.stall <= 0) { r.rig.anim = null; r.slipped = false; } continue; }
