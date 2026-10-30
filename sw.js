@@ -8,7 +8,7 @@
    「次」「修」兩位只能是 0～9：「修」滿 9 之後下一版歸 0、讓「次」加 1；「次」滿 9 再進位時歸 0、讓「主」加 1。
    只有第一位「主」沒有上限（可以是 10、12、……）。
    例：v1.0.8 → v1.0.9 → v1.1.0 → v1.1.1 → … → v1.9.9 → v2.0.0 → … → v9.9.9 → v10.0.0 → … → v12.9.9 → v13.0.0 */
-const VERSION = 'v1.1.1';
+const VERSION = 'v1.1.3';
 const CACHE = 'cpbl2027-' + VERSION;
 const LOCAL = [
   './', 'baseball.html', 'yw_manifest.json',
