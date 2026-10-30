@@ -1,0 +1,162 @@
+/* ===== 07-career.css ｜ 生涯模式：角色欄位、建立角色、球員卡 =====
+   接在 06-transition.css 之後載入。z-index 若被其他面板蓋住，調整 #careerStudio 的 z-index 即可。 */
+#careerStudio {
+  --bg: #0c1322; --panel: #141d33; --panel2: #1b2742; --line: rgba(255, 255, 255, .13); --gold: #e8c26a; --txt: #eef1f8; --mut: #9aa6c0; --bad: #ff8a80;
+  position: absolute; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 10px;
+  background: rgba(4, 8, 16, .82); backdrop-filter: blur(5px); color: var(--txt); font-family: 'Noto Sans TC', system-ui, sans-serif;
+}
+#careerStudio.hide { display: none; }
+#careerStudio * { box-sizing: border-box; }
+#careerStudio button { font: inherit; color: inherit; cursor: pointer; }
+#careerStudio button:focus-visible, #careerStudio input:focus-visible, #careerStudio select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.cr-box { width: min(980px, 100%); max-height: 100%; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--gold); border-radius: 10px; box-shadow: 0 18px 60px #000a; overflow: hidden; }
+.cr-box.hub { width: min(620px, 100%); }
+.cr-t { display: flex; align-items: baseline; gap: 10px; padding: 12px 16px; font: 900 20px 'Noto Serif TC', serif; letter-spacing: .04em; border-bottom: 1px solid var(--line); }
+.cr-t small { font: 500 13px 'Noto Sans TC', sans-serif; color: var(--mut); letter-spacing: 0; }
+.cr-x { margin-left: auto; background: none; border: 0; font-size: 18px; color: var(--mut); padding: 2px 8px; }
+.cr-msg { min-height: 22px; padding: 4px 16px; font-size: 13px; color: var(--gold); }
+.cr-msg.bad { color: var(--bad); }
+.cr-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--line); background: #0f1830; }
+.cr-foot button, .cr-btns button { padding: 8px 14px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel2); font-size: 14px; }
+.cr-foot button.pri, .cr-btns button.pri { background: var(--gold); border-color: var(--gold); color: #1a1405; font-weight: 700; }
+.cr-btns button.dng { color: var(--bad); }
+.cr-foot button:hover, .cr-btns button:hover { filter: brightness(1.12); }
+
+/* 角色欄位 */
+.cr-slots { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 4px; overflow: auto; }
+.cr-slot { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; }
+.cr-slot.empty { border-style: dashed; background: transparent; }
+.cr-slot.bad { border-color: var(--bad); }
+.cr-no { width: 22px; text-align: center; font: 700 18px Orbitron, sans-serif; color: var(--gold); }
+.cr-thumb { width: 56px; height: 66px; flex: none; border-radius: 6px; overflow: hidden; background: linear-gradient(160deg, var(--c1), var(--c2)); }
+.cr-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cr-main { flex: 1; min-width: 0; }
+.cr-h { font-weight: 700; font-size: 16px; }
+.cr-h small { color: var(--gold); font: 700 13px Orbitron, sans-serif; }
+.cr-d { font-size: 12.5px; color: var(--mut); margin-top: 2px; }
+.cr-d.t { font-size: 11.5px; opacity: .8; }
+.cr-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* 建立／編輯角色 */
+.cr-body { display: flex; min-height: 0; flex: 1; }
+.cr-prev { position: relative; flex: 0 0 34%; max-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--c1) 55%, #0c1322) 0%, #0c1322 72%); border-right: 1px solid var(--line); }
+.cr-prev img { width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.cr-rot { display: flex; gap: 10px; margin-top: 6px; }
+.cr-rot button { width: 40px; height: 34px; border-radius: 7px; border: 1px solid var(--line); background: #0008; }
+.cr-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tabs { display: flex; gap: 2px; padding: 8px 12px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { padding: 8px 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--mut); font-size: 14px; white-space: nowrap; }
+.tab.on { color: var(--txt); border-bottom-color: var(--gold); font-weight: 700; }
+.cr-tab { flex: 1; overflow: auto; padding: 12px 16px 16px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+.f { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+.f > span:first-child { flex: 0 0 76px; font-size: 13.5px; color: var(--mut); }
+.f.col { flex-direction: column; align-items: stretch; gap: 6px; }
+.f.col > span:first-child { flex: none; }
+.f input[type=text], .f input:not([type]), .f input[type=number], .f select { background: #0b1120; color: var(--txt); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font-size: 15px; }
+.f input[data-f=name] { width: min(240px, 100%); }
+.f input.narrow { width: 84px; }
+.row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.row.wrap { gap: 6px; }
+.chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel2); font-size: 13.5px; }
+.chip.on { background: var(--gold); border-color: var(--gold); color: #1a1405; font-weight: 700; }
+.sw { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #0008; box-shadow: 0 0 0 1px var(--line); padding: 0; }
+.sw.on { box-shadow: 0 0 0 2px var(--gold); transform: scale(1.1); }
+.clr { width: 34px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; }
+.teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+.tm { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13.5px; text-align: left; }
+.tm i { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+.tm.on { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); font-weight: 700; }
+.f.sl { gap: 10px; }
+.f.sl input[type=range] { flex: 1; min-width: 0; accent-color: var(--gold); }
+.f.sl output { flex: 0 0 62px; text-align: right; font: 600 13px Orbitron, sans-serif; color: var(--gold); }
+.hint { margin: -4px 0 11px 88px; font-size: 12.5px; color: var(--mut); }
+.cr-cardwrap { display: flex; justify-content: center; padding: 4px 0 10px; }
+.cr-cardwrap + .hint { margin-left: 0; text-align: center; }
+
+/* 球員卡（結算畫面與編輯器預覽共用） */
+.cr-card { --c1: #c0392b; --c2: #f4f4f4; width: 214px; padding: 0 0 12px; border-radius: 12px; overflow: hidden; background: linear-gradient(180deg, #17213a, #0c1322); border: 2px solid var(--c1); color: #eef1f8; box-shadow: 0 10px 34px #000a; font-family: 'Noto Sans TC', system-ui, sans-serif; }
+.cr-top { display: flex; justify-content: space-between; padding: 6px 12px; background: linear-gradient(90deg, var(--c1), var(--c2)); font-size: 12.5px; font-weight: 900; color: #fff; text-shadow: 0 1px 2px #000a; letter-spacing: .06em; }
+.cr-pic { position: relative; height: 170px; overflow: hidden; background: radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--c1) 60%, #0c1322), #0c1322 78%); }
+.cr-pic img { position: absolute; left: 50%; bottom: 0; height: 100%; transform: translateX(-50%); display: block; }
+.cr-num { position: absolute; right: 8px; top: 2px; font: 900 40px Orbitron, sans-serif; color: #fff; opacity: .9; text-shadow: 0 0 0 var(--c1), 2px 2px 0 var(--c1); }
+.cr-name { padding: 8px 12px 0; font: 900 22px 'Noto Serif TC', serif; letter-spacing: .06em; }
+.cr-sub { padding: 2px 12px 0; font-size: 12px; color: #aab5cf; }
+.cr-st { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 4px; margin: 10px 12px 0; padding-top: 8px; border-top: 1px solid var(--line); }
+.cr-st span { text-align: center; }
+.cr-st small { display: block; font-size: 10.5px; color: #9aa6c0; }
+.cr-st b { font: 700 15px Orbitron, sans-serif; color: #e8c26a; }
+.cr-resdock { position: absolute; left: max(14px, env(safe-area-inset-left)); top: 50%; transform: translateY(-50%); z-index: 3; pointer-events: none; }
+.cr-card.res { animation: crIn .45s ease-out both; }
+@keyframes crIn { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cr-card.res { animation: none; } }
+@media (max-width: 760px), (max-height: 460px) {
+  #careerStudio { padding: 4px; }
+  .cr-t { padding: 8px 12px; font-size: 17px; }
+  .cr-prev { flex-basis: 30%; padding: 6px; }
+  .f > span:first-child { flex-basis: 60px; }
+  .hint { margin-left: 72px; }
+  .cr-card.res { width: 150px; }
+  .cr-card.res .cr-pic { height: 118px; }
+  .cr-card.res .cr-name { font-size: 16px; }
+  .cr-card.res .cr-num { font-size: 28px; }
+}
+
+/* ===== 結算畫面（比賽結束／MVP）排版 v2：球員卡在左、結算內容在右，兩者永遠不重疊 =====
+   舊版球員卡 .cr-resdock 是 position:absolute 貼在左邊，在窄螢幕會壓到置中的 .rbox（MVP／獎項／按鈕）。
+   現在不靠 :has()，改用 13c attachResult 加在 #result 上的 .crdock 類別（舊瀏覽器也有效）：
+   橫向＝左卡右內容；直向手機＝上方橫條卡＋下方內容；矮螢幕自動縮小、隱藏次要文字。內容太高時整個 #result 可捲動，不會被切掉。
+   margin:auto（而非 align-items:center）：空間夠就置中、不夠就從頂端開始，頂端不會被切到看不見。 */
+#result.crdock { display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center !important; align-items: flex-start; gap: clamp(8px, 2vw, 28px); padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+#result.crdock > .cr-resdock { order: -1; position: relative; left: auto; top: auto; transform: none; flex: 0 0 auto; margin: auto 0; z-index: 3; pointer-events: auto; }
+#result.crdock > .rbox { order: 0; flex: 1 1 0; width: auto; min-width: 0; max-width: 760px; margin: auto 0; gap: clamp(3px, 1vh, 10px); }
+#result.crdock .cr-card.res { width: clamp(150px, 17vw, 212px); max-width: 100%; }
+#result.crdock .cr-card.res .cr-pic { height: clamp(96px, 20vh, 170px); }
+#result.crdock .cr-card.res .cr-name { font-size: clamp(15px, 2.6vh, 22px); }
+#result.crdock .trophy, #result.crdock .hug { font-size: clamp(30px, 8vh, 84px); }
+#result.crdock.win .rbox > h2, #result.crdock.lose .rbox > h2 { font-size: clamp(24px, min(6vw, 8vh), 64px); }
+#result.crdock .sc { font-size: clamp(14px, min(2.6vw, 3.8vh), 30px); line-height: 1.35; }
+#result.crdock .sc small { font-size: .62em; }
+#result.crdock .award { flex: 1 1 130px; max-width: 220px; padding: 6px 8px; }
+#result.crdock .award .ai { font-size: clamp(22px, 4vh, 36px); }
+#result.crdock .cs-sum { line-height: 1.5; }
+#result.crdock .rbtns button { min-width: 0; padding: 9px 22px; font-size: clamp(15px, 2.6vh, 22px); }
+@media (max-width: 760px) and (orientation: portrait) {       /* 直向手機：上方橫條球員卡（左圖右字），下方結算內容；整頁可捲動 */
+  #result.crdock { flex-direction: column; align-items: center; }
+  #result.crdock > .cr-resdock { margin: 0; width: 100%; max-width: 440px; }
+  #result.crdock .cr-card.res { width: 100%; display: grid; grid-template-columns: 30% 1fr; grid-template-areas: "top top" "pic name" "pic sub" "pic sub2" "st st"; padding-bottom: 8px; }
+  #result.crdock .cr-card.res > :nth-child(1) { grid-area: top; }
+  #result.crdock .cr-card.res > :nth-child(2) { grid-area: pic; height: auto; min-height: 92px; }
+  #result.crdock .cr-card.res > :nth-child(3) { grid-area: name; padding-top: 4px; }
+  #result.crdock .cr-card.res > :nth-child(4) { grid-area: sub; }
+  #result.crdock .cr-card.res > :nth-child(5) { grid-area: sub2; }
+  #result.crdock .cr-card.res > :nth-child(6) { grid-area: st; margin-top: 6px; padding-top: 6px; }
+  #result.crdock .cr-card.res .cr-num { font-size: 26px; }
+  #result.crdock > .rbox { width: 100%; margin: 0 0 auto; flex: 0 0 auto; }
+  #result.crdock .award { flex: 1 1 42%; max-width: none; }
+}
+@media (max-height: 520px) and (orientation: landscape) {      /* 矮螢幕（手機橫向）：卡片縮小、隱藏次要文字與獎盃，讓 MVP／獎項／按鈕盡量一頁看完 */
+  #result.crdock { gap: 8px; padding-top: 6px; padding-bottom: 6px; }
+  #result.crdock .cr-card.res { width: clamp(112px, 17vw, 150px); padding-bottom: 6px; }
+  #result.crdock .cr-card.res .cr-top { padding: 3px 8px; font-size: 11px; }
+  #result.crdock .cr-card.res .cr-pic { height: clamp(60px, 22vh, 92px); }
+  #result.crdock .cr-card.res .cr-num { font-size: 22px; }
+  #result.crdock .cr-card.res .cr-name { font-size: 14px; padding: 4px 8px 0; }
+  #result.crdock .cr-card.res .cr-sub { display: none; }
+  #result.crdock .cr-card.res .cr-st { margin: 5px 8px 0; padding-top: 4px; gap: 2px; grid-template-columns: repeat(2, 1fr); }
+  #result.crdock .cr-card.res .cr-st small { font-size: 9.5px; }
+  #result.crdock .cr-card.res .cr-st b { font-size: 12px; }
+  #result.crdock .trophy, #result.crdock .hug { display: none; }
+  #result.crdock .ribbon { padding: 2px 16px; font-size: 12px; }
+  #result.crdock .rbox { gap: 3px; }
+  #result.crdock .award { padding: 4px 6px; }
+  #result.crdock .award .at { font-size: 10px; margin: 0; }
+  #result.crdock .award .an { font-size: 13px; }
+  #result.crdock .award .ad { font-size: 10.5px; margin-top: 1px; }
+  #result.crdock .award .ai { font-size: 20px; }
+  #result.crdock .rmini, #result.crdock .cs-sum, #result.crdock .tips, #result.crdock .enc { font-size: 11.5px; line-height: 1.35; }
+  #result.crdock .rbtns { margin-top: 2px; }
+  #result.crdock .rbtns button { padding: 5px 16px; font-size: 14px; border-width: 2px; }
+}
+/* 投手資訊：K 數 */
+#pC .kc b, #pS .kc b { color: #ff8a80; margin-left: 2px; }
+#pS .kc { font-weight: 900; color: #ffd0cc; margin-left: 4px; }
