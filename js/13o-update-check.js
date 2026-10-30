@@ -8,7 +8,8 @@
    公開介面：window.UPD = { check(), apply(), force(), version, remote, pending }。 */
 (function () {
   'use strict';
-  if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  const PAGE_VER = 'v1.0.7';      // ★ 與 sw.js 的 VERSION 同步（每次改版一起改；tests/test-update-check.js 會檢查是否一致）。只作為「問不到 Service Worker」時的最後備援，確保右下角不會再出現「—」
+  const noSW = !('serviceWorker' in navigator) || location.protocol === 'file:';
   const KEY = 'cpbl.updMsg', VK = 'cpbl.ver';
   const U = window.UPD = { version: null, remote: null, pending: false, ready: null, check: check, force: force };
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }, del(k) { try { localStorage.removeItem(k); } catch (e) { } } };
@@ -23,6 +24,7 @@
       + '#updBar.on{display:block}#updBar .tk{display:inline-block;white-space:nowrap;padding-left:100%;animation:updRun 16s linear infinite}#updBar:hover .tk{animation-play-state:paused}'
       + '@keyframes updRun{to{transform:translateX(-100%)}}body.playing #updBar,body.resOn #updBar{display:none!important}'
       + '#updVer{position:absolute;right:2.5vw;bottom:5vh;z-index:3;padding:6px 12px;color:rgba(255,255,255,.88);font-size:12px;font-weight:700;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;user-select:none}'
+      + '#updVer .vn{font-weight:900}#updVer .vn.old{color:#9b111e;text-shadow:0 0 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.7),0 1px 2px rgba(255,255,255,.6)}'
       + '#updDlg{position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;font-family:\"Noto Sans TC\",sans-serif}#updDlg.on{display:flex}'
       + '#updDlg .bx{width:min(88vw,360px);background:#0f2438;border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:18px 18px 14px;color:#eaf4ff;text-align:center;box-sizing:border-box}'
       + '#updDlg h3{margin:0 0 8px;font-size:18px}#updDlg p{margin:0 0 12px;font-size:14px;line-height:1.7}#updDlg b{color:#ffe08a}'
@@ -60,7 +62,7 @@
   async function run() {
     const reg = await getReg(); if (!reg) return 'unknown';
     const [mine, remote] = await Promise.all([askVersion(reg), fetchRemoteVersion()]);
-    U.version = mine || U.version; U.remote = remote;
+    U.version = mine || U.version; U.remote = remote; showVer();      // 知道伺服器版本後重畫：舊版顯示暗紅色
     if (U.pending) return 'updated';
     if (!remote) return 'offline';
     if (!mine) {      // 問不到目前版本：有新 SW 在安裝就等它，否則不強制（避免重新載入迴圈）
@@ -100,10 +102,10 @@
   U.apply = apply;
   /* ---------- 新版就緒 ---------- */
   function updated(v) {      // 新版 Service Worker 已接手：不自己重新載入，等使用者在通知視窗按「確認」
-    U.pending = true; ls.set(KEY, v || U.remote || ''); notice(v || U.remote);
+    U.pending = true; ls.set(KEY, v || U.remote || ''); showVer(); notice(v || U.remote);
   }
-  let first = !navigator.serviceWorker.controller, reloading = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
+  let first = noSW ? false : !navigator.serviceWorker.controller, reloading = false;
+  if (!noSW) navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloading) return;
     askVersion().then(v => {
       v = v || U.remote; const old = ls.get(VK); if (v) ls.set(VK, v);
@@ -127,18 +129,38 @@
     const v = ls.get(KEY); if (!v) return; ls.del(KEY);
     askVersion().then(mine => { say('遊戲已更新至最新版本 ' + (mine || v) + '，若有相關問題請洽 Cam.Su，LINE ID:c468116', false); hideSoon(17000); });
   }
-  /* ---------- 標題畫面：顯示目前遊戲版本（原本「檢查更新」按鈕的位置）---------- */
+  /* ---------- 標題畫面：顯示目前遊戲版本（右下角，原本「檢查更新」按鈕的位置）---------- */
+  const verNum = v => { const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(v || ''); return m ? [+m[1], +m[2], +m[3]] : null; };
+  const verCmp = (a, b) => { const x = verNum(a), y = verNum(b); if (!x || !y) return a === b ? 0 : NaN; for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1; return 0; };
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  U._cmp = verCmp;
+  function curVer() { return U.version || PAGE_VER || ls.get(VK) || null; }
+  function isOld() {      // 這台裝置的版本比伺服器上的舊 → 版本號顯示暗紅色
+    const mine = curVer(), remote = U.remote; if (!mine || !remote) return false;
+    const c = verCmp(mine, remote); return c < 0 || (c !== c && mine !== remote);
+  }
   function showVer() {
     const t = document.getElementById('title'); if (!t) return; css();
     let b = document.getElementById('updVer'); if (!b) { b = document.createElement('div'); b.id = 'updVer'; t.appendChild(b); }
-    b.textContent = '版本 ' + (U.version || ls.get(VK) || '—') + (U.ready === true ? '・離線可用' : U.ready === false ? '・離線包未完整，請連網開啟一次' : '');
+    const v = curVer();
+    b.innerHTML = '目前版本 <span class="vn' + (isOld() ? ' old' : '') + '">' + esc(v || '—') + '</span>' + (U.ready === true ? '・離線可用' : U.ready === false ? '・離線包未完整，請連網開啟一次' : '');
   }
-  async function loadVer() {      // 目前版本：問 Service Worker；問不到就讀上次記下的版本
-    const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
-    const v = await askVersion(reg); if (v) { U.version = v; ls.set(VK, v); }
+  U.show = showVer;
+  async function cacheVersion() {      // 備援：從本遊戲的快取名稱（cpbl2027-<版本>）讀出這台裝置目前用的版本；舊版 Service Worker 不會回答 VER 時也能用
+    try {
+      const vs = (await caches.keys()).filter(k => k.indexOf('cpbl2027-') === 0).map(k => k.slice(9)).filter(v => verNum(v));
+      if (!vs.length) return null; return vs.reduce((a, b) => verCmp(a, b) >= 0 ? a : b);
+    } catch (e) { return null; }
+  }
+  async function loadVer() {      // 目前版本：問 Service Worker → 讀快取名稱 → 頁面內建版本 → 上次記下的版本
+    let v = null;
+    try { const reg = await navigator.serviceWorker.getRegistration().catch(() => null); v = await askVersion(reg); } catch (e) { }
+    if (!v) v = await cacheVersion();
+    if (v) { U.version = v; ls.set(VK, v); }
     showVer();
   }
   function start() {
+    if (noSW) { showVer(); return; }      // 沒有 Service Worker（file:// 或不支援）：只顯示頁面內建版本
     showVer(); afterReload(); loadVer(); setTimeout(loadVer, 3000);
     if (navigator.onLine !== false) setTimeout(() => { loadVer().then(check); }, 1500);      // 連網：進主畫面自動檢查一次
   }
