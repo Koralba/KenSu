@@ -8,7 +8,7 @@
    公開介面：window.UPD = { check(), apply(), force(), version, remote, pending }。 */
 (function () {
   'use strict';
-  const PAGE_VER = 'v1.0.7';      // ★ 與 sw.js 的 VERSION 同步（每次改版一起改；tests/test-update-check.js 會檢查是否一致）。只作為「問不到 Service Worker」時的最後備援，確保右下角不會再出現「—」
+  const PAGE_VER = 'v1.0.8';      // ★ 與 sw.js 的 VERSION 同步（每次改版一起改；tests/test-update-check.js 會檢查是否一致）。只作為「問不到 Service Worker」時的最後備援，確保右下角不會再出現「—」
   const noSW = !('serviceWorker' in navigator) || location.protocol === 'file:';
   const KEY = 'cpbl.updMsg', VK = 'cpbl.ver';
   const U = window.UPD = { version: null, remote: null, pending: false, ready: null, check: check, force: force };
