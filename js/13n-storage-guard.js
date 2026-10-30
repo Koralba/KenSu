@@ -122,6 +122,10 @@
   function css() {
     if ($('sgCss')) return; const st = document.createElement('style'); st.id = 'sgCss';
     st.textContent = '#sgFab{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:9300;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(10,30,50,.7);color:#fff;font-size:20px;line-height:38px;text-align:center;cursor:pointer;display:none;padding:0}'
+      + '#sgFab.ti{bottom:calc(5vh + 1.6 * clamp(28px,5vw,64px) + 10px + env(safe-area-inset-bottom,0px))}'      /* 主畫面：避開左下角「Made By Cam.Su」字樣，圖示往上移到字樣上方（.ti 由 fab() 加上；:has 規則拆開寫，舊瀏覽器不支援時不會連 .ti 一起失效） */
+      + 'body.mob #sgFab.ti{bottom:calc(3vh + 46px + env(safe-area-inset-bottom,0px))}'
+      + 'body:has(#title:not(.hide)) #sgFab{bottom:calc(5vh + 1.6 * clamp(28px,5vw,64px) + 10px + env(safe-area-inset-bottom,0px))}'
+      + 'body.mob:has(#title:not(.hide)) #sgFab{bottom:calc(3vh + 46px + env(safe-area-inset-bottom,0px))}'
       + '#sgFab.on{display:block}#sgFab i{position:absolute;right:1px;top:1px;width:11px;height:11px;border-radius:50%;background:#f33;border:1px solid #fff;display:none}#sgFab.od i{display:block}'
       + '#sgDlg{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;font-family:"Noto Sans TC",sans-serif}#sgDlg.on{display:flex}'
       + '#sgDlg .bx{width:min(92vw,420px);max-height:88vh;overflow:auto;background:#0f2438;border:1px solid rgba(255,255,255,.35);border-radius:14px;padding:16px 16px 12px;color:#eaf4ff;box-sizing:border-box}'
@@ -134,6 +138,7 @@
     css(); let b = $('sgFab');
     if (!b) { b = document.createElement('button'); b.id = 'sgFab'; b.type = 'button'; b.title = '存檔備份'; b.setAttribute('aria-label', '存檔備份'); b.innerHTML = '💾<i></i>'; b.onclick = e => { e.stopPropagation(); openDlg(); }; b.onpointerdown = e => e.stopPropagation(); document.body.appendChild(b); }
     const playing = typeof G !== 'undefined' && G && G.mode === 'play';
+    const ti = $('title'); b.classList.toggle('ti', !!(ti && !ti.classList.contains('hide')));      // 主畫面時往上移，避免遮到 Made By 字樣
     b.classList.toggle('on', !playing); b.classList.toggle('od', overdue());
   }
   async function openDlg() {
