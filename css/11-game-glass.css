@@ -1,0 +1,219 @@
+/* 11-game-glass.css ｜ 比賽中下方按鈕＋打擊按鈕：與頂部選手資訊相同的「玻璃霧透」質感
+   配方沿用 09-koshien.css：低不透明度冷色底＋backdrop-filter 模糊／提亮、上緣高光、白色亮邊。
+   每顆按鈕用 --tn（色調）區分功能：揮棒＝琥珀、投球＝冰藍、按停＝草綠、強打＝紅橘、短打＝綠、盜壘＝金、牽制＝藍。
+   只改外觀（按鈕 id、JS、點擊與鍵盤不變）；必須接在 10-menu-glass.css 之後載入。
+   新增檔案請同步：baseball.html 加 <link>、sw.js 的 LOCAL 加路徑並把 VERSION +1。 */
+
+/* ---------- 共用：玻璃變數 ---------- */
+#hud {
+  --g-fill: linear-gradient(160deg, rgba(255, 255, 255, .17) 0%, rgba(255, 255, 255, .04) 38%, rgba(20, 30, 52, .20) 100%), rgba(26, 38, 64, .14);
+  --g-edge: rgba(255, 255, 255, .32);
+  --g-blur: blur(14px) saturate(1.7) brightness(1.08);
+  --g-sh: 0 6px 20px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .08), inset 0 0 16px rgba(255, 255, 255, .05);
+}
+
+/* ---------- 揮棒／投球／按停 主圓鈕：玻璃球 ---------- */
+body #hud #btnAct {
+  --tn: 255, 150, 40; --gl: rgba(255, 170, 60, .55);
+  border: 1px solid rgba(255, 255, 255, .42); opacity: 1;
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 50% 118%, rgba(var(--tn), .55) 0%, rgba(var(--tn), 0) 66%),
+    linear-gradient(160deg, rgba(var(--tn), .34), rgba(var(--tn), .12) 55%, rgba(20, 30, 52, .22));
+  -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .38), 0 0 0 3px rgba(0, 0, 0, .16), 0 0 18px rgba(var(--tn), .35),
+    inset 0 1px 1px rgba(255, 255, 255, .8), inset 0 -10px 16px rgba(0, 0, 0, .22), inset 0 0 18px rgba(255, 255, 255, .08);
+  animation: gBreath 2.4s ease-in-out infinite;
+}
+body #hud #btnAct[data-k=pitch] { --tn: 80, 165, 255; --gl: rgba(110, 185, 255, .55);
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 50% 118%, rgba(var(--tn), .55) 0%, rgba(var(--tn), 0) 66%),
+    linear-gradient(160deg, rgba(var(--tn), .34), rgba(var(--tn), .12) 55%, rgba(20, 30, 52, .22));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .38), 0 0 0 3px rgba(0, 0, 0, .16), 0 0 18px rgba(var(--tn), .35), inset 0 1px 1px rgba(255, 255, 255, .8), inset 0 -10px 16px rgba(0, 0, 0, .22), inset 0 0 18px rgba(255, 255, 255, .08) }
+body #hud #btnAct[data-k=stop] { --tn: 70, 225, 110; --gl: rgba(100, 240, 140, .6);
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 50% 118%, rgba(var(--tn), .55) 0%, rgba(var(--tn), 0) 66%),
+    linear-gradient(160deg, rgba(var(--tn), .36), rgba(var(--tn), .12) 55%, rgba(20, 30, 52, .22));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .38), 0 0 0 3px rgba(0, 0, 0, .16), 0 0 18px rgba(var(--tn), .4), inset 0 1px 1px rgba(255, 255, 255, .8), inset 0 -10px 16px rgba(0, 0, 0, .22), inset 0 0 18px rgba(255, 255, 255, .08);
+  animation: actStop .55s ease-in-out infinite alternate, gBreath 1.1s ease-in-out infinite }
+/* 內圈細虛線＝玻璃上的縫線；高光弧改成上半部玻璃反光 */
+body #hud #btnAct::before { inset: 8%; border: 1.2px dashed rgba(255, 255, 255, .5) }
+body #hud #btnAct::after { left: 12%; right: 12%; top: 5%; width: auto; height: 42%; transform: none; opacity: 1; border-radius: 50% 50% 55% 55% / 80% 80% 40% 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0)) }
+body #hud #btnAct .ai { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .55)) drop-shadow(0 0 6px rgba(var(--tn), .55)) }
+body #hud #btnAct .al { text-shadow: 0 1px 3px rgba(0, 0, 0, .7), 0 0 8px rgba(var(--tn), .55) }
+body #hud #btnAct:active { transform: scale(.93); filter: brightness(1.12) }
+@keyframes gBreath {
+  0%, 100% { box-shadow: 0 8px 22px rgba(0, 0, 0, .38), 0 0 0 3px rgba(0, 0, 0, .16), 0 0 10px rgba(var(--tn), .28), inset 0 1px 1px rgba(255, 255, 255, .8), inset 0 -10px 16px rgba(0, 0, 0, .22), inset 0 0 18px rgba(255, 255, 255, .08) }
+  50% { box-shadow: 0 8px 22px rgba(0, 0, 0, .38), 0 0 0 3px rgba(0, 0, 0, .16), 0 0 26px rgba(var(--tn), .65), inset 0 1px 1px rgba(255, 255, 255, .9), inset 0 -10px 16px rgba(0, 0, 0, .18), inset 0 0 22px rgba(255, 255, 255, .14) }
+}
+
+/* ---------- 強打／短打 膠囊開關（觸控版）＋ 電腦版動作鍵 ---------- */
+body #hud #btnPow, body #hud #btnBuntT, body.mob #hud #btnPow, body.mob #hud #btnBuntT,
+body #hud #acts .abtn {
+  --tn: 150, 175, 215; --ac: #fff;
+  position: relative; overflow: hidden; color: #f2f6ff;
+  border: 1px solid var(--g-edge);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(160deg, rgba(var(--tn), .22), rgba(var(--tn), .05) 50%, rgba(20, 30, 52, .22)),
+    rgba(26, 38, 64, .14);
+  -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .30), inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .08), inset 0 0 12px rgba(255, 255, 255, .05);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  transition: transform .12s, filter .15s, box-shadow .2s, border-color .2s;
+}
+/* 左緣色條（呼應主畫面選單與選手資訊的色條語彙），取代舊的紅色虛線縫線 */
+body #hud #acts .abtn::before { inset: 0 auto 0 0; width: 3px; height: auto; border: 0; border-radius: 0;
+  background: linear-gradient(180deg, rgb(var(--tn)), rgba(var(--tn), .25)); opacity: .95 }
+body #hud #btnPow::before, body #hud #btnBuntT::before { content: ''; display: block; position: absolute; left: 9px; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .35); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4); transition: .2s }
+body #hud #btnPow, body #hud #btnBuntT, body.mob #hud #btnPow, body.mob #hud #btnBuntT { padding: 0 14px 0 22px; border-radius: 999px }
+body #hud #acts .abtn { border-radius: 12px; padding-left: calc(1.1em + 2px) }
+/* 各鍵色調 */
+body #hud #btnPow, body #hud #acts #btnPowPc { --tn: 255, 105, 70 }
+body #hud #btnBuntT, body #hud #acts #btnBunt { --tn: 90, 220, 125 }
+body #hud #acts #btnSteal { --tn: 255, 205, 80 }
+body #hud #acts #btnPick { --tn: 110, 175, 255 }
+body #hud #acts #btnRosin { --tn: 245, 235, 195 }
+body #hud #acts #btnMore { --tn: 190, 200, 225 }
+/* 開啟狀態：同色系玻璃加亮＋外發光（不再用實心橘／綠） */
+body #hud #btnPow.on, body #hud #btnBuntT.on, body #hud #acts .abtn.on, body #hud #acts.open #btnMore,
+body.mob #hud #btnPow.on, body.mob #hud #btnBuntT.on {
+  color: #fff; border-color: rgba(var(--tn), .9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .30), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, rgba(var(--tn), .62), rgba(var(--tn), .26) 70%, rgba(20, 30, 52, .2)),
+    rgba(26, 38, 64, .14);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .3), 0 0 16px rgba(var(--tn), .65), inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 0 14px rgba(255, 255, 255, .1);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+}
+body #hud #btnPow.on::before, body #hud #btnBuntT.on::before { background: radial-gradient(circle at 35% 30%, #fff, rgb(var(--tn))); box-shadow: 0 0 8px rgb(var(--tn)) }
+body #hud #acts .abtn .k { background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22) }
+body #hud #acts .abtn:disabled, body #hud #btnPow:disabled, body #hud #btnBuntT:disabled { filter: grayscale(.7) brightness(.85); opacity: .6 }
+body #hud #acts .abtn:not(:disabled):hover { filter: brightness(1.14); transform: translateY(-1px); border-color: rgba(255, 255, 255, .6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .34), 0 0 14px rgba(var(--tn), .45), inset 0 1px 0 rgba(255, 255, 255, .65), inset 0 0 14px rgba(255, 255, 255, .08) }
+body #hud #acts .abtn:not(:disabled):active, body #hud #btnPow:active, body #hud #btnBuntT:active { transform: translateY(2px); filter: brightness(.97);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35), inset 0 2px 8px rgba(0, 0, 0, .3) }
+body #hud .abtn:focus-visible, body #hud #btnPow:focus-visible, body #hud #btnBuntT:focus-visible, body #hud #btnAct:focus-visible { outline: 2px solid rgba(255, 255, 255, .9); outline-offset: 3px }
+
+/* ---------- 「更多」展開選單：霧面大面板 ---------- */
+body #hud #acts #actMore {
+  border: 1px solid rgba(255, 255, 255, .32); border-radius: 16px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, .04) 40%, rgba(20, 30, 52, .22)), rgba(14, 24, 44, .38);
+  -webkit-backdrop-filter: blur(16px) saturate(1.7) brightness(1.06); backdrop-filter: blur(16px) saturate(1.7) brightness(1.06);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 0 18px rgba(255, 255, 255, .05);
+}
+body #hud #acts #actMore .abtn { box-shadow: 0 3px 10px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .45) }
+/* 內容超出時的金色捲動提示：改成柔和內光 */
+body #hud #acts #actMore.sc-dn { box-shadow: 0 12px 30px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -16px 12px -12px rgba(244, 198, 74, .8) }
+body #hud #acts #actMore.sc-up { box-shadow: 0 12px 30px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 16px 12px -12px rgba(244, 198, 74, .8) }
+body #hud #acts #actMore.sc-up.sc-dn { box-shadow: 0 12px 30px rgba(0, 0, 0, .42), inset 0 16px 12px -12px rgba(244, 198, 74, .8), inset 0 -16px 12px -12px rgba(244, 198, 74, .8) }
+
+/* ---------- 投球球種選單：玻璃按鈕，保留球種顏色色條 ---------- */
+body #hud #pitchPanel .pbtn {
+  border: 1px solid var(--g-edge); border-left: 1px solid var(--g-edge); border-radius: 12px; color: #f2f6ff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(160deg, color-mix(in srgb, var(--pc) 22%, transparent), rgba(20, 30, 52, .22)),
+    rgba(26, 38, 64, .14);
+  -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .3), inset 4px 0 0 var(--pc), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 0 12px rgba(255, 255, 255, .05);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+body #hud #pitchPanel .pbtn::before { display: none }
+body #hud #pitchPanel .pbtn.sel {
+  color: #fff; border-color: color-mix(in srgb, var(--pc) 80%, #fff);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .32), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, color-mix(in srgb, var(--pc) 58%, transparent), color-mix(in srgb, var(--pc) 22%, transparent)),
+    rgba(26, 38, 64, .14);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .3), 0 0 16px color-mix(in srgb, var(--pc) 70%, transparent), inset 4px 0 0 var(--pc), inset 0 1px 0 rgba(255, 255, 255, .7);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .75);
+}
+body #hud #pitchPanel .pbtn:not(.sel):hover { filter: brightness(1.14); border-color: rgba(255, 255, 255, .6) }
+
+/* ---------- 推進／回壘、傳球面板：補上同款上緣高光與暗部（本來就是玻璃，這裡讓質感一致） ---------- */
+body #btnPush, body #btnBack { border: 1px solid rgba(255, 255, 255, .5); -webkit-backdrop-filter: var(--g-blur, blur(14px) saturate(1.7)); backdrop-filter: var(--g-blur, blur(14px) saturate(1.7));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .65), inset 0 -8px 14px rgba(0, 0, 0, .12), inset 0 0 14px rgba(255, 255, 255, .06) }
+body #hud #throwPanel .tb {
+  border: 1px solid var(--g-edge); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  background: linear-gradient(160deg, rgba(255, 255, 255, .17), rgba(255, 255, 255, .04) 40%, rgba(20, 30, 52, .22)), rgba(26, 38, 64, .14);
+  -webkit-backdrop-filter: var(--g-blur); backdrop-filter: var(--g-blur);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+body #hud #throwPanel .tb.tctr { border-color: rgba(255, 140, 50, .85); background: linear-gradient(160deg, rgba(255, 140, 50, .45), rgba(255, 140, 50, .15)), rgba(26, 38, 64, .14) }
+
+/* ---------- 手機尺寸微調 ---------- */
+body.mob #hud #acts .abtn { border-radius: 10px }
+body.mob #hud #btnAct { border-width: 1px }
+@media (prefers-reduced-motion: reduce) { body #hud #btnAct, body #hud #btnAct[data-k=stop] { animation: none } }
+
+/* ---------- 不支援 backdrop-filter 的舊瀏覽器：退回較深的底色，維持可讀 ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body #hud #btnPow, body #hud #btnBuntT, body #hud #acts .abtn, body #hud #pitchPanel .pbtn, body #hud #throwPanel .tb { background-color: rgba(16, 22, 38, .82) }
+  body #hud #acts #actMore { background: rgba(10, 18, 32, .92) }
+}
+
+/* ===== v2：向頂部記分板（#koTop）看齊 =====
+   ① 開啟狀態＝記分板「進攻方」那一列的橫向色帶（左亮右淡），不再是整顆變色
+   ② 開關類按鈕左側加 SBO 指示燈（關＝暗、開＝發光）
+   ③ 快捷鍵標籤＝記分板數字的金黃 Orbitron 小膠囊
+   ④ 圓角收斂成接近記分板的 10px，邊緣多一道內側細亮線 */
+body #hud #acts .abtn { border-radius: 10px; min-width: 0; letter-spacing: .08em; font-weight: 800 }
+body #hud #acts .abtn::before { width: 4px; box-shadow: 1px 0 0 rgba(255, 255, 255, .25) }
+body #hud #acts .abtn .k { margin-left: .5em; padding: .05em .5em; border-radius: 6px; font-family: 'Orbitron', sans-serif; font-size: .7em; font-weight: 700; color: #ffe35a; text-shadow: 0 1px 0 #3a2c00;
+  background: rgba(0, 0, 0, .28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22) }
+/* 開啟＝橫向色帶 */
+body #hud #btnPow.on, body #hud #btnBuntT.on, body #hud #acts .abtn.on, body #hud #acts.open #btnMore, body.mob #hud #btnPow.on, body.mob #hud #btnBuntT.on {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(90deg, rgba(var(--tn), .70) 0%, rgba(var(--tn), .38) 60%, rgba(var(--tn), .10) 100%),
+    rgba(26, 38, 64, .14);
+}
+/* SBO 指示燈：開關類按鈕 */
+body #hud #acts #btnPowPc, body #hud #acts #btnBunt, body #hud #acts #btnRosin, body #hud #acts #btnHint, body #hud #acts #btnAssist { padding-left: 1.9em }
+body #hud #acts #btnPowPc::after, body #hud #acts #btnBunt::after, body #hud #acts #btnRosin::after, body #hud #acts #btnHint::after, body #hud #acts #btnAssist::after {
+  content: ''; position: absolute; left: 1em; top: 50%; width: .62em; height: .62em; margin-top: -.31em; border-radius: 50%; pointer-events: none;
+  background: rgba(0, 0, 0, .34); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); transition: .2s }
+body #hud #acts #btnHint { --tn: 120, 225, 255 } body #hud #acts #btnAssist { --tn: 170, 150, 255 }
+body #hud #acts #btnPowPc.on::after, body #hud #acts #btnBunt.on::after, body #hud #acts #btnRosin.on::after, body #hud #acts #btnHint.on::after, body #hud #acts #btnAssist.on::after {
+  background: radial-gradient(circle at 35% 30%, #fff, rgb(var(--tn)) 70%); box-shadow: 0 0 6px rgb(var(--tn)), inset 0 0 0 1px rgba(255, 255, 255, .5) }
+/* 強打／短打膠囊：同款指示燈 */
+body #hud #btnPow::before, body #hud #btnBuntT::before { width: .62em; height: .62em; margin-top: -.31em; background: rgba(0, 0, 0, .34); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35) }
+body #hud #btnPow.on::before, body #hud #btnBuntT.on::before { background: radial-gradient(circle at 35% 30%, #fff, rgb(var(--tn)) 70%); box-shadow: 0 0 6px rgb(var(--tn)), inset 0 0 0 1px rgba(255, 255, 255, .5) }
+/* 「更多」：箭頭語意＝展開面板 */
+body #hud #acts #btnMore { padding-left: 1.2em }
+/* 球種選單標題列：和記分板左側「局數」塊同款分隔 */
+body #hud #pitchPanel .pchead .pt { padding-right: .6em; margin-right: .1em; border-right: 1px solid rgba(120, 175, 255, .5); opacity: .95; color: #a9ccff }
+body #hud #pitchPanel .pbtn .pn { font-weight: 800; letter-spacing: .06em }
+/* 主圓鈕：外圈加一圈細亮環，像記分板邊框 */
+body #hud #btnAct { outline: 1px solid rgba(255, 255, 255, .14); outline-offset: 3px }
+body #hud #btnAct:focus-visible { outline: 2px solid rgba(255, 255, 255, .9); outline-offset: 4px }
+
+/* ===== v2 修正 ===== */
+/* 04 對 #btnPowPc／#btnBunt 用了「三個 id」的實心灰黑規則，這裡用同級加 body 蓋回玻璃（含開啟狀態） */
+body #hud #acts #btnPowPc, body #hud #acts #btnBunt {
+  color: #f2f6ff; border: 1px solid var(--g-edge);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(160deg, rgba(var(--tn), .22), rgba(var(--tn), .05) 50%, rgba(20, 30, 52, .22)),
+    rgba(26, 38, 64, .14);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .30), inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .08), inset 0 0 12px rgba(255, 255, 255, .05);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6) }
+body #hud #acts #btnPowPc.on, body #hud #acts #btnBunt.on {
+  color: #fff; border-color: rgba(var(--tn), .9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(90deg, rgba(var(--tn), .70) 0%, rgba(var(--tn), .38) 60%, rgba(var(--tn), .10) 100%),
+    rgba(26, 38, 64, .14);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .3), 0 0 16px rgba(var(--tn), .65), inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 0 14px rgba(255, 255, 255, .1);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .7) }
+/* 主圓鈕：色調加濃，避免透出背後草地／天空而偏色（揮棒＝琥珀、投球＝藍、按停＝綠要一眼分得出） */
+body #hud #btnAct, body #hud #btnAct[data-k=pitch], body #hud #btnAct[data-k=stop] {
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, 0) 46%),
+    radial-gradient(circle at 50% 118%, rgba(var(--tn), .75) 0%, rgba(var(--tn), 0) 70%),
+    linear-gradient(160deg, rgba(var(--tn), .62), rgba(var(--tn), .30) 55%, rgba(20, 30, 52, .28)) }
