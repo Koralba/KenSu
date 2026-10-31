@@ -370,6 +370,16 @@ function airCatchWait(plan, f, dd) {      // true＝球還在空中、野手很�
   if (PL.t >= Math.min(plan.t + CATCH_GRACE, tl)) return false;
   f.wait = 0; f.chaser = true; return true;
 }
+const REACH_OK = .9, REACH_GRACE = .5, REACH_GIVEUP = 1.6;      // 判定接到時，人與球（落點）的差距≦0.9m 才視為手套碰到；最多多等0.5秒讓野手跑過去，仍差超過1.6m就當沒接到、改追球（不再瞬間移動）
+function reachWait(plan, f, dd) {      // true＝這一幀先不結算（野手還在跑向球／已改成追球）
+  if (plan.robHR || f.manual || f.hasBall) return false;
+  let gap = dd, tx = plan.x, tz = plan.z;
+  if (!plan.air && !plan.dive) { sampleAt(PL.sim.S, Math.min(PL.t, PL.sim.tEnd), _gb); const g = dist2(f.x, f.z, _gb.x, _gb.z); if (g < gap) { gap = g; tx = _gb.x; tz = _gb.z; } }      // 滾地球：以球「現在」的位置為準
+  if (gap <= REACH_OK) return false;
+  if (PL.t < plan.t + REACH_GRACE) { f.wait = 0; f.chaser = true; f.hold = 0; f.tx = tx; f.tz = tz; f.sp = Math.max(f.sp || 0, fspeed(f) * 1.25); return true; }
+  if (gap > REACH_GIVEUP) { rechaseBall(PL); return true; }      // 寬限用完還是沒到：沒接到，改成追球
+  return false;      // 只差一點點：維持原本的結算（差距小於1.6m，視覺上不會有明顯跳動）
+}
 function updatePlay(dt) {
   if (!PL) return;
   PL.tAge += dt;
@@ -415,13 +425,26 @@ function updatePlay(dt) {
       let nearBall = dd < thr;
       if (!plan.air && !plan.dive && !plan.robHR) { sampleAt(sim.S, Math.min(PL.t, sim.tEnd), _gb); nearBall = dd < 1.4 || (dist2(f.x, f.z, _gb.x, _gb.z) < 1.9 && _gb.y < 1.6); }      // 滾地球：手套真的碰到球才算接到（不再球還沒到、人還在跑就判出局）
       if (nearBall && airCatchWait(plan, f, dd)) { }      // 高遠飛球：野手還沒真的接到球，先不宣告出局
+      else if (nearBall && reachWait(plan, f, dd)) { }      // 人還沒真的碰到球：繼續跑，不瞬間移動
       else if (nearBall) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
       else if (!plan.robHR && PL.t > plan.t + .3) rechaseBall(PL);      // 球早就過去、野手還沒趕到：沒接到！改成追球（不再瞬間移動接球）
-      else if (PL.t > plan.t + 1.5) { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); }
+      else if (PL.t > plan.t + 1.5) { if (dd > 2.5 && PL.t < plan.t + 4) { f.wait = 0; f.chaser = true; f.hold = 0; f.tx = plan.x; f.tz = plan.z; f.sp = Math.max(f.sp || 0, fspeed(f) * 1.25); } else { f.x = lerp(f.x, plan.x, .9); f.z = lerp(f.z, plan.z, .9); onFielded(f); } }      // 還很遠就繼續跑過去（最多再等到 plan.t+4 秒），不再從遠處直接傳送
     }
     // dive animation trigger
     if (plan.dive && !plan.f.divePlayed2 && PL.t > plan.t - .45) { plan.f.divePlayed2 = true; plan.f.rig.anim = { name: 'dive', t: 0, dur: .6, opt: {} }; }
-    if (plan.failDive && !plan.failDive.f.fdPlayed && PL.t > plan.failDive.t - .3) { plan.failDive.f.fdPlayed = true; plan.failDive.f.rig.anim = { name: 'dive', t: 0, dur: .7, opt: {} }; plan.failDive.f.x = plan.failDive.x; plan.failDive.f.z = plan.failDive.z; plan.failDive.f.tx = plan.failDive.x; plan.failDive.f.tz = plan.failDive.z; plan.failDive.f.hold = .6; diveMissNote(plan.failDive); }
+    if (plan.failDive && !plan.failDive.f.fdPlayed) {      // 沒接到的飛撲嘗試：野手從原位真的跑向落點，夠近才撲出去（不再把人直接傳送到落點）
+      const fd = plan.failDive, ff = fd.f;
+      if (ff === plan.f || ff.manual || ff.hasBall) { if (PL.t > fd.t + .5) ff.fdPlayed = true; }
+      else {
+        const dfd = dist2(ff.x, ff.z, fd.x, fd.z);
+        if (PL.t > fd.t - 1.0) { ff.wait = 0; ff.chaser = true; ff.hold = 0; ff.tx = fd.x; ff.tz = fd.z; ff.sp = Math.max(ff.sp || 0, fspeed(ff) * 1.2); }
+        if ((dfd < 2.4 && PL.t > fd.t - .6) || PL.t >= fd.t) {
+          ff.fdPlayed = true;
+          if (dfd < 3.6) { ff.rig.anim = { name: 'dive', t: 0, dur: .7, opt: {} }; ff.tx = ff.x; ff.tz = ff.z; ff.hold = .6; diveMissNote(fd); }      // 夠近才飛撲；位置不動
+          else { ff.chaser = false; }      // 還差很遠：沒撲到，單純追不上（也不播飛撲、不瞬移）
+        }
+      }
+    }
   } else if (PL.state === 'held') {
     const f = PL.holder; let by = 1.25, bz = f.z + .2;
     if (PL.pick) { PL.pick.t += dt; const k = clamp(PL.pick.t / PL.pick.dur, 0, 1); by = lerp(.14, 1.25, k * k); bz = f.z + lerp(.5, .2, k); if (k >= 1) PL.pick = null; }
