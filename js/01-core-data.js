@@ -254,7 +254,7 @@ function batProf(r) {
   if (o.spd >= 80) o.pow -= (o.spd - 80) * .45 + 2;       // 速度型：力量小
   const strong = BL.ks.filter(k => o[k] >= 84).length, weak = BL.ks.slice().sort((a, b) => o[a] - o[b])[0];
   if (strong < 2 && o[weak] > 52) o[weak] = 47 + nz('w', 4);      // 非明星至少有一項明顯弱點（E）
-  const t = REAL_TUNE[r.n]; if (t && (!t._a || (r.a >= t._a[0] && r.a <= t._a[1]))) Object.assign(o, t, { _a: undefined });
+  const t = r.tune || REAL_TUNE[r.n]; if (t && (!t._a || (r.a >= t._a[0] && r.a <= t._a[1]))) Object.assign(o, t, { _a: undefined });
   const zm = {}; BL.ks.forEach(k => { zm[k] = (q[k] - BL.mu[k]) / BL.sd[k]; });
   limitS(o, BL.ks, zm, t);
   BL.ks.forEach(k => { o[k] = Math.round(Math.max(30, Math.min(99, o[k]))); });
@@ -279,7 +279,7 @@ function pitProf(r) {
   const PL = pitLeague(), q = PL.raw(r), nz = (k, a) => seededNoise(r.n + k, a), o = {};
   PL.ks.forEach(k => { o[k] = calRate(PL.V[k], q[k], (q[k] - PL.mu[k]) / PL.sd[k], nz('p' + k, 2.6), PIT_CURVE, 65); });
   o.vel = clamp(30 + (r.v - 130) * 2.45, 30, 99);        // 球速：130→30、140→54、146→69、150→79、153→86、156→94
-  const t = PIT_TUNE[r.n]; if (t) Object.assign(o, t);
+  const t = r.tune || PIT_TUNE[r.n]; if (t) Object.assign(o, t);
   const zm = {}; PL.ks.forEach(k => { zm[k] = (q[k] - PL.mu[k]) / PL.sd[k]; });
   limitS(o, ['stf', 'ctl', 'vel'], zm, t);
   ['stf', 'ctl', 'vel'].forEach(k => { o[k] = Math.round(Math.max(30, Math.min(99, o[k]))); });
@@ -300,13 +300,13 @@ function mkBatter(r, slot, nat) {
     kind: 'B', name: r.n, num: '', pos, nat: pos, hand: r.h, con, pow, spd, eye, fld: fld0, arm: arm0, fld0, arm0, cat: cat0, cat0, clt, vsl, traj, zone: seededZone(r.n, con),
     st: { ab: 0, h: 0, hr: 0, rbi: 0, bb: 0, k: 0 }, bunt: Math.round(clamp(70 - pow * .45 + spd * .4 + seededNoise(r.n + 'bnt', 16), 30, 99)), out: false, slot,
     mood: Math.round(clamp(52 + (r.a - .265) * 150 + (Math.random() - .5) * 18, 30, 80)), dur: Math.round(clamp(72 + Math.random() * 22, 55, 96)), agg: Math.round(clamp(40 + r.sb * 1.6, 25, 95)),
-    line: `2027 .${String(Math.round(r.a * 1000)).padStart(3, '0')}/.${String(Math.round(r.o * 1000)).padStart(3, '0')}/.${String(Math.round(r.s * 1000)).padStart(3, '0')} ${r.hr}HR ${r.sb}SB${r.est ? '（估）' : ''}`
+    line: `${r.lab || '2027'} .${String(Math.round(r.a * 1000)).padStart(3, '0')}/.${String(Math.round(r.o * 1000)).padStart(3, '0')}/.${String(Math.round(r.s * 1000)).padStart(3, '0')} ${r.hr}HR ${r.sb}SB${r.est ? '（估）' : ''}`
   };
 }
 
 /* 明星隊：由六支中職球隊的完整名單（先發、板凳、先發投手、牛棚）依能力值自動挑出最強陣容：9 個先發依守位適性與打擊能力找出最佳組合（含 DH），
    板凳補上最強的備援捕手／游擊／中外野與最強打者，牛棚也是全聯盟最菁英的投手。第一次選到明星隊時才計算（此時所有守位資料都已就緒） */
-function buildAllStarData() {
+function buildAllStarDataAuto() {      // （舊版：由六隊自動挑選；已停用，保留備查）
   const ids = ['CTB', 'UNI', 'RAK', 'FBK', 'WCD', 'TSG'], W = { C: .55, SS: .5, CF: .48, '2B': .42, '3B': .36, RF: .32, LF: .26, '1B': .16, DH: 0 };
   const hv = m => m.con * .5 + m.pow * .45 + m.eye * .2 + m.spd * .08;
   const val = (m, pos) => { const pen = fitPenalty(m.nat, pos); return hv(m) + W[pos] * (m.fld0 * (1 - pen) + m.arm0 * (1 - pen * .6) * .5) - pen * 45; };
@@ -339,6 +339,60 @@ const SJH = { name: '蘇家禾', pw: '0181', ok: false };
 const SJH_BAT = Object.assign(B('蘇家禾', 'DH', 'R', .450, .560, 1.100, 60, 60, 5, 16, 99, 99), { ultra: true });
 const SJH_SP = Object.assign(P('蘇家禾', 'SP', 'R', 170, 0.00, 42, 0, 260, 9, ['SL', 'CU', 'FK', 'SH', 'CH', 'CT', 'SK', 'TS', 'SV', 'KN']), { ultra: true });
 const isSJH = r => !!(r && (r.ultra || r.name === SJH.name || r.n === SJH.name));
+
+/* ===== 明星隊（台灣歷代明星球員）：手工名單，除蘇家禾外全為台灣中職、日職、美職的歷代球星 =====
+   ★ 成績為巔峰／生涯概估（est），能力值直接用 tune 指定（con 巧打、pow 長打、eye 選球、spd 跑力、fld 守備、arm 肩力；投手 stf 球威、ctl 控球、vel 球速），不經聯盟百分位換算 */
+const LB = (n, p, h, a, o, s, hr, sb, k, bb, f, ar, tune) => Object.assign(B(n, p, h, a, o, s, hr, sb, k, bb, f, ar, 1), { lab: '生涯', tune });
+const LP = (n, r, h, v, era, k, bb, ep, ipg, ps, tune) => Object.assign(P(n, r, h, v, era, k, bb, ep, ipg, ps, 1), { lab: '生涯', tune });
+function buildAllStarData() {
+  const bat = [
+    LB('高志綱', 'C', 'R', .285, .350, .430, 12, 2, 13, 9, 84, 84, { con: 74, pow: 68, eye: 66, spd: 48, fld: 86, arm: 84 }),
+    LB('彭政閔', '1B', 'R', .333, .420, .500, 18, 6, 9, 14, 70, 62, { con: 96, pow: 78, eye: 93, spd: 52, fld: 74, arm: 66 }),
+    LB('高國輝', '2B', 'R', .320, .385, .480, 14, 20, 12, 9, 80, 76, { con: 82, pow: 74, eye: 70, spd: 78, fld: 80, arm: 76 }),
+    LB('張泰山', '3B', 'R', .318, .390, .540, 24, 3, 14, 11, 78, 84, { con: 84, pow: 88, eye: 74, spd: 50, fld: 78, arm: 84 }),
+    LB('林智勝', 'SS', 'R', .322, .400, .560, 26, 12, 15, 12, 78, 88, { con: 86, pow: 90, eye: 78, spd: 70, fld: 78, arm: 88 }),
+    LB('陳金鋒', 'LF', 'L', .340, .430, .650, 30, 4, 15, 14, 70, 82, { con: 86, pow: 97, eye: 84, spd: 56, fld: 70, arm: 82 }),
+    LB('陽岱鋼', 'CF', 'R', .295, .360, .470, 18, 25, 18, 9, 90, 88, { con: 80, pow: 78, eye: 74, spd: 90, fld: 90, arm: 88 }),
+    LB('林哲瑄', 'RF', 'L', .320, .380, .520, 18, 12, 14, 9, 78, 88, { con: 84, pow: 84, eye: 72, spd: 70, fld: 78, arm: 88 }),
+    LB('王柏融', 'DH', 'L', .370, .450, .640, 30, 6, 11, 13, 55, 58, { con: 95, pow: 90, eye: 80, spd: 55, fld: 55, arm: 58 })
+  ];
+  const bench = [
+    LB('林泓育', 'C', 'R', .305, .370, .520, 22, 2, 15, 10, 78, 78, { con: 84, pow: 84, eye: 76, spd: 42, fld: 78, arm: 78 }),
+    LB('陳鏞基', 'SS', 'R', .295, .360, .430, 12, 12, 13, 9, 82, 80, { con: 72, pow: 66, eye: 70, spd: 74, fld: 82, arm: 80 }),
+    LB('陳傑憲', 'CF', 'L', .335, .410, .470, 9, 10, 9, 11, 86, 72, { con: 93, pow: 58, eye: 85, spd: 72, fld: 86, arm: 72 }),
+    LB('蔣智賢', 'RF', 'L', .320, .400, .540, 20, 8, 13, 13, 74, 80, { con: 80, pow: 86, eye: 82, spd: 62, fld: 74, arm: 80 }),
+    LB('周思齊', 'LF', 'R', .325, .400, .520, 18, 10, 12, 11, 70, 74, { con: 82, pow: 82, eye: 76, spd: 58, fld: 70, arm: 74 }),
+    LB('林益全', '1B', 'L', .330, .410, .560, 20, 3, 12, 12, 66, 60, { con: 88, pow: 88, eye: 82, spd: 40, fld: 66, arm: 60 }),
+    LB('林安可', 'LF', 'L', .305, .365, .510, 15, 6, 17, 8, 66, 76, { con: 80, pow: 88, eye: 70, spd: 66, fld: 66, arm: 76 }),
+    LB('江坤宇', 'SS', 'R', .300, .370, .380, 3, 6, 10, 9, 80, 76, { con: 76, pow: 52, eye: 68, spd: 70, fld: 90, arm: 84 }),
+    LB('吉力吉撈·鞏冠', '1B', 'R', .300, .360, .480, 11, 2, 17, 8, 66, 72, { con: 78, pow: 86, eye: 70, spd: 52, fld: 64, arm: 70 }),
+    LB('張政禹', '2B', 'R', .305, .370, .390, 2, 25, 11, 9, 76, 72, { con: 80, pow: 52, eye: 66, spd: 84, fld: 80, arm: 74 }),
+    LB('蔡其昌', '1B', 'R', .150, .190, .170, 0, 0, 38, 2, 33, 34, { con: 31, pow: 30, eye: 30, spd: 30, fld: 33, arm: 35 }),      // 彩蛋：會長客串，全項最低
+    SJH_BAT
+  ];
+  const sp = [
+    LP('郭泰源', 'SP', 'R', 158, 2.60, 24, 8, 140, 7.0, ['SL', 'FK', 'CU'], { stf: 96, ctl: 76, vel: 95 }),
+    LP('王建民', 'SP', 'R', 151, 3.63, 12, 6.5, 120, 6.5, ['SK', 'SL', 'CH', 'CU'], { stf: 82, ctl: 84, vel: 82 }),
+    LP('徐若熙', 'SP', 'R', 157, 2.30, 26, 8, 150, 6.2, ['FK', 'SL', 'CU'], { stf: 91, ctl: 76, vel: 94 }),
+    LP('古林睿煬', 'SP', 'R', 156, 2.40, 24, 7, 150, 6.2, ['SL', 'FK', 'CU'], { stf: 90, ctl: 78, vel: 92 }),
+    LP('陳偉殷', 'SP', 'L', 150, 3.60, 17, 6, 115, 6.2, ['SL', 'CH', 'CU', 'TS'], { stf: 78, ctl: 84, vel: 80 }),
+    LP('潘威倫', 'SP', 'R', 148, 3.20, 17, 6, 125, 6.0, ['SL', 'CU', 'CH', 'SK'], { stf: 78, ctl: 80, vel: 76 }),
+    LP('陳義信', 'SP', 'R', 148, 2.80, 18, 5, 130, 6.5, ['SL', 'CU', 'FK'], { stf: 80, ctl: 82, vel: 74 }),
+    LP('郭源治', 'SP', 'R', 150, 3.00, 17, 7, 125, 6.5, ['SL', 'FK', 'CU'], { stf: 83, ctl: 76, vel: 78 }),
+    SJH_SP
+  ];
+  const rp = [
+    LP('曹錦輝', 'RP', 'L', 153, 3.00, 24, 9, 120, 1.2, ['SL', 'CH', 'CU'], { stf: 85, ctl: 68, vel: 87 }),
+    LP('林昱珉', 'RP', 'L', 152, 2.40, 25, 6, 150, 1.2, ['SL', 'CH', 'CU'], { stf: 84, ctl: 80, vel: 85 }),
+    LP('孫易磊', 'RP', 'R', 155, 2.80, 24, 8, 130, 1.2, ['SL', 'FK'], { stf: 86, ctl: 72, vel: 91 }),
+    LP('陳鴻文', 'RP', 'R', 158, 3.00, 24, 11, 120, 1.1, ['SL', 'CH'], { stf: 88, ctl: 60, vel: 95 }),
+    LP('江少慶', 'RP', 'R', 157, 3.20, 22, 10, 115, 1.1, ['SL', 'CH'], { stf: 84, ctl: 62, vel: 94 }),
+    LP('鄭凱文', 'RP', 'R', 150, 2.50, 22, 7, 140, 1.1, ['SL', 'CU', 'FK'], { stf: 80, ctl: 78, vel: 80 }),
+    LP('林岳平', 'RP', 'R', 146, 3.50, 18, 7, 105, 1.2, ['SL', 'CH'], { stf: 68, ctl: 74, vel: 71 }),
+    LP('郭泓志', 'CL', 'L', 157, 2.30, 28, 9, 160, 1.0, ['SL', 'CH'], { stf: 92, ctl: 66, vel: 96 })
+  ];
+  return { bat, bench, sp, rp };
+}
 { let _all = null; Object.defineProperty(CPBL, 'ALL', { enumerable: true, configurable: true, get() { return _all || (_all = buildAllStarData()); } }); }
 /* 球種超過四種的投手（估算）：額外球種會出現在選球面板，電腦投手也會使用 */
 const EXTRA_PS = { '布雷克': ['SL'], '鈴木駿輔': ['CT', 'CH'], '李東洺': ['FK'], '羅戈': ['CT'], '勝騎士': ['SL', 'SK'], '德保拉': ['CU'], '喬登': ['CT', 'SK'], '獅帝芬': ['FK', 'TS'], '威能帝': ['CT', 'SK'], '艾菩樂': ['SV'], '魔力藍': ['SL', 'FK'], '曾家輝': ['CU', 'CT'], '江少慶': ['CH'], '鍾允華': ['CH'] };
@@ -360,7 +414,7 @@ function mkPitcher(r, slot) {
     pitches, slot: Math.random(), tilt: 0, fatigue: 0, pc: 0, er: 0, outs: 0, hA: 0, bbA: 0, kA: 0, out: false, used: false, hbp: 0,
     mood: Math.round(clamp(58 + (r.ep - 100) * .12 + (Math.random() - .5) * 14, 36, 84)), dur: Math.round(clamp(70 + Math.random() * 24, 55, 96)),
     dom: clamp(((pp.stf * .7 + pp.ctl * .3) - 60) / 62, -.35, .6), lr, clt: Math.round(clamp(50 + (r.ep - 100) * .08 + (60 - r.bb * 3 - 40) * .1 + seededNoise(r.n + 'pclt', 14), 30, 99)),
-    line: `2027 ERA ${r.era.toFixed(2)} K%${r.k.toFixed(1)} BB%${r.bb.toFixed(1)}${r.est ? '（估）' : ''}`
+    line: `${r.lab || '2027'} ERA ${r.era.toFixed(2)} K%${r.k.toFixed(1)} BB%${r.bb.toFixed(1)}${r.est ? '（估）' : ''}`
   };
 }
 const POS9 = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
