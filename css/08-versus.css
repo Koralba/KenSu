@@ -77,3 +77,16 @@ body.vs #btnBench,body.vs #btnMound,body.vs #btnSub,body.vs #btnOff,body.vs #btn
 .vs-mode b{font-size:18px;color:#ffe48a}.vs-mode small{font-size:12.5px;line-height:1.55;color:#dbe7ff}
 .vs-mode:hover,.vs-mode:focus-visible{border-color:#ffe48a;box-shadow:0 0 16px rgba(255,226,122,.45),inset 0 1px 0 rgba(255,255,255,.5);outline:none}
 .vs-mode:active{transform:translateY(2px)}
+
+/* 準備好了：是否編排陣容 */
+.vs-ask{position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.vs-ask-box{width:min(92vw,420px);background:#0c1a33;border:2px solid #ffd24a;border-radius:16px;padding:18px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.7);color:#fff}
+.vs-ask-t{font-size:18px;font-weight:900;color:#ffe48a;text-align:center;margin-bottom:8px}
+.vs-ask-box p{font-size:13px;line-height:1.7;color:#dfe9ff;margin:6px 0 10px;text-align:center}
+.vs-ask-box small{color:#9fc4ff}
+.vs-ask-box .vs-btn.ghost{width:auto;margin-top:0}
+.vs-mine .vs-lk{font-size:12px;color:#ffd24a;margin:0 0 6px}
+/* 陣容畫面：球員造型 */
+#lineup .lk-row{display:flex;align-items:center;gap:8px;margin:-2px 0 8px;padding:0 8px 0 40px;font-size:12px;color:#9fc4ff}
+#lineup .lk-row select,#lineup .lk-all select{flex:1;min-height:38px;font-size:14px;background:#12304f;color:#fff;border:1px solid #4a6aa8;border-radius:8px;padding:0 8px}
+#lineup .lk-all{display:flex;margin:4px 0}
