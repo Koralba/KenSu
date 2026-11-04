@@ -279,6 +279,7 @@ const VS = {
     for (const n of RESEED) wrap(n, o => function () { if (VS.rngOn) VS.reseed(n); return o.apply(this, arguments); });
     wrap('prePitchCore', o => function () { if (VS.rngOn) VS.reseed('pre'); const r = o.apply(this, arguments); if (G.phase === 'pre') VS.onPre(); return r; });
     wrap('doPitch', o => function (sel) { if (VS.running) return o.call(this, sel); if (!minePitches()) return; VS.submit(sel); });
+    wrap('visFor', o => function (key) { const v = o.apply(this, arguments), s = VS.looks && VS.looks[key]; if (!s) return v; try { return applyLook(v, s); } catch (e) { return v; } });      // 對戰中：套用雙方選的球員造型（只改外觀）
     wrap('uiHold', o => function () { return false; });
     wrap('updateWeather', o => function (dt) { if (VS.wxRun) return o.call(this, dt); try { updateNight(dt); } catch (e) { } });      // 平時只更新夜景，不改風／雨狀態
     { let ltKey = '', ltT0 = 0; wrap('drawLightning', o => function (c, W, H) {      // 連線：天氣只在每球開始時推進，閃電計時會停在第一幀 → 閃電一直掛在畫面上。這裡只改「畫面」：用真實時間播完 0.7 秒就消失；不改 G.lt（兩台天氣狀態要一致）
@@ -310,6 +311,7 @@ const VS = {
   function begin(cfg) {
     if (VS.on) return; VS.gs = cfg.seed; VS.me = VS.role === 'host' ? cfg.side : 1 - cfg.side; VS.n = 0; VS.acc = 0; VS.wxT = 0; VS.tq = {}; VS.ep = 0; VS.ck = 0; VS.peerEp = -1; VS.peerCk = -1; VS.free = false; VS.rec = {}; VS.hs = []; VS.diag = []; VS.pendFs = null; VS.mismatch = 0; VS.aseq = 0; VS.actQ = []; VS.fmCur = null; VS.fmLast = ''; VS.myReady = VS.peerReady = -1; VS.turnOn = false; VS.pend = null; VS.pitching = false; VS.inbox = null; VS.snaps = {}; VS.swings = {}; VS.takes = {}; VS.mismatch = 0;
     const root = $$('vsRoot'); if (root) root.classList.add('hide'); try { if (window.closeLineupFor) closeLineupFor(); } catch (e) { }
+    VS.looks = {}; try { (cfg.edit || []).forEach((e, i) => { const ti = i === 0 ? cfg.away : cfg.home; if (e && e.looks && TEAMS[ti] && e.teamId === TEAMS[ti].id) Object.assign(VS.looks, cleanLooks(e, ti).looks || {}); }); } catch (e) { VS.looks = {}; }
     try { sndInit(); } catch (e) { } install(); VS.on = true; ensureHud(); try { VS.hintWas = HINT.on; HINT.on = !!cfg.hint; } catch (e) { }
     if (typeof srand === 'function') srand(cfg.seed);
     VS.sr = mk(hashStr('new' + cfg.seed)); VS.rngOn = true;
@@ -471,19 +473,31 @@ const VS = {
     $$('vsBk').onclick = () => { VS.send({ t: 'bye' }); try { if (window.closeLineupFor) closeLineupFor(); } catch (e) { } closeLink(); scrMode(); };
     $$('vsTeams').innerHTML = teams().map(([t, i]) => `<button class="vs-team" data-i="${i}" style="--c1:${t.c1 || '#2a5adf'};--c2:${t.c2 || '#fff'}">${esc(t.short || t.name)}</button>`).join('');
     $$('vsTeams').onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; const i = +b.dataset.i; if (VS.mine.team === i) return; if (VS.mine.ready) setReady(false); VS.mine.team = i; VS.mine.ed = edDefaultDef(TEAMS[i]); lobbyErr(''); lobbyRender(); };
-    $$('vsMine').onclick = e => { if (e.target.closest('#vsEdit')) editMine(); };
-    $$('vsReady').onclick = () => { const m = VS.mine; if (m.ready) { setReady(false); return; } if (m.team < 0) { lobbyErr('請先選擇你的隊伍'); return; } if (VS.peer.ready && VS.peer.team === m.team) { lobbyErr('這支球隊已被對手選走，請改選其他球隊'); return; } lobbyErr(''); setReady(true); };
+    $$('vsMine').onclick = e => { if (e.target.closest('#vsEdit')) editMine(false); };
+    $$('vsReady').onclick = () => { const m = VS.mine; if (m.ready) { setReady(false); return; } if (!canReady()) return; askLineup(() => editMine(true), () => { if (canReady()) setReady(true); }); };      // 按「準備好了」→ 先問要不要編排陣容：是＝進編排畫面（完成後自動準備）；否＝直接準備完成
     $$('vsCfg').onclick = e => { if (!host) return; const b = e.target.closest('[data-k]'); if (!b) return; VS.lobby[b.dataset.k] = /^(inn|assist|hint|easy|wx|abs)$/.test(b.dataset.k) ? +b.dataset.v : b.dataset.v; lobbyRender(); lobbySync(); };
     $$('vsCfg').onchange = e => { if (host && e.target.id === 'vsPark') { VS.lobby.park = e.target.value; lobbySync(); } };
     if (host) $$('vsStart').onclick = hostStart;
     lobbyRender(); lobbyStat(); lobbySync();
   }
   function setReady(on) { const m = VS.mine; m.ready = !!on; VS.send(on ? { t: 'rd', r: 1, team: m.team, ed: m.ed } : { t: 'rd', r: 0 }); lobbyRender(); }
-  function editMine() {
-    const m = VS.mine; if (m.team < 0 || typeof openLineupFor !== 'function') return; if (m.ready) setReady(false);
+  function canReady() {      // 能不能按準備：要先選隊，且不能和對手（已準備）同一隊
+    const m = VS.mine; if (m.team < 0) { lobbyErr('請先選擇你的隊伍'); return false; }
+    if (VS.peer.ready && VS.peer.team === m.team) { lobbyErr('這支球隊已被對手選走，請改選其他球隊'); return false; }
+    lobbyErr(''); return true;
+  }
+  function askLineup(onYes, onNo) {      // 「要編排陣容嗎？」是／否
+    const r = $$('vsRoot'); if (!r) return; const old = $$('vsAsk'); if (old) old.remove();
+    const d = document.createElement('div'); d.id = 'vsAsk'; d.className = 'vs-ask';
+    d.innerHTML = `<div class="vs-ask-box"><div class="vs-ask-t">🧢 要編排陣容嗎？</div><p>可以調整先發投手、打序、守位，還能替球員套用一鍵造型。<br><small>選「否」會直接維持準備完成，等對手也準備好後由房主開始比賽。</small></p><div class="vs-row"><button type="button" class="vs-btn ghost" id="vsAskNo">否</button><button type="button" class="vs-btn big" id="vsAskYes">是，去編排</button></div></div>`;
+    r.appendChild(d); const close = () => d.remove();
+    $$('vsAskYes').onclick = () => { close(); onYes && onYes(); }; $$('vsAskNo').onclick = () => { close(); onNo && onNo(); };
+  }
+  function editMine(thenReady) {
+    const m = VS.mine; if (m.team < 0 || typeof openLineupFor !== 'function') { if (thenReady && canReady()) setReady(true); return; } if (m.ready) setReady(false);
     const root = $$('vsRoot'); if (root) root.classList.add('hide');
     const back = () => { closeLineupFor(); if (root) root.classList.remove('hide'); lobbyRender(); };
-    openLineupFor(m.team, cloneEd(m.ed), { doneText: '完成編排 ✔', back, done: () => { const e = window.LUX && window.LUX.ed; if (e) m.ed = cloneEd(e); back(); } });
+    openLineupFor(m.team, cloneEd(m.ed), { doneText: thenReady === true ? '完成編排並準備 ✔' : '完成編排 ✔', back, done: () => { const e = window.LUX && window.LUX.ed; if (e) m.ed = cloneEd(e); back(); if (thenReady === true && canReady()) setReady(true); } });
   }
   const lobbySync = () => { if (VS.role === 'host') { const L = {}; SET_KEYS.forEach(k => { L[k] = VS.lobby[k]; }); VS.send({ t: 'lobby', L }); } };
   function lobbyStat() { const e = $$('vsStat'); if (e) e.textContent = `🟢 已連線　延遲約 ${Math.round(VS.rtt)} ms`; }
@@ -496,8 +510,8 @@ const VS = {
       const ed = m.ed || (m.ed = edDefaultDef(t)), D = CPBL[t.id], sp = (D.sp[ed.spIdx || 0] || D.sp[0]) || {}, PL = (typeof POS_LABEL !== 'undefined') ? POS_LABEL : {};
       $$('vsMine').innerHTML = `<div class="vs-mine${m.ready ? ' lock' : ''}" style="--c1:${t.c1 || '#2a5adf'};--c2:${t.c2 || '#fff'}">
         <div class="vs-mh">${badge(t)}<div><b>${esc(t.name)}</b><small>先發投手　${esc(sp.n || '—')}（${sp.h === 'L' ? '左' : '右'}投）</small></div>${m.ready ? '<em>🔒 已鎖定</em>' : ''}</div>
-        <ol class="vs-lu">${ed.order.map((n, i) => `<li><em>${i + 1}</em><span>${esc(n)}</span><u>${esc((PL[ed.pos[n]] || ed.pos[n] || '').replace('指定打擊', 'DH'))}</u></li>`).join('')}</ol>
-        <button type="button" class="vs-btn alt vs-edit" id="vsEdit">🧢 編排陣容（先發投手／打序／守位）</button></div>`;
+        ${Object.keys(ed.looks || {}).length ? `<div class="vs-lk">🎭 已套用造型 ${Object.keys(ed.looks).length} 位</div>` : ''}<ol class="vs-lu">${ed.order.map((n, i) => `<li><em>${i + 1}</em><span>${(ed.looks || {})[n] ? '🎭' : ''}${esc(n)}</span><u>${esc((PL[ed.pos[n]] || ed.pos[n] || '').replace('指定打擊', 'DH'))}</u></li>`).join('')}</ol>
+        <button type="button" class="vs-btn alt vs-edit" id="vsEdit">🧢 編排陣容（先發投手／打序／守位／造型）</button></div>`;
     }
     $$('vsOpp').innerHTML = `<div class="vs-op${p.ready ? ' ok' : ''}"><div class="vs-q">？</div><div class="vs-ot"><b>對手球隊</b><small>🔒 開賽才會揭曉</small></div><span class="vs-os">${p.ready ? '✅ 已準備好' : '⏳ 還沒準備'}</span></div>`;
     const rb = $$('vsReady'); rb.textContent = m.ready ? '↩ 取消準備' : '✅ 準備好了'; rb.classList.toggle('on', m.ready);
@@ -508,12 +522,30 @@ const VS = {
     if (host) { const st = $$('vsStart'), ok = m.ready && p.ready && m.team >= 0 && p.team >= 0 && m.team !== p.team; st.disabled = !ok; st.textContent = ok ? '▶ 開始比賽' : (m.ready ? '等待對手準備…' : '開始比賽'); }
     else { const e = $$('vsErr'); if (e && !e.textContent) e.textContent = (m.ready && p.ready) ? '雙方都準備好了，等待房主開始…' : ''; }
   }
+  /* ---- 球員造型（只改外觀）：ed.looks = { 球員名: 一鍵造型名 }。房主開賽前把對手傳來的資料過濾一遍（只留該隊球員＋存在的造型名） ---- */
+  const LK_BODY = ['h', 'w', 'd', 'hs', 'll', 'lw', 'aw', 'al', 'belly', 'sw'], LK_DOLL = ['w', 'd', 'hs', 'll', 'lw', 'aw', 'al', 'belly', 'sw'];
+  const lkList = () => (typeof CAREER !== 'undefined' && CAREER.util && CAREER.util.STYLES) || [];
+  function cleanLooks(e, ti) {
+    const out = cloneEd(e), src = e.looks, D = CPBL[TEAMS[ti].id], ok = new Set(lkList().map(a => a[0]));
+    const names = new Set(D.bat.concat(D.bench, D.sp).map(r => r.n)); delete out.looks;
+    if (src && typeof src === 'object') { const lk = {}; Object.keys(src).forEach(n => { if (names.has(n) && ok.has(src[n])) lk[n] = src[n]; }); if (Object.keys(lk).length) out.looks = lk; }
+    return out;
+  }
+  function applyLook(base, styleName) {      // 在球員原本的 vis（身材、膚色…）上疊「一鍵造型」的髮型／髮色／配件／五官
+    const U = CAREER.util, st = U.STYLES.find(a => a[0] === styleName); if (!st) return base;
+    const sd = st[1], p = U.sanitize(Object.assign({}, U.STYLE_BASE, 'eyeType' in sd ? {} : U.FACE_BASE, sd)), V = U.toVis(p, false), out = Object.assign({}, base);
+    for (const k in V) { if (LK_BODY.indexOf(k) < 0) out[k] = V[k]; }
+    if (V.doll) LK_DOLL.forEach(k => { out[k] = V[k]; });      // 小使／娃娃款連身形一起換
+    if (!sd.skin) out.skin = base.skin; if (!sd.hair) out.hair = base.hair;
+    if (!sd.hairCol) { out.hairCol = base.hairCol; out.tipCol = base.tipCol; out.beardCol = base.beardCol; } else { out.tipCol = sd.tipCol || sd.hairCol; out.beardCol = sd.hairCol; }
+    out.hx = 1; return out;
+  }
   function hostStart() {
     const lb = VS.lobby, m = VS.mine, p = VS.peer; if (!(m.ready && p.ready && m.team >= 0 && p.team >= 0)) return;
     if (m.team === p.team) { lobbyErr('兩邊選了同一支球隊，請其中一方改選'); VS.send({ t: 'dup' }); VS.peer = { team: -1, ed: null, ready: false }; lobbyRender(); return; }
     const seed = (NATIVE() * 4294967295) >>> 0, r = mk(seed), hostSide = lb.first === 'bat' ? 0 : lb.first === 'field' ? 1 : (r() < .5 ? 0 : 1);
     const t0 = hostSide === 0 ? m.team : p.team, t1 = hostSide === 0 ? p.team : m.team;
-    const okEd = (e, ti) => e && TEAMS[ti] && e.teamId === TEAMS[ti].id ? e : null, edit = [null, null];
+    const okEd = (e, ti) => e && TEAMS[ti] && e.teamId === TEAMS[ti].id ? cleanLooks(e, ti) : null, edit = [null, null];
     edit[hostSide] = okEd(m.ed, m.team); edit[1 - hostSide] = okEd(p.ed, p.team);      // 各自編排的先發投手／打序／守位；沒編就用預設，不交給電腦
     const cfg = Object.assign({}, CFG, { away: t0, home: t1, homeFirst: false, side: hostSide, vs: 1, inn: lb.inn, lv: 1, abs: lb.abs ? 1 : 0, evt: 0, wx: lb.wx ? 1 : 0, pn: 0, ace: 0, spIdx: 0, assist: lb.assist ? 1 : 0, easy: lb.easy ? 1 : 0, hint: lb.hint ? 1 : 0, park: lb.park || '', night: r() < .5 ? 1 : 0, edit, seed });
     VS.send({ t: 'start', cfg }); begin(cfg);
