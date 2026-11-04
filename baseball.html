@@ -40,20 +40,16 @@
 
 <div id="title" class="armed">
   <canvas id="titleFx" class="fxc"></canvas><div id="titleFlash" class="flash"></div>
-  <button type="button" class="pillb" id="titleBgm">🎵 音樂／音效</button>
   <div class="kicker">Cam.Su</div>
   <div class="logo"><span class="l1">中職</span><span class="l2">野球</span><span class="l1 yr">2027</span><i class="tw" style="left:-.1em;top:.05em;animation-delay:.2s">✦</i><i class="tw" style="left:44%;top:-.12em;animation-delay:1.1s;font-size:.2em">✦</i><i class="tw" style="right:-.12em;top:.55em;animation-delay:1.9s">✦</i><i class="tw" style="left:20%;bottom:-.05em;animation-delay:2.4s;font-size:.18em">✦</i><i class="tw" style="right:30%;top:.1em;animation-delay:.7s;font-size:.16em">✦</i></div>
   <div class="en">CPBL 2027 SEASON</div>
-  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmVersus" class="tmb tm-v"><i class="ico star">⚔</i><span class="tt"><b>網路對戰</b><small>ONLINE VERSUS</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmExit" class="tmb tmx"><i class="ico pwr">⏻</i><span class="tt"><b>離開遊戲</b><small>EXIT</small></span><em class="chev" aria-hidden="true"></em></button></div>
+  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmVersus" class="tmb tm-v"><i class="ico star">⚔</i><span class="tt"><b>網路對戰</b><small>ONLINE VERSUS</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmSettings" class="tmb tmx"><i class="ico pwr">⚙</i><span class="tt"><b>設定</b><small>SETTINGS</small></span><em class="chev" aria-hidden="true"></em></button></div>
   <div class="made"><small>— MADE BY CAM.SU</small>Cam.Su Studio</div>
 </div>
 
 <div id="careerDlg" class="hide"><div class="cbox"><div class="ct">🌟 生涯模式</div><div class="cs">非常抱歉，目前Su.正在開發中，請耐心等候...</div><button type="button" id="careerLoad">📂 讀取生涯存檔</button><button type="button" id="careerOk">我知道了</button></div></div>
 
 <div id="saveDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="svTitle"><div class="sv-box"><div class="sv-t" id="svTitle">💾 存檔／讀取</div><div class="sv-s" id="svHint"></div><div class="sv-list" id="svList"></div><div class="sv-msg" id="svMsg"></div><div class="sv-foot"><button type="button" id="svImport">📥 匯入檔案</button><button type="button" id="svExpAll">📤 匯出全部</button><button type="button" id="svClose">關閉</button></div></div></div>
-
-<div id="exitDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="exitT"><div class="xbox"><div class="xt" id="exitT">離開遊戲？</div><div class="xs">將結束遊戲並關閉這個視窗。</div><div class="xb"><button type="button" id="exitNo">取消</button><button type="button" id="exitYes">離開遊戲</button></div></div></div>
-<div id="bye" class="hide"><div class="bt">感謝遊玩</div><div class="bs">中職野球 2027，下次球場見！</div><div class="bh hide" id="byeHint">瀏覽器不允許網頁自行關閉視窗。請直接關閉這個分頁，或用手機的 Home 鍵／上滑手勢回到桌面。</div><button type="button" id="byeBack" class="hide">回到遊戲</button></div>
 
 <div id="menu" class="hide">
   <h2><span class="ic">⚾</span><span class="tx">比賽設定</span></h2>
@@ -134,7 +130,7 @@
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
 <div id="lineup" class="hide"></div>
 <div id="audioPanel" class="hide">
-  <div class="ap-h"><span>🎵 音樂／音效／震動設定</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
+  <div class="ap-h"><span>⚙ 設定（音樂／音效／震動）</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
   <div class="ap-t" style="margin-top:0">🎵 背景音樂</div>
   <button id="audioMute" type="button" class="ap-sw on">🔊 背景音樂　開</button>
   <div class="ap-r"><span class="ap-ic">🔈</span><input id="audioVol" type="range" min="0" max="100" step="1" value="60" aria-label="音量"><span class="ap-ic">🔊</span><span id="audioNum">60</span></div>
@@ -182,6 +178,7 @@
 <script src="js/13s-clay-skin.js"></script>
 <script src="js/13t-face-expression.js"></script>
 <script src="js/13t2-custom-look.js"></script>
+<script src="js/13t3-su-doll.js"></script>
 <script src="js/13u-pickoff-buttons.js"></script>
 <script src="js/13v-great-replay.js"></script>
 <script src="js/13w-hr-show.js"></script>
