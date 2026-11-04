@@ -368,7 +368,7 @@ const CAREER = (function () {
   }
 
   /* ---------- 與比賽存檔、結算畫面銜接 ---------- */
-  const api = { cur: null, session: null, open, close, vis: p => toVis(sanitize(p)), portrait: (p, o) => portrait(sanitize(p), o), cardHtml, sanitize, readProfile, zodiac, ageOf, util: { STYLES, FACES, toVis, sanitize, zodiac, ageOf, bmiOf, defaults, dim, makeSlot, openSlot } };
+  const api = { cur: null, session: null, open, close, vis: p => toVis(sanitize(p)), portrait: (p, o) => portrait(sanitize(p), o), cardHtml, sanitize, readProfile, zodiac, ageOf, util: { STYLES, STYLE_BASE, FACE_BASE, FACES, toVis, sanitize, zodiac, ageOf, bmiOf, defaults, dim, makeSlot, openSlot } };
   try { if (typeof SAVE !== 'undefined' && SAVE.hooks) SAVE.hooks.career = { active: () => !!api.session, collect: () => ({ profile: api.session ? api.session.profile : api.cur }), apply: x => { if (x && x.profile) { api.cur = sanitize(x.profile); api.session = { profile: api.cur }; } } }; } catch (e) { console.error(e); }
   /* 結算畫面：11-game-flow.js 的 endGame() 在寫完 #result 後呼叫。session = { profile, player? , stats? }
      player 是比賽中該角色的球員物件（取 player.st 的打數／安打／全壘打／打點）；也可直接給 stats＝[[標籤,值],…] */
