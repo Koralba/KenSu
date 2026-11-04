@@ -504,6 +504,9 @@ function askSJH(onOk, onCancel) {      // 傳說球員密碼視窗
   d.addEventListener('pointerdown', e => e.stopPropagation());
   setTimeout(() => inp.focus(), 60);
 }
+/* ---- 區網對戰：球員造型（沿用生涯角色編輯器的「一鍵造型」）。造型存在 ed.looks = { 球員名: 造型名 }，只改外觀 ---- */
+const lkStyles = () => (typeof CAREER !== 'undefined' && CAREER.util && CAREER.util.STYLES) ? CAREER.util.STYLES.map(a => a[0]) : [];
+function lkSel(n, cur) { const L = lkStyles(); if (!L.length) return ''; return `<div class="lk-row"><span>🎭 造型</span><select class="lk" data-n="${n}"><option value="">原本外觀</option>${L.map(s => `<option value="${s}"${s === cur ? ' selected' : ''}>${s}</option>`).join('')}</select></div>`; }
 function renderLineup() {
   const X = window.LUX, el = $('lineup'), ti = ED_TAB.v, ed = X ? X.ed : edEnsure(ti), def = X ? TEAMS[X.team] : TEAMS[ti ? CFG.home : CFG.away], D = CPBL[def.id], pool = edPool(def.id);      // X＝區網對戰大廳的「只編自己這隊」模式
   const mine = X ? true : CFG.side === ti, names = Object.keys(pool).filter(n => (mine && !X) || n !== SJH.name), bench = names.filter(n => ed.order.indexOf(n) < 0);
@@ -519,6 +522,8 @@ function renderLineup() {
   }
   h += `<div class="lu-quick"><button type="button" id="luAuto" class="pillb">🤖 智慧編排</button><button type="button" id="luReset" class="pillb">↺ 還原預設</button></div>
   <div class="lu-sec">先發投手</div><div class="lu-sp">${D.sp.map((r, i) => X && isSJH(r) ? '' : spCardHtml(r, i, ed.spIdx === i, true)).join('')}</div>
+  ${X ? lkSel(((D.sp[ed.spIdx || 0] || D.sp[0]) || {}).n || '', (ed.looks || {})[((D.sp[ed.spIdx || 0] || D.sp[0]) || {}).n || ''] || '') : ''}
+  ${X && lkStyles().length ? `<div class="lu-sec">🎭 球員造型（連線對戰）</div><div class="lk-all"><select id="luLkAll"><option value="">全隊一鍵套用…</option><option value="__none">全隊還原原本外觀</option>${lkStyles().map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div class="lu-tip">每位球員下方可個別選造型（髮型＋髮色＋配件），只改外觀、不影響能力；雙方開賽後都看得到。</div>` : ''}
   <div class="lu-sec">打擊順序・守備位置</div>`;
   ed.order.forEach((n, i) => {
     const p = pool[n], pos = ed.pos[n];
@@ -526,10 +531,10 @@ function renderLineup() {
     <select class="lp" data-i="${i}">${names.map(x => `<option value="${x}"${x === n ? ' selected' : ''}>${x === SJH.name ? (SJH.ok ? '⭐ ' : '🔒 ') : ''}${x}（${pool[x].nat}${bench.indexOf(x) >= 0 ? '・板凳' : ''}）</option>`).join('')}</select>
     <select class="ls" data-i="${i}">${POS9.map(q => `<option value="${q}"${q === pos ? ' selected' : ''}>${POS_LABEL[q]}</option>`).join('')}</select>
     <span class="mv"><button type="button" data-up="${i}"${i ? '' : ' disabled'}>▲</button><button type="button" data-dn="${i}"${i < 8 ? '' : ' disabled'}>▼</button></span>
-    <span class="lc">${edChips(p, pos)}</span></div>`;
+    <span class="lc">${edChips(p, pos)}</span></div>${X ? lkSel(n, (ed.looks || {})[n] || '') : ''}`;
   });
   h += `<div class="lu-sec">板凳（可代打／代跑／代守）</div>`;
-  bench.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">板</span><span class="bnm">${n === SJH.name ? (SJH.ok ? '⭐ ' : '🔒 ') : ''}${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}</span></div>`; });
+  bench.forEach(n => { const p = pool[n]; h += `<div class="lr bn"><span class="ln">板</span><span class="bnm">${n === SJH.name ? (SJH.ok ? '⭐ ' : '🔒 ') : ''}${n}（${p.nat}）</span><span class="lc">${edChips(p, p.nat)}</span></div>${X ? lkSel(n, (ed.looks || {})[n] || '') : ''}`; });
   h += `<details class="lu-doc"><summary>📖 能力值如何影響比賽</summary><div>
   <b>打者</b>：巧打＝揮棒圈大小／碰到壞球的極限；力量＝擊球初速與全壘打；速度＝跑壘、盜壘與內野安打；選球＝辨識變化球；得點圈＝壘上有人時的打擊技術；對左投＝面對左投手的打擊；捕球＝野手接球失誤率（與守備範圍合計）。異手對決打者較有利。<br>
   <b>投手</b>：球速與球種等級（Lv）決定位移幅度；控球決定落點與暴投率；球數增加會疲勞。<br>
@@ -550,11 +555,19 @@ function renderLineup() {
     const X = window.LUX, t = e.target, ed = X ? X.ed : ED[ED_TAB.v]; if (!ed) return;
     if (t.id === 'luX' || t.id === 'luBack') { if (X) { X.back(); return; } el.classList.add('hide'); return; }
     if (t.id === 'luDone') { if (X) { X.done(); return; } launchGame(); return; }
-    if (t.id === 'luAuto') { if (!X && CFG.side !== ED_TAB.v) return; const na = aiAutoEdit(X ? TEAMS[X.team] : TEAMS[ED_TAB.v ? CFG.home : CFG.away], { ace: 1 }); na.spIdx = ed.spIdx || 0; if (X) X.ed = na; else ED[ED_TAB.v] = na; renderLineup(); return; }
-    if (t.id === 'luReset') { if (!X && CFG.side !== ED_TAB.v) return; if (X) X.ed = edDefaultDef(TEAMS[X.team]); else ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
+    if (t.id === 'luAuto') { if (!X && CFG.side !== ED_TAB.v) return; const na = aiAutoEdit(X ? TEAMS[X.team] : TEAMS[ED_TAB.v ? CFG.home : CFG.away], { ace: 1 }); na.spIdx = ed.spIdx || 0; if (X && ed.looks) na.looks = ed.looks; if (X) X.ed = na; else ED[ED_TAB.v] = na; renderLineup(); return; }
+    if (t.id === 'luReset') { if (!X && CFG.side !== ED_TAB.v) return; if (X) { const lk = ed.looks; X.ed = edDefaultDef(TEAMS[X.team]); if (lk) X.ed.looks = lk; } else ED[ED_TAB.v] = edDefault(ED_TAB.v); renderLineup(); return; }
     if (t.dataset.t !== undefined && t.classList.contains('lu-tab')) { ED_TAB.v = +t.dataset.t; renderLineup(); return; }
     if (!X && CFG.side !== ED_TAB.v) return; const sp = t.closest('[data-sp]'); if (sp) { const si = +sp.dataset.sp, rr = CPBL[(X ? TEAMS[X.team] : TEAMS[ED_TAB.v ? CFG.home : CFG.away]).id].sp[si]; if (isSJH(rr)) { askSJH(() => { ed.spIdx = si; renderLineup(); }); return; } ed.spIdx = si; renderLineup(); return; }
     if (t.dataset.up !== undefined || t.dataset.dn !== undefined) { const i = +(t.dataset.up !== undefined ? t.dataset.up : t.dataset.dn), j = t.dataset.up !== undefined ? i - 1 : i + 1; if (j < 0 || j > 8) return; [ed.order[i], ed.order[j]] = [ed.order[j], ed.order[i]]; renderLineup(); }
+  });
+  el.addEventListener('change', e => {      // 區網對戰：球員造型
+    const X = window.LUX, t = e.target; if (!X || !X.ed) return; const ed = X.ed;
+    if (t.classList.contains('lk') && t.dataset.n) { ed.looks = ed.looks || {}; if (t.value) ed.looks[t.dataset.n] = t.value; else delete ed.looks[t.dataset.n]; return; }
+    if (t.id === 'luLkAll' && t.value) {
+      const tid = TEAMS[X.team].id, D = CPBL[tid], names = ed.order.concat(Object.keys(edPool(tid)), [((D.sp[ed.spIdx || 0] || D.sp[0]) || {}).n]).filter((n, i, a) => n && a.indexOf(n) === i && n !== SJH.name);
+      ed.looks = ed.looks || {}; names.forEach(n => { if (t.value === '__none') delete ed.looks[n]; else ed.looks[n] = t.value; }); renderLineup();
+    }
   });
   el.addEventListener('change', e => {
     const X = window.LUX, t = e.target, ed = X ? X.ed : ED[ED_TAB.v]; if (!ed || t.dataset.i === undefined || (!X && CFG.side !== ED_TAB.v)) return; const i = +t.dataset.i;
