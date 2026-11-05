@@ -15,7 +15,6 @@ const STB = (function () {
   const CSS = `
 .stb{position:fixed;z-index:45;display:none;min-width:58px;padding:7px 11px;border-radius:999px;border:2px solid rgba(255,255,255,.85);background:linear-gradient(#3fbf6a,#1f8a45);color:#fff;font:900 14px 'Noto Sans TC',sans-serif;letter-spacing:.04em;box-shadow:0 3px 10px rgba(0,0,0,.45);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transform:translate(-50%,-50%);white-space:nowrap}
 .stb:active{transform:translate(-50%,-50%) scale(.92)}
-.stb.bk{background:linear-gradient(#f0903f,#c9511a)}
 body.stOv #btnSteal{display:none!important}
 @media (max-width:700px){.stb{padding:6px 9px;font-size:13px;min-width:50px}}`;
   const els = []; let cssOK = false, last = '';
@@ -50,8 +49,20 @@ body.stOv #btnSteal{display:none!important}
   }
   function backOf(i) {      // 原壘 i（0＝一壘…）上「正在準備盜壘／已經起跑盜壘」的跑者；沒有就回 null
     const q = G.on && G.on[i];
-    if (q && q.state === 'on' && (q.stepGo || q.earlyGo)) return q;
+    if (q && q.state === 'on' && q.stepGo) return q;      // 只認「大步離壘準備中」；安全上壘後殘留的 earlyGo 不算
     return (E.runners || []).find(r => r.state === 'run' && r.stealer && r.dir > 0 && !r.bat && r.from === i + 1 && !r.trot && r.s < .93 && !(r.sliding && r.s > .85)) || null;
+  }
+  function retOf(i) {      // 已按退回、正在跑回原壘 i 的跑者（按鈕要立刻恢復成「盜X壘」）
+    return (E.runners || []).find(r => r.state === 'run' && r.stealer && r.dir < 0 && !r.bat && r.from === i + 1 && !r.trot) || null;
+  }
+  function again(i) {      // 折返途中又想盜：跑者再轉身往前跑（一樣有轉身減速）
+    if (!retOK()) return false;
+    const r = retOf(i); if (!r) return false;
+    r.dir = 1; r.goal = r.to; r.ret = false; r.stealRun = true; r.earlyGo = true; r.waiting = false; r.pre = 0; r.accT = -.12;
+    try { const b = baseSpot(r.to); faceRig(r.rig, b.x, b.z); } catch (e) { }
+    try { say('<em>' + r.pl.name + '</em>又轉身衝向下一壘！', 2200); toast('盜壘！', '#ffe9a0', '#c60'); } catch (e) { }
+    if (typeof PL !== 'undefined' && PL) { PL.idleT = .28; PL.endHold = 0; }
+    return true;
   }
   function retreat(i) {
     if (!retOK()) return false;
@@ -100,7 +111,7 @@ body.stOv #btnSteal{display:none!important}
   }
   function mk(i) {
     const b = document.createElement('button'); b.className = 'stb'; b.type = 'button'; b.dataset.i = i;
-    const fire = e => { e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); try { if (b.dataset.mode === 'back') { retreat(i); return; } if (canSteal()) go(i); else if (canShow()) { pend = i; try { toast('已預約盜壘：下一球投出前起跑', '#ffe9a0', '#c60'); } catch (e2) { } } } catch (err) { console.error(err); } };
+    const fire = e => { e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); try { if (b.dataset.mode === 'back') { retreat(i); return; } if (b.dataset.mode === 'again') { again(i); return; } if (canSteal()) go(i); else if (canShow()) { pend = i; try { toast('已預約盜壘：下一球投出前起跑', '#ffe9a0', '#c60'); } catch (e2) { } } } catch (err) { console.error(err); } };
     b.addEventListener('pointerdown', fire);
     ['mousedown', 'touchstart', 'click', 'touchend', 'pointerup'].forEach(ev => b.addEventListener(ev, e => { e.stopPropagation(); if (ev !== 'touchstart') e.preventDefault(); }));      // 不要讓點擊穿透到下面的「揮棒／瞄準」
     document.body.appendChild(b); els[i] = b; return b;
@@ -140,20 +151,22 @@ body.stOv #btnSteal{display:none!important}
     b.style.display = 'block';
     const sp2 = spotFor(b, x, y, rc), clipped = x > rc.right - 8 || x < rc.left + 8 || y < rc.top + 40 || y > rc.bottom - 60;      // 壘包本身在畫面外才標箭頭
     b.style.left = sp2.x + 'px'; b.style.top = sp2.y + 'px';
-    const back = !!(mode === 'back');
-    const n = back ? 1 : chainOf(i).length, nm = back ? '退回' : n === 1 ? ['盜二壘', '盜三壘', '盜本壘'][i] : n === 2 ? '雙盜壘' : '全員盜壘', arrow = clipped ? (i === 0 ? ' ▶' : i === 2 ? '◀ ' : ' ▲') : '';
+    const back = !!(mode === 'back'), again0 = mode === 'again';
+    const n = back || again0 ? 1 : chainOf(i).length, nm = back ? '退回' : n === 1 ? ['盜二壘', '盜三壘', '盜本壘'][i] : n === 2 ? '雙盜壘' : '全員盜壘', arrow = clipped ? (i === 0 ? ' ▶' : i === 2 ? '◀ ' : ' ▲') : '';
     const txt = (i === 2 && clipped ? arrow : '') + nm + (i !== 2 && clipped ? arrow : '');
-    b.dataset.mode = back ? 'back' : 'steal'; b.classList.toggle('bk', back);
+    b.dataset.mode = back ? 'back' : again0 ? 'again' : 'steal'; b.classList.toggle('bk', back);
     if (b.textContent !== txt) b.textContent = txt;
   }
   function tick() {
     requestAnimationFrame(tick);
     try {
       css(); const ok = canSteal(), vis = canShow(), rok = retOK();
+      if (G && G.on) for (const q of G.on) if (q && q.state === 'on' && q.earlyGo && !q.stepGo) q.earlyGo = false;      // 安全上壘後殘留的盜壘旗標：清掉，按鈕只會顯示「盜X壘」
       if (pend != null) { const rr = G.on && G.on[pend]; if (!vis || !rr || rr.state !== 'on') pend = null; else if (ok) { const k = pend; pend = null; go(k); } }
       let key = '', any = false;
       for (let i = 0; i < 3; i++) {
-        const r = vis && G.on && G.on[i];
+        const r = vis && G.on && G.on[i], rt = !r && rok && retOf(i);
+        if (rt) { any = true; place(i, 'again'); key += i + 'a'; continue; }
         const canGo = !!(r && r.state === 'on' && !r.stepGo && !r.earlyGo), canBack = !canGo && rok && !!backOf(i);      // 還沒動＝盜X壘；準備中／起跑中＝退回；回到壘包後自動變回盜X壘
         if (!canGo && !canBack) { if (els[i]) els[i].style.display = 'none'; continue; }
         any = true; place(i, canBack ? 'back' : 'steal'); key += i + (canBack ? 'b' : 's');
