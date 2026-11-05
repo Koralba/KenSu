@@ -151,6 +151,12 @@ const WBC_DATA = (function () {
   /* 轉成遊戲用的 CPBL 格式：{bat,bench,sp,rp}；rp 最後一位是終結者（CL） */
   RAW.forEach(t => { const A = ADJ[t.code]; t.cp = { bat: t.bat, bench: t.bench, sp: t.sp.map(r => mkP(r, 'SP', A)), rp: t.rp.map((r, i) => mkP(r, i === t.rp.length - 1 ? 'CL' : 'RP', A)) }; });
   const byId = {}; RAW.forEach(t => { byId[t.id] = t; });
+  /* 分組可變：POOLS 是共用的物件，setPools／randomPools 會「就地」改寫它並同步各隊的 pool 欄位（賽程、積分榜、樹狀圖都讀這裡）。
+     OFFICIAL 是原本的官方分組，可一鍵還原。每組固定 5 隊、共 20 隊。 */
+  const OFFICIAL = JSON.parse(JSON.stringify(POOLS));
+  function validPools(m) { try { const all = [].concat(...['A', 'B', 'C', 'D'].map(g => m[g])); return ['A', 'B', 'C', 'D'].every(g => m[g].length === 5) && new Set(all).size === 20 && all.every(id => byId[id]); } catch (e) { return false; } }
+  function setPools(m) { if (!validPools(m)) return false; for (const g in POOLS) POOLS[g] = m[g].slice(); for (const g in POOLS) POOLS[g].forEach(id => { byId[id].pool = g; }); return true; }
+  function randomPools() { const ids = RAW.map(t => t.id); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } const m = {}; ['A', 'B', 'C', 'D'].forEach((g, i) => { m[g] = ids.slice(i * 5, i * 5 + 5); }); setPools(m); return m; }
   function check() {      // 資料自我檢查：回傳問題清單（空陣列＝沒問題）
     const bad = [], seenAll = new Map();
     if (RAW.length !== 20) bad.push('隊數不是 20：' + RAW.length);
@@ -171,5 +177,5 @@ const WBC_DATA = (function () {
     seenAll.forEach((v, n) => { if (v.length > 1) bad.push('跨隊同名：' + n + '（' + v.join('、') + '）'); });
     return bad;
   }
-  return { TEAMS: RAW, POOLS, PARK, POOL_VENUE, byId, check };
+  return { TEAMS: RAW, POOLS, PARK, POOL_VENUE, byId, check, OFFICIAL, setPools, randomPools };
 })();
