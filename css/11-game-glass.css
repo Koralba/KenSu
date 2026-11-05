@@ -310,6 +310,9 @@ body .stb, body .pkb {
   text-shadow: 0 1px 2px rgba(0, 0, 0, .7); transition: opacity .15s, filter .15s;
 }
 body .pkb { --bt: 70, 150, 245 }
+/* 盜壘／退回／牽制鈕的尺寸鎖死：不論盜壘或退回狀態、不論別的樣式（例如賽程表的 .bk）撞到類別名稱，都維持同一個小圓角膠囊 */
+body .stb, body .pkb { height: auto !important; width: auto !important; max-width: none !important; max-height: none !important; display: block; box-sizing: border-box; white-space: nowrap !important; writing-mode: horizontal-tb !important; line-height: 1.25 !important; grid-template-columns: none !important }
+body .stb[style*="display: none"], body .pkb[style*="display: none"] { display: none !important }
 body .stb.stbk { --bt: 240, 124, 48; background: linear-gradient(160deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .05) 42%, rgba(20, 30, 52, .18)), rgba(var(--bt), .38) }
 body .pkb.far { --bt: 255, 100, 70; opacity: .9 }
 body .stb:hover, body .pkb:hover { opacity: 1; filter: brightness(1.12) }
