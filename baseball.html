@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="css/09-koshien.css">
 <link rel="stylesheet" href="css/10-menu-glass.css">
 <link rel="stylesheet" href="css/11-game-glass.css">
+<link rel="stylesheet" href="css/12-wbc.css">
 </head>
 <body>
 <div id="wrap">
@@ -43,10 +44,11 @@
   <div class="kicker">Cam.Su</div>
   <div class="logo"><span class="l1">中職</span><span class="l2">野球</span><span class="l1 yr">2027</span><i class="tw" style="left:-.1em;top:.05em;animation-delay:.2s">✦</i><i class="tw" style="left:44%;top:-.12em;animation-delay:1.1s;font-size:.2em">✦</i><i class="tw" style="right:-.12em;top:.55em;animation-delay:1.9s">✦</i><i class="tw" style="left:20%;bottom:-.05em;animation-delay:2.4s;font-size:.18em">✦</i><i class="tw" style="right:30%;top:.1em;animation-delay:.7s;font-size:.16em">✦</i></div>
   <div class="en">CPBL 2027 SEASON</div>
-  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmVersus" class="tmb tm-v"><i class="ico star">⚔</i><span class="tt"><b>網路對戰</b><small>ONLINE VERSUS</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmSettings" class="tmb tmx"><i class="ico pwr">⚙</i><span class="tt"><b>設定</b><small>SETTINGS</small></span><em class="chev" aria-hidden="true"></em></button></div>
+  <div class="tmenu"><button type="button" id="tmNormal" class="tmb tm-n"><i class="ico ball"></i><span class="tt"><b>一般模式</b><small>EXHIBITION</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmCareer" class="tmb tm-c"><i class="ico star">★</i><span class="tt"><b>生涯模式</b><small>CAREER</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmWbc" class="tmb tm-w"><i class="ico ball"></i><span class="tt"><b>WBC經典賽模式</b><small>WORLD BASEBALL CLASSIC</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmVersus" class="tmb tm-v"><i class="ico star">⚔</i><span class="tt"><b>網路對戰</b><small>ONLINE VERSUS</small></span><em class="chev" aria-hidden="true"></em></button><button type="button" id="tmSettings" class="tmb tmx"><i class="ico pwr">⚙</i><span class="tt"><b>設定</b><small>SETTINGS</small></span><em class="chev" aria-hidden="true"></em></button></div>
   <div class="made"><small>— MADE BY CAM.SU</small>Cam.Su Studio</div>
 </div>
 
+<div id="wbcDlg" class="hide"></div>
 <div id="careerDlg" class="hide"><div class="cbox"><div class="ct">🌟 生涯模式</div><div class="cs">非常抱歉，目前Su.正在開發中，請耐心等候...</div><button type="button" id="careerLoad">📂 讀取生涯存檔</button><button type="button" id="careerOk">我知道了</button></div></div>
 
 <div id="saveDlg" class="hide" role="dialog" aria-modal="true" aria-labelledby="svTitle"><div class="sv-box"><div class="sv-t" id="svTitle">💾 存檔／讀取</div><div class="sv-s" id="svHint"></div><div class="sv-list" id="svList"></div><div class="sv-msg" id="svMsg"></div><div class="sv-foot"><button type="button" id="svImport">📥 匯入檔案</button><button type="button" id="svExpAll">📤 匯出全部</button><button type="button" id="svClose">關閉</button></div></div></div>
@@ -186,6 +188,9 @@
 <script src="js/13y-ball-beacon.js"></script>
 <script src="js/13z-runner-tracker.js"></script>
 <script src="js/13zh-hr-feel.js"></script>
+<script src="js/13za-wbc-data.js"></script>
+<script src="js/13zb-wbc.js"></script>
+<script src="js/13zc-wbc-ceremony.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){})})}</script></body></html>
