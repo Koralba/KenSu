@@ -154,7 +154,7 @@ body.stOv #btnSteal{display:none!important}
     const back = !!(mode === 'back'), again0 = mode === 'again';
     const n = back || again0 ? 1 : chainOf(i).length, nm = back ? '退回' : n === 1 ? ['盜二壘', '盜三壘', '盜本壘'][i] : n === 2 ? '雙盜壘' : '全員盜壘', arrow = clipped ? (i === 0 ? ' ▶' : i === 2 ? '◀ ' : ' ▲') : '';
     const txt = (i === 2 && clipped ? arrow : '') + nm + (i !== 2 && clipped ? arrow : '');
-    b.dataset.mode = back ? 'back' : again0 ? 'again' : 'steal'; b.classList.toggle('bk', back);
+    b.dataset.mode = back ? 'back' : again0 ? 'again' : 'steal'; b.classList.toggle('stbk', back);
     if (b.textContent !== txt) b.textContent = txt;
   }
   function tick() {
