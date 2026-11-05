@@ -9,7 +9,7 @@ const WBC = (function () {
   const D = WBC_DATA, KEY = 'cpbl2027.wbc.v1', SLOT_MY = 8, SLOT_OP = 9, KEYS = ['P0', 'P1', 'P2', 'P3', 'P4', 'QF', 'SF', 'BR', 'FN'];
   const DAYN = { P0: '預賽 第1輪', P1: '預賽 第2輪', P2: '預賽 第3輪', P3: '預賽 第4輪', P4: '預賽 第5輪', QF: '八強賽', SF: '四強賽', BR: '季軍賽', FN: '冠軍賽' };
   const $$ = id => document.getElementById(id), esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let S = null, sel = null, tab = 'sched', banner = '', opts = { inn: 9 }, showBrk = false;
+  let S = null, sel = null, tab = 'sched', banner = '', opts = { inn: 9 }, showBrk = false, editMode = false, swapSel = null;
   D.TEAMS.forEach(t => { CPBL[t.id] = t.cp; });
   const T = id => D.byId[id], nm = id => T(id).name;
   /* ---------- 球隊強度：進攻＝先發 9 人打擊；防守＝投手（先發前 4＋牛棚前 6）為主、野手守備＋肩力為輔；全部換成 z 分數再轉 30~99 顯示值 ---------- */
@@ -41,12 +41,13 @@ const WBC = (function () {
   /* ---------- 賽程 ---------- */
   function roundRobin(ids) { const l = ids.slice(); l.push(null); const n = l.length, rounds = []; for (let r = 0; r < n - 1; r++) { const m = []; for (let i = 0; i < n / 2; i++) { const a = l[i], b = l[n - 1 - i]; if (a && b) m.push(r % 2 ? { a: b, h: a } : { a, h: b }); } rounds.push(m); l.splice(1, 0, l.pop()); } return rounds; }
   function newState(my, inn) {
-    const s = { v: 1, my, inn, k: 0, games: [], out: false, done: false, final: null, log: [] };
+    const s = { v: 1, my, inn, k: 0, games: [], out: false, done: false, final: null, log: [], pools: JSON.parse(JSON.stringify(D.POOLS)) };      // pools：這一屆的分組（隨機或玩家調整後的），存檔一起保存
     for (const p in D.POOLS) roundRobin(D.POOLS[p]).forEach((m, r) => m.forEach((g, i) => s.games.push({ id: 'P' + p + r + i, k: 'P' + r, pool: p, a: g.a, h: g.h, done: false })));
     return s;
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } };
-  const load = () => { try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!(o && o.v === 1 && T(o.my))) return null; if (o.out && !o.done && o.games.some(g => !g.done && (g.a === o.my || g.h === o.my))) o.out = false; return o; } catch (e) { return null; } };      // 舊版 bug 存檔：還有我的比賽沒打卻 out=true → 修回 false
+  const loadRaw = () => { try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!(o && o.v === 1 && T(o.my))) return null; if (o.out && !o.done && o.games.some(g => !g.done && (g.a === o.my || g.h === o.my))) o.out = false; return o; } catch (e) { return null; } };      // 舊版 bug 存檔：還有我的比賽沒打卻 out=true → 修回 false
+  const load = () => { const o = loadRaw(); if (o && o.pools) D.setPools(o.pools); return o; };      // 讀回進行中的大賽時，分組也一併還原
   const wipe = () => { try { localStorage.removeItem(KEY); } catch (e) { } };
   const dayGames = () => S.games.filter(g => g.k === KEYS[S.k]), myGame = () => dayGames().find(g => !g.done && (g.a === S.my || g.h === S.my));
   const win = g => g.sa > g.sh ? g.a : g.h, lose = g => g.sa > g.sh ? g.h : g.a;
@@ -124,12 +125,14 @@ const WBC = (function () {
   const stars = n => { const k = Math.max(1, Math.min(5, Math.round((n - 40) / 11))); return '★'.repeat(k) + '☆'.repeat(5 - k); };
   const chip = id => wbcChip(T(id));
   function selectHTML() {
-    const sv = load(), st = strength(); let h = `<div class="wb-top"><button class="wb-btn ghost" data-a="back">← 主畫面</button><div class="wb-ttl"><b>WBC 經典賽</b><small>2026 WORLD BASEBALL CLASSIC　20 隊・4 組預賽・單淘汰</small></div><span></span></div>`;
+    const sv = loadRaw(), st = strength(); let h = `<div class="wb-top"><button class="wb-btn ghost" data-a="back">← 主畫面</button><div class="wb-ttl"><b>WBC 經典賽</b><small>2026 WORLD BASEBALL CLASSIC　20 隊・4 組預賽・單淘汰</small></div><span></span></div>`;
     if (sv) h += `<div class="wb-resume"><span>偵測到進行中的大賽：<b>${esc(nm(sv.my))}</b>（${DAYN[KEYS[sv.k]] || '已結束'}）</span><button class="wb-btn go" data-a="resume">▶ 繼續大賽</button></div>`;
+    h += `<div class="wb-tools"><button class="wb-btn" data-a="shuffle">🎲 重新隨機分組</button><button class="wb-btn" data-a="official">↺ 還原官方分組</button><button class="wb-btn${editMode ? ' go' : ''}" data-a="editpool">⇄ 調整分組：${editMode ? '開（點兩隊互換）' : '關'}</button></div>`;
     h += `<div class="wb-pools">`;
-    for (const p in D.POOLS) h += `<div class="wb-pool"><h3>${p} 組<small>${D.POOL_VENUE[p]}</small></h3>${D.POOLS[p].map(id => `<button class="wb-team${sel === id ? ' on' : ''}" data-a="pick" data-id="${id}" style="--c1:${T(id).c1};--c2:${T(id).cap}"><i>${wbcFlag(T(id).code)}</i><b>${esc(T(id).name)}</b><em class="wb-mini" title="${st[id].style}"><u><s>攻</s><span><span class="f" style="width:${st[id].off}%"></span></span><strong>${st[id].off}</strong></u><u class="d"><s>守</s><span><span class="f" style="width:${st[id].def}%"></span></span><strong>${st[id].def}</strong></u></em></button>`).join('')}</div>`;
+    for (const p in D.POOLS) h += `<div class="wb-pool"><h3>${p} 組<small>${D.POOL_VENUE[p]}</small></h3>${D.POOLS[p].map(id => `<button class="wb-team${sel === id ? ' on' : ''}${swapSel === id ? ' sw' : ''}" data-a="${editMode ? 'swap' : 'pick'}" data-id="${id}" style="--c1:${T(id).c1};--c2:${T(id).cap}"><i>${wbcFlag(T(id).code)}</i><b>${esc(T(id).name)}</b><em class="wb-mini" title="${st[id].style}"><u><s>攻</s><span><span class="f" style="width:${st[id].off}%"></span></span><strong>${st[id].off}</strong></u><u class="d"><s>守</s><span><span class="f" style="width:${st[id].def}%"></span></span><strong>${st[id].def}</strong></u></em></button>`).join('')}</div>`;
     h += `</div><div class="wb-detail">`;
-    if (!sel) h += `<p class="wb-hint">請選擇你要帶領的國家隊（每組取前兩名晉級八強）</p>`;
+    if (editMode) h += `<p class="wb-hint">調整分組：先點一支球隊，再點另一支球隊，兩隊就會互換組別（每組固定 5 隊）。調整完請關閉「調整分組」再選你的球隊。</p>`;
+    else if (!sel) h += `<p class="wb-hint">分組每次進來都會重新隨機；可按「調整分組」自行對調。請選擇你要帶領的國家隊（每組取前兩名晉級八強）</p>`;
     else {
       const t = T(sel), s = st[sel], bats = t.cp.bat.concat(t.cp.bench).slice().sort((x, y) => ovrOf(batProf(y)) - ovrOf(batProf(x))).slice(0, 3).map(b => b.n), ps = t.cp.sp.slice().sort((x, y) => { const f = r => { const q = pitProf(r); return q.stf * .6 + q.ctl * .25 + q.vel * .15; }; return f(y) - f(x); }).slice(0, 2).map(p => p.n), cl = t.cp.rp[t.cp.rp.length - 1].n;
       const bar = (l, v, c) => `<div class="wb-bar${c ? ' ' + c : ''}"><span>${l}</span><div><i style="width:${v}%"></i></div><b>${v}</b></div>`;
@@ -216,7 +219,7 @@ const WBC = (function () {
   function render() { dlg().innerHTML = `<div class="wb-wrap">${S ? hubHTML() : selectHTML()}</div>` + (S && showBrk ? overlayHTML() : ''); const w = dlg().firstChild; if (w) w.scrollTop = 0; }
   function open(keep) {      // keep=true：直接回到進行中的大賽畫面
     try { sndInit(); } catch (e) { } $$('title').classList.add('hide'); show(); try { bgmScene('wbcMenu'); } catch (e) { }      // WBC 選單專屬背景音樂
-    if (!keep) { S = null; banner = ''; showBrk = false; }
+    if (!keep) { S = null; banner = ''; showBrk = false; editMode = false; swapSel = null; D.randomPools(); }      // 每次進入 WBC 都重新隨機分組
     if (keep && !S) S = load(); render();
   }
   function startCeremony() {      // 大賽結束 → 頒獎典禮（冠亞季軍全員上台）→ 結尾詢問是否回主畫面
@@ -226,12 +229,20 @@ const WBC = (function () {
   function toTitle() { try { bgmSceneEnd(); } catch (e) { } hide(); $$('title').classList.remove('hide'); G.mode = 'title'; try { CAMC.mode = 'title'; } catch (e) { } }
   function act(a, el) {
     if (a === 'back') return toTitle();
+    if (a === 'shuffle') { D.randomPools(); swapSel = null; return render(); }
+    if (a === 'official') { D.setPools(D.OFFICIAL); swapSel = null; return render(); }
+    if (a === 'editpool') { editMode = !editMode; swapSel = null; return render(); }
+    if (a === 'swap') {
+      const id = el.dataset.id; if (!swapSel) { swapSel = id; return render(); } if (swapSel === id) { swapSel = null; return render(); }
+      const m = JSON.parse(JSON.stringify(D.POOLS)); let pa, ia, pb, ib; for (const g in m) { m[g].forEach((x, i) => { if (x === swapSel) { pa = g; ia = i; } if (x === id) { pb = g; ib = i; } }); }
+      m[pa][ia] = id; m[pb][ib] = swapSel; D.setPools(m); swapSel = null; return render();
+    }
     if (a === 'pick') { sel = el.dataset.id; return render(); }
     if (a === 'inn') { opts.inn = +el.dataset.n; return render(); }
     if (a === 'start') { if (!sel) return; showBrk = false; wipe(); S = newState(sel, opts.inn); banner = ''; save(); return render(); }
     if (a === 'resume') { S = load(); banner = ''; showBrk = false; return render(); }
-    if (a === 'reset') { if (confirm('放棄目前進度、重新選擇球隊？')) { wipe(); S = null; sel = null; banner = ''; render(); } return; }
-    if (a === 'again') { showBrk = false; wipe(); S = null; sel = null; banner = ''; return render(); }
+    if (a === 'reset') { if (confirm('放棄目前進度、重新選擇球隊？')) { wipe(); S = null; sel = null; banner = ''; editMode = false; swapSel = null; D.randomPools(); render(); } return; }
+    if (a === 'again') { showBrk = false; wipe(); S = null; sel = null; banner = ''; editMode = false; swapSel = null; D.randomPools(); return render(); }
     if (a === 'brk') { showBrk = true; return render(); }
     if (a === 'brkclose') { const first = S && S.done && !S.cer; showBrk = false; render(); if (first) startCeremony(); return; }
     if (a === 'cer') { showBrk = false; return startCeremony(); }
