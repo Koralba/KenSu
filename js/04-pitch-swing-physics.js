@@ -226,7 +226,10 @@ function mittLerp(pt, u, out) {
   const ty = Math.max(.28, ey + clamp((ey - _mp1.y) * s, -.16, .02));      // 高度：末段方向延伸，上限只准 +.02 公尺（不上飄）、下限 -.16（重力下掉），最低 .28（捕手手套構得到的高度）
   out.x = ex + (tx - ex) * u; out.y = ey + (ty - ey) * u; out.z = zt * u; return out;
 }
-function mittPoint(pt, out) {      // 球「最後到達」的點（沿視線移到手套深度）：球飛行的終點、捕手手套、回放都用這一個點，三者必定一致
+function mittPoint(pt, out) {      // 捕手手套的位置：捕手留在原位，手套放在「球落點」同樣的左右與高度（球停在落點＝視覺上已被接住，捕手不再往前）
+  const C = E.F.C; out.x = pt.mitt ? pt.mitt.x : pt.fx; out.y = clamp(pt.mitt ? pt.mitt.y : pt.fy, .45, 1.5); out.z = (C ? C.z : 4) - .25; return out;
+}
+function mittPoint_old(pt, out) {      // 球「最後到達」的點（沿視線移到手套深度）：球飛行的終點、捕手手套、回放都用這一個點，三者必定一致
   return mittLerp(pt, 1, out);
 }
 function visualArrivalT(pt) {      // 玩家「看到」球到達落點的時刻：球在畫面上（沿視線投影到好球帶平面）與落點重疊到一個球半徑內的最早時刻；球進壘前最後一小段主要是變大、位置幾乎不動，肉眼早就判斷「到了」
