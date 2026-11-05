@@ -114,6 +114,7 @@ body.stOv #btnSteal{display:none!important}
     const fire = e => { e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); try { if (b.dataset.mode === 'back') { retreat(i); return; } if (b.dataset.mode === 'again') { again(i); return; } if (canSteal()) go(i); else if (canShow()) { pend = i; try { toast('已預約盜壘：下一球投出前起跑', '#ffe9a0', '#c60'); } catch (e2) { } } } catch (err) { console.error(err); } };
     b.addEventListener('pointerdown', fire);
     ['mousedown', 'touchstart', 'click', 'touchend', 'pointerup'].forEach(ev => b.addEventListener(ev, e => { e.stopPropagation(); if (ev !== 'touchstart') e.preventDefault(); }));      // 不要讓點擊穿透到下面的「揮棒／瞄準」
+    [['height', 'auto'], ['width', 'auto'], ['max-height', 'none'], ['max-width', 'none'], ['white-space', 'nowrap'], ['writing-mode', 'horizontal-tb'], ['line-height', '1.25']].forEach(kv => b.style.setProperty(kv[0], kv[1], 'important'));      // 尺寸直接寫在按鈕上：不論 CSS 檔有沒有更新到、有沒有別的樣式撞名，盜壘／退回鈕都維持同樣的小膠囊
     document.body.appendChild(b); els[i] = b; return b;
   }
   const _v = typeof THREE !== 'undefined' ? new THREE.Vector3() : null;
