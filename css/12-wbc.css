@@ -169,3 +169,5 @@ body:not(.mob) #title .tmb{min-height:clamp(40px,5.6vh,56px);font-size:clamp(15p
 .wb-style[data-s="強攻型"] b{color:#ffb36b}.wb-style[data-s="防守型"] b{color:#7fd0ff}.wb-style[data-s="攻守俱強"] b{color:#9affc2}.wb-style[data-s="實力偏弱"] b{color:#c9c9c9}
 .wb-sub2{margin:4px 0 2px;padding-left:10px;border-left:2px solid rgba(255,255,255,.18);font-size:12px;opacity:.85}.wb-sub2 .wb-bar{font-size:12px;margin:3px 0}.wb-sub2 .wb-bar div{height:6px}
 @media (max-width:420px){.wb-team em.wb-mini{width:104px}}
+
+.wb-tools{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 12px}.wb-tools .wb-btn{font-size:13px;padding:7px 12px}.wb-team.sw{border-color:#ffd84a;background:rgba(255,216,74,.22);box-shadow:0 0 0 2px #ffd84a66}
