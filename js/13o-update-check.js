@@ -8,7 +8,7 @@
    公開介面：window.UPD = { check(), apply(), force(), version, remote, pending }。 */
 (function () {
   'use strict';
-  const PAGE_VER = 'v1.1.56';      // ★ 與 sw.js 的 VERSION 同步（每次改版一起改；tests/test-update-check.js 會檢查是否一致）。只作為「問不到 Service Worker」時的最後備援，確保右下角不會再出現「—」
+  const PAGE_VER = 'v1.1.57';      // ★ 與 sw.js 的 VERSION 同步（每次改版一定要一起改；tests/test-update-check.js 會檢查是否一致）。這是「這份頁面程式碼本身」的版本：玩家開到快取裡的舊頁面時，靠它跟伺服器的 sw.js VERSION 比，就能馬上知道自己是舊版（即使 Service Worker 已經先換成新的）
   const noSW = !('serviceWorker' in navigator) || location.protocol === 'file:';
   const KEY = 'cpbl.updMsg', VK = 'cpbl.ver';
   const U = window.UPD = { version: null, remote: null, pending: false, ready: null, check: check, force: force };
@@ -24,7 +24,7 @@
       + '#updBar.on{display:block}#updBar .tk{display:inline-block;white-space:nowrap;padding-left:100%;animation:updRun 16s linear infinite}#updBar:hover .tk{animation-play-state:paused}'
       + '@keyframes updRun{to{transform:translateX(-100%)}}body.playing #updBar,body.resOn #updBar{display:none!important}'
       + '#updVer{position:absolute;right:2.5vw;bottom:5vh;z-index:3;padding:6px 12px;color:rgba(255,255,255,.88);font-size:12px;font-weight:700;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;user-select:none}'
-      + '#updVer .vn{font-weight:900}#updVer .vn.old{color:#9b111e;text-shadow:0 0 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.7),0 1px 2px rgba(255,255,255,.6)}'
+      + '#updVer .vn{font-weight:900}#updVer .vn.old{color:#ff3030;text-shadow:0 0 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.75),0 1px 2px rgba(0,0,0,.6)}'
       + '#updDlg{position:fixed;inset:0;z-index:9600;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;font-family:\"Noto Sans TC\",sans-serif}#updDlg.on{display:flex}'
       + '#updDlg .bx{width:min(88vw,360px);background:#0f2438;border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:18px 18px 14px;color:#eaf4ff;text-align:center;box-sizing:border-box}'
       + '#updDlg h3{margin:0 0 8px;font-size:18px}#updDlg p{margin:0 0 12px;font-size:14px;line-height:1.7}#updDlg b{color:#ffe08a}'
@@ -60,18 +60,16 @@
   let inflight = null;
   function check() { return inflight || (inflight = run().catch(() => 'unknown').then(r => { inflight = null; return r; })); }
   async function run() {
-    const reg = await getReg(); if (!reg) return 'unknown';
-    const [mine, remote] = await Promise.all([askVersion(reg), fetchRemoteVersion()]);
-    U.version = mine || U.version; U.remote = remote; showVer();      // 知道伺服器版本後重畫：舊版顯示暗紅色
+    const remote = await fetchRemoteVersion(); U.remote = remote; showVer();      // 先直接問伺服器：不必等 Service Worker
+    const reg = noSW ? null : await getReg().catch(() => null);
+    const mine = reg ? await askVersion(reg) : null; U.version = mine || U.version; showVer();      // 知道伺服器版本後重畫：舊版顯示紅色
     if (U.pending) return 'updated';
     if (!remote) return 'offline';
-    if (!mine) {      // 問不到目前版本：有新 SW 在安裝就等它，否則不強制（避免重新載入迴圈）
-      if (reg.installing || reg.waiting) { await waitUntil(() => U.pending, 25000); return U.pending ? 'updated' : 'unknown'; }
-      return 'unknown';
+    if (isOld() || (mine && mine !== remote)) {      // 頁面程式碼或 SW 比伺服器舊：馬上跳通知，同時背景開始下載新版（按「確認」時就幾乎立即完成）
+      try { reg && reg.update(); } catch (e) { }
+      notice(remote); return 'available';
     }
-    if (mine === remote && !U.pending) return 'latest';
-    notice(remote);      // 有新版本：跳通知，等使用者按「確認」才更新並重新啟動
-    return 'available';
+    return 'latest';
   }
   /* ---------- 新版通知視窗 ---------- */
   let dlg = null, shown = false;
@@ -91,9 +89,12 @@
   async function apply() {
     if (reloading) return;
     try {
+      const last = +ls.get('cpbl.updTry') || 0; ls.set('cpbl.updTry', String(Date.now()));
+      if (Date.now() - last < 90000) return force(true);      // 90 秒內又更新一次還是舊版：一般重載沒用，直接清快取＋登出舊 SW
       const reg = await getReg(); if (!reg) return force(true);
       try { reg.update(); } catch (e) { }
       if (U.pending) { reloading = true; return location.reload(); }
+      { const m0 = await askVersion(reg); if (m0 && U.remote && m0 === U.remote) { reloading = true; return location.reload(); } }      // SW 早就是新版、只有頁面是舊的：直接重載就會拿到新檔
       if (await waitUntil(() => U.pending, 20000)) { reloading = true; return location.reload(); }
       const m = await askVersion(reg); if (m && U.remote && m === U.remote) { reloading = true; return location.reload(); }
     } catch (e) { }
@@ -134,7 +135,9 @@
   const verCmp = (a, b) => { const x = verNum(a), y = verNum(b); if (!x || !y) return a === b ? 0 : NaN; for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1; return 0; };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   U._cmp = verCmp;
-  function curVer() { return U.version || PAGE_VER || ls.get(VK) || null; }
+  function curVer() {      // 目前實際在跑的版本：頁面程式碼版本與 Service Worker 版本取較舊的那個（頁面是舊的、SW 已更新的情況也要判成舊版）
+    const a = PAGE_VER, b = U.version; if (a && b) { const c = verCmp(a, b); return c !== c || c <= 0 ? a : b; } return a || b || ls.get(VK) || null;
+  }
   function isOld() {      // 這台裝置的版本比伺服器上的舊 → 版本號顯示暗紅色
     const mine = curVer(), remote = U.remote; if (!mine || !remote) return false;
     const c = verCmp(mine, remote); return c < 0 || (c !== c && mine !== remote);
@@ -162,7 +165,9 @@
   function start() {
     if (noSW) { showVer(); return; }      // 沒有 Service Worker（file:// 或不支援）：只顯示頁面內建版本
     showVer(); afterReload(); loadVer(); setTimeout(loadVer, 3000);
-    if (navigator.onLine !== false) setTimeout(() => { loadVer().then(check); }, 1500);      // 連網：進主畫面自動檢查一次
+    if (navigator.onLine !== false) check();      // 連網：一開啟就立刻檢查（不再等 1.5 秒）
+    addEventListener('online', () => check());      // 斷線後恢復連線、或把遊戲從背景切回來，也再檢查一次
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && navigator.onLine !== false) check(); });
   }
-  if (document.readyState === 'complete') start(); else addEventListener('load', () => setTimeout(start, 300));
+  if (document.readyState !== 'loading') start(); else document.addEventListener('DOMContentLoaded', start);      // 不等所有資源（three.js、字型）載完，頁面一準備好就開始
 })();
