@@ -375,8 +375,8 @@ function updateFlight(dt) {
   else if ((!pt.sw || pt.waitCatch) && pt.t > tEnd) pt.t = tEnd;
   if (!pt.cprep && pt.t > pt.T * .35 && E.F.C) {
     pt.cprep = true; const C = E.F.C;
-    if (!pt.hitBatter) { const rz0 = C.rig.root.position.z; try { pt.cT = mittPoint(pt, {}); C.rig.root.position.z = CATCH_Z; pt.cg = solveCatchPose(C.rig, pt.cT); } catch (e) { pt.cg = null; } C.rig.root.position.z = rz0; }      // 球飛到一半：捕手先算好「手套要放哪、身體要站哪」，手套提前移到球的終點等球
-    C.tx = catchX(pt); C.tz = pt.hitBatter ? C.z : CATCH_Z; C.sp = 12; C.wait = 0;
+    if (!pt.hitBatter) { try { pt.cT = mittPoint(pt, {}); pt.cg = solveCatchPose(C.rig, pt.cT); } catch (e) { pt.cg = null; } }      // 球飛到一半：捕手先算好「手套要放哪、身體要站哪」，手套提前移到球的終點等球
+    C.tx = catchX(pt); C.tz = C.z; C.sp = 9; C.wait = 0;
     if (pt.cg && C.rig.anim && (C.rig.anim.name === 'crouch' || C.rig.anim.name === 'sign')) C.rig.anim = { name: 'cset', t: 0, dur: clamp(pt.T * .4, .1, .22), opt: { hold: true, cg: pt.cg, T: pt.cT } };
   }
   if (pt.t <= tEnd) { pitchPosEx(pt, pt.t, _pp); if (pt.dirt && !pt.bnc && pt.t >= pt.vb * pt.T) { pt.bnc = true; flowSfx('bounce'); spawnBurst(_pp.x, .06, _pp.z, .35, '#c9a06a'); } setBall(_pp, true, pt.spec.col, pt.tfx || TFX[pt.id]); pt.pos = _pp; pitchFx(pt); }   // 沒揮棒：球停在真正的進壘點，不再外插下滑
@@ -707,7 +707,6 @@ function takePitch(pt) {
   const call = umpireCall(pt); pt.call = call; catcherCatch(pt);
   absFlow(pt, call, k => pitchResult(k));
 }
-const CATCH_Z = 1.15;      // 捕手接球時站的深度：手套剛好構到落點（本壘板上方 z=0）
 function catchX(pt) {      // 捕手身體要站的 x：讓「手套」（不是身體中心）剛好在球的終點 x；手套離身體中心約 .3～.45 公尺，以前直接把身體中心對球，手套就偏了一截
   const T = pt.cT || mittPoint(pt, {}); return clamp(T.x - (pt.cg ? pt.cg.gx : 0), -2.4, 2.4);
 }
@@ -724,12 +723,11 @@ function catcherCatch(pt, hbp) {
     C.rig.anim = { name: 'down', t: 0, dur: .6, opt: {} }; flowSfx('bounce');
     ballTween(a0, { x: pt.wildLand.x, y: .2, z: pt.wildLand.z }, .55 + pt.wildLand.z * .025, 1.2);
   } else {
-    C.x = catchX(pt); C.tx = C.x; if (!pt.hitBatter) C.z = CATCH_Z; C.tz = C.z; flowSfx('mitt', .8);
+    C.x = catchX(pt); C.tx = C.x; C.tz = C.z; flowSfx('mitt', .8);
     const gl = pt.cT || mittPoint(pt, {});                                                      // 手套位置＝球飛行的最後一個點（同一個點，不再各算各的）
     C.rig.anim = pt.cg ? { name: 'catch', t: 0, dur: .3, opt: { hold: true, cg: pt.cg, T: gl, kmh: pt.kmh } } : { name: 'catch', t: 0, dur: .3, opt: {} };      // hold：接住後手套停在球的位置，直到捕手回傳（以前 0.3 秒就收手站起來，球卻還停在原處）
-    spawnRing(gl.x, gl.y, gl.z + .1, clamp((pt.kmh - 100) * .011, .22, .75), '#ffe9a0');
     ballTween(a0, gl, E.runners.some(r => r.state === 'run') ? .09 : .06, 0);                  // 球停在手套裡，之後由捕手回傳投手
-    spawnBurst(gl.x, gl.y, gl.z + .1, clamp((pt.kmh - 118) * .022, .22, .9), '#ffe9a0'); if (pt.kmh >= 148) CAMC.shake = Math.max(CAMC.shake || 0, .05 + (pt.kmh - 148) * .008);
+    if (pt.kmh >= 148) CAMC.shake = Math.max(CAMC.shake || 0, .05 + (pt.kmh - 148) * .008);
   }
 }
 function catcherReturn(cb) {                  // 捕手接到球後回傳給投手，投手接到球才進行下一球
@@ -740,7 +738,6 @@ function catcherReturn(cb) {                  // 捕手接到球後回傳給投�
     setBall(from, true);
     ballTween(from, hand, .14, 0, () => {                                                    // 球先落進捕手手中，再傳出
       C.rig.anim = { name: 'throw', t: 0, dur: .3, opt: { hand: 1 } }; flowSfx('throw', .6);
-      try { const q = formationPos('C'); C.tx = q.x; C.tz = q.z; C.sp = 7; } catch (e) { }      // 傳出球後退回原本的捕手位置
       const d = Math.hypot(P.x - hand.x, P.z - hand.z);
       after(.08, () => ballTween(hand, { x: P.x, y: 1.25, z: P.z + .2 }, clamp(d / 26, .45, .85), .5, () => { P.rig.anim = { name: 'catch', t: 0, dur: .3, opt: {} }; flowSfx('mitt', .5); after(.25, cb); }));
     });
