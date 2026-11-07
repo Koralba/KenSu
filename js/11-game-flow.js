@@ -249,7 +249,8 @@ function doPickoff(i) {
   // 流程：①投手站定盯著跑者、壘包手同時補位到壘包旁 → ②投手完整的傳球動作 → ③球飛到壘包、野手接球並觸殺 → ④判定 → ⑤野手把球傳回投手 → 才繼續比賽
   faceRig(P.rig, cv.x, cv.z); P.rig.anim = { name: 'stretch', t: 0, dur: .22, opt: { hand: hd } };
   if (lead0 > 2.2) { try { toast('牽制！', '#ffe9a0', '#c60'); } catch (e) { } }      // 離壘大的跑者：明顯的「嚇阻」提示
-  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 2.4; tgt.wait = 0; tgt.hold = 0; tgt.v = Math.max(tgt.v || 0, 5.5); tgt.pkRush = true;      // 壘包手一聽到就衝回壘包（真實牽制：1B／SS 早就貼在壘邊，這裡用衝刺加起跑速度模擬） if (tgt.rig.anim && (tgt.rig.anim.name === 'stance' || tgt.rig.anim.name === 'crouch')) tgt.rig.anim = null;
+  tgt.tx = cv.x; tgt.tz = cv.z; tgt.sp = fspeed(tgt) * 2.4; tgt.wait = 0; tgt.hold = 0; tgt.v = Math.max(tgt.v || 0, 5.5); tgt.pkRush = true;      // 壘包手一聽到就衝回壘包（真實牽制：1B／SS 早就貼在壘邊，這裡用衝刺加起跑速度模擬）
+  if (tgt.rig && tgt.rig.anim && (tgt.rig.anim.name === 'stance' || tgt.rig.anim.name === 'crouch')) tgt.rig.anim = null;
   const finish = () => { if (!alive2()) return; clr(); prePitch(); };
   const returnBall = () => {
     if (!alive2()) return; const h2 = hand();
