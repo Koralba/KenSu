@@ -624,7 +624,8 @@ function doPush() {
     if (r.state === 'on') {
       const nb = r.from + 1; if (nb > 4 || !baseFree(nb, r)) continue;      // 壘上所有跑者「同步」起跑（由最前面的跑者開始依序騰出壘包）
       r.goal = nb; r.state = 'run'; r.to = nb; r.s = (r.lead || 0) / BASE_LEN; r.dir = 1; r.isForce = false; r.tag = false; G.on[r.from - 1] = null; r.pre = 0; r.sliding = false; r.pushN = 1; r.pushUntil = PL.tAge + 2;
-      r.stall = 0; r.slipped = false; r.turnRamp = false; r.accT = undefined; r.pushQ = 0; { const an = r.rig && r.rig.anim; if (an && (an.name === 'slide' || an.name === 'hdive' || an.name === 'down')) r.rig.anim = null; }      // 剛滑進壘包／踉蹌的跑者：按推進要「馬上起身往前衝」，不能還躺在地上演完滑壘動畫、或被上一壘留下的僵直卡住 const firstGo = !started; started = true;
+      r.stall = 0; r.slipped = false; r.turnRamp = false; r.accT = undefined; r.pushQ = 0; { const an = r.rig && r.rig.anim; if (an && (an.name === 'slide' || an.name === 'hdive' || an.name === 'down')) r.rig.anim = null; }      // 剛滑進壘包／踉蹌的跑者：按推進要「馬上起身往前衝」，不能還躺在地上演完滑壘動畫、或被上一壘留下的僵直卡住
+      const firstGo = !started; started = true;
       if (firstGo) toast('全壘包推進！', '#fff', '#e80'); say(`<em>${r.pl.name}</em>看準時機，積極往${BASE_NAME[nb % 4]}推進！`, 2500);
     } else {
       if (r.dir < 0) { r.dir = 1; r.goal = r.to; r.turnRamp = true; r.accT = -.12; r.retreatAt = G.rclk || 0; }      // 折返途中改回頭往前：跟盜壘退回一樣有煞車＋轉身的短暫減速
