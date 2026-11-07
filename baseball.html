@@ -81,6 +81,8 @@
       <div class="opt"><b>天氣</b><div class="pl"><span class="pill sel" data-k="wx" data-v="1">開</span><span class="pill" data-k="wx" data-v="0">關</span></div></div>
       <div class="opt"><b>時段</b><div class="pl"><span class="pill sel" data-k="night" data-v="-1">隨機</span><span class="pill" data-k="night" data-v="0">☀️ 白天</span><span class="pill" data-k="night" data-v="1">🌙 夜晚</span></div></div>
       <div class="opt"><b>球場</b><div class="pl"><select id="selPark" style="background:#0009;color:#fff;border:1px solid #fff5;border-radius:8px;padding:5px 8px;font-size:13px;max-width:100%"></select></div></div>
+      <div class="opt"><b>天氣情境</b><div class="pl"><select id="selWx" title="指定本場天氣；隨機＝依球場與機率決定" style="background:#0009;color:#fff;border:1px solid #fff5;border-radius:8px;padding:5px 8px;font-size:13px;max-width:100%"></select></div></div>
+      <div class="opt"><b>夜空天象</b><div class="pl"><select id="selSky" title="星光／月光／極光／流星（只在夜間比賽出現；選了會自動改成夜間）" style="background:#0009;color:#fff;border:1px solid #fff5;border-radius:8px;padding:5px 8px;font-size:13px;max-width:100%"></select></div></div>
       <div class="opt"><b>先發</b><div class="pl"><span class="pill sel" data-k="ace" data-v="0">隨機</span><span class="pill" data-k="ace" data-v="1">王牌</span></div></div>
       <div class="opt"><b>ABS</b><div class="pl"><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div></div>
       <div class="opt"><b>音樂</b><div class="pl"><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div></div>
@@ -196,6 +198,8 @@
 <script src="js/13za2-wbc-flags.js"></script>
 <script src="js/13zb-wbc.js"></script>
 <script src="js/13zc-wbc-ceremony.js"></script>
+<script src="js/13zi-weather-more.js"></script>
+<script src="js/13zj-cast-taiwan.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){})})}</script></body></html>
