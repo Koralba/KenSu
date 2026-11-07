@@ -288,7 +288,8 @@ const DAYSKY = (() => {
     const gray = clamp((cl - .3) / .6, 0, 1), dk = clamp(rn * 1.5, 0, 1);      // 雲越多天越灰；下雨再變暗。好天氣（雲量低）維持飽和的藍
     uni.uZen.value.copy(CZ[0]).lerp(CZ[1], gray).lerp(CZ[2], dk); uni.uHor.value.copy(CH[0]).lerp(CH[1], gray).lerp(CH[2], dk);
     if (hz > .01) { uni.uZen.value.lerp(_b.set(0xb9ad94), hz * .55); uni.uHor.value.lerp(_b.set(0xd3c4a2), hz * .7); }
-    const sunI = (1 - clamp(cl * 1.5, 0, 1)) * (1 - clamp(rn * 3, 0, 1)) * (1 - hz * .45); uni.uSunI.value = sunI; uni.uHaze.value = hz; rays.material.opacity = sunI * (.5 + .5 * Math.sin(NIGHT.t * .35)) * .12 + sunI * .1 * clamp(1 - Math.abs(cl - .35) * 2.2, 0, 1); rays.material.rotation = NIGHT.t * .004;      // 有些雲時（雲隙光）光芒最明顯，萬里無雲只剩淡淡光暈；緩慢轉動、微微呼吸 uni.uSunCol.value.setRGB(1, .93 - hz * .12, .78 - hz * .22);
+    const sunI = (1 - clamp(cl * 1.5, 0, 1)) * (1 - clamp(rn * 3, 0, 1)) * (1 - hz * .45); uni.uSunI.value = sunI; uni.uHaze.value = hz; rays.material.opacity = sunI * (.5 + .5 * Math.sin(NIGHT.t * .35)) * .12 + sunI * .1 * clamp(1 - Math.abs(cl - .35) * 2.2, 0, 1); rays.material.rotation = NIGHT.t * .004;      // 有些雲時（雲隙光）光芒最明顯，萬里無雲只剩淡淡光暈；緩慢轉動、微微呼吸
+    if (uni.uSunCol && uni.uSunCol.value) uni.uSunCol.value.setRGB(1, .93 - hz * .12, .78 - hz * .22);
     const step = window.__ff ? 0 : Math.min(dt || 0, .1), cover = clamp(.4 + cl * .95, 0, 1.4), ws = on && w ? clamp((w.spd || 0) / 6, 0, 1.5) : .2;
     _a.setRGB(1, 1, 1).lerp(_b.set(0x959fad), gray).multiplyScalar(1 - dk * .68);      // 陰天雲偏灰、下雨雲底更暗
     for (const c of clouds) {
