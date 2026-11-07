@@ -8,7 +8,7 @@
    公開介面：window.UPD = { check(), apply(), force(), version, remote, pending }。 */
 (function () {
   'use strict';
-  const PAGE_VER = 'v1.2.7';      // ★ 與 sw.js 的 VERSION 同步（每次改版一定要一起改；tests/test-update-check.js 會檢查是否一致）。這是「這份頁面程式碼本身」的版本：玩家開到快取裡的舊頁面時，靠它跟伺服器的 sw.js VERSION 比，就能馬上知道自己是舊版（即使 Service Worker 已經先換成新的）
+  const PAGE_VER = 'v1.2.8';      // ★ 與 sw.js 的 VERSION 同步（每次改版一定要一起改；tests/test-update-check.js 會檢查是否一致）。這是「這份頁面程式碼本身」的版本：玩家開到快取裡的舊頁面時，靠它跟伺服器的 sw.js VERSION 比，就能馬上知道自己是舊版（即使 Service Worker 已經先換成新的）
   const noSW = !('serviceWorker' in navigator) || location.protocol === 'file:';
   const KEY = 'cpbl.updMsg', VK = 'cpbl.ver';
   const U = window.UPD = { version: null, remote: null, pending: false, ready: null, check: check, force: force };
