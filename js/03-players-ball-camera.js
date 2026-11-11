@@ -1244,9 +1244,17 @@ const AQ = { q: 1, acc: 0, n: 0, good: 0, last: 0, up: 0, wait: 6000 };      // 
 function adaptQuality(real) {
   if (typeof G === 'undefined' || G.mode !== 'play' || document.hidden) { AQ.acc = 0; AQ.n = 0; return; }
   AQ.acc += real; AQ.n++; if (AQ.n < 40) return; const avg = AQ.acc / AQ.n; AQ.acc = 0; AQ.n = 0; const now = performance.now();
-  if (avg > 1 / 46 && AQ.q > .62) { if (now - AQ.up < 15000) AQ.wait = Math.min(AQ.wait * 2, 60000); AQ.q = Math.max(.62, AQ.q - .12); AQ.good = 0; AQ.last = now; resize(); }      // 剛拉高又掉下來：下次等更久再試，避免畫質來回跳動
-  else if (avg < 1 / 54 && AQ.q < 1 && now - AQ.last > AQ.wait) { if (++AQ.good >= 4) { AQ.q = Math.min(1, AQ.q + .08); AQ.good = 0; AQ.last = AQ.up = now; resize(); } }
-  else if (avg >= 1 / 54) AQ.good = 0;
+  /* v1.4.3：有幀率節拍器（PACE，00-hd-core.js）時，幀間隔本來就被對齊到目標（60fps＝16.7ms），平均只要明顯高於目標就代表 GPU 追不上——
+     所以門檻改成「目標的 1.2 倍才降／1.08 倍以內才升」（60fps 約 20ms／18ms）；沒節拍器（桌機）維持原本的 1/46、1/54 秒。 */
+  const tgt = (typeof PACE !== 'undefined' && PACE.cap > 0) ? 1 / PACE.cap : 0, slowT = tgt ? tgt * 1.2 : 1 / 46, fastT = tgt ? tgt * 1.08 : 1 / 54;
+  if (avg > slowT && AQ.q > .62) {
+    /* v1.4.3：吃緊時先「減輕介面」再考慮降 3D 解析度——玻璃按鈕的 backdrop-filter 模糊每幀都要重算整個 3D 畫面背景，是手機 GPU 的隱形負擔；
+       改成不模糊的半透明底色後外觀幾乎不變（對戰輕量模式 body.vsl 就是這樣做的），3D 畫質完全不受影響。介面減輕後觀察下一輪，仍吃緊才降解析度。 */
+    if (!document.body.classList.contains('perfl')) { document.body.classList.add('perfl'); AQ.good = 0; AQ.last = now; return; }
+    if (now - AQ.up < 15000) AQ.wait = Math.min(AQ.wait * 2, 60000); AQ.q = Math.max(.62, AQ.q - .12); AQ.good = 0; AQ.last = now; resize();      // 剛拉高又掉下來：下次等更久再試，避免畫質來回跳動
+  }
+  else if (avg < fastT && AQ.q < 1 && now - AQ.last > AQ.wait) { if (++AQ.good >= 4) { AQ.q = Math.min(1, AQ.q + .08); AQ.good = 0; AQ.last = AQ.up = now; resize(); } }
+  else if (avg >= fastT) AQ.good = 0;
 }
 function resize() {
   measureVP(); const w = VP.w, h = VP.h, Q = GFX.cur, dpr = Math.min(Math.max(window.devicePixelRatio || 1, IS_TOUCH ? Q.flT : Q.flD), IS_TOUCH ? Q.capT : Q.capD);      // v1.2.11：桌機低 DPR 螢幕以 1.35 倍超取樣繪製（更清晰、邊緣更滑順；吃緊時 adaptQuality 會自動降回）
