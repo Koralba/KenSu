@@ -39,6 +39,7 @@ const POST = (() => {
          每個像素依它在近層陰影貼圖裡的位置算出權重 m（在近層範圍內＝1，靠邊緣 7% 平滑降到 0）：
            sun 的直射光 × m × 近層陰影，sunB 的直射光 × (1-m) × 遠層陰影 → 兩顆合起來剛好是「一顆太陽」的亮度，且層與層之間平滑過渡。
          只在兩顆都開投影（NUM_DIR_LIGHT_SHADOWS>1）時生效；其餘情況 hdCsmK 恆為 1，與原版完全相同。
+         v1.4.3 效能：getShadow 前先判斷權重 > 0 才取樣——近層範圍內的像素不再白白去採遠層（反之亦然），每個像素的 PCF 軟陰影取樣（每層 9 次貼圖讀取）省下將近一半，輸出完全相同（權重為 0 的那層本來就乘 0）。
          展開迴圈（unroll_loop）的內容是「不加大括號直接貼上」，所以修補只能是運算式、不能在迴圈內宣告變數。 */
   const CSM = { want: qs.get('csm') !== '0', ok: false, on: false, orig: null, frames: 0, bad: false };
   const sunB = new T.DirectionalLight(0xffffff, 0); sunB.visible = false; sunB.castShadow = false; sunB.userData.hdCsm = 1; scene.add(sunB); scene.add(sunB.target);
@@ -49,9 +50,9 @@ const POST = (() => {
       const nd1 = 'directLight.color *= all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;';
       const nd2a = 'DirectionalLightShadow directionalLight;\n\t#pragma unroll_loop_start', nd2b = 'shadow *= receiveShadow ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;\n\t}\n\t#pragma unroll_loop_end';
       if (C.lights_fragment_begin.indexOf(nd1) < 0 || C.shadowmask_pars_fragment.indexOf(nd2a) < 0 || C.shadowmask_pars_fragment.indexOf(nd2b) < 0) return false;      // 找不到原文（three.js 版本不同）：不修補
-      C.lights_fragment_begin = C.lights_fragment_begin.replace(nd1, 'directLight.color *= ( all( bvec2( directLight.visible, receiveShadow ) ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0 ) * hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] );');
+      C.lights_fragment_begin = C.lights_fragment_begin.replace(nd1, 'directLight.color *= ( ( all( bvec2( directLight.visible, receiveShadow ) ) && hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] ) > 0.0 ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0 ) * hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] );');
       C.shadowmask_pars_fragment = C.shadowmask_pars_fragment.replace(nd2a, 'DirectionalLightShadow directionalLight;\n\tfloat hdAcc = 0.0;\n\t#pragma unroll_loop_start')
-        .replace(nd2b, 'hdAcc += hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] ) * ( receiveShadow ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0 );\n\t}\n\t#pragma unroll_loop_end\n\tshadow *= hdAcc;');
+        .replace(nd2b, 'hdAcc += hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] ) * ( ( receiveShadow && hdCsmK( UNROLLED_LOOP_INDEX, vDirectionalShadowCoord[ 0 ] ) > 0.0 ) ? getShadow( directionalShadowMap[ i ], directionalLight.shadowMapSize, directionalLight.shadowBias, directionalLight.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0 );\n\t}\n\t#pragma unroll_loop_end\n\tshadow *= hdAcc;');
       C.shadowmap_pars_fragment += `
 #ifdef USE_SHADOWMAP
 float hdCsmK( int idx, vec4 sc ) {
@@ -76,6 +77,7 @@ float hdCsmK( int idx, vec4 sc ) {
          畫面 5×5 條射線 → 與「地面」「球員身高(2.2m)」兩個平面求交（朝天空／太遠者改取水平 maxD 處）→ 轉到光源空間取 x／y 包圍盒。
          包圍盒取階梯量化（1.14 倍）＋遲滯、中心貼齊貼圖像素格 → 鏡頭微晃時陰影邊緣不閃爍。z 軸往光源方向多留 70 公尺，高飛球不會被裁掉。 */
   const mkFit = () => ({ halfW: 0, halfH: 0, texel: 0 });
+  const FARHALF = qs.get('farhalf') !== '0';
   const FIT = { on: qs.get('fit') !== '0', near: mkFit(), far: mkFit(), cp: new T.Vector3(), L: new T.Vector3(), lx: new T.Vector3(), ly: new T.Vector3(), up: new T.Vector3(0, 1, 0), p: new T.Vector3(), pos: new T.Vector3(), n: 0 };
   const GRID = [-1, -.5, 0, .5, 1], HS = [0, 2.2], RR = 1.14;
   const qz = v => Math.max(8, Math.pow(RR, Math.ceil(Math.log(v / 8) / Math.log(RR))) * 8);
@@ -104,7 +106,7 @@ float hdCsmK( int idx, vec4 sc ) {
     st.texel = Math.max(tx, ty); sh.bias = -.0004; sh.normalBias = Math.min(.12, Math.max(.012, st.texel * .9));
   }
   function csmSync(want) {      // 近層 sun／遠層 sunB 同步：顏色、亮度、貼圖大小；不用時 sunB 完全關閉（不加光、不投影）
-    if (want !== CSM.on) { CSM.on = want; sunB.castShadow = want; sunB.visible = want; if (!want) { if (sunB.shadow.map) { sunB.shadow.map.dispose(); sunB.shadow.map = null; } sunB.intensity = 0; } }
+    if (want !== CSM.on) { CSM.on = want; sunB.castShadow = want; sunB.visible = want; if (!want) { if (sunB.shadow.map) { sunB.shadow.map.dispose(); sunB.shadow.map = null; } sunB.shadow.autoUpdate = true; sunB.intensity = 0; } }
     if (!want) return;
     sunB.color.copy(sun.color); sunB.intensity = sun.intensity;
     const SM = sun.shadow.mapSize.x; if (sunB.shadow.mapSize.x !== SM) { sunB.shadow.mapSize.set(SM, SM); if (sunB.shadow.map) { sunB.shadow.map.dispose(); sunB.shadow.map = null; } }
@@ -118,7 +120,13 @@ float hdCsmK( int idx, vec4 sc ) {
     const cp = FIT.cp.setFromMatrixPosition(camera.matrixWorld); FIT.L.copy(HDR.dir).normalize(); const lx = FIT.lx.crossVectors(FIT.up, FIT.L); if (lx.lengthSq() < 1e-4) lx.set(1, 0, 0); lx.normalize(); FIT.ly.crossVectors(FIT.L, lx);
     if (wantCsm) {
       const nearD = Math.max(34, Math.min(80, 28 + 1.6 * cp.y));      // 近層涵蓋「鏡頭前方約 35～80 公尺內的地面」（打擊視角約 35 公尺：本壘到二壘）
-      fitLight(sun, FIT.near, nearD); fitLight(sunB, FIT.far, 150);
+      fitLight(sun, FIT.near, nearD);
+      /* v1.4.3 效能：遠層（涵蓋整個視野、約 4～9 公分一格，只用在近層範圍以外的遠處）每 2 幀才重畫一次陰影貼圖。
+         遠處的球員在畫面上很小，影子晚 1 幀（60fps＝16ms）完全看不出來；近層（打擊視角下的內野、本壘區）仍然逐幀更新。
+         貼圖、相機位置、矩陣都只在「更新那一幀」一起換，所以不會錯位。?farhalf=0 可關閉。 */
+      const sb = sunB.shadow;
+      if (FARHALF) { sb.autoUpdate = false; if (!sb.map || (FIT.n & 1) === 0) { fitLight(sunB, FIT.far, 150); sb.needsUpdate = true; } }
+      else { sb.autoUpdate = true; fitLight(sunB, FIT.far, 150); }
       P.info.shadowTexelCm = [Math.round(FIT.near.texel * 1000) / 10, Math.round(FIT.far.texel * 1000) / 10]; P.info.cascadeNearD = Math.round(nearD);
     } else { fitLight(sun, FIT.far, shLv === 2 ? 150 : 120); P.info.shadowTexelCm = Math.round(FIT.far.texel * 1000) / 10; }
     FIT.n++;
@@ -151,12 +159,13 @@ float hdCsmK( int idx, vec4 sc ) {
     float hsh(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }`;
 
   const AO_FRAG = COMMON + `
-    uniform sampler2D tDepth; uniform mat4 uP; uniform mat4 uPI; uniform vec2 uTexel;
+    uniform sampler2D tDepth; uniform mat4 uP; uniform mat4 uPI; uniform vec2 uTexel; uniform vec2 uNF;
     uniform float uRad; uniform float uInt; uniform float uBias; uniform vec3 uK[NS]; uniform vec3 uL; uniform float uCS;
     // 半解析度像素中心剛好落在全解析度深度貼圖的像素交界：最近鄰取樣會逐列隨機挑上／下一列 → 規律條紋。所有深度取樣統一偏移 0.25 像素落入像素內部。
     vec2 dq(vec2 uv){ return uv + uTexel * 0.25; }
     vec3 vp(vec2 uv){ float d = texture2D(tDepth, dq(uv)).r; vec4 p = uPI * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0); return p.xyz / p.w; }
-    float vz(vec2 uv){ float d = texture2D(tDepth, dq(uv)).r; vec4 p = uPI * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0); return p.z / p.w; }
+    // v1.4.3：只要視空間 z 時不必做整個 4x4 反投影（SSAO 每個像素有 14 個取樣點＋8 步接觸陰影，全是這個函式）；透視投影的封閉公式結果相同、運算量約 1/8
+    float vz(vec2 uv){ float d = texture2D(tDepth, dq(uv)).r; return -2.0 * uNF.x * uNF.y / (uNF.y + uNF.x - (d * 2.0 - 1.0) * (uNF.y - uNF.x)); }
     void main(){
       float d0 = texture2D(tDepth, dq(vUv)).r;
       if (d0 >= 0.99999) { gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0); return; }
@@ -339,7 +348,7 @@ float hdCsmK( int idx, vec4 sc ) {
     const aw = Math.max(2, Math.round(w * C.aoS)), ah = Math.max(2, Math.round(h * C.aoS)); S.ao = [mkRT(aw, ah, T.UnsignedByteType, false), mkRT(aw, ah, T.UnsignedByteType, false)];
     let bw = w, bh = h; for (let i = 0; i < C.bloom; i++) { bw = Math.max(2, bw >> 1); bh = Math.max(2, bh >> 1); S.down.push(mkRT(bw, bh, ft, false)); if (i < C.bloom - 1) S.up.push(mkRT(bw, bh, ft, false)); }
     const M = S.M = {};
-    M.ao = mk(AO_FRAG, { tDepth: U(S.rt.depthTexture), uP: UN.proj, uPI: UN.projInv, uTexel: U(new T.Vector2(1 / w, 1 / h)), uRad: U(C.aoRad), uInt: U(1.7), uBias: U(.05), uK: U(kernel(C.ao)), uL: UN.L, uCS: UN.cs }, { NS: C.ao, CSN: C.cs });
+    M.ao = mk(AO_FRAG, { tDepth: U(S.rt.depthTexture), uP: UN.proj, uPI: UN.projInv, uNF: UN.nf, uTexel: U(new T.Vector2(1 / w, 1 / h)), uRad: U(C.aoRad), uInt: U(1.7), uBias: U(.05), uK: U(kernel(C.ao)), uL: UN.L, uCS: UN.cs }, { NS: C.ao, CSN: C.cs });
     M.blurH = mk(BLUR_FRAG, { tSrc: U(S.ao[0].texture), tDepth: U(S.rt.depthTexture), uDir: U(new T.Vector2(1 / aw, 0)), uNF: UN.nf, uDpx: U(new T.Vector2(1 / w, 1 / h)) });
     M.blurV = mk(BLUR_FRAG, { tSrc: U(S.ao[1].texture), tDepth: U(S.rt.depthTexture), uDir: U(new T.Vector2(0, 1 / ah)), uNF: UN.nf, uDpx: U(new T.Vector2(1 / w, 1 / h)) });
     M.pre = mk(DOWN_FRAG, { tSrc: U(S.rt.texture), uPx: U(new T.Vector2(1 / w, 1 / h)), uThr: UN.thr, uKnee: UN.knee }, { PRE: 1 });
