@@ -93,6 +93,7 @@ wxfGale = function (c, W, H, dpr, dt, sn, ws, k) {
   c.restore();
 };
 
+/* v1.4.4 修正：草地上一條條明暗帶（深綠＝像天空陰影）沿風向不停滑動 → 那是這裡的「風波」明暗層（wa）。已關閉（wa 恆為 0）：草皮細節貼圖與草葉順風微擺仍保留，只是不再有會滑動的明暗條。 */
 /* ---------------- ④ 草皮擺動：風波（貼地薄層）＋短草葉（3D） ---------------- */
 wxfLeaves = function () { if (WXF.leaves.length) WXF.leaves.length = 0; };      // 舊的「天空飄落葉片」整個停用
 
@@ -129,7 +130,7 @@ function glWaveMesh() {      // 草皮細節＋風波層：極座標網格貼在
       ' vec2 b1 = uDir * (sin(s*0.35 - uT*uSpd*1.6 + p*0.2)*0.5 + 0.5*w) * uSway; vec2 b2 = uDir * (sin(s*0.61 - uT*uSpd*2.1 + p*0.3 + 2.0)*0.5 + 0.5*w) * uSway * 0.7;' +      /* 草葉順風彎曲：貼圖座標沿風向來回位移 */
       ' vec4 t1 = texture2D(uTex, vW/6.0 + b1); vec4 t2 = texture2D(uTex, vW/2.3 + b2 + 0.37);' +
       ' float ta = clamp(t1.a*0.85 + t2.a*0.55, 0.0, 1.0) * uDet; vec3 tc = (t1.rgb*t1.a*0.85 + t2.rgb*t2.a*0.55) / max(t1.a*0.85 + t2.a*0.55, 0.001);' +
-      ' float lt = smoothstep(-0.15,0.9,w), dk = smoothstep(0.1,0.95,-w); float wa = (lt*0.9 + dk*0.8) * uAmp; vec3 wc = mix(vec3(0.08,0.26,0.09), vec3(1.0,0.98,0.72), lt/(lt+dk+0.0001));' +
+      ' float lt = smoothstep(-0.15,0.9,w), dk = smoothstep(0.1,0.95,-w); float wa = 0.0; vec3 wc = mix(vec3(0.08,0.26,0.09), vec3(1.0,0.98,0.72), lt/(lt+dk+0.0001));' +
       ' float aa = 1.0 - (1.0-ta)*(1.0-wa); vec3 col = (tc*ta*(1.0-wa) + wc*wa) / max(aa, 0.0001);' +
       ' float dist = length(vW); gl_FragColor = vec4(col*uLum, aa * mk * clamp(vE,0.0,1.0)); }'
   });
