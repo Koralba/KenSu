@@ -52,6 +52,13 @@
   }
   GFX.set = function (lv) { if (!GFX.T[lv] || lv === GFX.level) { syncUI(); return; } GFX.level = lv; try { localStorage.setItem('cpbl_gfx', lv); } catch (e) { } applyAll(false); };
   if (seg) seg.addEventListener('click', e => { const b = e.target.closest('button[data-g]'); if (!b) return; GFX.set(b.dataset.g); b.blur(); });
+  /* v1.4.3 幀率上限（PACE，00-hd-core.js）：自動＝觸控裝置 60fps（120Hz 螢幕每兩個 vsync 畫一幀，間隔恆定）、桌機不限；30＝省電／更穩；不限＝跟著螢幕更新率（120Hz 螢幕會跑 120，但高畫質後製很難撐住，容易忽快忽慢） */
+  const fseg = document.getElementById('fpsSeg'), fnote = document.getElementById('fpsNote');
+  const FDESC = { auto: '自動：手機／平板鎖定 60 幀，畫面間隔平均、發熱較少；桌機不限制。', 30: '30 幀：最省電、最不容易掉幀，動作感較不流暢。', 0: '不限：依螢幕更新率（120Hz 螢幕最高 120 幀）。高畫質很難穩定撐住，可能忽快忽慢。' };
+  function fkey() { return (typeof PACE === 'undefined') ? 'auto' : PACE.auto ? 'auto' : String(PACE.cap); }
+  function syncFps() { if (typeof PACE === 'undefined') return; const k = fkey(); if (fseg) [...fseg.children].forEach(b => b.classList.toggle('on', b.dataset.f === k)); if (fnote) fnote.textContent = FDESC[k] || ('上限 ' + k + ' 幀'); }
+  if (fseg) fseg.addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (!b || typeof PACE === 'undefined') return; PACE.set(b.dataset.f); if (typeof AQ !== 'undefined') { AQ.acc = 0; AQ.n = 0; } syncFps(); b.blur(); });
+  syncFps();
   setInterval(() => { if (GFX.cur.aniso < MAXAN) { try { applyAniso(false); } catch (e) { } } }, 6000);      // 13zn 週期性把貼圖拉回最大各向異性；中／低畫質時定期壓回
   applyAll(true);
 })();
