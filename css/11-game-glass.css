@@ -358,3 +358,16 @@ body.mob #absPanel { position: fixed !important; top: auto !important; bottom: c
 #warmBox .wbar { height: 5px; margin: 2px 0 1px }
 #warmBox .wr1.sm { display: none }
 body.mob #warmBox, body.ko.mob #warmBox { min-width: 88px; max-width: 28vw !important; padding: 1px 5px !important; font-size: 10px; transform: translateX(-6px) }
+
+/* ===== v1.4.3：效能自動減輕介面（body.perfl）=====
+   畫面吃緊時（adaptQuality，js/03）先加上這個 class：和上面的對戰輕量模式（body.vsl）同一組規則——玻璃按鈕不做即時背景模糊、停掉持續動畫的光暈，
+   改用半透明底色，外觀幾乎相同，但手機 GPU 不必每幀重算整個 3D 畫面的模糊。3D 畫質不受影響。 */
+body.perfl #hud #btnAct, body.perfl #hud #btnPow, body.perfl #hud #btnBuntT, body.perfl #hud #acts .abtn, body.perfl #hud #acts #actMore, body.perfl #hud #pitchPanel .pbtn, body.perfl #hud #throwPanel .tb,
+body.perfl #btnPush, body.perfl #btnBack, body.perfl .stb, body.perfl .pkb { -webkit-backdrop-filter: none !important; backdrop-filter: none !important }
+body.perfl #hud #acts .abtn, body.perfl #hud #btnPow, body.perfl #hud #btnBuntT, body.perfl #hud #pitchPanel .pbtn, body.perfl #hud #throwPanel .tb { background-color: rgba(16, 26, 44, .62) }
+body.perfl #hud #acts #actMore { background-color: rgba(12, 20, 36, .8) }
+body.perfl #hud #btnAct { background-color: rgba(16, 26, 44, .5) }
+body.perfl #hud #btnAct::after, body.perfl #hud #btnAct[data-k=stop] { animation: none !important }
+body.perfl #hud #btnAct::after { filter: none }
+body.perfl #hud #btnPow.on::before, body.perfl #hud #btnBuntT.on::before, body.perfl #hud #acts .abtn.on::after { animation: none !important }
+body.perfl #pmeter { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgba(16, 26, 44, .62) }
