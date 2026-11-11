@@ -20,6 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@500;700;900&family=Mochiy+Pop+One&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="js/three.min.js"></script>
 <script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+<script src="js/00-hd-core.js"></script>
 <link rel="stylesheet" href="css/01-base-title-menu-hud.css">
 <link rel="stylesheet" href="css/02-mobile-layout.css">
 <link rel="stylesheet" href="css/03-menu-lineup-result.css">
@@ -33,6 +34,8 @@
 <link rel="stylesheet" href="css/11-game-glass.css">
 <link rel="stylesheet" href="css/12-wbc.css">
 <link rel="stylesheet" href="css/13-scroll-fix.css">
+<link rel="stylesheet" href="css/14-info-fit.css">
+<link rel="stylesheet" href="css/15-top-score-mine.css">
 </head>
 <body>
 <div id="wrap">
@@ -86,7 +89,7 @@
       <div class="opt"><b>夜空天象</b><div class="pl"><select id="selSky" title="星光／月光／極光／流星（只在夜間比賽出現；選了會自動改成夜間）" style="background:#0009;color:#fff;border:1px solid #fff5;border-radius:8px;padding:5px 8px;font-size:13px;max-width:100%"></select></div></div>
       <div class="opt"><b>先發</b><div class="pl"><span class="pill sel" data-k="ace" data-v="0">隨機</span><span class="pill" data-k="ace" data-v="1">王牌</span></div></div>
       <div class="opt"><b>ABS</b><div class="pl"><span class="pill sel" data-k="abs" data-v="1">開</span><span class="pill" data-k="abs" data-v="0">關</span></div></div>
-      <div class="opt"><b>音樂</b><div class="pl"><button type="button" class="pillb" id="menuBgm">🎵 音量／開關</button></div></div>
+      <div class="opt"><b>音樂</b><div class="pl"><button type="button" class="pillb" id="menuBgm">⚙ 畫質／音量</button></div></div>
     </div>
   </details>
   <details class="how"><summary>📖 操作說明</summary>
@@ -117,7 +120,7 @@
   <button id="btnPush" class="hide">推進 <small>F</small></button><button id="btnBack" class="hide">回壘 <small>D</small></button>
   <div id="movePad"><i class="u">▲</i><i class="d">▼</i><i class="l">◀</i><i class="r">▶</i><b id="movePadT"></b></div>
   <div id="touchBtns"><div class="pwRow"><button id="btnBuntT">短打</button><button id="btnPow">強打</button></div><button id="btnAct" data-k="swing"><span class="ai"></span><b class="al">揮棒</b></button></div>
-  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnHint" style="display:none">🎯 落點提示 OFF</button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">🎵 音樂／音效／震動</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnSave">💾 存檔／讀取</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnAssist">🎮 輔助守備：關</button><button class="abtn" id="btnMore">☰ 更多</button></div>
+  <div id="acts"><button class="abtn" id="btnPowPc">強打 OFF<i class="k"> S</i></button><button class="abtn" id="btnBunt">短打<i class="k"> B</i></button><button class="abtn" id="btnSteal">盜壘<i class="k"> Q</i></button><button class="abtn" id="btnRosin">止滑粉<i class="k"> R</i></button><button class="abtn" id="btnHint" style="display:none">🎯 落點提示 OFF</button><button class="abtn" id="btnPick">牽制<i class="k"> E</i></button><div id="actMore"><button class="abtn sec" id="btnBench">代打／代跑</button><button class="abtn sec" id="btnMound">🧢 教練上場<i class="k"> M</i></button><button class="abtn sec" id="btnSub">換投</button><button class="abtn sec" id="btnOff">🏃 進攻戰術（強迫取分／犧牲打／打帶跑／離壘）</button><button class="abtn sec" id="btnTac">🧭 戰術（敬遠／站位）</button><button class="abtn sec" id="btnDef">🛡 守備調整</button><button class="abtn sec" id="btnBgm">⚙ 畫質／音樂／音效</button><button class="abtn sec" id="btnSpeed">⏩ 遊戲速度 x1</button><button class="abtn sec" id="btnFs">⛶ 全螢幕</button><button class="abtn sec" id="btnSave">💾 存檔／讀取</button><button class="abtn sec" id="btnQuit">🏠 返回主選單</button></div><button class="abtn" id="btnAssist">🎮 輔助守備：關</button><button class="abtn" id="btnMore">☰ 更多</button></div>
   <div id="caption"><div class="sm">實況 LIVE</div><div class="tx" id="capTx"></div><div id="timingTip"></div></div>
   <div id="leftCol"><div id="windBox"></div><div id="warmBox" class="hide"></div><div id="absPanel" class="hide abs-pop"><div id="absTitle">🦅 ABS 挑戰</div><div id="absRem"></div><div id="absCnt"></div><div class="bar"><i id="absBarI" style="width:100%"></i></div><div class="absBtns"><button class="abtn" id="absGo">ABS 挑戰</button><button class="abtn" id="absSkip">✕</button></div></div><div id="hitInfo" class="hide"></div></div>
   <div id="visitBox" class="hide"><div class="vn" id="vmName"></div><div class="vl" id="vmLine"></div><div class="vm"><span id="vmFace">😐</span><div class="vmb"><i id="vmBar"></i></div><b id="vmNum" style="font-size:16px">50</b></div></div>
@@ -135,8 +138,13 @@
 <div id="rot" onclick="this.remove()">📱 建議將裝置橫放以獲得最佳畫面（點一下關閉）</div>
 <div id="lineup" class="hide"></div>
 <div id="audioPanel" class="hide">
-  <div class="ap-h"><span>⚙ 設定（音樂／音效／震動）</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
-  <div class="ap-t" style="margin-top:0">🎵 背景音樂</div>
+  <div class="ap-h"><span>⚙ 設定（畫質／音樂／音效／震動）</span><button id="audioClose" type="button" aria-label="關閉">✕</button></div>
+  <div class="ap-t" style="margin-top:0">🖼 畫質</div>
+  <div id="gfxSeg" class="gfx-seg" role="group" aria-label="遊戲畫質"><button type="button" data-g="high">高</button><button type="button" data-g="mid">中</button><button type="button" data-g="low">低</button></div>
+  <div class="ap-s" id="gfxNote" style="margin-top:6px"></div>
+  <div class="ap-s hide" id="gfxAA" style="margin-top:3px;color:#ffd34d;opacity:1">⚠ 抗鋸齒（邊緣平滑）要重新整理頁面後才會切換；其他項目已立即生效。</div>
+  <div class="ap-s" style="margin-top:3px">畫質只影響畫面精細度與效能，不影響操作、規則與遊戲內容。</div>
+  <div class="ap-t">🎵 背景音樂</div>
   <button id="audioMute" type="button" class="ap-sw on">🔊 背景音樂　開</button>
   <div class="ap-r"><span class="ap-ic">🔈</span><input id="audioVol" type="range" min="0" max="100" step="1" value="60" aria-label="音量"><span class="ap-ic">🔊</span><span id="audioNum">60</span></div>
   <div class="ap-t">🏟 遊戲音效（觀眾聲、擊球、守備、環境音）</div>
@@ -204,6 +212,14 @@
 <script src="js/13zj-cast-taiwan.js"></script>
 <script src="js/13zk-heat-life.js"></script>
 <script src="js/13zl-idle-life.js"></script>
+<script src="js/13zm-wx-gentle.js"></script>
+<script src="js/13zn-fielding-moves.js"></script>
+<script src="js/13zn-hd-render.js"></script>
+<script src="js/13zo-uniform-dirt.js"></script>
+<script src="js/13zp-gfx-quality.js"></script>
+<script src="js/13zq-hd-post.js"></script>
+<script src="js/13zr-body-shape.js"></script>
+<script src="js/13zs-natural-life.js"></script>
 <script src="js/14-bullpen-loop-boot.js"></script>
 <div id="curtain" aria-hidden="true"><i class="cu-a"></i><i class="cu-b"></i><b class="cu-seam"></b><span></span></div>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(function(){})})}</script></body></html>
