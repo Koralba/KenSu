@@ -4,7 +4,49 @@
       階梯狀明暗與糊邊；改逐像素後明暗交界銳利、可吃 bumpMap、可接收陰影，而且所有既有程式碼不用改（材質建構式同名、參數相容）。
    2) HD.batGeo()：用 LatheGeometry 車出的整根球棒（握把膠帶＋底部圓球＋漸粗的棒身＋「半球形」圓潤頂端）。
    3) HD.noiseTex／HD.rnd：細節貼圖用的小工具（固定亂數種子，不影響比賽用的亂數）。 */
+/* ---------- v1.4.3 幀率節拍器（frame pacer）----------
+   問題：整個遊戲（含十幾個小模組各自的動畫迴圈）都直接用 requestAnimationFrame，沒有任何幀率控制。iPhone Pro 的螢幕是 120Hz，
+   瀏覽器就會「每 8.3ms 叫一次」；但高畫質後製管線（陰影兩層＋SSAO＋Bloom＋FXAA 約 15 個 pass）在手機 GPU 上很難穩定撐 120fps，
+   結果是 GPU 忽快忽慢、幀間隔 8／16／25ms 亂跳 → 肉眼看起來就是「一卡一卡」。
+   做法：全域包一層 requestAnimationFrame，把所有迴圈統一「對齊到 60fps」——120Hz 螢幕就固定每 2 個 vsync 才畫 1 幀（間隔恆定 16.7ms），
+   GPU 負載與發熱直接少一半，且每幀預算變成 16.7ms、動態解析度（adaptQuality）判斷也更準。畫質與解析度完全不動。
+   · 只影響「更新頻率」；遊戲邏輯本來就用時間差（dt）推進，鎖步對戰用固定 1/60 步長累加，都不受影響。
+   · 60Hz 螢幕不會被跳幀（間隔本來就 ≥ 目標），自動偵測螢幕更新率，不必設定。
+   · 預設只對「觸控裝置」啟用；桌機維持原樣。網址 ?fps=0 關閉、?fps=30／60／120 指定上限；也可用 localStorage.cpbl_fps（畫質面板的「幀率」按鈕會寫入）。
+   · Console：PACE.info() 看目前上限／螢幕更新率／實際間隔。 */
 'use strict';
+const PACE = window.PACE = (function () {
+  const nat = window.requestAnimationFrame.bind(window), natCancel = window.cancelAnimationFrame.bind(window);
+  const P = { cap: 0, ni: 16.67, k: 1, ran: 0, skipped: 0, auto: true };
+  let coarse = false; try { coarse = matchMedia('(pointer:coarse)').matches; } catch (e) { }
+  function readCap() {
+    let v = null; try { const q = new URLSearchParams(location.search).get('fps'); v = q !== null && q !== '' ? q : localStorage.getItem('cpbl_fps'); } catch (e) { }
+    if (v !== null && v !== '' && v !== 'auto' && isFinite(+v)) { P.auto = false; return Math.max(0, +v); }
+    P.auto = true; return coarse ? 60 : 0;      // 自動：觸控裝置 60，桌機不限制
+  }
+  P.cap = readCap();
+  P.set = function (v) { try { if (v === 'auto' || v === null) localStorage.removeItem('cpbl_fps'); else localStorage.setItem('cpbl_fps', String(v)); } catch (e) { } P.cap = readCap(); };
+  let nextId = 1, armed = false, lastNat = 0, lastRun = 0; const pend = new Map();
+  function tick(ts) {
+    armed = false;
+    const d = ts - lastNat; lastNat = ts; if (d > 2 && d < 40) { P.n = (P.n || 0) + 1; P.ni += (d - P.ni) * Math.max(.12, 1 / P.n); }      // 螢幕 vsync 間隔（指數平均；忽略分頁切換造成的長間隔）
+    if (!pend.size) return;
+    if (P.cap > 0 && !window.__ff) {      // 自動模擬快轉（13f）時不節流，讓它盡量用滿時間預算
+      const want = 1000 / P.cap; P.k = Math.max(1, Math.floor(want / P.ni + .25));      // 每幾個 vsync 畫一幀：120Hz→2、60Hz→1、90Hz→1（不硬砍成 45fps）、144Hz→2
+      if (P.k > 1 && ts - lastRun < (P.k - .4) * P.ni) { P.skipped++; arm(); return; }
+    } else P.k = 1;
+    lastRun = ts; P.ran++;
+    const run = Array.from(pend); pend.clear();
+    for (const e of run) { try { e[1](ts); } catch (err) { setTimeout(() => { throw err; }, 0); } }      // 一個回呼出錯不影響其他迴圈，錯誤照常顯示在 console
+    if (pend.size) arm();
+  }
+  function arm() { if (!armed) { armed = true; nat(tick); } }
+  window.requestAnimationFrame = function (cb) { const id = nextId++; pend.set(id, cb); arm(); return id; };
+  window.cancelAnimationFrame = function (id) { if (!pend.delete(id)) { try { natCancel(id); } catch (e) { } } };
+  P.info = () => ({ cap: P.cap, auto: P.auto, vsyncMs: +P.ni.toFixed(2), hz: Math.round(1000 / P.ni), every: P.k, fps: P.cap > 0 ? Math.round(1000 / (P.ni * P.k)) : Math.round(1000 / P.ni), ran: P.ran, skipped: P.skipped });
+  return P;
+})();
+
 (function () {
   if (typeof THREE === 'undefined') return;
   const P = THREE.MeshPhongMaterial;
@@ -17,7 +59,7 @@
   HDLambert.prototype = P.prototype;
   THREE.MeshLambertMaterial = HDLambert;
 
-  const HD = window.HD = { ver: '1.3.4', maxAn: 16, gfxD: { value: 1 } };      // gfxD：表面細節強度（1 高／.5 中／0 低），草皮、紅土、布料的 shader 讀它
+  const HD = window.HD = { ver: '1.4.3', maxAn: 16, gfxD: { value: 1 } };      // gfxD：表面細節強度（1 高／.5 中／0 低），草皮、紅土、布料的 shader 讀它
 
   /* ---------- v1.3.2 畫質等級（高／中／低）：只影響「畫面精細度」，不碰任何遊戲邏輯／亂數／操作 ----------
      解析度：flD/flT＝桌機／觸控的像素比下限，capD/capT＝上限，pxK＝總像素預算倍率，q＝最終倍率（再疊加 adaptQuality 動態降比例）
