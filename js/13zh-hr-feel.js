@@ -56,15 +56,16 @@ body.hrfCin .hrfBar{height:min(9vh,64px)}
   const _fc = flowOnContact;
   flowOnContact = function (pl) {
     const r = _fc.apply(this, arguments);
-    try { if (pl && pl.plan && pl.plan.kind === 'hr' && !pl.plan.grd && fxOK()) { if (pl.sneak) pend = pl; else begin(pl); } } catch (e) { console.error(e); }
+    /* v1.3.10：非確定出去的全壘打（含驚喜全壘打）＝球過牆前 1 秒才演出 */
+    try { if (pl && pl.plan && pl.plan.kind === 'hr' && !pl.plan.grd && fxOK()) { if (pl.sneak || !pl.plan.sure) pend = pl; else begin(pl); } } catch (e) { console.error(e); }
     return r;
   };
   function frame(now) {
     requestAnimationFrame(frame);
-    if (pend && !cur) { try { if (typeof PL === 'undefined' || PL !== pend || G.mode !== 'play') pend = null; else if (fxOK() && pend.sim.over && (PL.t || 0) >= pend.sim.over.t - 1) { const q = pend; pend = null; begin(q); } } catch (e) { pend = null; } }
+    if (pend && !cur) { try { if (typeof PL === 'undefined' || PL !== pend || G.mode !== 'play' || pend.plan.kind !== 'hr') pend = null; else if (fxOK() && pend.sim.over && (PL.t || 0) >= pend.sim.over.t - 1) { const q = pend; pend = null; begin(q); } } catch (e) { pend = null; } }
     if (!cur) return;
     try {
-      if (!fxOK() || typeof PL === 'undefined' || PL !== cur.pl || G.mode !== 'play' || CAMC.mode === 'hrtrot') { end(); return; }
+      if (!fxOK() || typeof PL === 'undefined' || PL !== cur.pl || G.mode !== 'play' || CAMC.mode === 'hrtrot' || (cur.pl.plan && cur.pl.plan.kind !== 'hr')) { end(); return; }      // 球被搶救下來（plan 不再是全壘打）→ 立刻收掉特效
       const t = PL.t || 0, ov = cur.over, tl = cur.tail, k = lite() ? .6 : 1;
       if (ov && !cur.slow && t >= ov.t - .35) { cur.slow = true; if (G.ts === 1) { G.ts = .4; setTimeout(() => { if (G.ts === .4) G.ts = 1; }, 750); } }
       if (ov && !cur.crossed && t >= ov.t) {
