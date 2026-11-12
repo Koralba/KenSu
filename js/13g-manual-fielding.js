@@ -204,26 +204,29 @@ const FM = (function () {
   const MV_ON = true;
   function moveActor() {
     if (!MV_ON || window.__ff || vsOn() || G.mode !== 'play' || !PL || G.human < 0 || G.human !== 1 - G.half || G.easy) return null;
-    if ((PL.state !== 'flight' && PL.state !== 'loose') || PL.foul || PL.review || PL.done || (PL.plan && PL.plan.kind === 'hr')) return null;
+    if ((PL.state !== 'flight' && PL.state !== 'loose') || PL.foul || PL.review || PL.done || (PL.plan && PL.plan.grd)) return null;      // v1.3.10：全壘打球也能按美技（貼牆跳接搶救）
     const c = (sel && sel.manual && allowed(sel)) ? sel : (PL.plan && allowed(PL.plan.f) ? PL.plan.f : null);
     if (!c || c.hasBall || c._fmUsed === PL || c._fmLockUntil > PL.tAge) return null;
     const an = c.rig && c.rig.anim; if (an && (an.name === 'down' || an.name === 'dive' || (typeof FMV !== 'undefined' && FMV.LYING[an.name]))) return null;
     return c;
   }
   function evalMove(f) {      // 回傳 { mode, p, tc, x, z, y, unneeded, why }
-    const sim = PL.sim, o = {}, fl = f.pl.fld || 55, ult = !!f.pl.ultra, isOFp = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF';
+    const sim = PL.sim, o = {}, fl = f.pl.fld || 55, ult = !!f.pl.ultra, isOFp = f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF', WH = (typeof WALL_H === 'number') ? WALL_H : 5.4;
     const spd = Math.max(f.v || 0, fspeed(f) * MANUAL_K * .85), res = PL.res || {}, hard = res.bunt ? 0 : clamp(((res.ev || 25) - 27) / 15, 0, 1);
     const ab = ult ? 1 : fl < 42 ? 0 : Math.pow(clamp((fl - 40) / 50, 0, 1), .8);      // 守備能力：太低＝不會成功
     let best = null;
     if (PL.state === 'flight' && sim && sim.S && sim.S.length) {
       const tEnd = Math.min(sim.tEnd || 9, PL.t + 1.1);
       for (let t = PL.t + .14; t <= tEnd; t += .03) {
-        sampleAt(sim.S, t, o); if (o.y > 3.9) continue; const dtt = t - PL.t, d = d2(f.x, f.z, o.x, o.z), deff = Math.max(0, d - spd * Math.max(0, dtt - .12) * .9);
-        const tryM = (mode, reach, lead, ok) => {
-          if (!ok || dtt < lead - .12) return; const m = dtt - lead, timing = clamp(1 - Math.abs(m > 0 ? m : m * 1.6) / .24, 0, 1), ratio = deff / reach;
+        sampleAt(sim.S, t, o);
+        const rad = Math.hypot(o.x, o.z), wr = wallRadius(Math.atan2(o.x, -o.z) * 180 / Math.PI), nearW = isOFp && rad > wr - 2.6 && rad < wr + 1.4 && o.y > 2.4 && o.y <= WH + 1.6 && !(sim.wallT && t > sim.wallT + .05);      // v1.3.10：球在全壘打牆邊、高度在牆頭附近＝貼牆跳接的接球點
+        if (o.y > 3.9 && !nearW) continue; const dtt = t - PL.t, d = d2(f.x, f.z, o.x, o.z), deff = Math.max(0, d - spd * Math.max(0, dtt - .12) * .9);
+        const tryM = (mode, reach, lead, ok, ov) => {
+          if (!ok || dtt < lead - .12) return; const m = dtt - lead, timing = clamp(1 - Math.abs(m > 0 ? m : m * 1.6) / .24, 0, 1), dd = ov ? ov.deff : deff, ratio = dd / reach;
           const fit = ratio >= 1 ? 0 : ratio <= .5 ? 1 : 1 - Math.pow((ratio - .5) / .5, 1.4), sc = fit * timing;
-          if (!best || sc > best.sc || (sc === best.sc && ratio < best.ratio)) best = { mode, sc, fit, timing, ratio, tc: t, x: o.x, z: o.z, y: o.y, deff };
+          if (!best || sc > best.sc || (sc === best.sc && ratio < best.ratio)) best = { mode, sc, fit, timing, ratio, tc: t, x: ov ? ov.x : o.x, z: ov ? ov.z : o.z, y: o.y, deff: dd };
         };
+        if (nearW) { const kk = Math.min(1, (wr - .9) / Math.max(rad, 1)), wx = o.x * kk, wz = o.z * kk, dW = Math.max(0, d2(f.x, f.z, wx, wz) - spd * Math.max(0, dtt - .12) * .9); tryM('wall', 1.7 + fl * .006 + (ult ? .9 : 0), .42, o.y <= WH + .7 + fl * .004 + (ult ? .5 : 0), { x: wx, z: wz, deff: dW }); }
         const maxY = 2.45 + fl * .008 + (ult ? .3 : 0);
         tryM('jump', 1.1 + fl * .004 + (ult ? .3 : 0), .4, o.y >= 1.75 && o.y <= maxY);
         const mvq = (f.v || 0) > 3.2, reachD = Math.min(3.4, 2.5 + fl * .01 + (ult ? .4 : 0));
@@ -232,15 +235,32 @@ const FM = (function () {
       }
     }
     const bp = PL.ballPos || { x: f.x, y: 0, z: f.z }, plan = PL.plan;
+    if (!best && plan && plan.kind === 'hr' && !plan.grd) {      // v1.3.10：全壘打球太高／太遠搆不到：外野手仍然會貼牆跳起來伸手（內野手原地跳），只是接不到
+      const hx = plan.x != null ? plan.x : bp.x, hz = plan.z != null ? plan.z : bp.z;
+      return { mode: isOFp ? 'wall' : 'jump', p: 0, tc: PL.t + Math.max(.45, Math.min(1.2, (plan.t || PL.t + .6) - PL.t)), x: hx, z: hz, y: (plan.over && plan.over.y) || bp.y, why: 'high' };
+    }
     if (!best) {      // 沒有任何合理的接球點：依球「現在」的樣子決定亂撲的動作
       const m = (bp.y > 1.9 && d2(f.x, f.z, bp.x, bp.z) < 7) ? 'jump' : (isOFp && (f.v || 0) > 3.2) ? 'slide' : 'dive';
       return { mode: m, p: 0, tc: PL.t + .4, x: bp.x, z: bp.z, y: bp.y, why: 'none' };
     }
     let p = ab * best.fit * best.timing * (1 - hard * .22) * (1 - rainK() * .15) * .92 + clamp((PL.luck || 0) * .01, -.03, .03);
+    if (best.mode === 'wall') p *= clamp(1 - (best.y - 2.8) / (WH + .8 - 2.8 + .6), .15, 1) * .8;      // 貼牆跳接：球越高越難
     p = clamp(p, 0, ult ? .95 : .85); if (best.fit <= 0 || best.timing <= 0) p = 0;
     const easy0 = !!plan && plan.f === f && (plan.kind === 'catch' || plan.kind === 'field') && best.deff < .7;      // 本來就接得到
     const easy = easy0 && best.timing > 0;      // v1.2.18：本來接得到的球也要看按鍵時機——太早／太晚（差超過 .24 s）＝空撲，不再必成功
     return { mode: best.mode, p: easy ? 1 : (easy0 ? 0 : p), tc: best.tc, x: best.x, z: best.z, y: best.y, unneeded: easy, why: best.fit <= 0 ? 'far' : best.timing <= 0 ? 'timing' : ab === 0 ? 'weak' : '' };
+  }
+  function undoHR() {      // 全壘打被玩家的野手搶救：擊球時已把打者／跑者設成「全壘打跑壘」，這裡還原成一般高飛球（跑者回壘等接殺、打者朝一壘跑，接到就出局）
+    try {
+      if (typeof CAMC !== 'undefined' && CAMC.mode === 'hrfly') CAMC.mode = 'play';      // 鏡頭已切到全壘打追焦的話切回一般畫面
+      if (PL.cl) PL.cl.hr = false;
+      for (const r of E.runners) {
+        if (r.state !== 'run') continue;
+        if (r.bat) { if (r.goal === 4) { r.goal = 1; r.spd /= .86; } continue; }
+        if (r.from >= 1 && r.from <= 3) { r.to = r.from + 1; r.forceBase = r.from + 1; r.goal = r.from + 1; r.isForce = true; }
+      }
+      if (typeof recallRunners === 'function') recallRunners();
+    } catch (e) { }
   }
   function pressMove() {
     const f = moveActor(); if (!f) return false; f._fmUsed = PL;
@@ -252,6 +272,7 @@ const FM = (function () {
       const air = ev.y > .45 && (!sim.first || ev.tc < sim.first.t - .03);
       plan.f = f; plan.x = ev.x; plan.z = ev.z; plan.y = ev.y; plan.t = ev.tc; plan.react = .05; delete plan.missed; plan.kind = air ? 'catch' : 'field'; plan.air = air;
       plan.dive = true; plan.great = !ev.unneeded; plan.fmMove = ev.mode; plan.failDive = null; plan.failedDive = false; plan.superTry = false; plan.leap = false;
+      if (ev.mode === 'wall') { plan.robHR = true; plan.kind = 'catch'; plan.air = true; plan.miss = null; plan.great = true; undoHR(); }      // v1.3.10：貼牆跳接成功＝把全壘打（或牆邊的球）搶回來：球不算全壘打，打者與跑者改走一般飛球接殺流程
       f.chaser = true; f.tx = ev.x; f.tz = ev.z; f.sp = Math.max(f.sp || 0, 8.6);
       f.fmvPre = plan; f.rig.anim = FMV.startAnim(f, ev.mode, tl, { x: ev.x, z: ev.z, y: ev.y, air });
       f._fmLockUntil = PL.tAge + f.rig.anim.dur * .8;
@@ -260,9 +281,9 @@ const FM = (function () {
     }
     // 失敗／不合理：動作照做，但接不到、之後要一段時間才能動
     const air = ev.y > .45; f.fmvPre = plan || null; f._fmWhiff = PL; if (plan) plan.fmWhiff = f; f.rig.anim = FMV.startAnim(f, ev.mode, tl, { x: ev.x, z: ev.z, y: ev.y, air, miss: true });      // v1.2.19：空撲標記——這個人不能再「接到」這球，球交給最快能攔到的野手（見 06 的 plan.fmWhiff、05 的 rechaseBall）
-    f._fmLockUntil = PL.tAge + f.rig.anim.dur * .85; f.tx = f.x; f.tz = f.z; f.chaser = false; f.hold = ev.mode === 'jump' ? .5 : .95;
-    const why = ev.why === 'weak' ? '防守能力不夠，' : ev.why === 'far' ? '球太遠、太高或太低，' : ev.why === 'timing' ? '時機不對，' : ev.why === 'none' ? '根本構不到球，' : '運氣差一點，';
-    try { toast(ev.mode === 'jump' ? '跳接落空' : ev.mode === 'slide' ? '滑接落空' : '撲接落空', '#fff', '#8a5ad8'); say(`<em>${nm}${why}${ev.mode === 'jump' ? '原地跳起來卻什麼也沒碰到。' : ev.mode === 'slide' ? '滑了一下，球從身邊過去了。' : '往地上亂撲了一下，球沒接到！'}</em>`, 2200); } catch (e) { }
+    f._fmLockUntil = PL.tAge + f.rig.anim.dur * .85; f.tx = f.x; f.tz = f.z; f.chaser = false; f.hold = (ev.mode === 'jump' || ev.mode === 'wall') ? .5 : .95;
+    const why = ev.why === 'high' ? '球飛得又高又遠，' : ev.why === 'weak' ? '防守能力不夠，' : ev.why === 'far' ? '球太遠、太高或太低，' : ev.why === 'timing' ? '時機不對，' : ev.why === 'none' ? '根本構不到球，' : '運氣差一點，';
+    try { toast(ev.mode === 'wall' ? '貼牆跳接落空' : ev.mode === 'jump' ? '跳接落空' : ev.mode === 'slide' ? '滑接落空' : '撲接落空', '#fff', '#8a5ad8'); say(`<em>${nm}${why}${ev.mode === 'wall' ? '貼著牆壁躍起伸長了手套，球從上方飛過了牆頭。' : ev.mode === 'jump' ? '原地跳起來卻什麼也沒碰到。' : ev.mode === 'slide' ? '滑了一下，球從身邊過去了。' : '往地上亂撲了一下，球沒接到！'}</em>`, 2200); } catch (e) { }
     return true;
   }
 
