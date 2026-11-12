@@ -73,7 +73,7 @@ function launchBall(res, pt) {
   if (plan.robHR) cl.hr = false;                                           // 全壘打被跳起來抓走！
   PL.plan = plan;
   if (plan.kind === 'hr' && sim.over) hrTailPrep(PL);      // 全壘打：把球「飛出牆外、落在看台」的尾段算完（球不再在牆外凍住）
-  if (plan.kind === 'hr' && plan.miss && !plan.grd) { const mf = plan.miss, pl0 = PL, ot = (sim.over && sim.over.t) || 2, weakHit = (res.ev || 99) < 41; after(Math.max(.25, ot - .3), () => { if (PL !== pl0) return; mf.rig.anim = { name: 'catch', t: 0, dur: .5, opt: {} }; toast('差一點就攔下！', '#fff', '#8a5ad8'); say(`<em>${POS_FULL[mf.pos]}${mf.pl.name}貼牆躍起、伸長了手套…</em>${weakHit ? '球就在手套上方飛過牆頭，剛好出去的全壘打！' : '球差一點點就被攔下，還是飛出了全壘打牆！'}`, 3200); } ); }
+  if (plan.kind === 'hr' && plan.miss && !plan.grd) { const mf = plan.miss, pl0 = PL, ot = (sim.over && sim.over.t) || 2, weakHit = (res.ev || 99) < 41; after(Math.max(.2, ot - .5), () => { if (PL !== pl0 || (mf._fmUsed === pl0)) return; mf.rig.anim = { name: 'jumpcatch', t: 0, dur: 1.1, opt: { wall: true, h: (sim.over && sim.over.y) || 3.6, miss: 1, hold: false, pre: 1 } }; toast('差一點就攔下！', '#fff', '#8a5ad8'); say(`<em>${POS_FULL[mf.pos]}${mf.pl.name}貼牆躍起、伸長了手套…</em>${weakHit ? '球就在手套上方飛過牆頭，剛好出去的全壘打！' : '球差一點點就被攔下，還是飛出了全壘打牆！'}`, 3200); } ); }
   const rv = plan.robHR ? null : absReviewSetup(sim, cl, plan);
   G.phase = 'inplay';
   if (sim.pud) { const plp = PL; after(Math.max(.2, sim.pud.t), () => { if (PL === plp) { toast('積水！球停住了', '#fff', '#3a8ad8'); flowSfx('bounce', .5); } }); }
@@ -103,6 +103,7 @@ function launchFair(plan, cl, fin) {
   assignRoles(plan);
   if (fin) fin(); else flowOnContact(PL);
 }
+const EASY_CATCH_Y = f => (f.pos === 'LF' || f.pos === 'CF' || f.pos === 'RF') ? 2.0 : 1.9;      // 站著不用跳就能接的最高球高（手套舉到頭附近）；超過這個高度才需要跳起來
 const AIR_SPD = 1.14;      // 外野手追空中球時的衝刺倍率（追飛球全速跑，比一般跑位快）
 function planFielding(sim, cl, foul, res) {
   const S = sim.S, list = Object.values(E.F), luck = res ? res.luck : 0;
@@ -122,7 +123,10 @@ function planFielding(sim, cl, foul, res) {
         if (pr > .03 && Math.random() < .75) missF = best;      // 有跳起來、但差一點點沒搆到
       }
     }
-    return { kind: 'hr', grd: !!cl.grd, f: best, x: o.x * k, z: o.z * k, t: o.t, air: true, over: o, react: .3, miss: missF };
+    // v1.3.10：只有「過牆時高度遠高於任何人能搆到的範圍（牆頂上 2.3 m 以上）、而且離界外線夠遠」的全壘打才算 sure＝確定飛出去，
+    //          才在擊球瞬間就演出全壘打特效／追焦鏡頭；其餘（擦牆頭、剛好過牆、貼近邊線）維持正常畫面，球快過牆前才切到演出，野手（電腦／玩家）都還有機會跳起來搶救。
+    const sure = !cl.grd && !foul && o.y >= WALL_H + 2.3 && Math.abs(o.phi == null ? 0 : o.phi) < 38;
+    return { kind: 'hr', grd: !!cl.grd, f: best, x: o.x * k, z: o.z * k, t: o.t, air: true, over: o, react: .3, miss: missF, sure };
   }
   const limit = (x, z) => Math.hypot(x, z) < wallRadius(Math.atan2(x, -z) * 180 / Math.PI) - 0.3;
   // 強勁擊球係數：初速越快、仰角越低（滾地／平飛強襲），野手能判斷的時間越短、可伸手的範圍越小 → 強打者的球更容易穿越或落地成安打
@@ -156,7 +160,13 @@ function planFielding(sim, cl, foul, res) {
       const need = react * clamp(ov1 / 1.4, 0, 1) + ov1 / sp + (leap ? .22 : 0) + (ov1 > 0 ? back : 0);      // 球在手套範圍內＝野手本來就站在那裡，不需要起步反應；範圍外才要判斷＋起跑＋跑到
       const airOk = s.t < firstT - .02 && s.t <= wT + .02;
       if (leap) { if (!dive && need <= s.t && airOk) dive = { f, t: s.t, x: sx, z: sz, air: true, dive: true, leap: true, y: s.y, react: react - lag }; continue; }
-      if (!got && need + slack <= s.t) { got = { f, t: s.t, x: sx, z: sz, air: airOk, dive: false, y: s.y, react: react - lag }; break; }
+      // v1.3.10：跳接只在「球一路都在站著接不到的高度、等球降下來又來不及」時才用。
+      // 以前一找到「最早趕得到」的時間點就收工，那時球還在 2~2.8 m 高處，導致幾乎每顆高飛球都被判成跳接；
+      // 現在找到後會繼續往後看：球降到手套高度（easyY 以下）時野手也接得到 → 就等球降下來穩穩接，不跳。
+      const easyY = EASY_CATCH_Y(f);
+      if (got && got.y > easyY && airOk && s.y <= easyY && need + slack <= s.t) { got = { f, t: s.t, x: sx, z: sz, air: airOk, dive: false, y: s.y, react: react - lag }; break; }
+      if (!got && need + slack <= s.t) { got = { f, t: s.t, x: sx, z: sz, air: airOk, dive: false, y: s.y, react: react - lag }; if (!airOk || s.y <= easyY) break; continue; }
+      if (got) continue;
       if (!dive) { const need2 = react * clamp(ov2 / 1.4, 0, 1) + ov2 / sp + (ov2 > 0 ? back : 0); if (need2 <= s.t && s.t > .35) dive = { f, t: s.t, x: sx, z: sz, air: airOk, dive: true, y: s.y, react: react - lag }; }
       if (!sup) { const need3 = react * clamp(ov3 / 1.4, 0, 1) + ov3 / sp + (ov3 > 0 ? back : 0); if (need3 <= s.t && s.t > .5 && s.y < 2.4) sup = { f, t: s.t, x: sx, z: sz, air: airOk, dive: true, y: s.y, react: react - lag, superTry: true }; }
     }
