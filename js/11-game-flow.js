@@ -830,8 +830,9 @@ function flowOnContact(pl) {
   if (pl.foul) { say(SAYX.foul(pl.plan.kind === 'catch')); if (Math.random() < .4) { const cm = COLOR.pitch(PT, 'foul'); if (cm) colorSay(cm, 1.8); } toast('界外', '#fff', '#f5a'); return; }
   if (pl.plan.grd) { say(SAYX.contact(pl)); return; }
   if (pl.plan.kind === 'hr') {      // 全壘打：擊球當下只報「打出去了」，球快飛出牆時才慶祝（不讓人一擊球就知道結果）
-    if (pl.sneak) say('高飛球！往外野深處飛去…'); else say(SAYX.contact(pl)); pl.hrN = hrRunCount(); if (!pl.plan.grd && CAMC.mode !== 'hrtrot') { if (pl.sneak) { const p0s = pl; after(Math.max(.2, ((pl.sim.over && pl.sim.over.t) || 2) - 1.1), () => { if (PL === p0s && CAMC.mode === 'play') CAMC.mode = 'hrfly'; }); } else CAMC.mode = 'hrfly'; } const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
-    after(dly, () => { if (PL !== pl) return; say(SAYX.hr(bat0, pl) + `（飛行 ${Math.round(pl.dist)} m）`); colorSay(COLOR.hr(bat0, pl), 2.6); showHrBanner(pl.hrN || 1, bat0, pl); flowSfx('cheer', 2.6); flowSfx('hrfan', pl.hrN || 1); hrTrotStart(pl); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(15 + (pl.dist - 80) * .1, 15, 19), clamp((pl.dist - 70) / 30, .7, 1.6)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); hrExtraFx(pl.hrN || 1); });
+    const late = !!pl.sneak || !pl.plan.sure;      // v1.3.10：不是「確定飛出去」的全壘打（擦牆頭、剛好過牆）＝擊球時維持正常畫面與播報，球快過牆前才切到全壘打演出，野手還有機會跳起來搶救
+    if (late) say('高飛球！往外野深處飛去…'); else say(SAYX.contact(pl)); pl.hrN = hrRunCount(); if (!pl.plan.grd && CAMC.mode !== 'hrtrot') { if (late) { const p0s = pl; after(Math.max(.2, ((pl.sim.over && pl.sim.over.t) || 2) - 1.1), () => { if (PL === p0s && p0s.plan.kind === 'hr' && CAMC.mode === 'play') CAMC.mode = 'hrfly'; }); } else CAMC.mode = 'hrfly'; } const bat0 = curBatter(), dly = Math.max(.5, ((pl.sim.over && pl.sim.over.t) || 2) - .5);
+    after(dly, () => { if (PL !== pl || pl.plan.kind !== 'hr') return; say(SAYX.hr(bat0, pl) + `（飛行 ${Math.round(pl.dist)} m）`); colorSay(COLOR.hr(bat0, pl), 2.6); showHrBanner(pl.hrN || 1, bat0, pl); flowSfx('cheer', 2.6); flowSfx('hrfan', pl.hrN || 1); hrTrotStart(pl); crowdCheer(1.8); flashScreen(.5); crowdCheer(1); fireworkShow(clamp(15 + (pl.dist - 80) * .1, 15, 19), clamp((pl.dist - 70) / 30, .7, 1.6)); setHitResult(Math.round(pl.dist) + 'm 全壘打'); hrExtraFx(pl.hrN || 1); });
     return;
   }
   const last = pl.sim.S[pl.sim.S.length - 1], t = pl.plan;
