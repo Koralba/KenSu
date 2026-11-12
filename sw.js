@@ -4,18 +4,18 @@
    - 外部檔案（three.js、Google 字型）：第一次連網時存起來，之後離線直接使用
    安裝為「全有或全無」：任何一個遊戲檔案沒下載成功，這次安裝就整個放棄，繼續使用上一個完整版本（舊快取不會被刪）。
    改了遊戲檔案、想讓所有人立刻換新版：把下面的 VERSION 往前進一格。
-   版本號格式 v主.次.修（目前 v1.3.4）：每次改版只加最後一位「修」。
+   版本號格式 v主.次.修（目前 v1.3.9）：每次改版只加最後一位「修」。
    「次」「修」兩位只能是 0～9：「修」滿 9 之後下一版歸 0、讓「次」加 1；「次」滿 9 再進位時歸 0、讓「主」加 1。
    只有第一位「主」沒有上限（可以是 10、12、……）。
    例：v1.0.8 → v1.0.9 → v1.1.0 → v1.1.1 → … → v1.9.9 → v2.0.0 → … → v9.9.9 → v10.0.0 → … → v12.9.9 → v13.0.0 */
-const VERSION = 'v1.3.3';
+const VERSION = 'v1.3.6';
 const CACHE = 'cpbl2027-' + VERSION;
 const LOCAL = [
   './', 'baseball.html', 'yw_manifest.json',
   'css/01-base-title-menu-hud.css', 'css/02-mobile-layout.css', 'css/03-menu-lineup-result.css', 'css/04-game-buttons-patches.css', 'css/05-save-system.css', 'css/06-transition.css', 'css/07-career.css', 'css/08-versus.css', 'css/09-koshien.css', 'css/10-menu-glass.css', 'css/11-game-glass.css', 'css/12-wbc.css', 'css/13-scroll-fix.css', 'css/14-info-fit.css', 'css/15-top-score-mine.css',
   'js/00-hd-core.js', 'js/01-core-data.js', 'js/02-stadium-scene.js', 'js/03-players-ball-camera.js', 'js/04-pitch-swing-physics.js', 'js/05-play-fielding-runners.js',
   'js/06-play-abs-update.js', 'js/07-cpu-ai.js', 'js/08-audio.js', 'js/09-hud-commentary.js', 'js/10-events.js', 'js/11-game-flow.js',
-  'js/12-systems.js', 'js/13-ui-input-menu.js', 'js/13b-save-system.js', 'js/13c-career-create.js', 'js/13d-career-season.js', 'js/13e-career-pro.js', 'js/13f-career-autosim.js', 'js/13g-manual-fielding.js', 'js/13h-career-story.js', 'js/13h2-story-deep.js', 'js/13h3-story-outcomes.js', 'js/13h4-bad-texts.js', 'js/13i-career-economy.js', 'js/13j-catcher-call.js', 'js/13k-story-scenes.js', 'js/13k2-story-frames.js', 'js/13l-abs-camreplay.js', 'js/13m-career-hub.js', 'js/13n-storage-guard.js', 'js/13o-update-check.js', 'js/13p-lan-versus.js', 'js/13q-strikeout-fx.js', 'js/13r-koshien-skin.js', 'js/13s-clay-skin.js', 'js/13t-face-expression.js', 'js/13t2-custom-look.js', 'js/13t3-su-doll.js', 'js/13u-pickoff-buttons.js', 'js/13v-great-replay.js', 'js/13w-hr-show.js', 'js/13x-steal-buttons.js', 'js/13y-ball-beacon.js', 'js/13z-runner-tracker.js', 'js/13zh-hr-feel.js', 'js/13za-wbc-data.js', 'js/13za2-wbc-flags.js', 'js/13zb-wbc.js', 'js/13zc-wbc-ceremony.js', 'js/13zd-scroll-guard.js', 'js/13zi-weather-more.js', 'js/13zj-cast-taiwan.js', 'js/13zk-heat-life.js', 'js/13zl-idle-life.js', 'js/13zm-wx-gentle.js', 'js/13zn-fielding-moves.js', 'js/13zn-hd-render.js', 'js/13zo-uniform-dirt.js', 'js/13zp-gfx-quality.js', 'js/13zq-hd-post.js', 'js/13zr-body-shape.js', 'js/13zs-natural-life.js', 'js/vendor/qrcode.min.js', 'js/vendor/jsqr.min.js', 'js/14-bullpen-loop-boot.js',
+  'js/12-systems.js', 'js/13-ui-input-menu.js', 'js/13b-save-system.js', 'js/13c-career-create.js', 'js/13d-career-season.js', 'js/13e-career-pro.js', 'js/13f-career-autosim.js', 'js/13g-manual-fielding.js', 'js/13h-career-story.js', 'js/13h2-story-deep.js', 'js/13h3-story-outcomes.js', 'js/13h4-bad-texts.js', 'js/13i-career-economy.js', 'js/13j-catcher-call.js', 'js/13k-story-scenes.js', 'js/13k2-story-frames.js', 'js/13l-abs-camreplay.js', 'js/13m-career-hub.js', 'js/13n-storage-guard.js', 'js/13o-update-check.js', 'js/13p-lan-versus.js', 'js/13q-strikeout-fx.js', 'js/13r-koshien-skin.js', 'js/13s-clay-skin.js', 'js/13t-face-expression.js', 'js/13t2-custom-look.js', 'js/13t3-su-doll.js', 'js/13u-pickoff-buttons.js', 'js/13v-great-replay.js', 'js/13w-hr-show.js', 'js/13x-steal-buttons.js', 'js/13y-ball-beacon.js', 'js/13z-runner-tracker.js', 'js/13zh-hr-feel.js', 'js/13za-wbc-data.js', 'js/13za2-wbc-flags.js', 'js/13zb-wbc.js', 'js/13zc-wbc-ceremony.js', 'js/13zd-scroll-guard.js', 'js/13zi-weather-more.js', 'js/13zj-cast-taiwan.js', 'js/13zk-heat-life.js', 'js/13zl-idle-life.js', 'js/13zm-wx-gentle.js', 'js/13zn-fielding-moves.js', 'js/13zn-hd-render.js', 'js/13zo-uniform-dirt.js', 'js/13zp-gfx-quality.js', 'js/13zq-hd-post.js', 'js/13zr-body-shape.js', 'js/13zs-natural-life.js', 'js/13zt-pitcher-tantrum.js', 'js/vendor/qrcode.min.js', 'js/vendor/jsqr.min.js', 'js/14-bullpen-loop-boot.js',
   'images/su.ico', 'images/su-180.png', 'images/su-192.png', 'images/su-512.png',
   'js/three.min.js'                       // 必要：three.js r128 本地版（離線時遊戲靠它啟動）
 ];
