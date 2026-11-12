@@ -173,13 +173,14 @@ const FMV = (function () {
   /* 這一球的守備動作種類：dive／side／jump／wall／slide／run／null（一般接球） */
   function kindOf(f, plan) {
     if (!plan) return null;
-    if (plan.fmMove) return plan.fmMove === 'jump' ? 'jump' : plan.fmMove === 'slide' ? 'slide' : 'dive';      // 玩家按下防守鍵指定的動作（見 13g FM.pressMove）
+    if (plan.fmMove) return plan.fmMove === 'jump' ? 'jump' : plan.fmMove === 'wall' ? 'wall' : plan.fmMove === 'slide' ? 'slide' : 'dive';      // 玩家按下防守鍵指定的動作（見 13g FM.pressMove）
     const air = !!plan.air, y = plan.y || 0, dd = dist2(f.x, f.z, plan.x, plan.z);
     if (plan.robHR || plan.leap) return 'wall';
     if (air) {
       if (plan.dive || plan.superTry) return y < .9 ? 'slide' : 'dive';
-      if (y > 1.75 && isOF(f) === false && !plan.dive) return 'jump';      // 內野手跳起來攔平飛球
-      if (y > 1.9 && !plan.dive) return 'jump';                          // 高處平飛球：跳接
+      // v1.3.10：球高超過「站著手套舉高就接得到」的高度，才用跳接（規劃階段已確認等球降下來也來不及，見 05 planFielding）
+      const easy = typeof EASY_CATCH_Y === 'function' ? EASY_CATCH_Y(f) : (isOF(f) ? 2.0 : 1.9);
+      if (y > easy && y <= 2.9 && !plan.dive) return 'jump';
       if (isOF(f) && Math.hypot(plan.x, plan.z) > 72 && dd > 6) return 'run';      // 外野深遠飛球：全速跑動越肩接殺
       return null;
     }
@@ -269,10 +270,11 @@ const FMV = (function () {
   /* 玩家防守鍵：立刻開始動作。mode＝dive|jump|slide；tl＝距離球到手套剩幾秒（動作的「接球瞬間」會對到 tl 秒後）；opt.x／z＝目標點、opt.miss＝撲空／亂撲 */
   function startAnim(f, mode, tl, opt) {
     opt = opt || {}; const tx = opt.x != null ? opt.x : f.x + Math.sin(f.rig.root.rotation.y), tz = opt.z != null ? opt.z : f.z + Math.cos(f.rig.root.rotation.y);
-    const g = diveGeom(f, { x: tx, z: tz, air: !!opt.air }), P = { dive: ['dive', 1.3, .3], jump: ['jumpcatch', 1.0, .4], slide: ['slidecatch', 1.35, .3] }[mode] || ['dive', 1.3, .3];
+    const g = diveGeom(f, { x: tx, z: tz, air: !!opt.air }), P = { dive: ['dive', 1.3, .3], jump: ['jumpcatch', 1.0, .4], wall: ['jumpcatch', 1.1, .42], slide: ['slidecatch', 1.35, .3] }[mode] || ['dive', 1.3, .3];
     const o = { pre: 1, hold: false, miss: opt.miss ? 1 : 0 };
     if (mode === 'dive') { o.kind = g.kind; o.sd = g.sd; o.vx = g.vx; o.vz = g.vz; o.face = g.face; o.skid = .5 + .1 * (f.v || 0); if (!opt.miss && g.kind === 'side') o.face = g.face; }
     else if (mode === 'jump') { o.h = opt.y || 2.4; }
+    else if (mode === 'wall') { o.h = opt.y || 3.4; o.wall = true; }      // v1.3.10：玩家美技鍵在牆邊＝貼牆跳接（搶救全壘打）
     else { o.sd = 1; }
     if (opt.miss && mode === 'dive' && !opt.air && g.kind === 'fwd') { o.vx = Math.sin(f.rig.root.rotation.y); o.vz = Math.cos(f.rig.root.rotation.y); }
     return { name: P[0], t: Math.max(0, P[2] * P[1] - Math.max(0, tl)), dur: P[1], opt: o };
