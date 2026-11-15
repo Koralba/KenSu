@@ -53,7 +53,7 @@ function venueIntro(done) {
   const wx = (G.night ? '🌙 夜間比賽・燈塔全開　' : '☀️ 日間比賽　') + (G.wx.dome ? '室內球場・無風無雨' : G.wx.off ? '天氣系統關閉' : `${skyLabel().join(' ')}・${G.wx.temp}°C`) + (G.night && G.wxOn ? '<br><small>夜場：氣溫較涼、風較小，高飛球易受燈光眩光影響，投手手感稍佳</small>' : '');
   const el = $('venueIntro');
   el.style.setProperty('--tc', home.c1 || '#2a5adf');
-  el.innerHTML = `<div class="vi-bar vi-top"></div><div class="vi-bar vi-bot"></div><div class="vi-card" style="--tc:${home.c1 || '#2a5adf'}"><div class="vi-tag">🏟 STADIUM ・ 比賽球場</div><div class="vi-name">${name}</div><div class="vi-loc">📍 ${PARK_LOC[name] || ''}　${ownerTx}${PK.note ? '　・　' + PK.note : ''}</div><div class="vi-home">${homeTx}</div><div class="vi-wx">${wx}</div></div><div class="vi-skip">點擊或按空白鍵略過 ▸</div>`;
+  el.innerHTML = `<div class="vi-card" style="--tc:${home.c1 || '#2a5adf'}"><div class="vi-tag">🏟 STADIUM ・ 比賽球場</div><div class="vi-name">${name}</div><div class="vi-loc">📍 ${PARK_LOC[name] || ''}　${ownerTx}${PK.note ? '　・　' + PK.note : ''}</div><div class="vi-home">${homeTx}</div><div class="vi-wx">${wx}</div></div><div class="vi-skip">點擊或按空白鍵略過 ▸</div>`;
   document.body.classList.add('venuing'); el.classList.remove('hide'); VENUE.on = true; VENUE.t = 0; VENUE.done = done; G.phase = 'change';
   CAMC.mode = 'venue'; CAMC.tpos.set(0, 31 * FIELD_K, 24 * FIELD_K); CAMC.tlook.set(0, 1, -30 * FIELD_K); CAMC.tfov = 60 * (VP.fk || 1); camSnap(); flowSfx('whistle', .5); crowdCheer(.6);
 }
