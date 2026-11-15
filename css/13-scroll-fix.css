@@ -1,0 +1,48 @@
+/* ===== 13-scroll-fix.css ｜ 長畫面「✕」永遠按得到＋WBC 選隊辨識／手機橫向排版 ===== */
+/* A. 關閉鈕所在的標題列固定在畫面上緣（sticky）：不管內容捲到哪、iOS 橡皮筋回彈到哪，✕ 都在可按的位置 */
+#audioPanel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-top:0}
+#audioPanel .ap-h{position:sticky;top:0;z-index:5;margin:0 -14px 8px;padding:10px 14px 8px;background:#0b1a2c;border-radius:11px 11px 0 0;box-shadow:0 6px 8px -6px #000c}
+#audioPanel #audioClose{min-width:44px;min-height:44px;margin:-8px -8px -8px 0;border-radius:50%;font-size:18px;touch-action:manipulation}
+#sub{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#sub h3{position:sticky;top:0;z-index:5;background:#0b1a2c}
+body.mob #sub .sx,#sub .sx{min-width:44px;min-height:36px;text-align:center}
+#lineup{overscroll-behavior:contain}
+#lineup .lu-h{position:sticky;top:0;z-index:6;margin:-12px -14px 8px;padding:10px 14px 8px;background:#0e1c2b;border-radius:15px 15px 0 0;box-shadow:0 6px 8px -6px #000c}
+#result{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#menu{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#saveDlg .sv-list,#vsRoot,.vs-box{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* B. WBC：頂列（返回）固定、不橫向捲動 */
+#wbcDlg .wb-wrap{overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-left:max(clamp(10px,3vw,28px),env(safe-area-inset-left));padding-right:max(clamp(10px,3vw,28px),env(safe-area-inset-right))}
+#wbcDlg .wb-top{position:sticky;top:0;z-index:8;margin-top:-4px;padding:6px 0;background:linear-gradient(#0f2c58 70%,rgba(15,44,88,0))}
+#wbcDlg .wb-ovi{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#wbcDlg .bk-scroll{touch-action:pan-x pan-y;overscroll-behavior-x:contain}
+/* C. WBC 選隊：格子不再被內容撐寬（1fr 預設 min-width:auto 就是會左右晃的原因） */
+.wb-pools{grid-template-columns:repeat(4,minmax(0,1fr))}.wb-pool{min-width:0}
+@media (max-width:760px){.wb-pools{grid-template-columns:repeat(2,minmax(0,1fr))}.wb-ko{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.wb-pools{grid-template-columns:minmax(0,1fr)}.wb-ko{grid-template-columns:minmax(0,1fr)}}
+.wb-team{min-width:0}.wb-team b{min-width:0;line-height:1.2}
+/* D. 我的隊伍：換色字樣＋標籤 */
+.wb-team b .wb-my{display:block;margin-top:2px;font-size:10px;font-weight:900;letter-spacing:.04em;color:#ffe14a;text-shadow:0 1px 2px #000}
+.wb-team.on{border-color:#ffe14a;background:linear-gradient(90deg,rgba(255,225,74,.22),rgba(80,255,150,.2));box-shadow:0 0 0 2px rgba(255,225,74,.45),0 0 14px rgba(80,255,150,.35)}
+.wb-team.on b{color:#9affc2;font-size:15px;font-weight:900}
+.wb-team.sw.on b{color:#ffe14a}
+.wb-mytag{display:inline-block;margin:2px 0 0;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:900;color:#06210f;background:linear-gradient(#9affc2,#47d98a)}
+.wb-dh h2{color:#9affc2}.wb-dh h2 small{color:#fff}
+/* E. 手機橫向（矮螢幕）：整頁壓縮，四組並排不超寬 */
+@media (orientation:landscape) and (max-height:520px){
+  #wbcDlg .wb-wrap{padding-top:max(4px,env(safe-area-inset-top));padding-bottom:16px;max-width:none}
+  .wb-top{margin-bottom:4px}.wb-ttl b{font-size:18px}.wb-ttl small{font-size:10px}.wb-btn{padding:6px 10px;min-height:34px;font-size:13px}
+  .wb-resume{padding:6px 10px;margin-bottom:6px;font-size:12.5px}
+  .wb-tools{margin:0 0 6px;gap:6px}.wb-tools .wb-btn{font-size:12px;padding:5px 9px;min-height:30px}
+  .wb-pools{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .wb-pool{padding:5px}.wb-pool h3{margin:0 2px 5px;font-size:13px}.wb-pool h3 small{display:block;margin:0;font-size:9.5px}
+  .wb-team{flex-wrap:wrap;gap:2px 6px;padding:4px 6px;margin-bottom:4px;min-height:0}
+  .wb-team i{width:24px;height:24px}.wb-team b{font-size:12.5px;flex:1 1 0}.wb-team b .wb-my{font-size:9px;margin-top:0}
+  .wb-team em.wb-mini{order:3;flex:1 0 100%;width:100%;flex-direction:row;gap:6px}.wb-mini u{flex:1;gap:2px}.wb-mini u>span{height:5px}.wb-mini strong{width:16px;font-size:9px}
+  .wb-detail{margin-top:8px;padding:10px;max-width:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 14px}
+  .wb-detail>.wb-hint,.wb-detail>.wb-dh,.wb-detail>.wb-mytag{grid-column:1/-1}
+  .wb-detail .wb-btn.big{grid-column:1/-1;margin-top:6px;padding:9px;font-size:16px}.wb-detail .wb-opt{grid-column:1/-1;margin-top:4px}
+  .wb-detail .wb-key{grid-column:1/-1;margin:4px 0}.wb-big{width:46px}.wb-dh h2{font-size:18px}.wb-dh{margin-bottom:2px}
+  .wb-dh+.wb-style{grid-column:1}
+  .wb-next{padding:8px;margin-bottom:8px}.wb-acts .wb-btn{font-size:12px;padding:6px 10px;min-height:32px}
+}
