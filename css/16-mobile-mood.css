@@ -1,0 +1,18 @@
+/* 16-mobile-mood.css ｜ v1.5.3：手機／平板上方選手資訊卡的「心情」列恢復顯示
+   原因：12-wbc.css（v1.1.97）有一條 `body.ko.mob #koInfo .dt { display:none !important }`，
+         把「詳細列」整個藏起來；但心情（.md）就放在 .dt 裡，所以手機／平板的心情一直消失。
+   做法：最後載入，用同樣的 !important 把 .dt 開回來，只留心情；「出局數」(.ou) 已在左側壘包菱形與計分板顯示，
+         這裡維持隱藏以省空間；「下兩棒」(.nx) 仍照 12-wbc.css 省略。電腦版不受影響（規則只套 body.ko.mob）。 */
+body.ko.mob #koInfo .dt { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 0 !important; padding: 0 4px 1px !important; white-space: nowrap !important; overflow: hidden !important; line-height: 1.2 !important; font-size: clamp(8px, 2.2vh, 9.5px) !important }
+body.ko.mob #koInfo .dt .ou { display: none !important }
+body.ko.mob #koInfo .dt .md { display: inline-flex !important; align-items: baseline !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; font-weight: 700 !important }
+body.ko.mob #koInfo .dt .md em { font-style: normal !important; margin-right: 2px !important }
+body.ko.mob #koInfo .dt .md b { margin: 0 2px !important; font-weight: 900 !important; color: inherit !important }
+
+/* v1.5.5：電腦版同樣顯示心情。09-koshien.css 有 `#koInfo .dt, #koInfo .ft strong { display:none }`（原本只想在手機顯示），
+   電腦版因此看不到心情。這裡把 .dt 開回來、只留心情（出局數 .ou 電腦版有左側 HOME／AWAY 與壘包菱形，不重複顯示）。 */
+body.ko:not(.mob) #koInfo .dt { display: flex !important; align-items: center !important; padding: 1px 5px 2px !important; white-space: nowrap !important; overflow: hidden !important; line-height: 1.25 !important; font-size: clamp(9px, .76vw, 11px) !important; font-weight: 700 !important; color: #e6ebf6 !important }
+body.ko:not(.mob) #koInfo .dt .ou { display: none !important }
+body.ko:not(.mob) #koInfo .dt .md { display: inline-flex !important; align-items: baseline !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important }
+body.ko:not(.mob) #koInfo .dt .md em { font-style: normal !important; margin-right: 2px !important }
+body.ko:not(.mob) #koInfo .dt .md b { margin: 0 2px !important; font-weight: 900 !important; color: inherit !important }
