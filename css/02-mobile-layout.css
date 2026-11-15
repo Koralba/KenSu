@@ -238,7 +238,8 @@ body.venuing #ov{visibility:hidden!important}
 #venueIntro .vi-home{margin-top:7px;padding-top:6px;border-top:1px solid #fff3;font-weight:800;font-size:clamp(14px,2.1vw,22px);color:#bfe}
 #venueIntro .vi-home b{color:var(--tc);filter:brightness(1.7)}
 #venueIntro .vi-wx{margin-top:4px;font-size:clamp(12px,1.6vw,16px);opacity:.9}
-#venueIntro .vi-skip{position:absolute;right:14px;bottom:calc(9vh + 8px);font-size:12px;opacity:.7;color:#fff;text-shadow:0 1px 3px #000}
+#venueIntro .vi-bar{display:none!important}      /* v1.5.14：球場介紹的上下黑色長條拿掉（JS 也不再產生） */
+#venueIntro .vi-skip{position:absolute;right:14px;bottom:calc(8px + env(safe-area-inset-bottom,0px));font-size:12px;opacity:.7;color:#fff;text-shadow:0 1px 3px #000}
 @keyframes viIn{from{transform:translateX(-105%);opacity:0}to{transform:none;opacity:1}}
 @keyframes viBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 #venueIntro .vi-top{transform-origin:top}#venueIntro .vi-bot{transform-origin:bottom}
